@@ -34,7 +34,7 @@ pip install argcomplete
 echo "Setup completed successfully."
 
 # Get the absolute path to the project's root directory
-ROUTERSHELL_PROJECT_ROOT="${HOME}/Projects/RouterShell"
+ROUTERSHELL_PROJECT_ROOT="${PWD}
 
 # Update the PYTHONPATH to include the project's root directory
 export PYTHONPATH="${PYTHONPATH}:${ROUTERSHELL_PROJECT_ROOT}:${ROUTERSHELL_PROJECT_ROOT}/src:${ROUTERSHELL_PROJECT_ROOT}/lib:${ROUTERSHELL_PROJECT_ROOT}/test"
