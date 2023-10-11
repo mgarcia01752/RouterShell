@@ -14,7 +14,7 @@ To configure ARP settings on your network device, follow the steps below:
 
 1. Access the device's command-line interface (CLI) by entering the following commands:
 
-   ```
+   ```shell
    enable
    configure terminal
    ```
@@ -27,7 +27,7 @@ The ARP timeout defines the time a cached ARP entry remains valid. By default, m
 
 - To set a custom ARP timeout (in seconds), use the command:
 
-   ```
+   ```shell
    [no] arp timeout <seconds>
    ```
 
@@ -40,7 +40,7 @@ ARP proxy allows the device to act as an intermediary for ARP requests and respo
 
 - To enable ARP proxy, use the command:
 
-   ```
+   ```shell
    [no] arp proxy
    ```
 
@@ -52,7 +52,7 @@ Gratuitous ARP requests are unsolicited ARP requests sent by a device to announc
 
 - To enable or disable dropping gratuitous ARP requests, use the command:
 
-   ```
+   ```shell
    [no] arp drop-gratuitous
    ```
 
@@ -64,7 +64,7 @@ You can also configure ARP settings on specific network interfaces. To do this, 
 
 1. Enter the interface configuration mode for the desired interface:
 
-   ```
+   ```shell
    interface <interface-name>
    ```
 
@@ -72,7 +72,7 @@ You can also configure ARP settings on specific network interfaces. To do this, 
 
 2. Configure ARP timeout on the interface (if needed):
 
-   ```
+   ```shell
    ip arp timeout <seconds>
    ```
 
@@ -80,7 +80,7 @@ You can also configure ARP settings on specific network interfaces. To do this, 
 
 3. Enable or disable proxy ARP on the interface (if needed):
 
-   ```
+   ```shell
    [no] ip proxy-arp
    ```
 
@@ -88,7 +88,7 @@ You can also configure ARP settings on specific network interfaces. To do this, 
 
 4. Enable or disable dropping gratuitous ARP on the interface (if needed):
 
-   ```
+   ```shell
    [no] ip drop-gratuitous-arp
    ```
 
@@ -96,7 +96,7 @@ You can also configure ARP settings on specific network interfaces. To do this, 
 
 5. Configure static ARP entries on the interface (if needed):
 
-   ```
+   ```shell
    [no] ip static-arp <inet-address> <mac-address> arpa
    ```
 
@@ -107,7 +107,7 @@ You can also configure ARP settings on specific network interfaces. To do this, 
 
 6. Exit the interface configuration mode when you are done:
 
-   ```
+   ```shell
    end
    ```
 

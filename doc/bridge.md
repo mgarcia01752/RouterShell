@@ -21,7 +21,6 @@ To configure bridge settings on your network device, follow the steps below:
    ```
 
    You will enter the configuration mode where you can make changes to the bridge settings.
-
 ### Bridge Configuration
 
 A bridge allows you to connect network segments and create a single logical network. To configure a bridge, follow these steps:

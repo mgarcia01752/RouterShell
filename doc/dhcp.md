@@ -14,9 +14,10 @@ This wiki provides a step-by-step guide on how to configure an IOS router to act
 4. **Configuring DHCP Options**:
    - To configure DHCP options, use the `option` command in the following format:
 
-     ```
+     ```shell
      option <dhcp-option> <[int | string | ip-address]>
      ```
+
    - Replace `<dhcp-option>` with the desired option name.
    - Specify the option type as `[int | string | ip-address]` as appropriate.
    - Repeat this command for each DHCP option you want to configure.
@@ -34,23 +35,29 @@ This wiki provides a step-by-step guide on how to configure an IOS router to act
 2. **Defining the Subnet**:
    - Use the `subnet` command to define the IP subnet and mask in the following format:
 
-     ```
+     ```shell
      subnet <ip-subnet>/<mask>
      ```
+
    - Replace `<ip-subnet>` with the subnet address and `<mask>` with the subnet mask.
 
 3. **Configuring IP Address Pool Range**:
    - Use the `pool` command to specify the IP address range for the pool in the following format:
-     ```
+
+     ```shell
      pool <ip-address-start> <ip-address-end>
      ```
+     
    - Replace `<ip-address-start>` with the first IP address in the pool range, and `<ip-address-end>` with the last IP address.
 
 4. **Creating Reservations**:
+
    - You can create reservations for specific clients using the `reservations` command in the following format:
-     ```
+
+     ```shell
      reservations [hw-address | duid] <mac-address> ip-address <ip-address> [hostname <string>]
      ```
+
    - Choose between `hw-address` or `duid` to identify the client.
    - Provide the client's MAC address, IP address, and an optional hostname.
 
@@ -68,10 +75,12 @@ This wiki provides a step-by-step guide on how to configure an IOS router to act
    - Replace `<interface-name>` with the name of the interface (e.g., GigabitEthernet0/0).
 
 2. **Associating with DHCP Pool**:
+
    - To enable DHCP for the interface and associate it with a DHCP pool, use the following command:
-     ```
+     ```shell
      dhcp-server pool-name <dhcp-pool-name>
      ```
+
    - Replace `<dhcp-pool-name>` with the name of the DHCP pool you configured earlier.
 
 3. **Exit Interface Configuration**: Type `end` and press Enter to exit the interface configuration mode.
@@ -80,7 +89,7 @@ Your router is now configured as a DHCP server. It will assign IP addresses and 
 
 For specific configuration details and available DHCP options, refer to your router's documentation and consult the documentation.
 
-```
+```shell
 enable
 configure terminal
 
