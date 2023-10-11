@@ -72,6 +72,8 @@ Please select the specific documentation file you are interested in from the tab
 
 If you have any questions or need further assistance, please feel free to reach out to our community or project team. Thank you for choosing RouterShell!
 
+## [TODO](todo.md)
+
 ## Setup and Running RouterShell (Temporary until install script is ready)
 
 ```bash
