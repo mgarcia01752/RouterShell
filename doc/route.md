@@ -1,5 +1,3 @@
-Certainly! Here are examples of Cisco router route configurations for both IPv4 and IPv6 networks. These examples include static routes, default routes, and IPv6-specific routes:
-
 **IPv4 Static Route**:
 
 1. **Static IPv4 Route to a Network**:
@@ -47,4 +45,4 @@ Certainly! Here are examples of Cisco router route configurations for both IPv4 
 
    This configuration sets up both an IPv4 and an IPv6 default route. IPv4 traffic is forwarded via `10.0.0.1`, and IPv6 traffic is forwarded via `2001:db8:1234:5678::1` through the `GigabitEthernet0/0/0` interface.
 
-These are basic examples of Cisco router route configurations. Be sure to adapt these configurations to your specific network setup and adjust IP addresses, subnet masks, interface names, and next-hop gateway addresses as needed.
+These are basic examples of router route configurations. Be sure to adapt these configurations to your specific network setup and adjust IP addresses, subnet masks, interface names, and next-hop gateway addresses as needed.
