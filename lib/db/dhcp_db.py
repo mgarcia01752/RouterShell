@@ -3,6 +3,8 @@ import ipaddress
 import json
 from typing import Dict, Union
 
+from lib.common import STATUS_NOK, STATUS_OK
+
 class DHCPDatabase:
     """
     DHCPDatabase class for managing DHCP configuration.
@@ -11,10 +13,6 @@ class DHCPDatabase:
     dhcp_pool = {
         "DhcpPool": {
             "pool-name": [
-                {
-                    "subnet-id": "",
-                    "name": ""
-                }
             ]
         }
     }
@@ -117,21 +115,22 @@ class DHCPDatabase:
                 subnet["pools"].append(new_pool)
                 break  # Exit the loop once the subnet is found
 
-    def add_pool_name(self, pool_name: str, subnet_id: str) -> bool:
+    def add_pool_name(self, pool_name: str, subnet_id: int = -1) -> bool:
         """
         Add a pool name to the DHCP configuration and associate it with a subnet ID.
 
         Args:
             pool_name (str): The name of the pool to add.
-            subnet_id (str): The ID of the subnet to associate the pool with.
+            subnet_id (int): The ID of the subnet to associate the pool with.
+                Default subnet_id = -1, if subnet ID is not know at the time of add
 
         Returns:
-            bool: True if the pool name was added successfully, False if it already exists.
+            bool: STATUS_OK if the pool name was added successfully, STATUS_NOK if it already exists.
         """
         # Check if the pool name already exists
         for pool_entry in self.dhcp_pool["DhcpPool"]["pool-name"]:
             if pool_entry["name"] == pool_name:
-                return False  # Pool name already exists
+                return STATUS_NOK  # Pool name already exists
 
         # If the pool name doesn't exist, add it
         new_pool_entry = {
@@ -139,7 +138,29 @@ class DHCPDatabase:
             "name": pool_name
         }
         self.dhcp_pool["DhcpPool"]["pool-name"].append(new_pool_entry)
-        return True  # Pool name added successfully
+        return STATUS_OK  # Pool name added successfully
+
+    def update_pool_name(self, pool_name: str, new_subnet_id: int) -> bool:
+        """
+        Update the subnet ID associated with a pool name in the DHCP configuration.
+
+        Args:
+            pool_name (str): The name of the pool to update.
+            new_subnet_id (int): The new subnet ID to associate with the pool.
+
+        Returns:
+            bool: STATUS_OK if the pool name was updated successfully, STATUS_NOK if the pool name doesn't exist.
+        """
+        # Find the pool entry by name
+        for pool_entry in self.dhcp_pool["DhcpPool"]["pool-name"]:
+            if pool_entry["name"] == pool_name:
+                # Update the subnet ID
+                pool_entry["subnet-id"] = new_subnet_id
+                return STATUS_OK  # Pool name updated successfully
+
+        # If the pool name doesn't exist, return False
+        return STATUS_NOK
+
 
     def pool_name_exists(self, pool_name: str) -> bool:
         """
@@ -192,23 +213,24 @@ class DHCPDatabase:
         with open(self.config_file, 'w') as file:
             json.dump(self.kea_dhcpv4_config, file, indent=4)
 
-    def get_dhcp_pool(self) -> Dict:
+    def get_dhcp_pool(self) -> str:
         """
-        Get a deep copy of the DHCP pool configuration.
+        Get a deep copy of the DHCP pool configuration as a JSON string.
 
         Returns:
-            dict: A deep copy of the DHCP pool configuration.
+            str: A JSON string representing the DHCP pool configuration.
         """
-        return copy.deepcopy(self.dhcp_pool)
+        return json.dumps(self.dhcp_pool)
 
-    def get_kea_dhcpv4_config(self) -> Dict:
+    def get_kea_dhcpv4_config(self) -> str:
         """
-        Get a deep copy of the KEA DHCPv4 configuration.
+        Get a deep copy of the KEA DHCPv4 configuration as a JSON string.
 
         Returns:
-            dict: A deep copy of the KEA DHCPv4 configuration.
+            str: A JSON string representing the KEA DHCPv4 configuration.
         """
-        return copy.deepcopy(self.kea_dhcpv4_config)
+        return json.dumps(self.kea_dhcpv4_config)
+
 
 class DhcpOptionsLUT:
     '''https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#interface-configuration'''

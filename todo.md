@@ -5,7 +5,7 @@
 ### DHCPv4 Support
 
 config global and interface (Complete)
-show commands 
+show dhcp commands
 
 ### DHCPv6 Support
 
@@ -19,6 +19,10 @@ show commands
 ### Wireless Global Config
 
 ### Show Commands
+
+show linux-cmd
+show sysctl-cmd
+show log
 
 ## Routing Protocols
 

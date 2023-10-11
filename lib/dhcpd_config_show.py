@@ -40,7 +40,10 @@ class DHCPServerConfig(cmd2.Cmd,
         self.prompt = self.set_prompt()
                 
         if not DHCPDatabase().pool_name_exists(self.dhcp_pool_name):
-            self.log.info(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")      
+            self.log.info(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")
+            if DHCPDatabase().add_pool_name(self.dhcp_pool_name):
+                self.log.error(f"Unexpected error adding DHCP Pool Name: {self.dhcp_pool_name}")
+                return STATUS_NOK      
         
     def isGlobalMode(self) -> bool:
         return self.dhcp_pool_name == self.GLOBAL_CONFIG_MODE
@@ -80,9 +83,7 @@ class DHCPServerConfig(cmd2.Cmd,
 
         # Handle the 'subnet' command logic here
         self.log.info(f"Configuring subnet with IP address: {ip_address} and subnet mask: {subnet_mask}")
-        # Implement your logic for configuring the subnet using the parsed arguments
 
-    
     def do_pools(self, args: str):
         '''
         Configure an IP pool with the specified start and end IP addresses and subnet mask.
@@ -122,7 +123,6 @@ class DHCPServerConfig(cmd2.Cmd,
         self.log.info(f"Configuring IP pool with start IP: {ip_start}, end IP: {ip_end}, and subnet mask: {subnet_mask}")
         # Implement your logic for configuring the IP pool using the parsed arguments
 
-    
     def do_reservations(self, args: str):
         '''
         Configure a reservation for a client with the specified MAC address, IP address, and optional hostname.
@@ -171,7 +171,6 @@ class DHCPServerConfig(cmd2.Cmd,
         self.log.info(f"Configuring reservation for client with {mac_or_duid}: {client_identifier}, IP address: {ip_address}, and hostname: {hostname}")
         # Implement your logic for configuring the reservation using the parsed arguments
 
-    
     def do_option(self, args:str, negate=False):
         '''args: dhcp_option dhcp_value'''
         
@@ -190,6 +189,7 @@ class DHCPServerConfig(cmd2.Cmd,
             DHCPDatabase().update_global_config(dhcp_option, dhcp_value)
     
     def do_tell(self, args):
+        print(f"{DHCPDatabase().get_dhcp_pool()}")
         print(f"{DHCPDatabase().get_kea_dhcpv4_config()}")
 
     def do_commit(self):
