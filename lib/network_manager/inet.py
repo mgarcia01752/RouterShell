@@ -1,0 +1,246 @@
+import ipaddress
+import json
+import logging
+from typing import List
+
+from lib.network_manager.mac import MacServiceLayer
+from lib.constants import *
+from lib.run_commands import RunResult
+
+class InetServiceLayer(MacServiceLayer):
+    """
+    A class for configuring network settings using iproute2.
+    """
+    def __init__(self):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+            
+    def is_valid_ipv4(self, inet_address: str) -> bool:
+        """
+        Check if an IPv4 address is valid.
+
+        Args:
+            inet_address (str): The IPv4 address as a string.
+
+        Returns:
+            bool: True if the address is valid, False otherwise.
+        """
+        
+        self.log.debug(f"is_valid_ipv4() -> Inet Address: ({inet_address})")
+        
+        try:
+            ipaddress.IPv4Address(inet_address)
+            self.log.debug(f"is_valid_ipv4() -> Inet Address: ({inet_address}) is Good")
+            return True
+        except ipaddress.AddressValueError:
+            self.log.error(f"is_valid_ipv4() -> Inet Address: ({inet_address}) is Bad")
+            return False
+
+    def is_valid_ipv6(self, inet6_address: str, include_prefix=True) -> bool:
+        """
+        Check if an IPv6 address is valid.
+
+        Args:
+            inet6_address (str): The IPv6 address as a string.
+
+        Returns:
+            bool: True if the address is valid, False otherwise.
+        """
+        try:
+            parts = inet6_address.split('/')
+            self.log.debug(f"is_valid_ipv6() -> inet6: ({parts}) -> include-prefix({include_prefix})")
+            if len(parts) != 2:
+                return False
+
+            address, prefix_length = parts[0], int(parts[1])
+            ipaddress.IPv6Network(address)
+            return True
+        except (ipaddress.AddressValueError, ValueError):
+            return False
+    
+    def set_inet_address(self,
+                         interface: str, 
+                         inet_address: ipaddress.IPv4Network, 
+                         inet_subnet: ipaddress.IPv4Network, 
+                         secondary: bool = False) -> RunResult:
+        """
+        Set an IPv4 address on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet_address (str): The IPv4 address to set as a string.
+            inet_subnet (ipaddress.IPv4Network): The IPv4 subnet.
+            secondary (bool, optional): Set as secondary address. Defaults to False.
+
+        Returns:
+            str: Status code, either STATUS_OK or STATUS_NOK.
+        """
+        if not self.is_valid_ipv4(inet_address):
+            logging.error(f"Invalid IPv4 address: {inet_address}")
+            return STATUS_NOK
+
+        if not self.is_valid_ipv4(inet_subnet):
+            logging.error(f"Invalid IPv4 subnet: {inet_address}")
+            return STATUS_NOK
+                
+        subnet = ipaddress.IPv4Network(f"0.0.0.0/{inet_subnet}", strict=False)
+        
+        cmd = ["ip", "addr", "add"]
+        if secondary:
+            cmd += ["secondary"]
+        cmd += [f"{inet_address}/{subnet.prefixlen}", "dev", interface]
+        return self.run(cmd)
+
+    def del_inet_address(self,
+                         interface: str, 
+                         inet_address: ipaddress.IPv4Network, 
+                         inet_subnet: ipaddress.IPv4Network, 
+                         secondary: bool = False) -> RunResult:
+        """
+        delete an IPv4 address on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet_address (str): The IPv4 address to set as a string.
+            inet_subnet (ipaddress.IPv4Network): The IPv4 subnet.
+            secondary (bool, optional): Set as secondary address. Defaults to False.
+
+        Returns:
+            str: Status code, either STATUS_OK or STATUS_NOK.
+        """
+        if not self.is_valid_ipv4(inet_address):
+            logging.error(f"Invalid IPv4 address: {inet_address}")
+            return STATUS_NOK
+
+        if not self.is_valid_ipv4(inet_subnet):
+            logging.error(f"Invalid IPv4 subnet: {inet_address}")
+            return STATUS_NOK
+                
+        subnet = ipaddress.IPv4Network(f"0.0.0.0/{inet_subnet}", strict=False)
+        
+        cmd = ["ip", "addr", "del"]
+        if secondary:
+            cmd += ["secondary"]
+        cmd += [f"{inet_address}/{subnet.prefixlen}", "dev", interface]
+        
+        return self.run(cmd)
+    
+    def set_ipv4_default_gateway(self,
+                                 interface: str, inet_address: str) -> RunResult:
+        """
+        Set the default IPv4 gateway on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet_address (str): The IPv4 gateway address as a string.
+
+        Returns:
+            str: Status code, either STATUS_OK or STATUS_NOK.
+        """
+        if not self.is_valid_ipv4(inet_address):
+            logging.error(f"Invalid IPv4 gateway address: {inet_address}")
+            return STATUS_NOK
+        
+        cmd = ["ip", "route", "add", "default", "via", inet_address, "dev", interface]
+        return self.run(cmd)
+    
+    def set_inet6_address(self,
+                          interface: str, 
+                          inet6_address: str,
+                          secondary: bool = False) -> RunResult:
+        """
+        Set an IPv6 address on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet6_address (str): The IPv6 address to set as a string.
+            inet6_subnet (ipaddress.IPv6Network): The IPv6 subnet.
+            secondary (bool, optional): Set as secondary address. Defaults to False.
+
+        Returns:
+            str: Status code, either STATUS_OK or STATUS_NOK.
+        """
+        if not self.is_valid_ipv6(inet6_address):
+            logging.error(f"Invalid IPv6 address: {inet6_address}")
+            return STATUS_NOK
+        
+        cmd = ["ip", "-6", "addr", "add"]
+        if secondary:
+            cmd += ["secondary"]
+        cmd += [f"{inet6_address}", "dev", interface]
+        return self.run(cmd)
+   
+    def del_inet6_address(self,
+                          interface: str, 
+                          inet6_address: str,
+                          secondary: bool = False) -> RunResult:
+        """
+        Delete an IPv6 address on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet6_address (str): The IPv6 address to set as a string.
+            inet6_subnet (ipaddress.IPv6Network): The IPv6 subnet.
+            secondary (bool, optional): Set as secondary address. Defaults to False.
+
+        Returns:
+            str: Status code, either STATUS_OK or STATUS_NOK.
+        """
+        if not self.is_valid_ipv6(inet6_address):
+            logging.error(f"Invalid IPv6 address: {inet6_address}")
+            return STATUS_NOK
+        
+        cmd = ["ip", "addr", "del"]
+        if secondary:
+            cmd += ["secondary"]
+        cmd += [f"{inet6_address}", "dev", interface]
+        return self.run(cmd)
+ 
+    def set_ipv6_default_gateway(self, interface: str, inet6_address: str) -> RunResult:
+        """
+        Set the default IPv6 gateway on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet6_address (str): The IPv6 gateway address as a string.
+
+        Returns:
+            str: Status code, either STATUS_OK or STATUS_NOK.
+        """
+        if not self.is_valid_ipv6(inet6_address):
+            logging.error(f"Invalid IPv6 gateway address: {inet6_address}")
+            return STATUS_NOK
+        
+        cmd = ["ip", "-6", "route", "add", "default", "via", inet6_address, "dev", interface]
+        return self.run(cmd)
+
+    def get_interface_ip_addresses(self, ifName, ip_version=None):
+        """
+        Get IP addresses of a network interface using iproute2 --json option.
+
+        Args:
+            ifName (str): The name of the network interface.
+            ip_version (str, optional): IP version to filter (None for both IPv4 and IPv6,
+                                        'ipv4' for IPv4 only, 'ipv6' for IPv6 only).
+
+        Returns:
+            list: List of IP addresses associated with the interface.
+        """
+        # Run the ip command with --json option
+        output = self.run(['ip', '--json', 'addr', 'show', ifName])
+        
+        if output.exit_code:
+            self.log.error(f"Unable to obtain ip addresses from interface: {ifName}")
+            return []
+
+        # Parse the JSON output
+        ip_info = json.loads(output.stdout)
+
+        # Extract IP addresses based on the specified IP version
+        addresses = []
+        for addr_info in ip_info[0]['addr_info']:
+            ip_addr = addr_info['local']
+            if ip_version is None or (ip_version == 'ipv4' and ':' not in ip_addr) or (ip_version == 'ipv6' and ':' in ip_addr):
+                addresses.append(ip_addr)
+
+        return addresses
