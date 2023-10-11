@@ -17,7 +17,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),  # Log to the console
-        logging.FileHandler('../log/router.log')
+        logging.FileHandler('/tmp/log/routershell.log')
     ]
 )
 

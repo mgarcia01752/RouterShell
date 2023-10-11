@@ -14,7 +14,7 @@ class SysCtl(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.sys_ctl_log_dir = '/var/tmp'
+        self.sys_ctl_log_dir = '/var/log'
 
     def write_sysctl(self, sysctl_param: str, value:str) -> bool:
         """
@@ -68,7 +68,7 @@ class SysCtl(RunCommand):
         """
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"{timestamp} - {command}"
-        log_path = f"{self.sys_ctl_log_dir}/sysctl_log.txt"
+        log_path = f"{self.sys_ctl_log_dir}/sysctl.log"
         
         self.log.debug(log_entry)
 

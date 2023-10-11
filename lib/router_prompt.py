@@ -5,16 +5,6 @@ from lib.exec_priv_mode import ExecMode, ExecException
 # Importing constants from a separate module
 from lib.constants import *
 
-# Configure the logging settings
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),  # Log to the console
-        logging.FileHandler('../log/router.log')
-    ]
-)
-
 class RouterPrompt:
     '''CMD prompt formatter'''
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 from lib.router_cli import RouterCLI
 
 import platform
@@ -11,4 +12,8 @@ if __name__ == '__main__':
     if platform.system() != 'Linux':
         print("This program is intended to run on a Linux system.")
     else:
+        router_shell_log_dir = '/tmp/log'
+        if not os.path.exists(router_shell_log_dir):
+            os.makedirs(router_shell_log_dir)
+            
         RouterCLI().cmdloop()

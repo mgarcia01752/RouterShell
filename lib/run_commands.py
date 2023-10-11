@@ -18,7 +18,7 @@ class RunCommand:
         self.log = logging.getLogger(self.__class__.__name__)
         self.run_cmds_successful: List[str] = []
         self.run_cmds_failed: List[str] = []
-        self.log_dir = '../log/commands'
+        self.log_dir = '/tmp/log'
 
         # Check if the log directory exists, and create it if not
         if not os.path.exists(self.log_dir):
@@ -33,7 +33,7 @@ class RunCommand:
         """
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"{timestamp} - {command}"
-        log_path = f"{self.log_dir}/command_log.txt"
+        log_path = f"{self.log_dir}/routershell-command.log"
 
         with open(log_path, "a") as log_file:
             log_file.write(log_entry + "\n")
