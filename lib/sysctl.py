@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 from lib.constants import STATUS_NOK, STATUS_OK
 from lib.run_commands import RunCommand, RunResult
 
@@ -14,7 +15,9 @@ class SysCtl(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.sys_ctl_log_dir = '/var/log'
+        self.sys_ctl_log_dir = '/tmp/log'
+        if not os.path.exists(self.sys_ctl_log_dir):
+            os.makedirs(self.sys_ctl_log_dir)
 
     def write_sysctl(self, sysctl_param: str, value:str) -> bool:
         """
