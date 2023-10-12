@@ -5,12 +5,12 @@ import logging
 
 import cmd2
 
-from lib.db.dhcp_db import DHCPDatabase, DhcpOptionsLUT
+from lib.db.dhcp_db import DHCPDatabase, DhcpOptionsLUT, DHCPDatabaseFactory
 from lib.exec_priv_mode import ExecMode
 from lib.global_operation import GlobalUserCommand
 from lib.router_prompt import RouterPrompt
 
-from lib.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServerConfig(cmd2.Cmd,
                        GlobalUserCommand,
@@ -19,15 +19,17 @@ class DHCPServerConfig(cmd2.Cmd,
     GLOBAL_CONFIG_MODE = 'global'
     PROMPT_CMD_ALIAS = 'dhcp'    
     
-    def __init__(self, dhcp_pool_name: str):
+    def __init__(self, dhcp_pool_name: str, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         GlobalUserCommand.__init__(self)
         
-        self.log.info(f"DHCPServerConfig({dhcp_pool_name})")
+        self.log.info(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")
         
-        ''' DO NOT MODIFY THIS LINE'''        
+        ''' DO NOT MODIFY THIS LINE'''
+        self.dhcp_pool_obj = None        
         self.dhcp_pool_name = dhcp_pool_name
+        self.negate = negate
         ''' DO NOT MODIFY THIS LINE'''
         
         prompt_ext = ""
@@ -41,9 +43,7 @@ class DHCPServerConfig(cmd2.Cmd,
                 
         if not DHCPDatabase().pool_name_exists(self.dhcp_pool_name):
             self.log.info(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")
-            if DHCPDatabase().add_pool_name(self.dhcp_pool_name):
-                self.log.error(f"Unexpected error adding DHCP Pool Name: {self.dhcp_pool_name}")
-                return STATUS_NOK      
+
         
     def isGlobalMode(self) -> bool:
         return self.dhcp_pool_name == self.GLOBAL_CONFIG_MODE
@@ -56,7 +56,7 @@ class DHCPServerConfig(cmd2.Cmd,
             args (str): The arguments for the 'subnet' command, which should include an IP address and a subnet mask.
 
         Example:
-            subnet 192.168.1.0 255.255.255.0
+            subnet 192.168.1.0/24
         '''
         self.log.info(f"do_subnet() -> args: {args}")
 
@@ -66,8 +66,7 @@ class DHCPServerConfig(cmd2.Cmd,
         )
 
         # Define the arguments directly without subcommands
-        parser.add_argument("ip_address", help="The IP address of the subnet")
-        parser.add_argument("subnet_mask", help="The subnet mask for the subnet")
+        parser.add_argument("ip_address_mask", help="The IP address/mask of the subnet")
 
         try:
             if not isinstance(args, list):
@@ -77,17 +76,11 @@ class DHCPServerConfig(cmd2.Cmd,
         except SystemExit:
             return
 
-        ip_address = args.ip_address
-        subnet_mask = args.subnet_mask
+        ip_address_mask = args.ip_address_mask
+        self.log.info(f"Configuring subnet with IP Subnet: {ip_address_mask}")
+        self.dhcp_pool_Fact = DHCPDatabaseFactory(self.dhcp_pool_name, ip_address_mask, self.negate)
 
-        self.log.info(f"Configuring subnet with IP address: {ip_address} and subnet mask: {subnet_mask}")
         
-        num_of_subnets = DHCPDatabase().get_number_of_subnets(0)
-        
-        if DHCPDatabase().add_subnet((num_of_subnets + 1), ip_address, subnet_mask):
-            self.log.error(f"Unable to add subnet pool: {ip_address} {subnet_mask}")
-            return STATUS_NOK
-
     def do_pools(self, args: str):
         '''
         Configure an IP pool with the specified start and end IP addresses and subnet mask.
