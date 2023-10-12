@@ -23,32 +23,38 @@ class DHCPDatabaseFactory:
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_version = dhcp_version
 
-        # Assuming dhcp_db is an instance of DHCPDatabase
-        # Make sure it is instantiated before using it.
-        self.dhcp_db = DHCPDatabase()  # Assuming this is how you create an instance
+        if not DHCPDatabase().pool_name_exists(dhcp_pool_name):
 
-        # Assuming these methods exist in your DHCPDatabase class:
-        self.kea_v4_db = self.dhcp_db.get_kea_dhcpv4_config()
-        self.dhcp_pool_db = self.dhcp_db.get_dhcp_pool()
-
-        if not self.dhcp_db.pool_name_exists(dhcp_pool_name):
+        if not DHCPDatabase().pool_name_exists(dhcp_pool_name):
+            pool_name_id = DHCPDatabase().get_pool_name_id()
+            
+            self.kea_v4_db = DHCPDatabase().get_kea_config()
+            self.dhcp_pool_db = DHCPDatabase().get_dhcp_pool()
             
             if negate:
+                self.log.info(f"Removing DHCP pool: {dhcp_pool_name}")
+                
                 # Delete pool-name
+                if DHCPDatabase().delete_pool_name(dhcp_pool_name):
+                    self.log.error(f"Unable to delete DHCP pool name: {dhcp_pool_name}")
+                    return STATUS_NOK
+                
                 # Delete subnet associated to pool-name
-                # Remove references to preserve db
-                self.dhcp_db.delete_pool_name(dhcp_pool_name)
-                self.dhcp_db.delete_subnet_associated_with_pool_name(dhcp_pool_name)
+                if DHCPDatabase().delete_subnet(pool_name_id):
+                    self.log.error(f"Unable to delete or does not exists DHCP Subnet-ID: {pool_name_id}")
+                    return STATUS_NOK
+                
+                self.log.info(f"Remove references pointers to preserve db")
+                self.kea_v4_db, self.dhcp_pool_db = None
+
             else:                    
-                num_of_subnets = self.dhcp_db.get_number_of_subnets(dhcp_version)
-                if self._set_pool_name(dhcp_pool_name, num_of_subnets):
+                subnet_id = (DHCPDatabase().get_number_of_subnets(dhcp_version) + 1)
+                if self._set_pool_name(dhcp_pool_name, subnet_id)):
                     self.log.error(f"Unable to add DHCP Pool {dhcp_pool_name}")
                 else:
-                    self._set_subnet(ip_subnet_mask, dhcp_version)  
+                    self._set_subnet(ip_subnet_mask, dhcp_version, subnet_id)  
         else:
             pass
-
-                
 
     def _set_pool_name(self, pool_name: str, subnet_id: int = -1) -> bool:
         """
@@ -75,28 +81,31 @@ class DHCPDatabaseFactory:
         self.dhcp_pool["DhcpPool"]["pool-name"].append(new_pool_entry)
         return STATUS_OK
         
-    def _set_subnet(self, ip_subnet_mask: ipaddress, dhcp_version:DhcpVersion, num_of_subnets:int=0) -> int:
+    def _set_subnet(self, ip_subnet_mask: ipaddress.IPv4Network, dhcp_version: int, subnet_id: int = 0) -> bool:
         """
         Add a new subnet to the DHCP configuration.
 
         Args:
-            ip_subnet_mask (IPv4Network): The IPv4 subnet and mask in CIDR notation (e.g., "192.168.1.0/24").
+            ip_subnet_mask (ipaddress.IPv4Network): The IPv4 subnet and mask in CIDR notation (e.g., "192.168.1.0/24").
+            dhcp_version (int): The DHCP version (e.g., 4 for DHCPv4 or 6 for DHCPv6).
+            subnet_id (int, optional): The ID of the subnet you're adding. If not provided, it will be automatically assigned based on existing subnets.
 
         Returns:
-            int: The unique ID of the added subnet.
+            bool: STATUS_OK if the subnet was successfully added to the configuration, STATUS_NOK otherwise.
         """
-        
-        num_of_subnets = DHCPDatabase.get_number_of_subnets(dhcp_version)
-        subnet_id = num_of_subnets + 1
+        if not subnet_id:
+            subnet_id = (DHCPDatabase.get_number_of_subnets(dhcp_version) + 1)
+
         new_subnet = {
             "id": subnet_id,
-            "subnet": str(ip_subnet_mask),  # Convert the IPv4Network to a string
+            "subnet": str(ip_subnet_mask)
         }
 
         # Add the new subnet to the existing configuration
         self.kea_v4_db["Dhcp4"]["subnet4"].append(new_subnet)
 
-        return subnet_id
+        return STATUS_OK
+
 
 class DHCPDatabase:
     """
@@ -352,6 +361,51 @@ class DHCPDatabase:
     def get_kea_config(self):
         return self.kea_dhcpv4_config
 
+    def delete_pool_name(self, pool_name:str) -> bool:
+        """
+        Delete a DHCP pool by name.
+
+        Args:
+            pool_name (str): The name of the DHCP pool to delete.
+
+        Returns:
+            bool: STATUS_OK if the pool was successfully deleted, STATUS_NOK if the pool was not found.
+        """
+        if pool_name in self.dhcp_pool["DhcpPool"]["pool-name"]:
+            self.dhcp_pool["DhcpPool"]["pool-name"].remove(pool_name)
+            return STATUS_OK
+        return STATUS_NOK
+
+    def delete_subnet(self, subnet_id: int) -> bool:
+        """
+        Delete a DHCP subnet by ID.
+
+        Args:
+            subnet_id (int): The ID of the DHCP subnet to delete.
+
+        Returns:
+            bool: STATUS_OK if the subnet was successfully deleted, STATUS_NOK if the subnet was not found.
+        """
+        for subnet in self.kea_dhcpv4_config["Dhcp4"]["subnet4"]:
+            if subnet["id"] == subnet_id:
+                self.kea_dhcpv4_config["Dhcp4"]["subnet4"].remove(subnet)
+                return STATUS_OK
+        return STATUS_NOK
+
+    def get_pool_name_id(self, pool_name:str) -> int:
+        """
+        Get the ID of a DHCP pool by its name.
+
+        Args:
+            pool_name (str): The name of the DHCP pool to retrieve the ID for.
+
+        Returns:
+            int: The ID of the DHCP pool if found, or None if the pool was not found.
+        """
+        pool_names = self.dhcp_pool["DhcpPool"]["pool-name"]
+        if pool_name in pool_names:
+            return pool_names.index(pool_name)
+        return None
 
 class DhcpOptionsLUT:
     '''https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#interface-configuration'''
