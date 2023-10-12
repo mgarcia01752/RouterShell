@@ -4,10 +4,10 @@ import cmd2
 
 from tabulate import tabulate
 
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import ExecMode, RouterPrompt
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.phy import State
-from lib.constants import *
+from lib.common.constants import *
 
 from lib.network_manager.bridge import Bridge
 class InvalidBridge(Exception):

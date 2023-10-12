@@ -2,10 +2,10 @@ import argparse
 import cmd2
 import logging
 
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import RouterPrompt, ExecMode
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import RouterPrompt, ExecMode
 
-from lib.constants import *
+from lib.common.constants import *
 
 class InvalidSub(Exception):
     def __init__(self, message):

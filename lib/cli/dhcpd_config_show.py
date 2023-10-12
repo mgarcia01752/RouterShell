@@ -6,9 +6,9 @@ import logging
 import cmd2
 
 from lib.db.dhcp_db import DHCPDatabase, DhcpOptionsLUT, DHCPDatabaseFactory
-from lib.exec_priv_mode import ExecMode
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import RouterPrompt
+from lib.cli.exec_priv_mode import ExecMode
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import RouterPrompt
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 

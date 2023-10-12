@@ -3,18 +3,18 @@ import cmd2
 import logging
 import argparse
 
-from lib.global_operation import GlobalUserCommand
-from lib.nat_config_show import NatShow
-from lib.router_prompt import RouterPrompt
-from lib.exec_priv_mode import ExecMode, ExecException
-from lib.arp_config_show import ArpShow
-from lib.bridge_config_show import BridgeShow
-from lib.vlan_config_show import VlanShow
-from lib.ip_route_config_show import RouteShow
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.nat_config_show import NatShow
+from lib.cli.router_prompt import RouterPrompt
+from lib.cli.exec_priv_mode import ExecMode, ExecException
+from lib.cli.arp_config_show import ArpShow
+from lib.cli.bridge_config_show import BridgeShow
+from lib.cli.vlan_config_show import VlanShow
+from lib.cli.ip_route_config_show import RouteShow
 from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceConfigDB
 from lib.db.nat_db import NatPoolDB
-from lib.constants import *
+from lib.common.constants import *
 
 class InvalidShowMode(Exception):
     def __init__(self, message):

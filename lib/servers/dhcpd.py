@@ -3,7 +3,7 @@ import logging
 
 
 from lib.db.dhcp_db import DHCPDatabase
-from lib.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServer():
 

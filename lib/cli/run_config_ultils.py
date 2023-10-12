@@ -2,9 +2,9 @@ import cmd2
 import logging
 import argparse
 
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import ExecMode, RouterPrompt
-from lib.constants import *
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import ExecMode, RouterPrompt
+from lib.common.constants import *
 
 class InvalidSubCommand(Exception):
     def __init__(self, message):

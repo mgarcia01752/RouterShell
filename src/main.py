@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-from lib.router_cli import RouterCLI
+from lib.cli.router_cli import RouterCLI
 
 import platform
-import subprocess
 
 if __name__ == '__main__':
     

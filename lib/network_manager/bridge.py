@@ -6,7 +6,7 @@ from typing import Optional
 from tabulate import tabulate 
 from lib.network_manager.mac import MacServiceLayer
 from lib.network_manager.phy import State
-from lib.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK
 
 class BridgeProtocol(Enum):
     

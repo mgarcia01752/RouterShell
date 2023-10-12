@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Dict, Union
 
-from lib.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK
 
 from enum import Enum
 class DhcpVersion(Enum):
@@ -24,8 +24,7 @@ class DHCPDatabaseFactory:
         self.dhcp_version = dhcp_version
 
         if not DHCPDatabase().pool_name_exists(dhcp_pool_name):
-
-        if not DHCPDatabase().pool_name_exists(dhcp_pool_name):
+            
             pool_name_id = DHCPDatabase().get_pool_name_id()
             
             self.kea_v4_db = DHCPDatabase().get_kea_config()
@@ -49,7 +48,7 @@ class DHCPDatabaseFactory:
 
             else:                    
                 subnet_id = (DHCPDatabase().get_number_of_subnets(dhcp_version) + 1)
-                if self._set_pool_name(dhcp_pool_name, subnet_id)):
+                if self._set_pool_name(dhcp_pool_name, subnet_id):
                     self.log.error(f"Unable to add DHCP Pool {dhcp_pool_name}")
                 else:
                     self._set_subnet(ip_subnet_mask, dhcp_version, subnet_id)  
@@ -356,9 +355,21 @@ class DHCPDatabase:
         return json.dumps(self.kea_dhcpv4_config)
     
     def get_dhcp_pool(self):
+        """
+        Get the DHCP pool configuration.
+
+        Returns:
+            dict: The DHCP pool configuration.
+        """
         return self.dhcp_pool
-    
+
     def get_kea_config(self):
+        """
+        Get the Kea DHCPv4 configuration.
+
+        Returns:
+            dict: The Kea DHCPv4 configuration.
+        """
         return self.kea_dhcpv4_config
 
     def delete_pool_name(self, pool_name:str) -> bool:

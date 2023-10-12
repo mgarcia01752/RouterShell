@@ -7,7 +7,7 @@ import datetime
 import subprocess
 import logging
 
-from lib.constants import *
+from lib.common.constants import *
 
 class Common():
     '''Commonly used Static Methods'''

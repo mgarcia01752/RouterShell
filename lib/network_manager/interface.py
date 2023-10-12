@@ -10,7 +10,7 @@ from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
 from lib.network_manager.vlan import Vlan
 from lib.network_manager.network_manager import NetworkManager
 from lib.network_manager.nat import Nat, NATDirection
-from lib.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.phy import Duplex, Speed, State
 
 class InvalidInterface(Exception):

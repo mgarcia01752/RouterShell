@@ -1,5 +1,5 @@
 import argparse
-from lib.common import *
+from lib.common.common import *
 import subprocess
 
 from lib.network_manager.network_manager import NetworkManager

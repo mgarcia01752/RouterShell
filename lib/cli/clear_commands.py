@@ -3,11 +3,11 @@ import cmd2
 import logging
 import argparse
 
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import RouterPrompt
-from lib.exec_priv_mode import ExecMode, ExecException
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import RouterPrompt
+from lib.cli.exec_priv_mode import ExecMode, ExecException
 from lib.network_manager.arp import Arp
-from lib.constants import *
+from lib.common.constants import *
 
 class InvalidClearMode(Exception):
     def __init__(self, message):

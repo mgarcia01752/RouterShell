@@ -4,8 +4,8 @@ import logging
 from typing import List
 
 from lib.network_manager.mac import MacServiceLayer
-from lib.constants import *
-from lib.run_commands import RunResult
+from lib.common.constants import *
+from lib.network_manager.run_commands import RunResult
 
 class InetServiceLayer(MacServiceLayer):
     """

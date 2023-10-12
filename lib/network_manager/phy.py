@@ -1,9 +1,9 @@
 import logging
 from typing import List
 
-from lib.common import Common
-from lib.run_commands import RunCommand
-from lib.constants import *
+from lib.common.common import Common
+from lib.network_manager.run_commands import RunCommand
+from lib.common.constants import *
 
 from enum import Enum, auto
 

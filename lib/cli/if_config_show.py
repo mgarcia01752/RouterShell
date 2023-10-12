@@ -6,14 +6,14 @@ from lib.network_manager.interface import Interface, InterfaceType
 from lib.network_manager.phy import Duplex, Speed, State
 from lib.network_manager.arp import Arp, Encapsulate
 
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import RouterPrompt, ExecMode
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection, Nat
 
 from lib.db.interface_db import InterfaceConfigDB
 
-from lib.constants import *
+from lib.common.constants import *
 
 class InvalidInterface(Exception):
     def __init__(self, message):

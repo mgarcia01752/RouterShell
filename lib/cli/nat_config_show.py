@@ -3,10 +3,10 @@ import ipaddress
 import cmd2
 import logging
 
-from lib.global_operation import GlobalUserCommand
+from lib.cli.global_operation import GlobalUserCommand
 from lib.network_manager.nat import Nat, NATDirection
-from lib.router_prompt import RouterPrompt, ExecMode
-from lib.constants import *
+from lib.cli.router_prompt import RouterPrompt, ExecMode
+from lib.common.constants import *
 
 class InvalidNatConfig(Exception):
     def __init__(self, message):

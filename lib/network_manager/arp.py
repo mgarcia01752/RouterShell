@@ -5,8 +5,8 @@ import logging
 from tabulate import tabulate 
 from lib.network_manager.mac import MacServiceLayer
 from lib.network_manager.inet import InetServiceLayer
-from lib.sysctl import SysCtl
-from lib.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.sysctl import SysCtl
+from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class Encapsulate(Enum):
     ARPA = 'arpa'

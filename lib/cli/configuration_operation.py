@@ -1,20 +1,20 @@
 import cmd2
 import logging
 import argparse
-from lib.arp_config_show import ArpConfig
-from lib.dhcpd_config_show import DHCPServerConfig
-from lib.if_config_show import InterfaceConfig
-from lib.bridge_config_show import BridgeConfig
-from lib.nat_config_show import NatConfig
+from lib.cli.arp_config_show import ArpConfig
+from lib.cli.dhcpd_config_show import DHCPServerConfig
+from lib.cli.if_config_show import InterfaceConfig
+from lib.cli.bridge_config_show import BridgeConfig
+from lib.cli.nat_config_show import NatConfig
 from lib.network_manager.interface import Interface
-from lib.vlan_config_show import VlanConfig
-from lib.ip_route_config_show import IpRouteConfig
+from lib.cli.vlan_config_show import VlanConfig
+from lib.cli.ip_route_config_show import IpRouteConfig
 
-from lib.global_operation import GlobalUserCommand
-from lib.router_prompt import RouterPrompt
-from lib.exec_priv_mode import ExecMode, ExecException
+from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import RouterPrompt
+from lib.cli.exec_priv_mode import ExecMode, ExecException
 from lib.network_manager.bridge import Bridge
-from lib.constants import *
+from lib.common.constants import *
 
 class InvalidConfigureMode(Exception):
     def __init__(self, message):

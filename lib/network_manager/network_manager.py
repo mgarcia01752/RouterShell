@@ -6,7 +6,7 @@ from typing import List
 from tabulate import tabulate
 
 from lib.network_manager.inet import InetServiceLayer
-from lib.constants import *
+from lib.common.constants import *
 
 class InterfaceNotFoundError(Exception):
     """

@@ -4,8 +4,8 @@ import logging
 
 from lib.network_manager.inet import InetServiceLayer
 from lib.db.nat_db import NatPoolDB
-from lib.sysctl import SysCtl
-from lib.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.sysctl import SysCtl
+from lib.common.constants import STATUS_NOK, STATUS_OK
 
 
 class NATDirection(Enum):

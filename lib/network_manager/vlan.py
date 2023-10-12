@@ -5,7 +5,7 @@ from lib.network_manager.mac import MacServiceLayer
 from lib.db.vlan_db import VLANDatabase
 from lib.network_manager.bridge import Bridge
 
-from lib.constants import STATUS_NOK, STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK
 class Vlan(MacServiceLayer):
 
     VLAN_PREFIX_ID = "Vlan"

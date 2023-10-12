@@ -2,8 +2,8 @@ import logging
 import cmd2
 from tabulate import tabulate
 
-from lib.router_prompt import ExecMode, RouterPrompt
-from lib.global_operation import GlobalUserCommand
+from lib.cli.router_prompt import ExecMode, RouterPrompt
+from lib.cli.global_operation import GlobalUserCommand
 from lib.network_manager.vlan import Vlan 
 
 class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):

@@ -2,9 +2,9 @@ import ipaddress
 import cmd2
 import logging
 
-from lib.router_prompt import RouterPrompt, ExecMode
+from lib.cli.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.interface import Interface
-from lib.constants import *
+from lib.common.constants import *
 
 class InvalidRouteConfig(Exception):
     def __init__(self, message):

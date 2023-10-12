@@ -3,13 +3,13 @@ import readline
 import signal
 import logging
 import cmd2
-from lib.clear_commands import ClearMode
+from lib.cli.clear_commands import ClearMode
 
-from lib.router_prompt import RouterPrompt
-from lib.exec_priv_mode import ExecMode
-from lib.global_operation import GlobalUserCommand, GlobalPrivCommand
-from lib.show_operation import ShowMode
-from lib.configuration_operation import ConfigureMode
+from lib.cli.router_prompt import RouterPrompt
+from lib.cli.exec_priv_mode import ExecMode
+from lib.cli.global_operation import GlobalUserCommand, GlobalPrivCommand
+from lib.cli.show_operation import ShowMode
+from lib.cli.configuration_operation import ConfigureMode
 from lib.db.vlan_db import VLANDatabase
 
 logging.basicConfig(

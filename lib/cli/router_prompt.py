@@ -1,9 +1,9 @@
 import logging
 
-from lib.exec_priv_mode import ExecMode, ExecException
+from lib.cli.exec_priv_mode import ExecMode, ExecException
 
 # Importing constants from a separate module
-from lib.constants import *
+from lib.common.constants import *
 
 class RouterPrompt:
     '''CMD prompt formatter'''
