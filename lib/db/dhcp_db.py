@@ -264,7 +264,7 @@ class DHCPDatabase:
         # If the pool name doesn't exist, return False
         return STATUS_NOK
 
-    def get_number_of_subnets(self, dhcp_version: DhcpVersion = DhcpVersion.DHCPv4) -> int:
+    def get_number_of_subnets(self, dhcp_version: DhcpVersion = DhcpVersion.DHCP_V4) -> int:
         """
         Get the number of subnets based on the DHCP version.
 
