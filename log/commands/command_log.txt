@@ -1,3 +1,0 @@
-2023-10-10 20:12:57 - sudo ip -json addr show
-2023-10-10 21:13:43 - sudo ip -json addr show
-2023-10-10 23:12:01 - sudo ip -json addr show
