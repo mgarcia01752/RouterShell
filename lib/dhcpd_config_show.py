@@ -77,12 +77,16 @@ class DHCPServerConfig(cmd2.Cmd,
         except SystemExit:
             return
 
-        # Access the parsed arguments directly
         ip_address = args.ip_address
         subnet_mask = args.subnet_mask
 
-        # Handle the 'subnet' command logic here
         self.log.info(f"Configuring subnet with IP address: {ip_address} and subnet mask: {subnet_mask}")
+        
+        num_of_subnets = DHCPDatabase().get_number_of_subnets(0)
+        
+        if DHCPDatabase().add_subnet((num_of_subnets + 1), ip_address, subnet_mask):
+            self.log.error(f"Unable to add subnet pool: {ip_address} {subnet_mask}")
+            return STATUS_NOK
 
     def do_pools(self, args: str):
         '''
@@ -189,7 +193,7 @@ class DHCPServerConfig(cmd2.Cmd,
             DHCPDatabase().update_global_config(dhcp_option, dhcp_value)
     
     def do_tell(self, args):
-        print(f"{DHCPDatabase().get_dhcp_pool()}")
+        print(f"{DHCPDatabase().get_copy_dhcp_pool()}")
         print(f"{DHCPDatabase().get_kea_dhcpv4_config()}")
 
     def do_commit(self):

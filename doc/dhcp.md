@@ -98,13 +98,13 @@ dhcp global
     commit
     end    
 
-dhcp <dhcp-pool-name>
-    subnet <ip-subnet>/<mask>
-    pool <ip-address-start> <ip-address-start>
-    reservations [hw-address | duid] <mac-address> ip-address <ip-address> [hostname <string>]
-    [option <option-name> <[int | string | ip-address]>]
-    commit
-    end        
+[no] dhcp <dhcp-pool-name>
+        subnet <ip-subnet>/<mask>
+        pool <ip-address-start> <ip-address-start>
+        reservations [hw-address | duid] <mac-address> ip-address <ip-address> [hostname <string>]
+        [option <option-name> <[int | string | ip-address]>]
+        commit
+        end        
 
 interface <interface-name>
     [no] dhcp-server pool-name <dhcp-pool-name>

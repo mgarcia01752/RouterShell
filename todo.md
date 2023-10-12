@@ -36,3 +36,8 @@ show log
 
 ### copy run-config startup-config or write memory
 
+### Global USER commands
+
+cls - clear screen
+quit = end = exit
+

@@ -7,7 +7,6 @@ from lib.global_operation import GlobalUserCommand
 from lib.nat_config_show import NatShow
 from lib.router_prompt import RouterPrompt
 from lib.exec_priv_mode import ExecMode, ExecException
-from old.interface_config_show import InterfaceShow
 from lib.arp_config_show import ArpShow
 from lib.bridge_config_show import BridgeShow
 from lib.vlan_config_show import VlanShow
