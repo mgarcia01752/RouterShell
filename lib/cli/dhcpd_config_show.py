@@ -10,6 +10,8 @@ from lib.cli.exec_priv_mode import ExecMode
 from lib.cli.global_operation import GlobalUserCommand
 from lib.cli.router_prompt import RouterPrompt
 
+from lib.cli.cmd2_global import Cmd2GlobalSettings as cgs
+
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServerConfig(cmd2.Cmd,
@@ -21,6 +23,10 @@ class DHCPServerConfig(cmd2.Cmd,
     
     def __init__(self, dhcp_pool_name: str, negate=False):
         super().__init__()
+        
+        '''CMD2 DEBUG SETTING'''
+        self.debug = cgs.DEBUG_GLOBAL
+        
         self.log = logging.getLogger(self.__class__.__name__)
         GlobalUserCommand.__init__(self)
         
@@ -43,8 +49,7 @@ class DHCPServerConfig(cmd2.Cmd,
                 
         if not DHCPDatabase().pool_name_exists(self.dhcp_pool_name):
             self.log.info(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")
-
-        
+            
     def isGlobalMode(self) -> bool:
         return self.dhcp_pool_name == self.GLOBAL_CONFIG_MODE
     
@@ -58,7 +63,7 @@ class DHCPServerConfig(cmd2.Cmd,
         Example:
             subnet 192.168.1.0/24
         '''
-        self.log.info(f"do_subnet() -> args: {args}")
+        self.log.info(f"do_subnet() -> args: {args} -> negate: {self.negate}")
 
         parser = argparse.ArgumentParser(
             description="Configure a DHCP server subnet",
@@ -78,7 +83,8 @@ class DHCPServerConfig(cmd2.Cmd,
 
         ip_address_mask = args.ip_address_mask
         self.log.info(f"Configuring subnet with IP Subnet: {ip_address_mask}")
-        self.dhcp_pool_Fact = DHCPDatabaseFactory(self.dhcp_pool_name, ip_address_mask, self.negate)
+        
+        self.dchp_pool_subnet_obj = DHCPDatabaseFactory(self.dhcp_pool_name, ip_address_mask, self.negate)
 
         
     def do_pools(self, args: str):

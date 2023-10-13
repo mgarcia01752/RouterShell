@@ -11,25 +11,32 @@ class DhcpVersion(Enum):
     DHCP_V4 = 0
     DHCP_V6 = 1
 
-class DHCPDatabaseFactory:
+class DHCPDatabaseFactory():
     
     def __init__(self, 
                  dhcp_pool_name: str, 
-                 ip_subnet_mask: ipaddress.IPv4Network, 
-                 dhcp_version: DhcpVersion, 
+                 ip_subnet_mask: ipaddress.IPv4Network,
                  negate=False):
-        self.log = logging.getLogger(self.__class__.__name)
         
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.dhcp_pool_name = dhcp_pool_name
-        self.dhcp_version = dhcp_version
+        self.ip_subnet_mask = ip_subnet_mask
+        
+        self.log.info(f"DHCPDatabaseFactory() -> dhcp_pool_name: {self.dhcp_pool_name} -> ip_subnet_mask: {self.ip_subnet_mask}")
+        
+        self.dhcp_version = DhcpVersion.DHCP_V4
 
         if not DHCPDatabase().pool_name_exists(dhcp_pool_name):
             
-            pool_name_id = DHCPDatabase().get_pool_name_id()
+            pool_name_id = DHCPDatabase().get_pool_name_id(dhcp_pool_name)
             
-            self.kea_v4_db = DHCPDatabase().get_kea_config()
             self.dhcp_pool_db = DHCPDatabase().get_dhcp_pool()
-            
+            print(f"DHCP-POOL-DB: {self.dhcp_pool_db}")
+                
+            self.kea_v4_db = DHCPDatabase().get_kea_config()
+            print(f"KEA-DB: {self.kea_v4_db}")
+        
             if negate:
                 self.log.info(f"Removing DHCP pool: {dhcp_pool_name}")
                 
@@ -47,11 +54,12 @@ class DHCPDatabaseFactory:
                 self.kea_v4_db, self.dhcp_pool_db = None
 
             else:                    
-                subnet_id = (DHCPDatabase().get_number_of_subnets(dhcp_version) + 1)
+                subnet_id = (DHCPDatabase().get_number_of_subnets(self.dhcp_version) + 1)
+                
                 if self._set_pool_name(dhcp_pool_name, subnet_id):
                     self.log.error(f"Unable to add DHCP Pool {dhcp_pool_name}")
                 else:
-                    self._set_subnet(ip_subnet_mask, dhcp_version, subnet_id)  
+                    self._set_subnet(ip_subnet_mask, self.dhcp_version, subnet_id)  
         else:
             pass
 
@@ -68,7 +76,7 @@ class DHCPDatabaseFactory:
             bool: STATUS_OK if the pool name was added successfully, STATUS_NOK if it already exists.
         """
         # Check if the pool name already exists
-        for pool_entry in self.dhcp_pool["DhcpPool"]["pool-name"]:
+        for pool_entry in self.dhcp_pool_db["DhcpPool"]["pool-name"]:
             if pool_entry["name"] == pool_name:
                 return STATUS_NOK
 
@@ -77,7 +85,7 @@ class DHCPDatabaseFactory:
             "subnet-id": subnet_id,
             "name": pool_name
         }
-        self.dhcp_pool["DhcpPool"]["pool-name"].append(new_pool_entry)
+        self.dhcp_pool_db["DhcpPool"]["pool-name"].append(new_pool_entry)
         return STATUS_OK
         
     def _set_subnet(self, ip_subnet_mask: ipaddress.IPv4Network, dhcp_version: int, subnet_id: int = 0) -> bool:
@@ -118,7 +126,7 @@ class DHCPDatabase:
         }
     }
 
-    kea_dhcpv4_config = {
+    kea_v4_db = {
         "Dhcp4": {
             "valid-lifetime": 4000,
             "renew-timer": 1000,
@@ -170,7 +178,7 @@ class DHCPDatabase:
         }
 
         # Add the new subnet to the existing configuration
-        self.kea_dhcpv4_config["Dhcp4"]["subnet4"].append(new_subnet)
+        self.kea_v4_db["Dhcp4"]["subnet4"].append(new_subnet)
 
     def add_reservation_to_subnet(self, subnet_id: int, mac: str, ip: str, hostname: str = ""):
         """
@@ -191,7 +199,7 @@ class DHCPDatabase:
         }
 
         # Find the subnet with the given ID
-        for subnet in self.kea_dhcpv4_config["Dhcp4"]["subnet4"]:
+        for subnet in self.kea_v4_db["Dhcp4"]["subnet4"]:
             if subnet["id"] == subnet_id:
                 # Append the new reservation to the reservations list in the pool
                 subnet["pools"][0]["reservations"].append(new_reservation)
@@ -207,7 +215,7 @@ class DHCPDatabase:
             ip_pool_end (str): The end IP address of the pool.
         """
         # Find the subnet with the given ID
-        for subnet in self.kea_dhcpv4_config["Dhcp4"]["subnet4"]:
+        for subnet in self.kea_v4_db["Dhcp4"]["subnet4"]:
             if subnet["id"] == subnet_id:
                 # Create a new pool configuration
                 new_pool = {
@@ -278,13 +286,13 @@ class DHCPDatabase:
         # Determine the appropriate key based on the DHCP version
         subnet_key = "subnet4" if dhcp_version == DhcpVersion.DHCP_V4 else "subnet6"
         
-        self.log.info(f"get_number_of_subnets() -> dhcp-version: {dhcp_version} -> {subnet_key}")
+        self.log.info(f"get_number_of_subnets() -> dhcp-version: {dhcp_version} -> Key: {subnet_key}")
 
         # Check if the specified key exists in the configuration
         if subnet_key in self.kea_v4_db["Dhcp4"]:
             return len(self.kea_v4_db["Dhcp4"][subnet_key])
         else:
-            return 0  # Key does not exist, so there are no subnets
+            return 0
 
     def pool_name_exists(self, pool_name: str) -> bool:
         """
@@ -319,7 +327,7 @@ class DHCPDatabase:
             raise ValueError("Invalid DHCP version. Use 0 for DHCPv4 or 1 for DHCPv6.")
 
         # Get the appropriate DHCP configuration based on the version
-        dhcp_config = self.kea_dhcpv4_config if dhcp_version == 0 else self.kea_dhcpv6_config
+        dhcp_config = self.kea_v4_db if dhcp_version == 0 else self.kea_dhcpv6_config
 
         # Check if the key exists in the global configuration
         if dhcp_option in dhcp_config["Dhcp4"]:
@@ -334,7 +342,7 @@ class DHCPDatabase:
         """
         # Save the updated configuration back to the file
         with open(self.config_file, 'w') as file:
-            json.dump(self.kea_dhcpv4_config, file, indent=4)
+            json.dump(self.kea_v4_db, file, indent=4)
 
     def get_copy_dhcp_pool(self) -> str:
         """
@@ -352,7 +360,7 @@ class DHCPDatabase:
         Returns:
             str: A JSON string representing the KEA DHCPv4 configuration.
         """
-        return json.dumps(self.kea_dhcpv4_config)
+        return json.dumps(self.kea_v4_db)
     
     def get_dhcp_pool(self):
         """
@@ -370,7 +378,7 @@ class DHCPDatabase:
         Returns:
             dict: The Kea DHCPv4 configuration.
         """
-        return self.kea_dhcpv4_config
+        return self.kea_v4_db
 
     def delete_pool_name(self, pool_name:str) -> bool:
         """
@@ -397,9 +405,9 @@ class DHCPDatabase:
         Returns:
             bool: STATUS_OK if the subnet was successfully deleted, STATUS_NOK if the subnet was not found.
         """
-        for subnet in self.kea_dhcpv4_config["Dhcp4"]["subnet4"]:
+        for subnet in self.kea_v4_db["Dhcp4"]["subnet4"]:
             if subnet["id"] == subnet_id:
-                self.kea_dhcpv4_config["Dhcp4"]["subnet4"].remove(subnet)
+                self.kea_v4_db["Dhcp4"]["subnet4"].remove(subnet)
                 return STATUS_OK
         return STATUS_NOK
 
@@ -411,8 +419,12 @@ class DHCPDatabase:
             pool_name (str): The name of the DHCP pool to retrieve the ID for.
 
         Returns:
-            int: The ID of the DHCP pool if found, or None if the pool was not found.
+            int: The ID of the DHCP pool if found, or None if the pool was not found, Error = -1.
         """
+        if not pool_name:
+            self.log.error(f"get_pool_name_id -> {pool_name}")
+            return -1
+        
         pool_names = self.dhcp_pool["DhcpPool"]["pool-name"]
         if pool_name in pool_names:
             return pool_names.index(pool_name)
