@@ -187,7 +187,7 @@ class DHCPServerConfig(cmd2.Cmd,
     
     def do_tell(self, args):
         print(f"{DHCPDatabase().get_copy_dhcp_pool()}")
-        print(f"{DHCPDatabase().get_kea_dhcpv4_config()}")
+        print(f"{DHCPDatabase().get_copy_kea_dhcpv4_config()}")
 
     def do_commit(self):
         pass

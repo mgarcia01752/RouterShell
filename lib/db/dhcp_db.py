@@ -276,7 +276,7 @@ class DHCPDatabase:
             int: The number of subnets based on the specified DHCP version.
         """
         # Determine the appropriate key based on the DHCP version
-        subnet_key = "subnet4" if dhcp_version == DhcpVersion.DHCPv4 else "subnet6"
+        subnet_key = "subnet4" if dhcp_version == DhcpVersion.DHCP_V4 else "subnet6"
         
         self.log.info(f"get_number_of_subnets() -> dhcp-version: {dhcp_version} -> {subnet_key}")
 
