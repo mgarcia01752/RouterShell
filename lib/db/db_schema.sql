@@ -5,7 +5,6 @@ DROP TABLE IF EXISTS Interfaces;
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INT PRIMARY KEY,
     IfName VARCHAR(100),
-    IfNameAlias VARCHAR(100),
     InterfaceType VARCHAR(100)
 );
 
@@ -28,6 +27,7 @@ CREATE TABLE IF NOT EXISTS Vlans (
     ID INT PRIMARY KEY,
     VlanInterfaces_FK INT,
     VlanName VARCHAR(20),
+    VlanDescription VARCHAR(50),
     CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanInterfaces_FK) REFERENCES VlanInterfaces(ID)
 );
 

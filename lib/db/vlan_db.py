@@ -1,225 +1,122 @@
-from typing import Dict, Optional, List
+import logging
+from typing import Optional
+from click import Tuple
 
-class VLANDatabase:
-    """
-    A class for managing VLANs in a database.
-    """
+from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB
 
-    # Class-level attribute to store VLAN database
-    vlan_db: Dict[str, Dict[str, any]] = {"vlans": {}}
-
-    @classmethod
-    def add_vlan(cls, vlan_id:int, vlan_name:str=None, description:str=None, ports:List[str]=None):
+class VLANDatabase(RSDB):
+    
+    def __init__(cls):
+        super().__init__()
+        cls.log = logging.getLogger(cls.__class__.__name__)   
+    
+    def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Tuple[int, int]:
         """
         Add a VLAN to the database.
 
         Args:
-            vlan_id (int): The VLAN ID.
-            vlan_name (str or None): The VLAN name. If None, a default name is generated.
-            description (str): A description of the VLAN.
-            ports (List[int]): List of port numbers associated with the VLAN.
+            cls: The class reference.
+            vlan_id (int): The unique ID of the VLAN.
+            vlan_name (str): The name of the VLAN.
+            description (str, optional): Description of the VLAN.
 
-        Raises:
-            ValueError: If a VLAN with the same ID or name already exists.
+        Returns:
+            tuple: A tuple containing two values:
+                - int: Status indicator (STATUS_NOK or STATUS_OK).
+                - int: The row ID of the inserted VLAN if successful, or -1 if unsuccessful.
+
+        Note:
+            STATUS_NOK and STATUS_OK are constants used to indicate the status of the operation.
         """
-        str_vlan_id = str(vlan_id)
-        
-        # Check if the VLAN ID already exists
-        if str_vlan_id in cls.vlan_db["vlans"]:
-            raise ValueError(f"VLAN with ID {vlan_id} already exists.")
-        
-        # Check if the VLAN name already exists
-        for vlan_data in cls.vlan_db["vlans"].values():
-            if vlan_name and vlan_data["name"] == vlan_name:
-                raise ValueError(f"VLAN with name '{vlan_name}' already exists.")
-        
-        # Generate a default VLAN name if vlan_name is None
-        if vlan_name is None:
-            vlan_name = f"vlan{vlan_id}"
-        
-        cls.vlan_db["vlans"][str_vlan_id] = {
-            "name": vlan_name,
-            "description": description,
-            "ports": ports
-        }
+        # Check if the VLAN already exists
+        if cls.vlan_exists(vlan_id):
+            cls.log.error(f"Unable to add, VLAN already exists: {vlan_id}. Delete VLAN and re-add")
+            return STATUS_NOK, -1
 
-    @classmethod
+        # Insert the VLAN into the database
+        row_id = cls.insert_vlan(vlan_id, vlan_name, description)
+
+        if row_id > 0:
+            return STATUS_OK, row_id
+        else:
+            cls.log.error("Failed to insert VLAN into the database")
+            return STATUS_NOK, -1
+
+    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> bool:
+        """
+        Update the description of a VLAN by its ID.
+
+        Args:
+            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_description (str): The new description for the VLAN.
+
+        Returns:
+            bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
+        """
+        return cls.update_vlan_description_by_vlan_id(vlan_id, vlan_description)
+        
     def vlan_exists(cls, vlan_id: int) -> bool:
         """
-        Check if a VLAN with a given VLAN ID exists.
+        Check if a VLAN with the given ID exists in the database.
 
         Args:
-            vlan_id (int): The VLAN ID to check.
+            cls: The class reference.
+            vlan_id (int): The unique ID of the VLAN to check.
 
         Returns:
-            bool: True if the VLAN exists, False otherwise.
+            bool: True if a VLAN with the given ID exists, False otherwise.
         """
-        return str(vlan_id) in cls.vlan_db["vlans"]
+        return cls.get_vlan_id(vlan_id) is not None
+
+    def get_vlan_name(cls, vlan_id: int) -> Tuple[int, Optional[str]]:
+        """
+        Retrieve the name of a VLAN by its ID.
+
+        Args:
+            cls: The class reference.
+            vlan_id (int): The unique ID of the VLAN for which to retrieve the name.
+
+        Returns:
+            tuple: A tuple containing two values:
+                - int: Status indicator (STATUS_NOK or STATUS_OK).
+                - str or None: The name of the VLAN with the given ID if found, or None if it doesn't exist.
+        """
+        vlan_name = cls.get_vlan_name_by_id(vlan_id)
+        if vlan_name is not None:
+            return STATUS_OK, vlan_name
+        else:
+            cls.log.error(f"VLAN with ID {vlan_id} not found.")
+            return STATUS_NOK, None
+
+    def update_vlan_name(cls, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Update the name of a VLAN by its ID.
+
+        Args:
+            cls: The class reference.
+            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_name (str): The new name for the VLAN.
+
+        Returns:
+            bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
+        """
+        if cls.update_vlan_name_by_id(vlan_id, vlan_name):
+            cls.log.info(f"Name of VLAN {vlan_id} updated successfully.")
+            return STATUS_OK
+        else:
+            cls.log.error(f"Failed to update the name of VLAN {vlan_id}.")
+            return STATUS_NOK
     
-    @classmethod
-    def get_vlan_name(cls, vlan_id: int) -> str:
-        """
-        Get the name of a VLAN by VLAN ID.
+    def add_ports_to_vlan(cls, vlan_id: int, ports_to_add: list):
+        # Add ports to a VLAN
+        vlan_interface_id = cls.get_vlan_interface_id(vlan_id)
+        if vlan_interface_id:
+            for port in ports_to_add:
+                cls.insert_vlan_interface_mapping(vlan_interface_id, port)
 
-        Args:
-            vlan_id (int): The VLAN ID.
-
-        Returns:
-            str or None: The name of the VLAN, or None if VLAN not found.
-        """
-        vlan_data = cls.vlan_db["vlans"].get(str(vlan_id))
-        if vlan_data is not None:
-            return vlan_data.get("name")
-        return None
-
-    @classmethod
-    def update_vlan_name(cls, vlan_id: int, vlan_name: str):
-        """
-        Update the name of a VLAN by VLAN ID.
-
-        Args:
-            vlan_id (int): The VLAN ID to be updated.
-            vlan_name (str): The new VLAN name.
-
-        Raises:
-            KeyError: If the specified VLAN ID does not exist in the database.
-        """
-        str_vlan_id = str(vlan_id)
-        if str_vlan_id not in cls.vlan_db["vlans"]:
-            raise KeyError(f"VLAN with ID {vlan_id} does not exist.")
-        
-        cls.vlan_db["vlans"][str_vlan_id]["name"] = vlan_name       
-
-    @classmethod
-    def update_vlan_description(cls, vlan_id: int, vlan_description: str):
-        """
-        Update the description of a VLAN by VLAN ID.
-
-        Args:
-            vlan_id (int): The VLAN ID to be updated.
-            vlan_description (str): The new VLAN description.
-
-        Raises:
-            KeyError: If the specified VLAN ID does not exist in the database.
-        """
-        str_vlan_id = str(vlan_id)
-        if str_vlan_id not in cls.vlan_db["vlans"]:
-            raise KeyError(f"VLAN with ID {vlan_id} does not exist.")
-        
-        cls.vlan_db["vlans"][str_vlan_id]["description"] = vlan_description       
-    
-    @classmethod
-    def add_ports_to_vlan(cls, vlan_id: int, ports_to_add: List[int]):
-        """
-        Add ports to an existing VLAN.
-
-        Args:
-            vlan_id (int): The VLAN ID to which ports will be added.
-            ports_to_add (List[int]): List of port numbers to add to the VLAN.
-
-        Raises:
-            KeyError: If the specified VLAN ID does not exist in the database.
-        """
-        str_vlan_id = str(vlan_id)
-        if str_vlan_id not in cls.vlan_db["vlans"]:
-            raise KeyError(f"VLAN with ID {vlan_id} does not exist.")
-        
-        existing_ports = cls.vlan_db["vlans"][str_vlan_id]["ports"]
-        updated_ports = existing_ports + ports_to_add
-        cls.vlan_db["vlans"][str_vlan_id]["ports"] = updated_ports
-
-    @classmethod
-    def delete_port_from_vlan(cls, vlan_id: int, port_to_delete: int):
-        """
-        Delete a port from an existing VLAN.
-
-        Args:
-            vlan_id (int): The VLAN ID from which the port will be deleted.
-            port_to_delete (int): The port number to be removed from the VLAN.
-
-        Raises:
-            KeyError: If the specified VLAN ID does not exist in the database.
-        """
-        str_vlan_id = str(vlan_id)
-        if str_vlan_id not in cls.vlan_db["vlans"]:
-            raise KeyError(f"VLAN with ID {vlan_id} does not exist.")
-        
-        existing_ports = cls.vlan_db["vlans"][str_vlan_id]["ports"]
-        if port_to_delete in existing_ports:
-            existing_ports.remove(port_to_delete)
-
-    @classmethod
-    def generate_router_config(cls) -> str:
-        """
-        Generate a Cisco router configuration based on VLAN information.
-
-        Returns:
-            str: Cisco router configuration.
-        """
-        config_lines = []
-
-        # Define VLANs in the configuration
-        for vlan_id, vlan_data in cls.vlan_db["vlans"].items():
-            config_lines.append(f'vlan {vlan_id}')
-            
-            # Check if the VLAN name is not None before adding it to the configuration
-            if vlan_data["name"] is not None:
-                config_lines.append(f' name {vlan_data["name"]}')
-            
-            # Check if the VLAN description is not None before adding it to the configuration
-            if vlan_data["description"] is not None:
-                config_lines.append(f' description {vlan_data["description"]}')
-            
-            config_lines.append('!')
-
-        # Generate interface assignments
-        for vlan_id, vlan_data in cls.vlan_db["vlans"].items():
-            for port in vlan_data["ports"]:
-                config_lines.append(f'interface FastEthernet0/{port}')
-                config_lines.append(f' switchport access vlan {vlan_id}')
-                config_lines.append('!')
-
-        return "\n".join(config_lines)
-
-    @classmethod
-    def get_vlan(cls, vlan_id: int) -> Optional[Dict[str, any]]:
-        """
-        Get VLAN information by VLAN ID.
-
-        Args:
-            vlan_id (int): The VLAN ID.
-
-        Returns:
-            dict: VLAN information (name, description, ports), or None if VLAN not found.
-        """
-        return cls.vlan_db["vlans"].get(str(vlan_id))
-
-    @classmethod
-    def list_vlans(cls) -> List[int]:
-        """
-        List all VLAN IDs in the database.
-
-        Returns:
-            list: List of VLAN IDs.
-        """
-        return [int(vlan_id) for vlan_id in cls.vlan_db["vlans"].keys()]
-
-    @classmethod
-    def to_json(cls) -> Dict[str, Dict[str, any]]:
-        """
-        Serialize the VLAN database to JSON.
-
-        Returns:
-            dict: JSON representation of the database.
-        """
-        return cls.vlan_db
-
-    @classmethod
-    def from_json(cls, json_data: Dict[str, Dict[str, any]]):
-        """
-        Populate the VLAN database from a JSON object.
-
-        Args:
-            json_data (dict): JSON representation of the database.
-        """
-        cls.vlan_db = json_data
+    def delete_interface_from_vlan(cls, vlan_id: int, port_to_delete: int):
+        # Delete an interface (port) from a VLAN
+        vlan_interface_id = cls.get_vlan_interface_id(vlan_id)
+        if vlan_interface_id:
+            cls.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)

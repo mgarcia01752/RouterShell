@@ -25,7 +25,7 @@ class Vlan(MacServiceLayer):
         VLANDatabase.update_vlan_name(vlan_id, vlan_name)
 
     def update_vlan_description_to_db(self, vlan_id:int, vlan_description:str):
-        VLANDatabase.update_vlan_description(vlan_id, vlan_description)
+        VLANDatabase.update_vlan_description_by_vlan_id(vlan_id, vlan_description)
 
     def add_vlan_if_not_exist(self, ifName: str, vlan_id: int) -> bool:
         """

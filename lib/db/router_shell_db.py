@@ -1,16 +1,25 @@
 import sqlite3
 import logging
-
 from lib.network_manager.interface import InterfaceType
-
+from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class RouterShellDatabaseConnector:
-    def __init__(self, sql_file_path):
+    def __init__(self, sql_file_path: str):
+        self.log = logging.getLogger(self.__class__.__name__)
+        """
+        Initialize the database connector.
+
+        Args:
+            sql_file_path (str): The path to the SQL file used to create the database schema.
+        """
         self.log = logging.getLogger(self.__class__.__name__)
         self.sql_file_path = sql_file_path
         self.connection = None
 
     def create_database(self):
+        """
+        Create an in-memory database and populate it with tables and data from an SQL file.
+        """
         try:
             # Connect to an in-memory database
             self.connection = sqlite3.connect(':memory:')
@@ -32,22 +41,48 @@ class RouterShellDatabaseConnector:
             print("Error:", e)
 
     def close_connection(self):
+        """
+        Close the database connection.
+        """
         if self.connection:
             self.connection.close()
 
-def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_alias=None):
-    try:
-        cursor = self.connection.cursor()
-        cursor.execute(
-            "INSERT INTO Interfaces (ID, IfName, IfNameAlias, InterfaceType) VALUES (?, ?, ?, ?)",
-            (id, if_name, if_name_alias, interface_type.value)
-        )
-        self.connection.commit()
-        self.log.info("Data inserted into the 'Interfaces' table successfully.")
-    except sqlite3.Error as e:
-        self.log.error("Error inserting data into 'Interfaces': %s", e)
+    def insert_interface(self, id: int, if_name: str, interface_type: InterfaceType, if_name_alias: str = None):
+        """
+        Insert data into the 'Interfaces' table.
 
-    def insert_bridge(self, id, interface_fk, bridge_name):
+        Args:
+            id (int): The unique ID of the interface.
+            if_name (str): The name of the interface.
+            interface_type (InterfaceType): The type of the interface.
+            if_name_alias (str, optional): An alias name for the interface.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO Interfaces (ID, IfName, IfNameAlias, InterfaceType) VALUES (?, ?, ?, ?)",
+                (id, if_name, if_name_alias, interface_type.value)
+            )
+            self.connection.commit()
+            self.log.info("Data inserted into the 'Interfaces' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'Interfaces': %s", e)
+
+    def insert_bridge(self, id: int, bridge_name: str, interface_fk: int = -1):
+        """
+        Insert data into the 'Bridges' table.
+
+        Args:
+            id (int): The unique ID of the bridge.
+            bridge_name (str): The name of the bridge.
+            interface_fk (int, optional): The foreign key referencing an interface.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -59,7 +94,21 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Bridges': %s", e)
 
-    def insert_vlan(self, id, vlan_interfaces_fk, vlan_name):
+    def insert_vlan(self, id: int, vlan_name: str, vlan_interfaces_fk: int = -1):
+        """
+        Insert data into the 'Vlans' table.
+
+        Args:
+            id (int): The unique ID of the VLAN.
+            vlan_name (str): The name of the VLAN.
+            vlan_interfaces_fk (int, optional): The foreign key referencing VLAN interfaces.
+
+        Returns:
+            int: The row ID of the inserted VLAN.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -68,10 +117,49 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             )
             self.connection.commit()
             self.log.info("Data inserted into the 'Vlans' table successfully.")
+            return cursor.lastrowid  # Return the row ID
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
+            return -1  # Return -1 to indicate an error
 
-    def insert_vlan_interface(self, id, vlan_name, interface_fk, bridge_fk):
+    def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> bool:
+        """
+        Update the description of a VLAN in the database.
+
+        Args:
+            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_description (str): The new description for the VLAN.
+
+        Returns:
+            bool: STATUS_OK if the update is successful, STATUS_NOK if it fails.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "UPDATE Vlans SET VlanDescription = ? WHERE ID = ?",
+                (vlan_description, vlan_id)
+            )
+            self.connection.commit()
+            self.log.info(f"Description of VLAN {vlan_id} updated successfully.")
+            return STATUS_OK
+        except sqlite3.Error as e:
+            self.log.error("Error updating VLAN description: %s", e)
+            return STATUS_NOK
+
+
+    def insert_vlan_interface(self, id: int, vlan_name: str, interface_fk: int, bridge_fk: int):
+        """
+        Insert data into the 'VlanInterfaces' table.
+
+        Args:
+            id (int): The unique ID of the VLAN interface.
+            vlan_name (str): The name of the VLAN.
+            interface_fk (int): The foreign key referencing an interface.
+            bridge_fk (int): The foreign key referencing a bridge.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -83,7 +171,18 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'VlanInterfaces': %s", e)
 
-    def insert_nat(self, id, nat_pool_name, interface_fk):
+    def insert_nat(self, id: int, nat_pool_name: str, interface_fk: int):
+        """
+        Insert data into the 'Nats' table.
+
+        Args:
+            id (int): The unique ID of the NAT.
+            nat_pool_name (str): The name of the NAT pool.
+            interface_fk (int): The foreign key referencing an interface.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -95,7 +194,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Nats': %s", e)
 
-    def insert_nat_direction(self, id, nat_fk, interface_fk, direction):
+    def insert_nat_direction(self, id: int, nat_fk: int, interface_fk: int, direction: str):
+        """
+        Insert data into the 'NatDirections' table.
+
+        Args:
+            id (int): The unique ID of the NAT direction.
+            nat_fk (int): The foreign key referencing a NAT.
+            interface_fk (int): The foreign key referencing an interface.
+            direction (str): The direction of the NAT.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -107,7 +218,18 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'NatDirections': %s", e)
 
-    def insert_dhcp(self, id, interface_fk, dhcp_poolname):
+    def insert_dhcp(self, id: int, interface_fk: int, dhcp_poolname: str):
+        """
+        Insert data into the 'DHCP' table.
+
+        Args:
+            id (int): The unique ID of the DHCP configuration.
+            interface_fk (int): The foreign key referencing an interface.
+            dhcp_poolname (str): The name of the DHCP pool.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -119,7 +241,18 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'DHCP': %s", e)
 
-    def insert_subnet(self, id, dhcp_fk, ip_subnet):
+    def insert_subnet(self, id: int, dhcp_fk: int, ip_subnet: str):
+        """
+        Insert data into the 'Subnet' table.
+
+        Args:
+            id (int): The unique ID of the subnet.
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+            ip_subnet (str): The IP subnet.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -131,7 +264,20 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Subnet': %s", e)
 
-    def insert_pools(self, id, subnet_fk, ip_address_start, ip_address_end, ip_subnet):
+    def insert_pools(self, id: int, subnet_fk: int, ip_address_start: str, ip_address_end: str, ip_subnet: str):
+        """
+        Insert data into the 'Pools' table.
+
+        Args:
+            id (int): The unique ID of the pool.
+            subnet_fk (int): The foreign key referencing a subnet.
+            ip_address_start (str): The start IP address of the pool.
+            ip_address_end (str): The end IP address of the pool.
+            ip_subnet (str): The IP subnet of the pool.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -143,7 +289,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Pools': %s", e)
 
-    def insert_options_pools(self, id, pools_fk, dhcp_options, dhcp_value):
+    def insert_options_pools(self, id: int, pools_fk: int, dhcp_options: str, dhcp_value: str):
+        """
+        Insert data into the 'OptionsPools' table.
+
+        Args:
+            id (int): The unique ID of the pool options.
+            pools_fk (int): The foreign key referencing a pool.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -155,7 +313,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'OptionsPools': %s", e)
 
-    def insert_options_global(self, id, dhcp_fk, dhcp_options, dhcp_value):
+    def insert_options_global(self, id: int, dhcp_fk: int, dhcp_options: str, dhcp_value: str):
+        """
+        Insert data into the 'OptionsGlobal' table.
+
+        Args:
+            id (int): The unique ID of the global options.
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -167,7 +337,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'OptionsGlobal': %s", e)
 
-    def insert_reservations(self, id, subnet_fk, mac_address, ip_address):
+    def insert_reservations(self, id: int, subnet_fk: int, mac_address: str, ip_address: str):
+        """
+        Insert data into the 'Reservations' table.
+
+        Args:
+            id (int): The unique ID of the reservation.
+            subnet_fk (int): The foreign key referencing a subnet.
+            mac_address (str): The MAC address of the reservation.
+            ip_address (str): The IP address of the reservation.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -179,7 +361,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Reservations': %s", e)
 
-    def insert_options_reservations(self, id, pool_reservations_fk, dhcp_options, dhcp_value):
+    def insert_options_reservations(self, id: int, pool_reservations_fk: int, dhcp_options: str, dhcp_value: str):
+        """
+        Insert data into the 'OptionsReservations' table.
+
+        Args:
+            id (int): The unique ID of the reservation options.
+            pool_reservations_fk (int): The foreign key referencing a pool reservations entry.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute(
@@ -187,10 +381,23 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
                 (id, pool_reservations_fk, dhcp_options, dhcp_value)
             )
             self.connection.commit()
+            self.log.info("Data inserted into the 'OptionsReservations' table successfully.")
         except sqlite3.Error as e:
-            self.log.error("Error inserting into 'OptionsReservations': %s", e)
+            self.log.error("Error inserting data into 'OptionsReservations': %s", e)
 
-    def get_interface_id(self, if_name):
+    def get_interface_id(self, if_name: str) -> int:
+        """
+        Retrieve the ID of an interface by its name.
+
+        Args:
+            if_name (str): The name of the interface.
+
+        Returns:
+            int: The ID of the interface if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
@@ -201,7 +408,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'Interfaces' ID: %s", e)
         return None
 
-    def get_bridge_id(self, bridge_name):
+    def get_bridge_id(self, bridge_name: str) -> int:
+        """
+        Retrieve the ID of a bridge by its name.
+
+        Args:
+            bridge_name (str): The name of the bridge.
+
+        Returns:
+            int: The ID of the bridge if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
@@ -212,7 +431,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'Bridges' ID: %s", e)
         return None
 
-    def get_vlan_interfaces_id(self, vlan_name):
+    def get_vlan_interfaces_id(self, vlan_name: str) -> int:
+        """
+        Retrieve the ID of VLAN interfaces by the VLAN name.
+
+        Args:
+            vlan_name (str): The name of the VLAN.
+
+        Returns:
+            int: The ID of the VLAN interfaces if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM VlanInterfaces WHERE VlanName = ?", (vlan_name,))
@@ -223,7 +454,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'VlanInterfaces' ID: %s", e)
         return None
 
-    def get_nat_id(self, nat_pool_name):
+    def get_nat_id(self, nat_pool_name: str) -> int:
+        """
+        Retrieve the ID of a NAT by its pool name.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool.
+
+        Returns:
+            int: The ID of the NAT if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
@@ -234,7 +477,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'Nats' ID: %s", e)
         return None
 
-    def get_dhcp_id(self, dhcp_poolname):
+    def get_dhcp_id(self, dhcp_poolname: str) -> int:
+        """
+        Retrieve the ID of a DHCP configuration by its pool name.
+
+        Args:
+            dhcp_poolname (str): The name of the DHCP pool.
+
+        Returns:
+            int: The ID of the DHCP configuration if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM DHCP WHERE DhcpPoolname = ?", (dhcp_poolname,))
@@ -245,7 +500,19 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'DHCP' ID: %s", e)
         return None
 
-    def get_subnet_id(self, ip_subnet):
+    def get_subnet_id(self, ip_subnet: str) -> int:
+        """
+        Retrieve the ID of a subnet by its IP subnet.
+
+        Args:
+            ip_subnet (str): The IP subnet.
+
+        Returns:
+            int: The ID of the subnet if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM Subnet WHERE IpSubnet = ?", (ip_subnet,))
@@ -256,7 +523,20 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'Subnet' ID: %s", e)
         return None
 
-    def get_pools_id(self, ip_address_start, ip_address_end):
+    def get_pools_id(self, ip_address_start: str, ip_address_end: str) -> int:
+        """
+        Retrieve the ID of a pool by its start and end IP addresses.
+
+        Args:
+            ip_address_start (str): The start IP address of the pool.
+            ip_address_end (str): The end IP address of the pool.
+
+        Returns:
+            int: The ID of the pool if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM Pools WHERE IpAddressStart = ? AND IpAddressEnd = ?", (ip_address_start, ip_address_end))
@@ -267,7 +547,20 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'Pools' ID: %s", e)
         return None
 
-    def get_options_pools_id(self, dhcp_options, dhcp_value):
+    def get_options_pools_id(self, dhcp_options: str, dhcp_value: str) -> int:
+        """
+        Retrieve the ID of pool options by DHCP options and value.
+
+        Args:
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Returns:
+            int: The ID of the pool options if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM OptionsPools WHERE DhcpOptions = ? AND DhcpValue = ?", (dhcp_options, dhcp_value))
@@ -278,7 +571,20 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'OptionsPools' ID: %s", e)
         return None
 
-    def get_options_global_id(self, dhcp_options, dhcp_value):
+    def get_options_global_id(self, dhcp_options: str, dhcp_value: str) -> int:
+        """
+        Retrieve the ID of global options by DHCP options and value.
+
+        Args:
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Returns:
+            int: The ID of the global options if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM OptionsGlobal WHERE DhcpOptions = ? AND DhcpValue = ?", (dhcp_options, dhcp_value))
@@ -289,7 +595,20 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'OptionsGlobal' ID: %s", e)
         return None
 
-    def get_reservations_id(self, mac_address, ip_address):
+    def get_reservations_id(self, mac_address: str, ip_address: str) -> int:
+        """
+        Retrieve the ID of a reservation by MAC address and IP address.
+
+        Args:
+            mac_address (str): The MAC address of the reservation.
+            ip_address (str): The IP address of the reservation.
+
+        Returns:
+            int: The ID of the reservation if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM Reservations WHERE MacAddress = ? AND IPAddress = ?", (mac_address, ip_address))
@@ -300,7 +619,20 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
             self.log.error("Error retrieving 'Reservations' ID: %s", e)
         return None
 
-    def get_options_reservations_id(self, dhcp_options, dhcp_value):
+    def get_options_reservations_id(self, dhcp_options: str, dhcp_value: str) -> int:
+        """
+        Retrieve the ID of reservation options by DHCP options and value.
+
+        Args:
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Returns:
+            int: The ID of the reservation options if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT id FROM OptionsReservations WHERE DhcpOptions = ? AND DhcpValue = ?", (dhcp_options, dhcp_value))
@@ -310,4 +642,171 @@ def insert_interface(self, id, if_name, interface_type: InterfaceType, if_name_a
         except sqlite3.Error as e:
             self.log.error("Error retrieving 'OptionsReservations' ID: %s", e)
         return None
-                 
+
+    def get_interface_type(self, if_name: str) -> InterfaceType:
+        """
+        Retrieve the type of an interface by its name.
+
+        Args:
+            if_name (str): The name of the interface.
+
+        Returns:
+            InterfaceType: The type of the interface if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT InterfaceType FROM Interfaces WHERE IfName = ?", (if_name,))
+            row = cursor.fetchone()
+            if row:
+                interface_type = InterfaceType(row[0])
+                return interface_type
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'Interfaces' type: %s", e)
+        return None
+
+    def get_nat_directions(self, nat_fk: int) -> list:
+        """
+        Retrieve the directions of a NAT by its foreign key.
+
+        Args:
+            nat_fk (int): The foreign key referencing a NAT.
+
+        Returns:
+            list: A list of directions for the NAT if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        directions = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT Direction FROM NatDirections WHERE NAT_FK = ?", (nat_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                directions = [row[0] for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving NAT directions: %s", e)
+        return directions
+
+    def get_dhcp_subnets(self, dhcp_fk: int) -> list:
+        """
+        Retrieve the subnets associated with a DHCP configuration by its foreign key.
+
+        Args:
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+
+        Returns:
+            list: A list of subnets associated with the DHCP configuration if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        subnets = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT IpSubnet FROM Subnet WHERE DHCP_FK = ?", (dhcp_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                subnets = [row[0] for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving DHCP subnets: %s", e)
+        return subnets
+
+    def get_pool_reservations(self, subnet_fk: int) -> list:
+        """
+        Retrieve the pool reservations associated with a subnet by its foreign key.
+
+        Args:
+            subnet_fk (int): The foreign key referencing a subnet.
+
+        Returns:
+            list: A list of pool reservations associated with the subnet if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        reservations = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT MacAddress, IPAddress FROM Reservations WHERE Subnet_FK = ?", (subnet_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                reservations = [{"MacAddress": row[0], "IPAddress": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving pool reservations: %s", e)
+        return reservations
+
+    def get_pool_options(self, pools_fk: int) -> list:
+        """
+        Retrieve the options associated with a pool by its foreign key.
+
+        Args:
+            pools_fk (int): The foreign key referencing a pool.
+
+        Returns:
+            list: A list of options associated with the pool if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        options = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT DhcpOptions, DhcpValue FROM OptionsPools WHERE Pools_FK = ?", (pools_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                options = [{"DhcpOptions": row[0], "DhcpValue": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving pool options: %s", e)
+        return options
+
+    def get_global_options(self, dhcp_fk: int) -> list:
+        """
+        Retrieve the global options associated with a DHCP configuration by its foreign key.
+
+        Args:
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+
+        Returns:
+            list: A list of global options associated with the DHCP configuration if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        options = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT DhcpOptions, DhcpValue FROM OptionsGlobal WHERE DHCP_FK = ?", (dhcp_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                options = [{"DhcpOptions": row[0], "DhcpValue": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving global options: %s", e)
+        return options
+
+    def get_options_reservations(self, pool_reservations_fk: int) -> list:
+        """
+        Retrieve the options associated with a pool reservations entry by its foreign key.
+
+        Args:
+            pool_reservations_fk (int): The foreign key referencing a pool reservations entry.
+
+        Returns:
+            list: A list of options associated with the pool reservations entry if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        options = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT DhcpOptions, DhcpValue FROM OptionsReservations WHERE PoolReservations_FK = ?", (pool_reservations_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                options = [{"DhcpOptions": row[0], "DhcpValue": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving pool reservations options: %s", e)
+        return options
