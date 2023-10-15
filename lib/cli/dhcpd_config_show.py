@@ -6,7 +6,7 @@ import logging
 
 import cmd2
 
-from lib.db.dhcp_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB
+from lib.db.dhcp_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
 from lib.cli.exec_priv_mode import ExecMode
 from lib.cli.global_operation import GlobalUserCommand
 from lib.cli.router_prompt import RouterPrompt
@@ -31,7 +31,7 @@ class DHCPServerConfig(cmd2.Cmd,
         self.log = logging.getLogger(self.__class__.__name__)
         GlobalUserCommand.__init__(self)
         
-        self.log.info(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")
+        self.log.debug(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")
         
         ''' DO NOT MODIFY THIS LINE'''  
         self.dhcp_pool_obj = None        
@@ -43,13 +43,13 @@ class DHCPServerConfig(cmd2.Cmd,
         if self.isGlobalMode() :
             prompt_ext = f'-{dhcp_pool_name}'
         else:
-            self.log.info(f"DHCPServerConfig() -> Not in DHCP Global Config Mode")
+            self.log.debug(f"DHCPServerConfig() -> Not in DHCP Global Config Mode")
         
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, f'{self.PROMPT_CMD_ALIAS}{prompt_ext}')
         self.prompt = self.set_prompt()
                 
         if not KeaDHCPDB().pool_name_exists(self.dhcp_pool_name):
-            self.log.info(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")
+            self.log.debug(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")
             
     def isGlobalMode(self) -> bool:
         return self.dhcp_pool_name == self.GLOBAL_CONFIG_MODE
@@ -64,7 +64,7 @@ class DHCPServerConfig(cmd2.Cmd,
         Example:
             subnet 192.168.1.0/24
         '''
-        self.log.info(f"do_subnet() -> args: {args} -> negate: {self.negate}")
+        self.log.debug(f"do_subnet() -> args: {args} -> negate: {self.negate}")
 
         parser = argparse.ArgumentParser(
             description="Configure a DHCP server subnet",
@@ -83,7 +83,7 @@ class DHCPServerConfig(cmd2.Cmd,
             return
 
         ip_address_mask = args.ip_address_mask
-        self.log.info(f"Configuring subnet with IP Subnet: {ip_address_mask}")
+        self.log.debug(f"Configuring subnet with IP Subnet: {ip_address_mask}")
         
         self.dchp_pool_subnet_obj = KeaDHCPDBFactory(self.dhcp_pool_name, ip_address_mask, self.negate)
 
@@ -97,7 +97,7 @@ class DHCPServerConfig(cmd2.Cmd,
         Example:
             pools 192.168.1.10 192.168.1.20 255.255.255.0
         '''
-        self.log.info(f"do_pool() -> args: {args}")
+        self.log.debug(f"do_pool() -> args: {args}")
 
         parser = argparse.ArgumentParser(
             description="Configure an IP pool for the DHCP server",
@@ -123,14 +123,11 @@ class DHCPServerConfig(cmd2.Cmd,
         subnet_mask = args.subnet_mask
 
         # Handle the 'pools' command logic here
-        self.log.info(f"Configuring IP pool with start IP: {ip_start}, end IP: {ip_end}, and subnet mask: {subnet_mask}")
+        self.log.debug(f"Configuring IP pool with start IP: {ip_start}, end IP: {ip_end}, and subnet mask: {subnet_mask}")
         
         if not self.dchp_pool_subnet_obj:
             self.log.error(f"Subnet must be defined first before adding pool.")
             return STATUS_NOK
-        
-        
-
 
     def do_reservations(self, args: str):
         '''
@@ -142,7 +139,7 @@ class DHCPServerConfig(cmd2.Cmd,
         Example:
             reservations hw-address 00:11:22:33:44:55 ip-address 192.168.1.10 hostname client1
         '''
-        self.log.info(f"do_reservations() -> args: {args}")
+        self.log.debug(f"do_reservations() -> args: {args}")
 
         parser = argparse.ArgumentParser(
             description="Configure a reservation for a DHCP client",
@@ -177,13 +174,13 @@ class DHCPServerConfig(cmd2.Cmd,
         hostname = args.hostname
 
         # Handle the 'reservations' command logic here
-        self.log.info(f"Configuring reservation for client with {mac_or_duid}: {client_identifier}, IP address: {ip_address}, and hostname: {hostname}")
+        self.log.debug(f"Configuring reservation for client with {mac_or_duid}: {client_identifier}, IP address: {ip_address}, and hostname: {hostname}")
         # Implement your logic for configuring the reservation using the parsed arguments
 
     def do_option(self, args:str, negate=False):
         '''args: dhcp_option dhcp_value'''
         
-        self.log.info(f"do_option() -> args: {args} -> negate:{negate}")
+        self.log.debug(f"do_option() -> args: {args} -> negate:{negate}")
         
         args_parts = args.strip().split()
         
@@ -194,8 +191,8 @@ class DHCPServerConfig(cmd2.Cmd,
                 return STATUS_NOK
 
         if self.isGlobalMode():
-            self.log.info(f"Adding DHCP option to global configuration: {args}")
-            DHCPDatabase().update_global_config(dhcp_option, dhcp_value)
+            self.log.debug(f"Adding DHCP option to global configuration: {args}")
+            KeaDHCPDB().update_global_config(dhcp_option, dhcp_value)
     
     def do_tell(self, args):
         print(f"{DHCPDatabase().get_copy_dhcp_pool()}")

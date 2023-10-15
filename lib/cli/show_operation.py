@@ -157,11 +157,11 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             RouteShow().route()
             return
         elif args.subcommand == 'nat':
-            self.log.info("Show nat command")
+            self.log.debug("Show nat command")
             NatShow().getNatTable()
             return
         elif args.subcommand == 'nat-db':
-            self.log.info("Show nat command")
+            self.log.debug("Show nat command")
             print(NatPoolDB().to_json())
             return
         elif args.subcommand == 'vlan':

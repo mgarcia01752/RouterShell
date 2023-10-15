@@ -198,7 +198,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         return [comp for comp in completions if comp.startswith(text)]
     
     def do_dhcp(self, args=None) -> None:
-        self.log.info(f"do_dhcp() -> command: ({args})")    
+        self.log.debug(f"do_dhcp() -> command: ({args})")    
         DHCPServerConfig(args).cmdloop()   
 
     def complete_ip(self, text, line, begidx, endidx):
@@ -207,7 +207,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         return [comp for comp in completions if comp.startswith(text)]
 
     def do_ip(self, args=None, negate=False) -> None:
-        self.log.info(f"do_ip() -> command: ({args})")
+        self.log.debug(f"do_ip() -> command: ({args})")
           
         args_parts = args.strip().split()
         
@@ -216,7 +216,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             IpRouteConfig(args)
         
         elif args_parts[0] == "nat":
-            self.log.info(f"do_ip(nat) -> command: ({args})")  
+            self.log.debug(f"do_ip(nat) -> command: ({args})")  
             NatConfig(args)
         
         else:

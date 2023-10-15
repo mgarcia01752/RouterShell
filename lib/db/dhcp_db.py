@@ -17,7 +17,7 @@ class KeaDHCPDBFactory():
         try:
             # Attempt to create an IPv4Network or IPv6Network object from the provided subnet string
             self.ip_subnet_mask = ipaddress.ip_network(ip_subnet_mask, strict=False)
-            self.log.info(f"Subnet: {self.ip_subnet_mask}")
+            self.log.debug(f"Subnet: {self.ip_subnet_mask}")
         except ValueError:
             self.log.error("Invalid subnet format. Please provide a valid subnet in CIDR notation.")
             raise ValueError("Invalid subnet format. Please provide a valid subnet in CIDR notation.")
@@ -26,8 +26,6 @@ class KeaDHCPDBFactory():
         self.negate = negate
 
         self.kea_db_obj = KeaDHCPDB()
-
-        # check to see if both dhcp_pool_name and ip_subnet_mask does not exist
        
 class KeaDHCPDB():
     
@@ -104,7 +102,7 @@ class KeaDHCPDB():
         Returns:
             bool: STATUS_OK if the pool name was added, STATUS_NOK otherwise.
         """
-        self.log.info(f"add_pool_name() -> {pool_name} -> DHCP-Version: {dhcp_version}")
+        self.log.debug(f"add_pool_name() -> {pool_name} -> DHCP-Version: {dhcp_version}")
         
         if not self.pool_name_exists(pool_name):
             pool_data = {
@@ -128,7 +126,7 @@ class KeaDHCPDB():
         Returns:
             int: The number of subnets.
         """
-        self.log.info(f"get_num_of_subnets() -> {dhcp_version}")
+        self.log.debug(f"get_num_of_subnets() -> {dhcp_version}")
         
         if dhcp_version == DhcpVersion.DHCP_V4:
             return len(self.kea_v4_db["Dhcp4"]["subnet4"])
@@ -149,7 +147,7 @@ class KeaDHCPDB():
         Returns:
             bool: STATUS_OK if the subnet was added, STATUS_NOK otherwise.
         """
-        self.log.info(f"set_subnet() -> {ip_subnet} -> {dhcp_version}")
+        self.log.debug(f"set_subnet() -> {ip_subnet} -> {dhcp_version}")
         try:
             if dhcp_version == DhcpVersion.DHCP_V4:
                 self.kea_v4_db["Dhcp4"]["subnet4"].append({"subnet": ip_subnet})
@@ -208,3 +206,140 @@ class KeaDHCPDB():
         except Exception as e:
             self.log.error(f"Failed to add user context: {str(e)}")
             return STATUS_NOK
+
+class DhcpOptionsLUT:
+    '''https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#interface-configuration'''
+    
+    def __init__(self):
+        self.log = logging.getLogger(self.__class__.__name__)
+        
+        self.dhcp_options = {
+            "time-offset": "int",
+            "routers": "ipaddress",
+            "time-servers": "ipaddress",
+            "name-servers": "ipaddress",
+            "domain-name-servers": "ipaddress",
+            "log-servers": "ipaddress",
+            "cookie-servers": "ipaddress",
+            "lpr-servers": "ipaddress",
+            "impress-servers": "ipaddress",
+            "resource-location-servers": "ipaddress",
+            "boot-size": "int",
+            "merit-dump": "string",
+            "domain-name": "fqdn",
+            "swap-server": "ipaddress",
+            "root-path": "string",
+            "extensions-path": "string",
+            "ip-forwarding": "boolean",
+            "non-local-source-routing": "boolean",
+            "policy-filter": "ipaddress",
+            "max-dgram-reassembly": "int",
+            "default-ip-ttl": "int",
+            "path-mtu-aging-timeout": "int",
+            "path-mtu-plateau-table": "int",
+            "interface-mtu": "int",
+            "all-subnets-local": "boolean",
+            "broadcast-address": "ipaddress",
+            "perform-mask-discovery": "boolean",
+            "mask-supplier": "boolean",
+            "router-discovery": "boolean",
+            "router-solicitation-address": "ipaddress",
+            "static-routes": "ipaddress",
+            "trailer-encapsulation": "boolean",
+            "arp-cache-timeout": "int",
+            "ieee802-3-encapsulation": "boolean",
+            "default-tcp-ttl": "int",
+            "tcp-keepalive-interval": "int",
+            "tcp-keepalive-garbage": "boolean",
+            "nis-domain": "string",
+            "nis-servers": "ipaddress",
+            "ntp-servers": "ipaddress",
+            "vendor-encapsulated-options": "empty",
+            "netbios-name-servers": "ipaddress",
+            "netbios-dd-server": "ipaddress",
+            "netbios-node-type": "int",
+            "netbios-scope": "string",
+            "font-servers": "ipaddress",
+            "x-display-manager": "ipaddress",
+            "dhcp-option-overload": "int",
+            "dhcp-server-identifier": "ipaddress",
+            "dhcp-message": "string",
+            "dhcp-max-message-size": "int",
+            "vendor-class-identifier": "string",
+            "nwip-domain-name": "string",
+            "nwip-suboptions": "binary",
+            "nisplus-domain-name": "string",
+            "nisplus-servers": "ipaddress",
+            "tftp-server-name": "string",
+            "boot-file-name": "string",
+            "mobile-ip-home-agent": "ipaddress",
+            "smtp-server": "ipaddress",
+            "pop-server": "ipaddress",
+            "nntp-server": "ipaddress",
+            "www-server": "ipaddress",
+            "finger-server": "ipaddress",
+            "irc-server": "ipaddress",
+            "streettalk-server": "ipaddress",
+            "streettalk-directory-assistance-server": "ipaddress",
+            "user-class": "binary",
+            "slp-directory-agent": "record (boolean, ipaddress)",
+            "slp-service-scope": "record (boolean, string)",
+            "nds-server": "ipaddress",
+            "nds-tree-name": "string",
+            "nds-context": "string",
+            "bcms-controller-names": "fqdn",
+            "bcms-controller-address": "ipaddress",
+            "client-system": "int",
+            "client-ndi": "record (int, int, int)",
+            "uuid-guid": "record (int, binary)",
+            "uap-servers": "string",
+            "geoconf-civic": "binary",
+            "pcode": "string",
+            "tcode": "string",
+            "v6-only-preferred": "int",
+            "netinfo-server-address": "ipaddress",
+            "netinfo-server-tag": "string",
+            "v4-captive-portal": "string",
+            "auto-config": "int",
+            "name-service-search": "int",
+            "domain-search": "fqdn",
+            "vivco-suboptions": "record (int, binary)",
+            "vivso-suboptions": "int",
+            "pana-agent": "ipaddress",
+            "v4-lost": "fqdn",
+            "capwap-ac-v4": "ipaddress",
+            "sip-ua-cs-domains": "fqdn",
+            "v4-sztp-redirect": "tuple",
+            "rdnss-selection": "record (int, ipaddress, ipaddress, fqdn)",
+            "v4-portparams": "record (int, psid)",
+            "v4-dnr": "record (int, int, int, fqdn, binary)",
+            "option-6rd": "record (int, int, ipv6-address, ipaddress)",
+            "v4-access-domain": "fqdn"
+        }
+
+    def dhcp_option_exists(self, dhcp_option: str) -> bool:
+        """
+        Verify if DHCP option exists in the DHCP configuration options.
+
+        Args:
+            key (str): The key to check.
+
+        Returns:
+            bool: True if the key exists, False otherwise.
+        """
+        return dhcp_option in self.dhcp_options
+
+    def get_data_type(self, dhcp_option: str) -> Union[None, str]:
+        """
+        Get the data type associated with a key in the DHCP configuration options.
+
+        Args:
+            key (str): The key to retrieve the data type for.
+
+        Returns:
+            Union[None, str]: The data type of the key, or None if the key does not exist.
+        """
+        if self.dhcp_option_exists(dhcp_option):
+            return self.dhcp_options[dhcp_option]
+        else:
+            return None

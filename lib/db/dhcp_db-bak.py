@@ -23,7 +23,7 @@ class DHCPDatabaseFactory():
         self.dhcp_pool_name = dhcp_pool_name
         self.ip_subnet_mask = ip_subnet_mask
         
-        self.log.info(f"DHCPDatabaseFactory() -> dhcp_pool_name: {self.dhcp_pool_name} -> ip_subnet_mask: {self.ip_subnet_mask}")
+        self.log.debug(f"DHCPDatabaseFactory() -> dhcp_pool_name: {self.dhcp_pool_name} -> ip_subnet_mask: {self.ip_subnet_mask}")
         
         self.dhcp_version = DhcpVersion.DHCP_V4
 
@@ -38,7 +38,7 @@ class DHCPDatabaseFactory():
             print(f"KEA-DB: {self.kea_v4_db}")
         
             if negate:
-                self.log.info(f"Removing DHCP pool: {dhcp_pool_name}")
+                self.log.debug(f"Removing DHCP pool: {dhcp_pool_name}")
                 
                 # Delete pool-name
                 if DHCPDatabase().delete_pool_name(dhcp_pool_name):
@@ -50,7 +50,7 @@ class DHCPDatabaseFactory():
                     self.log.error(f"Unable to delete or does not exists DHCP Subnet-ID: {pool_name_id}")
                     return STATUS_NOK
                 
-                self.log.info(f"Remove references pointers to preserve db")
+                self.log.debug(f"Remove references pointers to preserve db")
                 self.kea_v4_db, self.dhcp_pool_db = None
 
             else:                    
@@ -183,7 +183,7 @@ class DHCPDatabaseFactory():
                     }
                                    
                     if "pools" not in self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]:
-                        self.log.info(f"add_pool() -> pools entry not found -> adding pools array entry")
+                        self.log.debug(f"add_pool() -> pools entry not found -> adding pools array entry")
                         self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]["pools"] = []
 
                     self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]["pools"].append(pool_entry)
@@ -214,15 +214,19 @@ class DHCPDatabase:
     dhcp_pool_default = {
         "DhcpPool": {
             "pool-name": [
-                "name" : "dhcp-pool-1",
-                "pools" : {
-                    "id" : 0,
-                    "subnet-range": ""
+                {
+                    "name" : "dhcp-pool-1",
+                    "pools" : [
+                        {
+                            "id" : 0,
+                            "subnet-range": "",
+                        }
+                    ]
                 }
-            ]
+            ]     
         }
     }
-
+        
     dhcp_pool = {
         "DhcpPool": {
             "pool-name": [
