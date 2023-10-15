@@ -4,6 +4,7 @@ import logging
 import argparse
 
 from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.if_config_show import InterfaceShow
 from lib.cli.nat_config_show import NatShow
 from lib.cli.router_prompt import RouterPrompt
 from lib.cli.exec_priv_mode import ExecMode, ExecException

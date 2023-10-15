@@ -1,11 +1,12 @@
 import argparse
+import argparse
 import ipaddress
 import json
 import logging
 
 import cmd2
 
-from lib.db.dhcp_db import DHCPDatabase, DhcpOptionsLUT, DHCPDatabaseFactory
+from lib.db.dhcp_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB
 from lib.cli.exec_priv_mode import ExecMode
 from lib.cli.global_operation import GlobalUserCommand
 from lib.cli.router_prompt import RouterPrompt
@@ -32,7 +33,7 @@ class DHCPServerConfig(cmd2.Cmd,
         
         self.log.info(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")
         
-        ''' DO NOT MODIFY THIS LINE'''
+        ''' DO NOT MODIFY THIS LINE'''  
         self.dhcp_pool_obj = None        
         self.dhcp_pool_name = dhcp_pool_name
         self.negate = negate
@@ -47,7 +48,7 @@ class DHCPServerConfig(cmd2.Cmd,
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, f'{self.PROMPT_CMD_ALIAS}{prompt_ext}')
         self.prompt = self.set_prompt()
                 
-        if not DHCPDatabase().pool_name_exists(self.dhcp_pool_name):
+        if not KeaDHCPDB().pool_name_exists(self.dhcp_pool_name):
             self.log.info(f"DHCP-Pool:({self.dhcp_pool_name}) does not exist -> Creating DHCP-POOL: {self.dhcp_pool_name}")
             
     def isGlobalMode(self) -> bool:
@@ -84,10 +85,9 @@ class DHCPServerConfig(cmd2.Cmd,
         ip_address_mask = args.ip_address_mask
         self.log.info(f"Configuring subnet with IP Subnet: {ip_address_mask}")
         
-        self.dchp_pool_subnet_obj = DHCPDatabaseFactory(self.dhcp_pool_name, ip_address_mask, self.negate)
+        self.dchp_pool_subnet_obj = KeaDHCPDBFactory(self.dhcp_pool_name, ip_address_mask, self.negate)
 
-        
-    def do_pools(self, args: str):
+    def do_pool(self, args: str):
         '''
         Configure an IP pool with the specified start and end IP addresses and subnet mask.
 
@@ -97,7 +97,7 @@ class DHCPServerConfig(cmd2.Cmd,
         Example:
             pools 192.168.1.10 192.168.1.20 255.255.255.0
         '''
-        self.log.info(f"do_pools() -> args: {args}")
+        self.log.info(f"do_pool() -> args: {args}")
 
         parser = argparse.ArgumentParser(
             description="Configure an IP pool for the DHCP server",
@@ -124,7 +124,13 @@ class DHCPServerConfig(cmd2.Cmd,
 
         # Handle the 'pools' command logic here
         self.log.info(f"Configuring IP pool with start IP: {ip_start}, end IP: {ip_end}, and subnet mask: {subnet_mask}")
-        # Implement your logic for configuring the IP pool using the parsed arguments
+        
+        if not self.dchp_pool_subnet_obj:
+            self.log.error(f"Subnet must be defined first before adding pool.")
+            return STATUS_NOK
+        
+        
+
 
     def do_reservations(self, args: str):
         '''

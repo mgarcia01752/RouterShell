@@ -72,24 +72,16 @@ Please select the specific documentation file you are interested in from the tab
 
 If you have any questions or need further assistance, please feel free to reach out to our community or project team. Thank you for choosing RouterShell!
 
-## [TODO](todo.md)
-
-## Setup and Running RouterShell (Temporary until install script is ready)
+## Running RouterShell (Temporary until install script is ready)
 
 ```bash
-
-ROUTERSHELL_PROJECT_ROOT="${PWD}"
-export PYTHONPATH="${PYTHONPATH}:${ROUTERSHELL_PROJECT_ROOT}:${ROUTERSHELL_PROJECT_ROOT}/src:${ROUTERSHELL_PROJECT_ROOT}/lib:${ROUTERSHELL_PROJECT_ROOT}/test"
-
-# Determine the current user
-current_user="$(whoami)"
-
-# Create the directory
-mkdir -m 775 -p /tmp/log
-
-# Set the owner and group to the current userq  
-sudo chown "$current_user":"$current_user" /tmp/log
-
-cd src/main.py
-
+./setup.sh
 ```
+
+## Run RouterShell
+
+```bash
+./start.sh
+```
+
+## [TODO](todo.md)
