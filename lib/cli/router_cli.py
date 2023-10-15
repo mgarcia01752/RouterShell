@@ -10,6 +10,7 @@ from lib.cli.exec_priv_mode import ExecMode
 from lib.cli.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show_operation import ShowMode
 from lib.cli.configuration_operation import ConfigureMode
+from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB
 from lib.db.vlan_db import VLANDatabase
 
 logging.basicConfig(
@@ -32,6 +33,8 @@ class RouterCLI(cmd2.Cmd,
         GlobalUserCommand.__init__(self)
         GlobalPrivCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.USER_MODE)
+        
+        RSDB()
         
         VLANDatabase()
         

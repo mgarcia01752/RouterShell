@@ -1,20 +1,18 @@
 import sqlite3
 import logging
-from lib.network_manager.interface import InterfaceType
+import os
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.interface import InterfaceType
 
 class RouterShellDatabaseConnector:
-    def __init__(self, sql_file_path: str):
-        self.log = logging.getLogger(self.__class__.__name__)
-        """
-        Initialize the database connector.
+    connection = None  # Class-level connection attribute
+    ROUTER_SHELL_DB = 'db_schema.sql'
 
-        Args:
-            sql_file_path (str): The path to the SQL file used to create the database schema.
-        """
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.sql_file_path = sql_file_path
-        self.connection = None
+    def __init__(self):
+        self.log = logging.getLogger(self.__class__.__name)
+        self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
+        if not self.connection:
+            self.create_database()
 
     def create_database(self):
         """
@@ -145,7 +143,6 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN description: %s", e)
             return STATUS_NOK
-
 
     def insert_vlan_interface(self, id: int, vlan_name: str, interface_fk: int, bridge_fk: int):
         """
