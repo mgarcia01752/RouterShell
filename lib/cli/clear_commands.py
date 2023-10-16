@@ -58,7 +58,6 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         arp_parser = subparsers.add_parser("arp", help="Clear ARP cache for a specific interface")
         arp_parser.add_argument("interface", nargs='?', help="Name of the interface")
 
-
         try:
             parsed_args = parser.parse_args(args.split())
         except SystemExit:

@@ -43,7 +43,6 @@ class DHCPServer():
         """
     pass
 
-
     def start_server(self):
         """
         Start the DHCP servers for all configured interfaces.
@@ -85,7 +84,6 @@ class DHCPServer():
     def update_interface(self, interface, new_config):
         pass
         
-
 class DhcpOptionsLUT:
     '''https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#interface-configuration'''
     

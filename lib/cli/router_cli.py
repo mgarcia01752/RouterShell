@@ -3,8 +3,8 @@ import readline
 import signal
 import logging
 import cmd2
-from lib.cli.clear_commands import ClearMode
 
+from lib.cli.clear_commands import ClearMode
 from lib.cli.router_prompt import RouterPrompt
 from lib.cli.exec_priv_mode import ExecMode
 from lib.cli.global_operation import GlobalUserCommand, GlobalPrivCommand
@@ -16,7 +16,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(),  # Log to the console
+        logging.StreamHandler(),
         logging.FileHandler('/tmp/log/routershell.log')
     ]
 )
