@@ -31,8 +31,6 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
                 self.log.error(f"Unable to add ({bridge_ifName})")
                         
         self.bridge_ifName = bridge_ifName
-                   
-        # Set a custom prompt for interface configuration
         self.prompt = self.set_prompt()
              
     def do_protocol(self, args=None):

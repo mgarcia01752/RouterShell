@@ -15,7 +15,8 @@ DROP TABLE IF EXISTS Bridges;
 CREATE TABLE IF NOT EXISTS Bridges (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT,
-    BridgeName VARCHAR(50) UNIQUE,
+    BridgeName VARCHAR(50),
+    Protocol VARCHAR(15),              -- Bridge Protocol
     CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
