@@ -8,8 +8,8 @@ from lib.cli.clear_commands import ClearMode
 from lib.cli.router_prompt import RouterPrompt
 from lib.cli.exec_priv_mode import ExecMode
 from lib.cli.global_operation import GlobalUserCommand, GlobalPrivCommand
-from lib.cli.show_operation import ShowMode
-from lib.cli.configuration_operation import ConfigureMode
+from lib.cli.show.show_operation import ShowMode
+from lib.cli.config.configuration_operation import ConfigureMode
 from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB
 
 logging.basicConfig(

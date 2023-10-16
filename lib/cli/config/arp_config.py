@@ -182,12 +182,4 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
             
         else:
             print(f"Invalid command: {line}")
-class ArpShow(Arp):
-    
-    def __init__(self, arg=None):
-        super().__init__()
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.arg = arg        
 
-    def arp(self, args=None):
-            self.get_arp()

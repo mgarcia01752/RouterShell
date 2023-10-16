@@ -112,13 +112,3 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
         self.log.info(f"Configuring NAT Access Control for {pool_name} ({direction}): ACL ID {acl_id}")
 
 
-class NatShow(Nat):
-    
-    def __init__(self, args=None):
-        super().__init__()
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.args = args        
-
-    def getNatTable(self, args=None):
-        self.log.info(f"getNatTable()")
-        print(f"{self.getNatIpTable()}")

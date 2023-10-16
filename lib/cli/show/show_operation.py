@@ -4,14 +4,14 @@ import logging
 import argparse
 
 from lib.cli.global_operation import GlobalUserCommand
-from lib.cli.if_config_show import InterfaceShow
-from lib.cli.nat_config_show import NatShow
+from lib.cli.config.if_config import InterfaceShow
+from lib.cli.config.nat_config import NatShow
 from lib.cli.router_prompt import RouterPrompt
 from lib.cli.exec_priv_mode import ExecMode, ExecException
-from lib.cli.arp_config_show import ArpShow
-from lib.cli.bridge_config_show import BridgeShow
-from lib.cli.vlan_config_show import VlanShow
-from lib.cli.ip_route_config_show import RouteShow
+from lib.cli.config.arp_config import ArpShow
+from lib.cli.config.bridge_config import BridgeShow
+from lib.cli.config.vlan_config import VlanShow
+from lib.cli.config.ip_route_config import RouteShow
 from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceConfigDB
 from lib.db.nat_db import NatPoolDB

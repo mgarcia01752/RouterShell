@@ -20,9 +20,7 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
         self.log = logging.getLogger(self.__class__.__name__)
 
         self.prompt = self.set_prompt()
-        
         self.vlan_id = vlan_id
-        
         self.add_vlan_to_db(self.vlan_id)
 
     def do_name(self, vlan_name: str) -> int:

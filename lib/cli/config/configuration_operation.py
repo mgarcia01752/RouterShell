@@ -1,14 +1,14 @@
 import cmd2
 import logging
 import argparse
-from lib.cli.arp_config_show import ArpConfig
-from lib.cli.dhcpd_config_show import DHCPServerConfig
-from lib.cli.if_config_show import InterfaceConfig
-from lib.cli.bridge_config_show import BridgeConfig
-from lib.cli.nat_config_show import NatConfig
+from lib.cli.config.arp_config import ArpConfig
+from lib.cli.config.dhcpd_config import DHCPServerConfig
+from lib.cli.config.if_config import InterfaceConfig
+from lib.cli.config.bridge_config import BridgeConfig
+from lib.cli.config.nat_config import NatConfig
 from lib.network_manager.interface import Interface
-from lib.cli.vlan_config_show import VlanConfig
-from lib.cli.ip_route_config_show import IpRouteConfig
+from lib.cli.config.vlan_config import VlanConfig
+from lib.cli.config.ip_route_config import IpRouteConfig
 
 from lib.cli.global_operation import GlobalUserCommand
 from lib.cli.router_prompt import RouterPrompt

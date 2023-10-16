@@ -602,14 +602,6 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"Remove switchport -> ({line})")
             self.do_switchport(parts[1:], negate=True)
        
-class InterfaceShow(Interface):
-    
-    def __init__(self, arg=None):
-        super().__init__()
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.arg = arg
-        
-    def interfaces(self, args=None):
-        self.get_interfaces()        
+   
 
 
