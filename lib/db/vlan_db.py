@@ -3,7 +3,8 @@ from typing import Optional
 from click import Tuple
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB
+from lib.db.router_shell_db import InsertResult, RouterShellDatabaseConnector as RSDB
+
 
 class VLANDatabase(RSDB):
     
@@ -11,7 +12,7 @@ class VLANDatabase(RSDB):
         super().__init__()
         cls.log = logging.getLogger(cls.__class__.__name__)   
     
-    def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Tuple[int, int]:
+    def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> InsertResult:
         """
         Add a VLAN to the database.
 
@@ -38,10 +39,10 @@ class VLANDatabase(RSDB):
         row_id = cls.insert_vlan(vlan_id, vlan_name, description)
 
         if row_id > 0:
-            return STATUS_OK, row_id
+            return InsertResult(STATUS_OK, row_id)
         else:
             cls.log.error("Failed to insert VLAN into the database")
-            return STATUS_NOK, -1
+            return InsertResult(STATUS_NOK, -1)
 
     def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> bool:
         """
@@ -69,7 +70,7 @@ class VLANDatabase(RSDB):
         """
         return cls.get_vlan_id(vlan_id) is not None
 
-    def get_vlan_name(cls, vlan_id: int) -> Tuple[int, Optional[str]]:
+    def get_vlan_name(cls, vlan_id: int) -> InsertResult:
         """
         Retrieve the name of a VLAN by its ID.
 
@@ -84,10 +85,10 @@ class VLANDatabase(RSDB):
         """
         vlan_name = cls.get_vlan_name_by_id(vlan_id)
         if vlan_name is not None:
-            return STATUS_OK, vlan_name
+            return InsertResult(STATUS_OK, vlan_name)
         else:
             cls.log.error(f"VLAN with ID {vlan_id} not found.")
-            return STATUS_NOK, None
+            return InsertResult(STATUS_NOK, None)
 
     def update_vlan_name(cls, vlan_id: int, vlan_name: str) -> bool:
         """

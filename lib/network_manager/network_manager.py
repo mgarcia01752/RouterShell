@@ -2,11 +2,11 @@ import ipaddress
 import json
 import logging
 import subprocess
-from typing import List
+from enum import Enum, auto
 from tabulate import tabulate
 
 from lib.network_manager.inet import InetServiceLayer
-from lib.common.constants import *
+from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class InterfaceNotFoundError(Exception):
     """
@@ -16,6 +16,17 @@ class InterfaceNotFoundError(Exception):
     def __init__(self, message="Network interface not found"):
         self.message = message
         super().__init__(self.message)
+
+class InterfaceType(Enum):
+    PHYSICAL = 'phy'
+    ETHERNET = 'if'
+    VLAN = 'vlan'
+    LOOPBACK = 'loopback'
+    VIRTUAL = 'vir'
+    BRIDGE = 'br'
+    WIRELESS_WIFI = 'wifi'
+    WIRELESS_CELL = 'cell'
+    UNKNOWN = auto()
         
 class NetworkManager(InetServiceLayer):
     """

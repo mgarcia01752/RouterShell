@@ -2,14 +2,35 @@ import sqlite3
 import logging
 import os
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.interface import InterfaceType
+from lib.network_manager.network_manager import InterfaceType
+
+class InsertResult:
+    """
+    Represents the result of an insert operation into the database.
+
+    Attributes:
+        status (bool): The status of the insert operation. True for success (STATUS_OK), False for failure (STATUS_NOK).
+        row_id (int): The row ID of the inserted item in the database. -1 if the insert operation failed.
+    """
+
+    def __init__(self, status: bool, result: str):
+        """
+        Initialize an InsertResult object.
+
+        Args:
+            status (bool): The status of the insert operation. STATUS_OK is success, STATUS_NOK for failure.
+            result (str): 
+        """
+        self.status = status
+        self.result = result
+
 
 class RouterShellDatabaseConnector:
-    connection = None  # Class-level connection attribute
+    connection = None
     ROUTER_SHELL_DB = 'db_schema.sql'
 
     def __init__(self):
-        self.log = logging.getLogger(self.__class__.__name)
+        self.log = logging.getLogger(self.__class__.__name__)
         self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
         if not self.connection:
             self.create_database()
@@ -23,7 +44,7 @@ class RouterShellDatabaseConnector:
             self.connection = sqlite3.connect(':memory:')
             cursor = self.connection.cursor()
 
-            # Read the SQL file
+            # Read the SQL fileInterfaceType
             with open(self.sql_file_path, 'r') as sql_file:
                 sql_script = sql_file.read()
 

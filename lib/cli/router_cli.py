@@ -11,7 +11,6 @@ from lib.cli.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show_operation import ShowMode
 from lib.cli.configuration_operation import ConfigureMode
 from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB
-from lib.db.vlan_db import VLANDatabase
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,7 +35,7 @@ class RouterCLI(cmd2.Cmd,
         
         RSDB()
         
-        VLANDatabase()
+        # VLANDatabase()
         
         self.log = logging.getLogger(self.__class__.__name__)
         

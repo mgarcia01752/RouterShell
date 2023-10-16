@@ -1,5 +1,3 @@
-import argparse
-from enum import Enum, auto
 import json
 import logging
 import re
@@ -8,7 +6,7 @@ from typing import Optional
 from tabulate import tabulate
 from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
 from lib.network_manager.vlan import Vlan
-from lib.network_manager.network_manager import NetworkManager
+from lib.network_manager.network_manager import InterfaceType, NetworkManager
 from lib.network_manager.nat import Nat, NATDirection
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.phy import Duplex, Speed, State
@@ -17,15 +15,6 @@ class InvalidInterface(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class InterfaceType(Enum):
-    PHYSICAL = 'phy'
-    ETHERNET = 'if'
-    VLAN = 'vlan'
-    LOOPBACK = 'loopback'
-    VIRTUAL = 'vir'
-    BRIDGE = 'br'
-    UNKNOWN = auto()
-        
 class Interface(NetworkManager):
 
     def __init__(self, arg=None):
