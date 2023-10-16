@@ -36,7 +36,7 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
             int: STATUS_OK if the name update is successful, STATUS_NOK if it fails.
 
         """
-        if self.update_vlan_name_to_db(self.vlan_id, vlan_name).status:
+        if self.update_vlan_name(self.vlan_id, vlan_name).status:
             self.log.error(f"Unable to add name: {vlan_name} to Vlan-ID {self.vlan_id}")
             return STATUS_NOK
         

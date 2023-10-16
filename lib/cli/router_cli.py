@@ -34,9 +34,7 @@ class RouterCLI(cmd2.Cmd,
         RouterPrompt.__init__(self, ExecMode.USER_MODE)
         
         RSDB()
-        
-        # VLANDatabase()
-        
+                
         self.log = logging.getLogger(self.__class__.__name__)
         
         self.set_prompt()

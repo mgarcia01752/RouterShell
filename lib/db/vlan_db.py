@@ -90,7 +90,7 @@ class VLANDatabase(RSDB):
             cls.log.error(f"VLAN with ID {vlan_id} not found.")
             return InsertResult(STATUS_NOK, None)
 
-    def update_vlan_name(cls, vlan_id: int, vlan_name: str) -> UpdateResult:
+    def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> UpdateResult:
         """
         Update the name of a VLAN by its ID.
 
@@ -102,7 +102,7 @@ class VLANDatabase(RSDB):
         Returns:
             bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
         """
-        if cls.update_vlan_name_by_id(vlan_id, vlan_name):
+        if cls.update_vlan_name_by_vlan_id(vlan_id, vlan_name):
             cls.log.info(f"Name of VLAN {vlan_id} updated successfully.")
             return UpdateResult(STATUS_OK, vlan_name)
         else:

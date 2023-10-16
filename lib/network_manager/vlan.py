@@ -38,7 +38,7 @@ class Vlan(MacServiceLayer):
             vlan_name = f'vlan{str(vlan_id)}'
         return VLANDatabase().add_vlan(vlan_id, vlan_name)
 
-    def update_vlan_name_to_db(self, vlan_id: int, vlan_name: str) -> InsertResult:
+    def update_vlan_name(self, vlan_id: int, vlan_name: str) -> InsertResult:
         """
         Update the name of a VLAN in the database.
 
@@ -52,7 +52,9 @@ class Vlan(MacServiceLayer):
         Note:
         - This method calls the `update_vlan_name` method of `VLANDatabase` to update the VLAN's name in the database.
         """
-        return VLANDatabase().update_vlan_name(vlan_id, vlan_name)
+        self.log.info(f"update_vlan_name() -> VlanID: {vlan_id} -> VlanName: {vlan_name}")
+        
+        return VLANDatabase().update_vlan_name_via_vlanID(vlan_id, vlan_name)
 
     def update_vlan_description_to_db(self, vlan_id: int, vlan_description: str) -> InsertResult:
         """

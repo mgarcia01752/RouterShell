@@ -51,10 +51,16 @@ class RouterShellDatabaseConnector:
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
+        
+        self.log.info(f"__init__() - DB Connection Status -> {self.connection}")
         self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
         self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
+        
         if not self.connection:
+            self.log.info(f"Connecting to DB {self.ROUTER_SHELL_DB}")
             self.create_database()
+        else:
+            self.log.info(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
 
     def create_database(self):
         """
@@ -183,6 +189,30 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
             return -1
+
+    def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> bool:
+        """
+        Update the description of a VLAN in the database.
+
+        Args:
+            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_name (str): The new VLAN name for the VLAN.
+
+        Returns:
+            bool: STATUS_OK if the update is successful, STATUS_NOK if it fails.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "UPDATE Vlans SET vlan_name = ? WHERE VlanID = ?",
+                (vlan_name, vlan_id)
+            )
+            self.connection.commit()
+            self.log.info(f"VLAN Name {vlan_name} of VLAN {vlan_id} updated successfully.")
+            return STATUS_OK
+        except sqlite3.Error as e:
+            self.log.error("Error updating VLAN description: %s", e)
+            return STATUS_NOK
 
     def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> bool:
         """
