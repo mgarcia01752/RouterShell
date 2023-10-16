@@ -46,6 +46,7 @@ class UpdateResult:
 
 class RouterShellDatabaseConnector:
     connection = None
+    
     ROUTER_SHELL_DB = 'routershell.db'
     ROUTER_SHELL_SQL_STARTUP = 'db_schema.sql'
 
@@ -62,10 +63,14 @@ class RouterShellDatabaseConnector:
         else:
             self.log.info(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
 
+
     def create_database(self):
         """
         Create an SQLite database file and populate it with tables and data from an SQL file.
         """
+        
+        self.log.info(f"create_database()")
+        
         try:
             # Connect to the SQLite database file
             self.connection = sqlite3.connect(self.db_file_path)
@@ -192,7 +197,7 @@ class RouterShellDatabaseConnector:
 
     def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> bool:
         """
-        Update the description of a VLAN in the database.
+        Update the Vlan-Name of a VLAN in the database.
 
         Args:
             vlan_id (int): The unique ID of the VLAN to update.
@@ -204,14 +209,14 @@ class RouterShellDatabaseConnector:
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "UPDATE Vlans SET vlan_name = ? WHERE VlanID = ?",
+                "UPDATE Vlans SET VlanName = ? WHERE VlanID = ?",
                 (vlan_name, vlan_id)
             )
             self.connection.commit()
-            self.log.info(f"VLAN Name {vlan_name} of VLAN {vlan_id} updated successfully.")
+            self.log.info(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
             return STATUS_OK
         except sqlite3.Error as e:
-            self.log.error("Error updating VLAN description: %s", e)
+            self.log.error("Error updating VLAN name: %s", e)
             return STATUS_NOK
 
     def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> bool:

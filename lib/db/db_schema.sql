@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS Interfaces;
 -- Create the Interface table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
-    IfName VARCHAR(100),
+    IfName VARCHAR(100) UNIQUE,
     InterfaceType VARCHAR(100)
 );
 
@@ -15,7 +15,7 @@ DROP TABLE IF EXISTS Bridges;
 CREATE TABLE IF NOT EXISTS Bridges (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT,
-    BridgeName VARCHAR(50),
+    BridgeName VARCHAR(50) UNIQUE,
     CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
@@ -25,9 +25,9 @@ DROP TABLE IF EXISTS Vlans;
 -- Create the Vlan table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Vlans (
     ID INTEGER PRIMARY KEY,
-    VlanID INT,
+    VlanID INT UNIQUE,
     VlanInterfaces_FK INT,
-    VlanName VARCHAR(20),
+    VlanName VARCHAR(20) UNIQUE,
     VlanDescription VARCHAR(50),
     CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanInterfaces_FK) REFERENCES VlanInterfaces(ID)
 );
@@ -39,8 +39,8 @@ DROP TABLE IF EXISTS VlanInterfaces;
 CREATE TABLE IF NOT EXISTS VlanInterfaces (
     ID INTEGER PRIMARY KEY,
     VlanName VARCHAR(20),
-    Interface_FK INT, -- Connection to an interface (optional)
-    Bridge_FK INT,    -- Connection to a bridge (optional)
+    Interface_FK INT,
+    Bridge_FK INT,
     CONSTRAINT FK_VLANs_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID),
     CONSTRAINT FK_VLANs_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID)
 );
@@ -51,7 +51,7 @@ DROP TABLE IF EXISTS Nats;
 -- Create the Nats table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Nats (
     ID INTEGER PRIMARY KEY,
-    NatPoolName VARCHAR(50),
+    NatPoolName VARCHAR(50) UNIQUE,
     Interface_FK INT,  -- Add the missing column
     CONSTRAINT FK_Nats_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
@@ -75,7 +75,7 @@ DROP TABLE IF EXISTS DHCP;
 CREATE TABLE IF NOT EXISTS DHCP (
     id INTEGER PRIMARY KEY,
     Interface_FK INT,
-    DhcpPoolname VARCHAR(50),
+    DhcpPoolname VARCHAR(50) UNIQUE,
     CONSTRAINT fk_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
@@ -111,9 +111,9 @@ CREATE TABLE IF NOT EXISTS Options (
     id INTEGER PRIMARY KEY,
     DhcpOptions VARCHAR(20),
     DhcpValue VARCHAR(50),
-    Pools_FK INT, -- Connection to Pools
-    DHCP_FK INT, -- Connection to DHCP
-    Reservations_FK INT, -- Connection to Reservations
+    Pools_FK INT,
+    DHCP_FK INT,
+    Reservations_FK INT,
     CONSTRAINT fk_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(id),
     CONSTRAINT fk_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id),
     CONSTRAINT fk_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(id)
