@@ -5,23 +5,11 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
 
 class InsertResult:
-    """
-    Represents the result of an insert operation into the database.
+    
+    def __init__(self, status: bool, row_id:int, result:str=None):
 
-    Attributes:
-        status (bool): The status of the insert operation. True for success (STATUS_OK), False for failure (STATUS_NOK).
-        row_id (int): The row ID of the inserted item in the database. -1 if the insert operation failed.
-    """
-
-    def __init__(self, status: bool, result: str):
-        """
-        Initialize an InsertResult object.
-
-        Args:
-            status (bool): The status of the insert operation. STATUS_OK is success, STATUS_NOK for failure.
-            result (str): 
-        """
         self.status = status
+        self.row_id = row_id
         self.result = result
 
 class UpdateResult:
@@ -33,7 +21,7 @@ class UpdateResult:
         row_id (int): The row ID of the inserted item in the database. -1 if the insert operation failed.
     """
 
-    def __init__(self, status: bool, result: str):
+    def __init__(self, status: bool, result: str=None):
         """
         Initialize an InsertResult object.
 
@@ -122,7 +110,7 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Interfaces': %s", e)
 
-    def insert_bridge(self, id: int, bridge_name: str, interface_fk: int = -1):
+    def insert_bridge(self, id: int, bridge_name: str, interface_fk: int = -1) -> InsertResult:
         """
         Insert data into the 'Bridges' table.
 
@@ -130,6 +118,9 @@ class RouterShellDatabaseConnector:
             id (int): The unique ID of the bridge.
             bridge_name (str): The name of the bridge.
             interface_fk (int, optional): The foreign key referencing an interface.
+
+        Returns:
+            InsertResult: An instance of InsertResult containing the status and row ID.
 
         Raises:
             sqlite3.Error: If there's an error during the database operation.
@@ -142,8 +133,13 @@ class RouterShellDatabaseConnector:
             )
             self.connection.commit()
             self.log.info("Data inserted into the 'Bridges' table successfully.")
+            row_id = cursor.lastrowid
+            return InsertResult(STATUS_OK, row_id)
         except sqlite3.Error as e:
-            self.log.error("Error inserting data into 'Bridges': %s", e)
+            rtn = "Error inserting data into 'Bridges': %s", e
+            self.log.error(rtn)
+            return InsertResult(STATUS_NOK, -1, rtn)
+
 
     def vlan_id_exists(self, vlan_id: int) -> bool:
         """
@@ -550,7 +546,7 @@ class RouterShellDatabaseConnector:
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
+            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name))
             row = cursor.fetchone()
             if row:
                 return row[0]

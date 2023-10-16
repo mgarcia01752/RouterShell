@@ -105,6 +105,18 @@ CREATE TABLE IF NOT EXISTS Pools (
 );
 
 -- Drop the Options table if it exists
+DROP TABLE IF EXISTS Reservations;
+
+-- Create the Reservations table
+CREATE TABLE IF NOT EXISTS Reservations (
+    id INT PRIMARY KEY,
+    Subnet_FK INT,
+    MacAddress VARCHAR(12),
+    IPAddress VARCHAR(45),
+    CONSTRAINT fk_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
+);
+
+-- Drop the Options table if it exists
 DROP TABLE IF EXISTS Options;
 
 -- Create the Options table if it doesn't exist
