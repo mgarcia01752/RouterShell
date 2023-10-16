@@ -15,7 +15,7 @@ To configure VLANs and assign them to network interfaces on your network device,
 
 1. Access the device's command-line interface (CLI) by entering the following commands:
 
-   ```
+   ```config
    enable
    configure terminal
    ```
@@ -28,7 +28,8 @@ A VLAN allows you to logically segment a network. To configure a VLAN, follow th
 
 
 1. Enter the VLAN configuration mode by using the following command:
-   ```
+
+   ```config
    vlan <vlan-id>
    ```
 
@@ -36,7 +37,7 @@ A VLAN allows you to logically segment a network. To configure a VLAN, follow th
 
 2. Provide a name for the VLAN using the following command:
 
-   ```
+   ```config
    name <vlan-name>
    ```
 
@@ -56,7 +57,7 @@ After configuring a VLAN, you can assign it to a network interface. To do this, 
 
 1. Enter the interface configuration mode for the desired interface by using the following command:
 
-   ```
+   ```config
    interface <interface-name>
    ```
 
@@ -64,7 +65,7 @@ After configuring a VLAN, you can assign it to a network interface. To do this, 
 
 2. Configure the interface as an access port and specify the VLAN using the following command:
 
-   ```
+   ```config
    switchport access vlan <vlan-name>
    ```
 
@@ -72,11 +73,29 @@ After configuring a VLAN, you can assign it to a network interface. To do this, 
 
 3. Exit the interface configuration mode when you are done:
 
-   ```
+   ```config
    end
    ```
 
    This will return you to the global configuration mode.
+
+### Basic VLAN Configuration Example
+
+```config
+enable
+configure terminal
+
+vlan 1000
+   name Vlan1000
+   description "Office Vlan"
+   end
+
+rename if enx9cebe81be18a if-alias Gig0
+
+interface Gig0
+   switchport access vlan Vlan1000
+   end
+```
 
 ### Conclusion
 

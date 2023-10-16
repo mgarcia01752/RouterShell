@@ -24,27 +24,48 @@ class InsertResult:
         self.status = status
         self.result = result
 
+class UpdateResult:
+    """
+    Represents the result of an insert operation into the database.
+
+    Attributes:
+        status (bool): The status of the insert operation. True for success (STATUS_OK), False for failure (STATUS_NOK).
+        row_id (int): The row ID of the inserted item in the database. -1 if the insert operation failed.
+    """
+
+    def __init__(self, status: bool, result: str):
+        """
+        Initialize an InsertResult object.
+
+        Args:
+            status (bool): The status of the insert operation. STATUS_OK is success, STATUS_NOK for failure.
+            result (str): 
+        """
+        self.status = status
+        self.result = result
 
 class RouterShellDatabaseConnector:
     connection = None
-    ROUTER_SHELL_DB = 'db_schema.sql'
+    ROUTER_SHELL_DB = 'routershell.db'
+    ROUTER_SHELL_SQL_STARTUP = 'db_schema.sql'
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
+        self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
+        self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
         if not self.connection:
             self.create_database()
 
     def create_database(self):
         """
-        Create an in-memory database and populate it with tables and data from an SQL file.
+        Create an SQLite database file and populate it with tables and data from an SQL file.
         """
         try:
-            # Connect to an in-memory database
-            self.connection = sqlite3.connect(':memory:')
+            # Connect to the SQLite database file
+            self.connection = sqlite3.connect(self.db_file_path)
             cursor = self.connection.cursor()
 
-            # Read the SQL fileInterfaceType
+            # Read the SQL file
             with open(self.sql_file_path, 'r') as sql_file:
                 sql_script = sql_file.read()
 
@@ -54,7 +75,7 @@ class RouterShellDatabaseConnector:
             # Commit the changes
             self.connection.commit()
 
-            print("In-memory database created successfully.")
+            self.log.info("SQLite database created successfully.")
 
         except sqlite3.Error as e:
             print("Error:", e)
@@ -113,12 +134,31 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Bridges': %s", e)
 
-    def insert_vlan(self, id: int, vlan_name: str, vlan_interfaces_fk: int = -1):
+    def vlan_id_exists(self, vlan_id: int) -> bool:
+        """
+        Check if a VLAN with the given ID exists in the database.
+
+        Args:
+            vlan_id (int): The unique ID of the VLAN to check.
+
+        Returns:
+            bool: True if the VLAN with the given ID exists, False otherwise.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM Vlans WHERE ID = ?", (vlan_id,))
+            result = cursor.fetchone()
+            return result is not None
+        except sqlite3.Error as e:
+            self.log.error("Error checking VLAN existence: %s", e)
+            return False
+
+    def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = -1):
         """
         Insert data into the 'Vlans' table.
 
         Args:
-            id (int): The unique ID of the VLAN.
+            vlanid (int): The unique ID of the VLAN.
             vlan_name (str): The name of the VLAN.
             vlan_interfaces_fk (int, optional): The foreign key referencing VLAN interfaces.
 
@@ -128,18 +168,21 @@ class RouterShellDatabaseConnector:
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
+        self.log.info(f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
+        
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO Vlans (ID, VlanInterfaces_FK, VlanName) VALUES (?, ?, ?)",
-                (id, vlan_interfaces_fk, vlan_name)
+                "INSERT INTO Vlans (VlanID, VlanInterfaces_FK, VlanName) VALUES (?, ?, ?)",
+                (vlanid, vlan_interfaces_fk, vlan_name)
             )
+            
             self.connection.commit()
             self.log.info("Data inserted into the 'Vlans' table successfully.")
             return cursor.lastrowid  # Return the row ID
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
-            return -1  # Return -1 to indicate an error
+            return -1
 
     def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> bool:
         """
@@ -188,6 +231,37 @@ class RouterShellDatabaseConnector:
             self.log.info("Data inserted into the 'VlanInterfaces' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'VlanInterfaces': %s", e)
+
+    def show_vlans(self):
+        try:
+
+
+            # SQL query to retrieve VLAN information
+            query = """
+                SELECT
+                    Vlans.ID AS VLAN_ID,
+                    Vlans.VlanName AS VLAN_NAME,
+                    Vlans.VlanDescription AS VLAN_DESCRIPTION,
+                    VlanInterfaces.ID AS INTERFACE_ID,
+                    VlanInterfaces.VlanName AS INTERFACE_VLAN_NAME,
+                    VlanInterfaces.Interface_FK AS INTERFACE_ID,
+                    VlanInterfaces.Bridge_FK AS BRIDGE_ID
+                FROM
+                    Vlans
+                LEFT JOIN
+                    VlanInterfaces
+                ON
+                    Vlans.VlanInterfaces_FK = VlanInterfaces.ID;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            vlan_data = cursor.fetchall()
+
+            return vlan_data
+
+        except sqlite3.Error as e:
+            print("Error:", e)
+            return []
 
     def insert_nat(self, id: int, nat_pool_name: str, interface_fk: int):
         """

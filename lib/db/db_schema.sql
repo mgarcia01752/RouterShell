@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS Interfaces;
 
 -- Create the Interface table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Interfaces (
-    ID INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     IfName VARCHAR(100),
     InterfaceType VARCHAR(100)
 );
@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS Bridges;
 
 -- Create the Bridge table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Bridges (
-    ID INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     Interface_FK INT,
     BridgeName VARCHAR(50),
     CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -24,7 +24,8 @@ DROP TABLE IF EXISTS Vlans;
 
 -- Create the Vlan table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Vlans (
-    ID INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
+    VlanID INT,
     VlanInterfaces_FK INT,
     VlanName VARCHAR(20),
     VlanDescription VARCHAR(50),
@@ -36,7 +37,7 @@ DROP TABLE IF EXISTS VlanInterfaces;
 
 -- Create the VLANs table
 CREATE TABLE IF NOT EXISTS VlanInterfaces (
-    ID INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     VlanName VARCHAR(20),
     Interface_FK INT, -- Connection to an interface (optional)
     Bridge_FK INT,    -- Connection to a bridge (optional)
@@ -49,7 +50,7 @@ DROP TABLE IF EXISTS Nats;
 
 -- Create the Nats table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Nats (
-    ID INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     NatPoolName VARCHAR(50),
     Interface_FK INT,  -- Add the missing column
     CONSTRAINT FK_Nats_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -60,7 +61,7 @@ DROP TABLE IF EXISTS NatDirections;
 
 -- Create the NatDirection table if it doesn't exist
 CREATE TABLE IF NOT EXISTS NatDirections (
-    ID INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     NAT_FK INT,
     INTERFACE_FK INT,
     Direction INT,
@@ -72,7 +73,7 @@ DROP TABLE IF EXISTS DHCP;
 
 -- Create the DHCP table if it doesn't exist
 CREATE TABLE IF NOT EXISTS DHCP (
-    id INT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     Interface_FK INT,
     DhcpPoolname VARCHAR(50),
     CONSTRAINT fk_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -83,7 +84,7 @@ DROP TABLE IF EXISTS Subnet;
 
 -- Create the Subnet table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Subnet (
-    id INT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     DHCP_FK INT,
     IpSubnet VARCHAR(45),
     CONSTRAINT fk_Subnet_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id)
@@ -94,7 +95,7 @@ DROP TABLE IF EXISTS Pools;
 
 -- Create the Pools table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Pools (
-    id INT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     Subnet_FK INT,
     IpAddressStart VARCHAR(45),
     IpAddressEnd VARCHAR(45),
@@ -107,7 +108,7 @@ DROP TABLE IF EXISTS Options;
 
 -- Create the Options table if it doesn't exist
 CREATE TABLE IF NOT EXISTS Options (
-    id INT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     DhcpOptions VARCHAR(20),
     DhcpValue VARCHAR(50),
     Pools_FK INT, -- Connection to Pools

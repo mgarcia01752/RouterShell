@@ -3,7 +3,7 @@ from typing import Optional
 from click import Tuple
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.router_shell_db import InsertResult, RouterShellDatabaseConnector as RSDB
+from lib.db.router_shell_db import InsertResult, RouterShellDatabaseConnector as RSDB, UpdateResult
 
 
 class VLANDatabase(RSDB):
@@ -44,7 +44,7 @@ class VLANDatabase(RSDB):
             cls.log.error("Failed to insert VLAN into the database")
             return InsertResult(STATUS_NOK, -1)
 
-    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> bool:
+    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> UpdateResult:
         """
         Update the description of a VLAN by its ID.
 
@@ -68,7 +68,7 @@ class VLANDatabase(RSDB):
         Returns:
             bool: True if a VLAN with the given ID exists, False otherwise.
         """
-        return cls.get_vlan_id(vlan_id) is not None
+        return cls.vlan_id_exists(vlan_id)
 
     def get_vlan_name(cls, vlan_id: int) -> InsertResult:
         """
@@ -90,7 +90,7 @@ class VLANDatabase(RSDB):
             cls.log.error(f"VLAN with ID {vlan_id} not found.")
             return InsertResult(STATUS_NOK, None)
 
-    def update_vlan_name(cls, vlan_id: int, vlan_name: str) -> bool:
+    def update_vlan_name(cls, vlan_id: int, vlan_name: str) -> UpdateResult:
         """
         Update the name of a VLAN by its ID.
 
@@ -104,10 +104,10 @@ class VLANDatabase(RSDB):
         """
         if cls.update_vlan_name_by_id(vlan_id, vlan_name):
             cls.log.info(f"Name of VLAN {vlan_id} updated successfully.")
-            return STATUS_OK
+            return UpdateResult(STATUS_OK, vlan_name)
         else:
             cls.log.error(f"Failed to update the name of VLAN {vlan_id}.")
-            return STATUS_NOK
+            return UpdateResult(STATUS_NOK, vlan_name)
     
     def add_ports_to_vlan(cls, vlan_id: int, ports_to_add: list):
         # Add ports to a VLAN

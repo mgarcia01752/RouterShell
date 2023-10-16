@@ -1,6 +1,7 @@
 import logging
 
-from tabulate import tabulate 
+from tabulate import tabulate
+from lib.db.router_shell_db import InsertResult 
 from lib.network_manager.mac import MacServiceLayer
 from lib.db.vlan_db import VLANDatabase
 from lib.network_manager.bridge import Bridge
@@ -16,16 +17,58 @@ class Vlan(MacServiceLayer):
         self.arg = arg
 
     def does_vlan_id_exist_in_vlan_db(self, vlan_id:int) -> bool:
-        return VLANDatabase.vlan_exists(vlan_id)
+        return VLANDatabase().vlan_exists(vlan_id)
     
-    def add_vlan_to_db(self, vlan_id:int, vlan_name:str=None):
-        VLANDatabase.add_vlan(vlan_id, vlan_name)
-        
-    def update_vlan_name_to_db(self, vlan_id:int, vlan_name:str):
-        VLANDatabase.update_vlan_name(vlan_id, vlan_name)
+    def add_vlan_to_db(self, vlan_id: int, vlan_name: str = None) -> InsertResult:
+        """
+        Add a VLAN to the database.
 
-    def update_vlan_description_to_db(self, vlan_id:int, vlan_description:str):
-        VLANDatabase.update_vlan_description_by_vlan_id(vlan_id, vlan_description)
+        Args:
+            vlan_id (int): The unique ID of the VLAN.
+            vlan_name (str, optional): The name of the VLAN. If not provided, a default name will be generated.
+
+        Returns:
+            InsertResult: An instance of the InsertResult class containing information about the operation's status and the row ID.
+
+        Note:
+        - If `vlan_name` is not provided, a default name is generated based on the `vlan_id`.
+        - This method calls the `add_vlan` method of `VLANDatabase` to add the VLAN to the database and returns an InsertResult.
+        """
+        if not vlan_name:
+            vlan_name = f'vlan{str(vlan_id)}'
+        return VLANDatabase().add_vlan(vlan_id, vlan_name)
+
+    def update_vlan_name_to_db(self, vlan_id: int, vlan_name: str) -> InsertResult:
+        """
+        Update the name of a VLAN in the database.
+
+        Args:
+            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_name (str): The new name for the VLAN.
+
+        Returns:
+            InsertResult: An instance of the InsertResult class containing information about the operation's status and the row ID.
+
+        Note:
+        - This method calls the `update_vlan_name` method of `VLANDatabase` to update the VLAN's name in the database.
+        """
+        return VLANDatabase().update_vlan_name(vlan_id, vlan_name)
+
+    def update_vlan_description_to_db(self, vlan_id: int, vlan_description: str) -> InsertResult:
+        """
+        Update the description of a VLAN in the database.
+
+        Args:
+            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_description (str): The new description for the VLAN.
+
+        Returns:
+            InsertResult: An instance of the InsertResult class containing information about the operation's status and the row ID.
+
+        Note:
+        - This method calls the `update_vlan_description_by_vlan_id` method of `VLANDatabase` to update the VLAN's description in the database.
+        """
+        return VLANDatabase().update_vlan_description_by_vlan_id(vlan_id, vlan_description)
 
     def add_vlan_if_not_exist(self, ifName: str, vlan_id: int) -> bool:
         """
@@ -54,7 +97,7 @@ class Vlan(MacServiceLayer):
         return STATUS_OK
 
     def get_vlan_config(self):
-        return VLANDatabase.generate_router_config()
+        return VLANDatabase().generate_router_config()
 
     def add_bridge_to_vlan(self, br_ifName:str, vlan_id:int) -> str:
         
@@ -119,7 +162,7 @@ class Vlan(MacServiceLayer):
             self.log.debug(f"del_interface_to_vlan() Error: VLAN ID {vlan_id} already exists.")
             return STATUS_NOK
         
-        vlan_name = VLANDatabase.get_vlan_name(vlan_id)
+        vlan_name = VLANDatabase().get_vlan_name(vlan_id)
         
         # ip link delete dev vlan1000@br10
         result = self.run(['ip', 'link', 'delete', 'dev', vlan_name], suppress_error=True)
@@ -154,4 +197,5 @@ class Vlan(MacServiceLayer):
         headers = ['VLAN ID', 'MAC Address', 'Interface', 'State']
         print(tabulate(data, headers, tablefmt='plain'))
     
-        
+    def get_vlan_db(self):
+        return VLANDatabase().show_vlans()
