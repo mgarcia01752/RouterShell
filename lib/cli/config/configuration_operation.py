@@ -10,9 +10,9 @@ from lib.network_manager.interface import Interface
 from lib.cli.config.vlan_config import VlanConfig
 from lib.cli.config.ip_route_config import IpRouteConfig
 
-from lib.cli.global.global_operation import GlobalUserCommand
+from lib.cli.base.global_operation import GlobalUserCommand
 from lib.common.router_prompt import RouterPrompt
-from lib.cli.global.exec_priv_mode import ExecMode, ExecException
+from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.network_manager.bridge import Bridge
 from lib.common.constants import *
 

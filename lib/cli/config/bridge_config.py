@@ -3,8 +3,9 @@ import json
 import cmd2
 
 from tabulate import tabulate
+from lib.cli.base.global_operation import GlobalUserCommand
 
-from lib.cli.global.global_operation import GlobalUserCommand
+
 from lib.common.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.phy import State
 from lib.common.constants import *

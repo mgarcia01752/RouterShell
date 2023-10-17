@@ -2,7 +2,7 @@ import ipaddress
 import cmd2
 import logging
 
-from lib.cli.global.global_operation import GlobalUserCommand
+from lib.cli.base.global_operation import GlobalUserCommand
 from lib.network_manager.mac import MacServiceLayer
 from lib.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.arp import Arp

@@ -1,6 +1,6 @@
 import logging
 import cmd2
-from lib.cli.global.exec_priv_mode import ExecMode
+from lib.cli.base.exec_priv_mode import ExecMode
 
 from lib.common.router_prompt import RouterPrompt
 
