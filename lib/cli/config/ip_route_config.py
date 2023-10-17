@@ -4,7 +4,7 @@ import logging
 
 from tabulate import tabulate
 
-from lib.cli.global.global_operation import GlobalUserCommand
+from lib.cli.base.global_operation import GlobalUserCommand
 from lib.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.route import Route
 from lib.common.common import Common
