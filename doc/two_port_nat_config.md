@@ -90,6 +90,7 @@ Here is the full configuration:
 enable
 configure terminal
 
+;Network Address Translation
 nat pool home-nat
 
 dhcp home-lan
@@ -105,8 +106,8 @@ interface loopback 1
     no shutdown
 end
 
-flush enx3c8cf8f943a2
-rename if enx3c8cf8f943a2 if-alias Gig0
+flush enx8cae4cdb5f8e
+rename if enx8cae4cdb5f8e if-alias Gig0
 
 interface Gig0
     ip address 172.16.0.1 255.255.255.0

@@ -27,7 +27,7 @@ configure terminal
 
 Create a NAT pool with a specific name using the following command:
 
-```
+```config
 nat pool <nat-pool-name>
 ```
 
@@ -37,7 +37,7 @@ Configure the outside NAT interface. You have two options:
 
 ### Option 1: Using DHCP Client
 
-```
+```config
 interface <outside-nat-interface-name>
     ip dhcp-client
     ip nat outside pool <nat-pool-name>
@@ -46,7 +46,7 @@ interface <outside-nat-interface-name>
 
 ### Option 2: Assigning a Static IP Address
 
-```
+```config
 interface <outside-nat-interface-name>
     ip address <ipv4-address> <ipv4-subnet>
     ip nat outside pool <nat-pool-name>
@@ -57,7 +57,7 @@ interface <outside-nat-interface-name>
 
 Configure the inside NAT interface with the following commands:
 
-```
+```config
 interface <inside-nat-interface-name>
     ip address <ipv4-address> <ipv4-subnet>
     ip nat inside pool <nat-pool-name>
@@ -69,7 +69,7 @@ interface <inside-nat-interface-name>
 
 Create an access control list (ACL) with ID 999 to permit specific source addresses:
 
-```shell
+```config
 access-list 999 permit $SOURCE_ADDRESS $SUBNET_MASK
 ```
 
@@ -77,7 +77,7 @@ access-list 999 permit $SOURCE_ADDRESS $SUBNET_MASK
 
 Define the NAT pool's IP range and netmask:
 
-```shell
+```config
 ip nat pool <nat-pool-name> <inside-nat-ip-range-ip-start> <inside-nat-ip-range-ip-end> netmask <inside-nat-ip-netmask>
 ```
 
@@ -85,7 +85,7 @@ ip nat pool <nat-pool-name> <inside-nat-ip-range-ip-start> <inside-nat-ip-range-
 
 Associate the NAT pool with an access control list (ACL) for either inside or outside sources:
 
-```shell
+```config
 ip nat pool <nat-pool-name> [inside|outside] source list <acl-id>
 ```
 

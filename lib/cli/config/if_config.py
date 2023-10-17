@@ -65,8 +65,6 @@ class InterfaceConfig(cmd2.Cmd,
         self.prompt = self.set_prompt()
         self.log.debug(f"InterfaceConfig() - ifType: {if_type} -> ifName: {ifName}")
         
-        # self.add_interface(ifName)
-
     def do_help(self, args=None):
         print("mac\t\t\t\tmac address")
         print("ip\t\t\t\tip")

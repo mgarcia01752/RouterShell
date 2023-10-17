@@ -77,9 +77,10 @@ This wiki provides a step-by-step guide on how to configure an IOS router to act
 2. **Associating with DHCP Pool**:
 
    - To enable DHCP for the interface and associate it with a DHCP pool, use the following command:
-     ```shell
+
+```shell
      dhcp-server pool-name <dhcp-pool-name>
-     ```
+```
 
    - Replace `<dhcp-pool-name>` with the name of the DHCP pool you configured earlier.
 
