@@ -1,10 +1,10 @@
 import logging
-import json
 import cmd2
 
 from tabulate import tabulate
 from lib.cli.base.global_operation import GlobalUserCommand
-
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.phy import State
@@ -22,7 +22,11 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
     
     def __init__(self, bridge_ifName: str):
         super().__init__()
+        
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
+        self.debug = CGS().DEBUG_BRIDGE_CONFIG
+        
         GlobalUserCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
         Bridge.__init__(self)

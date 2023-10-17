@@ -15,6 +15,9 @@ from lib.network_manager.bridge import Bridge
 from lib.common.router_prompt import RouterPrompt
 from lib.common.constants import *
 
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+
 class InvalidConfigureMode(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -37,10 +40,14 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
     def __init__(self, usr_exec_mode: ExecMode, arg=None):
         super().__init__()
+
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().CONFIGURE_MODE)
+        self.debug = CGS().DEBUG_CONFIGURE_MODE
+
         GlobalUserCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
-        self.log = logging.getLogger(self.__class__.__name__)
-
+                
         if usr_exec_mode is ExecMode.USER_MODE:
             msg = f"Does not have necessary configure privileges ({usr_exec_mode})"
             self.log.error(msg)
