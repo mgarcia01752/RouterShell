@@ -4,8 +4,8 @@ import cmd2
 
 from tabulate import tabulate
 
-from lib.cli.global_operation import GlobalUserCommand
-from lib.cli.router_prompt import ExecMode, RouterPrompt
+from lib.cli.global.global_operation import GlobalUserCommand
+from lib.common.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.phy import State
 from lib.common.constants import *
 
@@ -71,4 +71,4 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         if start_cmd == 'shutdown':
             self.log.debug(f"Enable interface -> {self.bridge_ifName}")
             self.do_shutdown(None, negate=True)
-                    
+    

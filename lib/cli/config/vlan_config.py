@@ -2,8 +2,8 @@ import logging
 import cmd2
 from tabulate import tabulate
 
-from lib.cli.router_prompt import ExecMode, RouterPrompt
-from lib.cli.global_operation import GlobalUserCommand
+from lib.common.router_prompt import ExecMode, RouterPrompt
+from lib.cli.global.global_operation import GlobalUserCommand
 from lib.network_manager.vlan import Vlan 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 

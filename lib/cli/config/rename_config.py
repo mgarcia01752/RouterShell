@@ -2,7 +2,7 @@ import ipaddress
 import cmd2
 import logging
 
-from lib.cli.router_prompt import RouterPrompt, ExecMode
+from lib.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.interface import Interface
 from lib.common.constants import *
 

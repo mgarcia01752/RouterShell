@@ -3,9 +3,9 @@ import ipaddress
 import cmd2
 import logging
 
-from lib.cli.global_operation import GlobalUserCommand
+from lib.cli.global.global_operation import GlobalUserCommand
 from lib.network_manager.nat import Nat, NATDirection
-from lib.cli.router_prompt import RouterPrompt, ExecMode
+from lib.common.router_prompt import RouterPrompt, ExecMode
 from lib.common.constants import *
 
 class InvalidNatConfig(Exception):

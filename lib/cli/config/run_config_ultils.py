@@ -2,8 +2,8 @@ import cmd2
 import logging
 import argparse
 
-from lib.cli.global_operation import GlobalUserCommand
-from lib.cli.router_prompt import ExecMode, RouterPrompt
+from lib.cli.global.global_operation import GlobalUserCommand
+from lib.common.router_prompt import ExecMode, RouterPrompt
 from lib.common.constants import *
 
 class InvalidSubCommand(Exception):

@@ -6,8 +6,8 @@ from lib.network_manager.interface import Interface, InterfaceType
 from lib.network_manager.phy import Duplex, Speed, State
 from lib.network_manager.arp import Arp, Encapsulate
 
-from lib.cli.global_operation import GlobalUserCommand
-from lib.cli.router_prompt import RouterPrompt, ExecMode
+from lib.cli.global.global_operation import GlobalUserCommand
+from lib.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection, Nat
 

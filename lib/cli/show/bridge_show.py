@@ -1,7 +1,8 @@
 import json
 import logging
 
-import tabulate
+from tabulate import tabulate
+
 
 from lib.network_manager.bridge import Bridge
 

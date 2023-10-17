@@ -3,9 +3,9 @@ import cmd2
 import logging
 import argparse
 
-from lib.cli.global_operation import GlobalUserCommand
-from lib.cli.router_prompt import RouterPrompt
-from lib.cli.exec_priv_mode import ExecMode, ExecException
+from lib.cli.global.global_operation import GlobalUserCommand
+from lib.common.router_prompt import RouterPrompt
+from lib.cli.global.exec_priv_mode import ExecMode, ExecException
 from lib.cli.config.vlan_config import VlanShow
 from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow

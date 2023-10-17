@@ -1,6 +1,6 @@
 import logging
 
-from lib.cli.exec_priv_mode import ExecMode, ExecException
+from lib.cli.global.exec_priv_mode import ExecMode, ExecException
 
 # Importing constants from a separate module
 from lib.common.constants import *
