@@ -1,7 +1,7 @@
 import logging
 
 from tabulate import tabulate
-from lib.db.router_shell_db import InsertResult 
+from lib.db.router_shell_db import Result 
 from lib.network_manager.mac import MacServiceLayer
 from lib.db.vlan_db import VLANDatabase
 from lib.network_manager.bridge import Bridge
@@ -19,7 +19,7 @@ class Vlan(MacServiceLayer):
     def does_vlan_id_exist_in_vlan_db(self, vlan_id:int) -> bool:
         return VLANDatabase().vlan_exists(vlan_id)
     
-    def add_vlan_to_db(self, vlan_id: int, vlan_name: str = None) -> InsertResult:
+    def add_vlan_to_db(self, vlan_id: int, vlan_name: str = None) -> Result:
         """
         Add a VLAN to the database.
 
@@ -38,7 +38,7 @@ class Vlan(MacServiceLayer):
             vlan_name = f'vlan{str(vlan_id)}'
         return VLANDatabase().add_vlan(vlan_id, vlan_name)
 
-    def update_vlan_name(self, vlan_id: int, vlan_name: str) -> InsertResult:
+    def update_vlan_name(self, vlan_id: int, vlan_name: str) -> Result:
         """
         Update the name of a VLAN in the database.
 
@@ -56,7 +56,7 @@ class Vlan(MacServiceLayer):
         
         return VLANDatabase().update_vlan_name_via_vlanID(vlan_id, vlan_name)
 
-    def update_vlan_description_to_db(self, vlan_id: int, vlan_description: str) -> InsertResult:
+    def update_vlan_description_to_db(self, vlan_id: int, vlan_description: str) -> Result:
         """
         Update the description of a VLAN in the database.
 

@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS Bridges (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT,
     BridgeName VARCHAR(50),
-    Protocol VARCHAR(15),              -- Bridge Protocol
+    Protocol VARCHAR(15),               -- Bridge Protocol
+    StpStatus BOOLEAN,                  -- STB STATUS ENABLE = 1 , DISABLE = 0 
     CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS DHCP (
     id INTEGER PRIMARY KEY,
     Interface_FK INT,
     DhcpPoolname VARCHAR(50) UNIQUE,
-    CONSTRAINT fk_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
 -- Drop the Subnet table if it exists
@@ -88,7 +89,7 @@ CREATE TABLE IF NOT EXISTS Subnet (
     id INTEGER PRIMARY KEY,
     DHCP_FK INT,
     IpSubnet VARCHAR(45),
-    CONSTRAINT fk_Subnet_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id)
+    CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id)
 );
 
 -- Drop the Pools table if it exists
@@ -101,7 +102,7 @@ CREATE TABLE IF NOT EXISTS Pools (
     IpAddressStart VARCHAR(45),
     IpAddressEnd VARCHAR(45),
     IpSubnet VARCHAR(45),
-    CONSTRAINT fk_Pools_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
+    CONSTRAINT FK_Pools_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
 );
 
 -- Drop the Options table if it exists
@@ -113,7 +114,7 @@ CREATE TABLE IF NOT EXISTS Reservations (
     Subnet_FK INT,
     MacAddress VARCHAR(12),
     IPAddress VARCHAR(45),
-    CONSTRAINT fk_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
+    CONSTRAINT FK_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
 );
 
 -- Drop the Options table if it exists
@@ -127,8 +128,8 @@ CREATE TABLE IF NOT EXISTS Options (
     Pools_FK INT,
     DHCP_FK INT,
     Reservations_FK INT,
-    CONSTRAINT fk_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(id),
-    CONSTRAINT fk_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id),
-    CONSTRAINT fk_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(id)
+    CONSTRAINT FK_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(id),
+    CONSTRAINT FK_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id),
+    CONSTRAINT FK_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(id)
 );
 

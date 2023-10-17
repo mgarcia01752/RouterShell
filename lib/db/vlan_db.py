@@ -1,7 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, InsertResult
+from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, Result
 
 class VLANDatabase():
     
@@ -10,7 +10,7 @@ class VLANDatabase():
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)   
     
-    def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> InsertResult:
+    def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Result:
         """
         Add a VLAN to the database.
 
@@ -38,10 +38,10 @@ class VLANDatabase():
         row_id = cls.rsdb.insert_vlan(vlan_id, vlan_name, description)
 
         if row_id > 0:
-            return InsertResult(STATUS_OK, row_id)
+            return Result(STATUS_OK, row_id)
         else:
             cls.log.error("Failed to insert VLAN into the database")
-            return InsertResult(STATUS_NOK, -1)
+            return Result(STATUS_NOK, -1)
 
     def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> UpdateResult:
         """
@@ -69,7 +69,7 @@ class VLANDatabase():
         """
         return cls.rsdb.vlan_id_exists(vlan_id)
 
-    def get_vlan_name(cls, vlan_id: int) -> InsertResult:
+    def get_vlan_name(cls, vlan_id: int) -> Result:
         """
         Retrieve the name of a VLAN by its ID.
 
@@ -84,10 +84,10 @@ class VLANDatabase():
         """
         vlan_name = cls.rsdb.get_vlan_name_by_id(vlan_id)
         if vlan_name is not None:
-            return InsertResult(STATUS_OK, vlan_name)
+            return Result(STATUS_OK, vlan_name)
         else:
             cls.log.error(f"VLAN with ID {vlan_id} not found.")
-            return InsertResult(STATUS_NOK, None)
+            return Result(STATUS_NOK, None)
 
     def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> UpdateResult:
         """

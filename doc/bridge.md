@@ -83,6 +83,17 @@ To add an interface to a bridge group, follow these steps:
 
    This will return you to the global configuration mode.
 
+### Manual Linux interaction
+
+```shell
+enable
+configure terminal
+
+show interfaces
+shell sudo ip link delete brX type bridge
+
+```
+
 ### Example: Bridge Configuration
 
 Here's an example of configuring a bridge on a network device:

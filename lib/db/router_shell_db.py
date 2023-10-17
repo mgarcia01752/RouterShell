@@ -4,7 +4,7 @@ import os
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
 
-class InsertResult:
+class Result:
     
     def __init__(self, status: bool, row_id:int, result:str=None):
 
@@ -37,19 +37,20 @@ class RouterShellDatabaseConnector:
     
     ROUTER_SHELL_DB = 'routershell.db'
     ROUTER_SHELL_SQL_STARTUP = 'db_schema.sql'
+    ROW_ID_NOT_FOUND = -1
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
         
-        self.log.info(f"__init__() - DB Connection Status -> {self.connection}")
+        self.log.debug(f"__init__() - DB Connection Status -> {self.connection}")
         self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
         self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
         
         if not self.connection:
-            self.log.info(f"Connecting to DB {self.ROUTER_SHELL_DB}")
+            self.log.debug(f"Connecting to DB {self.ROUTER_SHELL_DB}")
             self.create_database()
         else:
-            self.log.info(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
+            self.log.debug(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
 
 
     def create_database(self):
@@ -57,7 +58,7 @@ class RouterShellDatabaseConnector:
         Create an SQLite database file and populate it with tables and data from an SQL file.
         """
         
-        self.log.info(f"create_database()")
+        self.log.debug(f"create_database()")
         
         try:
             # Connect to the SQLite database file
@@ -74,7 +75,7 @@ class RouterShellDatabaseConnector:
             # Commit the changes
             self.connection.commit()
 
-            self.log.info("SQLite database created successfully.")
+            self.log.debug("SQLite database created successfully.")
 
         except sqlite3.Error as e:
             print("Error:", e)
@@ -86,7 +87,11 @@ class RouterShellDatabaseConnector:
         if self.connection:
             self.connection.close()
 
-    def insert_interface(self, id: int, if_name: str, interface_type: InterfaceType, if_name_alias: str = None):
+    def insert_interface(self, 
+                         id: int, 
+                         if_name: str, 
+                         interface_type: InterfaceType, 
+                         if_name_alias: str = None):
         """
         Insert data into the 'Interfaces' table.
 
@@ -106,40 +111,48 @@ class RouterShellDatabaseConnector:
                 (id, if_name, if_name_alias, interface_type.value)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'Interfaces' table successfully.")
+            self.log.debug("Data inserted into the 'Interfaces' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Interfaces': %s", e)
 
-    def insert_bridge(self, id: int, bridge_name: str, interface_fk: int = -1) -> InsertResult:
+    def insert_bridge(self, 
+                      bridge_name: str,
+                      bridge_protocol: str = None,
+                      stp_status: bool = False, 
+                      interface_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
         Insert data into the 'Bridges' table.
 
         Args:
-            id (int): The unique ID of the bridge.
             bridge_name (str): The name of the bridge.
+            bridge_protocol (str, optional): The bridge protocol.
             interface_fk (int, optional): The foreign key referencing an interface.
-
+            
         Returns:
-            InsertResult: An instance of InsertResult containing the status and row ID.
+            Result: An instance of Result containing the status, row ID, and result message.
 
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
+        
+        self.log.debug(f"insert_bridge() Bridge: {bridge_name} -> Protocol: {bridge_protocol} -> Interface-F-Key: {interface_fk}")
+        
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO Bridges (ID, Interface_FK, BridgeName) VALUES (?, ?, ?)",
-                (id, interface_fk, bridge_name)
+                "INSERT INTO Bridges (Interface_FK, BridgeName, Protocol, StpStatus) VALUES (?, ?, ?, ?)",
+                (interface_fk, bridge_name, bridge_protocol, stp_status)
             )
+            
             self.connection.commit()
-            self.log.info("Data inserted into the 'Bridges' table successfully.")
+            self.log.debug("Data inserted into the 'Bridges' table successfully.")
             row_id = cursor.lastrowid
-            return InsertResult(STATUS_OK, row_id)
+            return Result(STATUS_OK, row_id, "Bridge added successfully")
+        
         except sqlite3.Error as e:
-            rtn = "Error inserting data into 'Bridges': %s", e
-            self.log.error(rtn)
-            return InsertResult(STATUS_NOK, -1, rtn)
-
+            error_message = f"Error inserting data into 'Bridges': {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, -1, error_message)
 
     def vlan_id_exists(self, vlan_id: int) -> bool:
         """
@@ -160,7 +173,7 @@ class RouterShellDatabaseConnector:
             self.log.error("Error checking VLAN existence: %s", e)
             return False
 
-    def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = -1):
+    def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND):
         """
         Insert data into the 'Vlans' table.
 
@@ -175,7 +188,7 @@ class RouterShellDatabaseConnector:
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
-        self.log.info(f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
+        self.log.debug(f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
         
         try:
             cursor = self.connection.cursor()
@@ -185,7 +198,7 @@ class RouterShellDatabaseConnector:
             )
             
             self.connection.commit()
-            self.log.info("Data inserted into the 'Vlans' table successfully.")
+            self.log.debug("Data inserted into the 'Vlans' table successfully.")
             return cursor.lastrowid  # Return the row ID
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
@@ -209,7 +222,7 @@ class RouterShellDatabaseConnector:
                 (vlan_name, vlan_id)
             )
             self.connection.commit()
-            self.log.info(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
+            self.log.debug(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
             return STATUS_OK
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN name: %s", e)
@@ -233,7 +246,7 @@ class RouterShellDatabaseConnector:
                 (vlan_description, vlan_id)
             )
             self.connection.commit()
-            self.log.info(f"Description of VLAN {vlan_id} updated successfully.")
+            self.log.debug(f"Description of VLAN {vlan_id} updated successfully.")
             return STATUS_OK
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN description: %s", e)
@@ -259,7 +272,7 @@ class RouterShellDatabaseConnector:
                 (id, vlan_name, interface_fk, bridge_fk)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'VlanInterfaces' table successfully.")
+            self.log.debug("Data inserted into the 'VlanInterfaces' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'VlanInterfaces': %s", e)
 
@@ -313,7 +326,7 @@ class RouterShellDatabaseConnector:
                 (id, nat_pool_name, interface_fk)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'Nats' table successfully.")
+            self.log.debug("Data inserted into the 'Nats' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Nats': %s", e)
 
@@ -337,7 +350,7 @@ class RouterShellDatabaseConnector:
                 (id, nat_fk, interface_fk, direction)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'NatDirections' table successfully.")
+            self.log.debug("Data inserted into the 'NatDirections' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'NatDirections': %s", e)
 
@@ -360,7 +373,7 @@ class RouterShellDatabaseConnector:
                 (id, interface_fk, dhcp_poolname)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'DHCP' table successfully.")
+            self.log.debug("Data inserted into the 'DHCP' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'DHCP': %s", e)
 
@@ -383,7 +396,7 @@ class RouterShellDatabaseConnector:
                 (id, dhcp_fk, ip_subnet)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'Subnet' table successfully.")
+            self.log.debug("Data inserted into the 'Subnet' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Subnet': %s", e)
 
@@ -408,7 +421,7 @@ class RouterShellDatabaseConnector:
                 (id, subnet_fk, ip_address_start, ip_address_end, ip_subnet)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'Pools' table successfully.")
+            self.log.debug("Data inserted into the 'Pools' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Pools': %s", e)
 
@@ -432,7 +445,7 @@ class RouterShellDatabaseConnector:
                 (id, pools_fk, dhcp_options, dhcp_value)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'OptionsPools' table successfully.")
+            self.log.debug("Data inserted into the 'OptionsPools' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'OptionsPools': %s", e)
 
@@ -456,7 +469,7 @@ class RouterShellDatabaseConnector:
                 (id, dhcp_fk, dhcp_options, dhcp_value)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'OptionsGlobal' table successfully.")
+            self.log.debug("Data inserted into the 'OptionsGlobal' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'OptionsGlobal': %s", e)
 
@@ -480,7 +493,7 @@ class RouterShellDatabaseConnector:
                 (id, subnet_fk, mac_address, ip_address)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'Reservations' table successfully.")
+            self.log.debug("Data inserted into the 'Reservations' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Reservations': %s", e)
 
@@ -504,7 +517,7 @@ class RouterShellDatabaseConnector:
                 (id, pool_reservations_fk, dhcp_options, dhcp_value)
             )
             self.connection.commit()
-            self.log.info("Data inserted into the 'OptionsReservations' table successfully.")
+            self.log.debug("Data inserted into the 'OptionsReservations' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'OptionsReservations': %s", e)
 
@@ -531,6 +544,27 @@ class RouterShellDatabaseConnector:
             self.log.error("Error retrieving 'Interfaces' ID: %s", e)
         return None
 
+    def bridge_exists(self, bridge_name) -> Result:
+        """
+        Check if a bridge with the given name exists in the 'Bridges' table.
+
+        Args:
+            bridge_name (str): The name of the bridge to check.
+
+        Returns:
+            Result: An instance of Result with status True if the bridge exists, False otherwise.
+        """
+        self.log.debug(f"bridge_exists() -> Bridge: {bridge_name}")
+        
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT COUNT(*) FROM Bridges WHERE BridgeName = ?", (bridge_name))
+            result = cursor.fetchone()
+            return Result(True, result[0], None)
+
+        except sqlite3.Error as e:
+            return Result(False, self.ROW_ID_NOT_FOUND, f"bridge: {bridge_name} not found")
+
     def get_bridge_id(self, bridge_name: str) -> int:
         """
         Retrieve the ID of a bridge by its name.
@@ -551,7 +585,7 @@ class RouterShellDatabaseConnector:
             if row:
                 return row[0]
         except sqlite3.Error as e:
-            self.log.error("Error retrieving 'Bridges' ID: %s", e)
+            self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
         return None
 
     def get_vlan_interfaces_id(self, vlan_name: str) -> int:
@@ -933,3 +967,32 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error retrieving pool reservations options: %s", e)
         return options
+
+    def delete_bridge_entry(self, bridge_name) -> bool:
+        try:
+            cursor = self.connection.cursor()
+
+            # Get the associated Bridge ID
+            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
+            bridge_id = cursor.fetchone()
+            
+            if not bridge_id:
+                self.log.error(f"Bridge entry not found for BridgeName: {bridge_name}")
+                return STATUS_NOK  # Bridge entry not found
+
+            bridge_id = bridge_id[0]  # Get the Bridge ID from the result
+
+            # Delete records in the associated table VlanInterfaces
+            cursor.execute("DELETE FROM VlanInterfaces WHERE Bridge_FK = ?", (bridge_id,))
+
+            # Delete the bridge entry
+            cursor.execute("DELETE FROM Bridges WHERE ID = ?", (bridge_id,))
+
+            # Commit the changes
+            self.connection.commit()
+
+            return STATUS_OK
+
+        except sqlite3.Error as e:
+            self.log.error("Error deleting bridge entry: %s", e)
+            return False  # Deletion failed

@@ -26,9 +26,12 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
         Bridge.__init__(self)
         
-        if (self.does_bridge_exist(bridge_ifName, suppress_error=True) is STATUS_NOK):
-            if self.add_bridge_global_cmd(bridge_ifName):
-                self.log.error(f"Unable to add ({bridge_ifName})")
+        self.log.debug(f"__init__() -> Bridge: {bridge_ifName}")
+        if not (self.does_bridge_exist(bridge_ifName, suppress_error=True)):
+            self.log.debug(f"__init__() -> Bridge: {bridge_ifName} -> DOES NOT EXISTS, ADDING to DB")
+            if self.add_bridge_global(bridge_ifName):
+                self.log.error(f"Unable to add ({bridge_ifName}) to DB")
+                return STATUS_NOK
                         
         self.bridge_ifName = bridge_ifName
         self.prompt = self.set_prompt()
