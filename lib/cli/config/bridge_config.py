@@ -32,6 +32,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         Bridge.__init__(self)
         
         self.log.debug(f"__init__() -> Bridge: {bridge_ifName}")
+        
         if not (self.does_bridge_exist(bridge_ifName, suppress_error=True)):
             self.log.debug(f"__init__() -> Bridge: {bridge_ifName} -> DOES NOT EXISTS, ADDING to DB")
             if self.add_bridge_global(bridge_ifName):
@@ -50,7 +51,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
 
         :param args: Additional arguments (optional).
         :param negate: If True, set the state to UP; otherwise, set it to DOWN.
-        :return: True if the interface state was successfully changed, False otherwise.
+        :return: STATUS_OK if the interface state was successfully changed, STATUS_OK otherwise.
         """
         self.log.debug(f"do_shutdown() -> Bridge: {self.bridge_ifName} -> negate: {negate}")
         

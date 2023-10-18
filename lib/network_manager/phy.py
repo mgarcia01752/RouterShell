@@ -131,32 +131,34 @@ class PhyServiceLayer(RunCommand):
 
         return status_speed == STATUS_OK and status_auto == STATUS_OK
 
-    def set_interface_state(self, ifName: str, state: State):
+    def set_interface_state(self, ifName: str, state: State) -> bool:
         """
-        Change the state of a network interface (up or down).
+        Change the state of a network interface.
 
-        Args:
-            ifName (str): The name of the network interface.
-            state (State): The desired state (State.UP or State.DOWN).
-
-        Returns:
-            str: Status code, either STATUS_OK or STATUS_NOK.
+        :param ifName: The name of the network interface.
+        :param state: The desired state of the network interface (State.UP or State.DOWN).
+        :type ifName: str
+        :type state: State
+        :return: True if the state change was successful, False otherwise.
+        :rtype: bool
         """
+        self.log.debug(f"set_interface_state() -> ifName: {ifName} -> state: {state}")
+        
         if state not in (State.UP, State.DOWN):
             self.log.error("Invalid state. Use State.UP or State.DOWN.")
-            return STATUS_NOK
+            return False
 
         cmd = ['ip', 'link', 'set', 'dev', ifName, state.value]
-        
-        # Use the RunCommand class to execute the command with sudo and handle errors
+
         status = self.run(cmd).exit_code
-        
-        if status == STATUS_OK:
+
+        if not status:
             self.log.debug(f"Changed state of {ifName} to {state.value}")
         else:
             self.log.error(f"Failed to change state of {ifName} to {state.value}")
 
-        return status
+        return status == STATUS_OK 
+
     
     def set_mtu(self, ifName: str, mtu_size: int) -> bool:
         """

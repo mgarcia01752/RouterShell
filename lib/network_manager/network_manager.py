@@ -118,8 +118,8 @@ class NetworkManager(InetServiceLayer):
             None
         """
         try:
-            # Run the 'ifconfig' command and capture the output
-            output = self.run(['ifconfig', '-a'])
+            # Run the 'ip' command and capture the output
+            output = self.run(['ip', 'addr', 'show'])
 
             # Split the output into interface sections
             interface_sections = output.stdout.strip().split('\n\n')
@@ -129,7 +129,7 @@ class NetworkManager(InetServiceLayer):
 
             for section in interface_sections:
                 lines = section.strip().split('\n')
-                interface_name = lines[0].split(':')[0]
+                interface_name = lines[0].split(':')[1].strip()
 
                 inet_addresses = []
                 inet6_addresses = []
@@ -144,19 +144,16 @@ class NetworkManager(InetServiceLayer):
                     elif 'inet6 ' in line:
                         inet6_parts = line.strip().split()
                         inet6_addresses.append(inet6_parts[1] + '/' + inet6_parts[3])
-                    elif 'ether ' in line:
+                    elif 'link/ether ' in line:
                         ether_parts = line.strip().split()
                         ether_address = ether_parts[1]
-                    elif 'flags=' in line:
-                        # Check if "UP" is present in the flags field
-                        if 'UP' in line:
-                            state = "UP"
-                        else:
-                            state = "DOWN"
+
+                flags = lines[1].strip()
+                state = "UP" if "UP" in flags else "DOWN"
 
                 inet_address = '\n'.join(inet_addresses)
                 inet6_address = '\n'.join(inet6_addresses)
-                
+
                 data.append([interface_name, inet_address, inet6_address, ether_address, state])
 
             # Display the interface information as a table
@@ -167,9 +164,8 @@ class NetworkManager(InetServiceLayer):
             print(f"Error: {e}")
         except Exception as e:
             print(f"An error occurred: {e}")
-        
-        return True
 
+        return True
 
     def show_interfaces(self, args=None):
         # Run the 'ip -json addr show' command and capture its output
@@ -188,15 +184,15 @@ class NetworkManager(InetServiceLayer):
 
         # Prepare data for tabulation
         table_data = []
-        
-        # Check if interface_data is a list
+
         if isinstance(interface_data, list):
             for info in interface_data:
                 interface_name = info.get("ifname", "")
                 inet = ""
                 inet6 = ""
                 ether = info.get("address", "")
-                state = "UP" if info.get("operstate") == "UP" else "DOWN"
+                flags = info.get("flags", [])
+                state = "UP" if 'UP' in flags else "DOWN"
 
                 for addr_info in info.get("addr_info", []):
                     if addr_info["family"] == "inet":
@@ -212,7 +208,8 @@ class NetworkManager(InetServiceLayer):
             inet = ""
             inet6 = ""
             ether = interface_data.get("address", "")
-            state = "UP" if interface_data.get("operstate") == "UP" else "DOWN"
+            flags = interface_data.get("flags", [])
+            state = "UP" if 'UP' in flags else "DOWN"
 
             for addr_info in interface_data.get("addr_info", []):
                 if addr_info["family"] == "inet":
@@ -231,6 +228,8 @@ class NetworkManager(InetServiceLayer):
         table = tabulate(table_data, headers, tablefmt="simple")
 
         print(table)
+
+
 
     def detect_network_hardware(self, args=None):
         """

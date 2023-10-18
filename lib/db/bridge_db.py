@@ -3,12 +3,20 @@ import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, Result
 
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+
 class BridgeDatabase():
     
     rsdb = RSDB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
+        cls.log.setLevel(RSLGS().BRIDGE_DB)
+        
+        '''CMD2 DEBUG LOGGING'''
+        cls.debug = CGS().DEBUG_BRIDGE_DB
+        
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()   

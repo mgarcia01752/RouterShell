@@ -9,6 +9,9 @@ from lib.network_manager.mac import MacServiceLayer
 from lib.network_manager.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+
 class BridgeProtocol(Enum):
     
     IEEE_802_1D = auto()
@@ -49,9 +52,13 @@ class Bridge(MacServiceLayer):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.arg = arg
-        self.bridgeDB = BridgeDatabase()
 
+        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
+        self.debug = CGS().DEBUG_BRIDGE_CONFIG
+        
+        self.bridgeDB = BridgeDatabase()
+        self.arg = arg
+        
     def get_bridge_list(self) -> list:
         """
         Get a list of bridge names using the 'ip' command.
@@ -268,13 +275,14 @@ class Bridge(MacServiceLayer):
         Destroy the current bridge using iproute2 with sudo.
 
         Returns:
-            bool: True if the bridge was successfully destroyed (STATUS_OK), False otherwise (STATUS_NOK).
+            bool: STATUS_OK if the bridge was successfully destroyed, STATUS_NOK otherwise.
         """
+        self.log.debug(f"destroy_bridge_cmd() -> Bridge: {bridge_name}")
         if not bridge_name:
             self.log.error("No bridge selected. Use 'bridge <bridge_name>' to select a bridge.")
             return STATUS_NOK
         
-        if self.does_bridge_exist(bridge_name):
+        if not self.does_bridge_exist(bridge_name):
             self.log.debug(f"Invalid Bridge Name: {bridge_name}")
             return STATUS_NOK
         

@@ -21,6 +21,7 @@ To configure bridge settings on your network device, follow the steps below:
    ```
 
    You will enter the configuration mode where you can make changes to the bridge settings.
+
 ### Bridge Configuration
 
 A bridge allows you to connect network segments and create a single logical network. To configure a bridge, follow these steps:
@@ -64,7 +65,7 @@ To add an interface to a bridge group, follow these steps:
 2. Add the interface to a bridge group using the following command:
 
    ```shell
-   bridge group <bridge-name>
+   bridge-group <bridge-name>
    ```
 
    - `<bridge-name>`: Specify the name of the bridge group you want to add the interface to.
@@ -107,7 +108,7 @@ bridge my-bridge
 end
 
 interface GigabitEthernet0/1
-    bridge group my-bridge
+    bridge-group my-bridge
     no shutdown
 end
 ```

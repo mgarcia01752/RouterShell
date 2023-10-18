@@ -9,14 +9,20 @@ from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
         self.debug = CGS().DEBUG_BRIDGE_CONFIG
 '''
 
-class RouterShellLoggingGlobalSettings:
+class RouterShellLoggingGlobalSettings():
+    '''
+        LOGGING LEVELS: INFO WARN ERROR FATAL
+    '''
+    
     GLOBAL_DEBUG = True
 
     CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    
+    CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+
     BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
       
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -50,7 +56,11 @@ class Cmd2GlobalSettings():
     
     DEBUG_GLOBAL = True
     
-    DEBUG_BRIDGE_CONFIG = DEBUG_GLOBAL or True
-    DEBUG_CONFIGURE_MODE = DEBUG_GLOBAL or True
+    DEBUG_BRIDGE_CONFIG     = DEBUG_GLOBAL or True
+    DEBUG_BRIDGE_DB         = DEBUG_GLOBAL or True 
+    DEBUG_CONFIGURE_MODE    = DEBUG_GLOBAL or True
+    
+    DEBUG_RUN               = DEBUG_GLOBAL or True
+    DEBUG_SYSCTL            = DEBUG_GLOBAL or True
     '''Add Per Class Debug'''
     

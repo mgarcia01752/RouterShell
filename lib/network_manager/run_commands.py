@@ -4,6 +4,9 @@ import logging
 import datetime
 from typing import List, NamedTuple
 
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+
 class RunResult(NamedTuple):
     stdout: str
     stderr: str
@@ -16,6 +19,11 @@ class RunCommand:
     """
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
+        
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().RUN)
+        self.debug = CGS().DEBUG_RUN
+        
         self.run_cmds_successful: List[str] = []
         self.run_cmds_failed: List[str] = []
         self.log_dir = '/tmp/log'

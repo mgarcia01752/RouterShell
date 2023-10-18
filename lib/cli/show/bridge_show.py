@@ -35,19 +35,21 @@ class BridgeShow(Bridge):
 
         # Prepare data for tabulation
         table_data = []
-        
+
         # Check if bridge_data is a list
         if isinstance(bridge_data, list):
             for info in bridge_data:
                 bridge_name = info.get("ifname", "")
                 ether = info.get("address", "")
-                state = "UP" if info.get("operstate") == "UP" else "DOWN"
+                flags = info.get("flags", [])
+                state = "UP" if "UP" in flags else "DOWN"
 
                 table_data.append([bridge_name, ether, state])
         else:
             bridge_name = bridge_data.get("ifname", "")
             ether = bridge_data.get("address", "")
-            state = "UP" if bridge_data.get("operstate") == "UP" else "DOWN"
+            flags = bridge_data.get("flags", [])
+            state = "UP" if "UP" in flags else "DOWN"
 
             table_data.append([bridge_name, ether, state])
 
