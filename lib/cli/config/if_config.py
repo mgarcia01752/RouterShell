@@ -15,6 +15,9 @@ from lib.db.interface_db import InterfaceConfigDB
 
 from lib.common.constants import *
 
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+
 class InvalidInterface(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -28,7 +31,11 @@ class InterfaceConfig(cmd2.Cmd,
     
     def __init__(self, ifName: str, if_type:str=None):
         super().__init__()
+            
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().IF_CONFIG)
+        self.debug = CGS().DEBUG_IF_CONFIG
+        
         GlobalUserCommand.__init__(self)
         Interface.__init__(self)
         
@@ -379,6 +386,34 @@ class InterfaceConfig(cmd2.Cmd,
     def complete_bridge(self, text, line, begidx, endidx):
         completions = ['group']
         return [comp for comp in completions if comp.startswith(text)]
+
+    def do_bridge_group(self, args, negate=False):
+        """
+        Apply a bridge configuration to the interface.
+
+        Args:
+            args (str): Command arguments.
+            negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
+
+        Debugging information:
+            - This method logs debugging information with the provided arguments.
+
+        Suboptions:
+            - group <id>: Set the bridge group identifier.
+            - <suboption> --help: Get help for specific suboptions.
+        """        
+        self.log.debug(f"do_bridge_group() -> ARGS: ({args}) -> Negate: ({negate})")
+        
+        # Split the arguments to obtain the bridge name
+        bridge_name = args.strip().split()[0] if args else None
+
+        if bridge_name:
+            self.log.debug(f"do_bridge_group() -> Adding to Bridge {bridge_name}")
+            if not negate:
+                Bridge().add_interface_cmd(self.ifName, bridge_name)
+                InterfaceConfigDB.add_line_to_interface(self.ifName, f"bridge group {self.ifName} {bridge_name}")
+            else:
+                Bridge().del_interface_cmd(self.ifName)
         
     def do_bridge(self, args, negate=False):
         """
@@ -421,10 +456,11 @@ class InterfaceConfig(cmd2.Cmd,
             return
 
         if args.subcommand == 'group':
-            self.log.debug(f"do_bridge().group -> Adding to Bridge {args.bridge_group_id}")
             if negate:
-                Bridge().del_interface_cmd(self.ifName)
+                self.log.debug(f"do_bridge().group -> Deleting Bridge {args.bridge_group_id}")
+                Bridge().del_interface_cmd(self.ifName, args.bridge_group_id)
             else:
+                self.log.debug(f"do_bridge().group -> Adding Bridge: {args.bridge_group_id} to Interface: {self.ifName}")
                 Bridge().add_interface_cmd(self.ifName, args.bridge_group_id)
                 InterfaceConfigDB.add_line_to_interface(self.ifName, f"bridge {args.subcommand} {self.ifName}")
         

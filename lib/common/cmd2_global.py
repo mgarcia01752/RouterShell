@@ -14,16 +14,16 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL
     '''
     
-    GLOBAL_DEBUG = True
+    GLOBAL_DEBUG = False
 
-    CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
       
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -58,7 +58,10 @@ class Cmd2GlobalSettings():
     
     DEBUG_BRIDGE_CONFIG     = DEBUG_GLOBAL or True
     DEBUG_BRIDGE_DB         = DEBUG_GLOBAL or True 
+    DEBUG_BRIDGE            = DEBUG_GLOBAL or True 
     DEBUG_CONFIGURE_MODE    = DEBUG_GLOBAL or True
+    
+    DEBUG_IF_CONFIG         = DEBUG_GLOBAL or True
     
     DEBUG_RUN               = DEBUG_GLOBAL or True
     DEBUG_SYSCTL            = DEBUG_GLOBAL or True

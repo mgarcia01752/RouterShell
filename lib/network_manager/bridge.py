@@ -53,8 +53,8 @@ class Bridge(MacServiceLayer):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
 
-        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
-        self.debug = CGS().DEBUG_BRIDGE_CONFIG
+        self.log.setLevel(RSLGS().BRIDGE)
+        self.debug = CGS().DEBUG_BRIDGE
         
         self.bridgeDB = BridgeDatabase()
         self.arg = arg
@@ -86,14 +86,16 @@ class Bridge(MacServiceLayer):
         Returns:
             bool: True if the bridge exists, False otherwise.
         """
-        self.log.debug(f"Checking bridge name exists: {bridge_name}")
+        self.log.debug(f"does_bridge_exist() -> Checking bridge name exists: {bridge_name}")
+        
         output = self.run(['ip', 'link', 'show', 'dev', bridge_name], suppress_error=True)
         
         if output.exit_code:
-            self.log.debug(f"Bridge does NOT exist: {bridge_name} - exit-code: {output.exit_code}")
+            self.log.debug(f"does_bridge_exist() -> Bridge does NOT exist: {bridge_name} - exit-code: {output.exit_code}")
             return False
             
-        self.log.debug(f"Bridge does exist: {bridge_name}")
+        self.log.debug(f"does_bridge_exist(exit-code({output.exit_code})) -> Bridge does exist: {bridge_name}")
+        
         return True
 
     def get_assigned_bridge_from_interface(self, ifName: str) -> str:
@@ -157,7 +159,7 @@ class Bridge(MacServiceLayer):
         self.log.debug(f"Bridge {bridge_name} created.")
         return STATUS_OK
 
-    def del_interface_cmd(self, interface_name: str, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
+    def del_interface_cmd(self, interface_name: str, bridge_name:str) -> bool:
         """
         Delete an interface from a bridge.
         This is applied at the interface level
@@ -169,25 +171,25 @@ class Bridge(MacServiceLayer):
         Returns:
             bool: True if the interface is added to the bridge successfully (STATUS_NOK), False otherwise (STATUS_OK).
         """
-        if not br_name or self.does_bridge_exist(br_name):
-            self.log.error(f"Bridge does not exist: {br_name}")
+        if not (bridge_name and self.does_bridge_exist(bridge_name)):
+            self.log.error(f"Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         
         if not interface_name:
-            self.log.error(f"No Interface provided")
+            self.log.error(f"del_interface_cmd()-> No Interface provided")
             return STATUS_NOK
 
         result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'nomaster'])
 
         if result.exit_code:
-            self.log.error(f"Interface {interface_name} unable to delete from bridge {br_name}.")
+            self.log.error(f"del_interface_cmd()-> Interface {interface_name} unable to delete from bridge {bridge_name}.")
             return STATUS_NOK
         
-        self.log.debug(f"Interface {interface_name} deleted from bridge {br_name}.")
+        self.log.debug(f"del_interface_cmd(exit-code: ({result.exit_code}))-> Interface {interface_name} deleted from bridge {bridge_name}.")
         
         return STATUS_OK
 
-    def add_interface_cmd(self, interface_name: str, br_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
+    def add_interface_cmd(self, interface_name: str, bridge_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
         """
         Add an interface to a bridge.
         This is applied at the interface level
@@ -197,25 +199,28 @@ class Bridge(MacServiceLayer):
             bridge_name (str): The name of the bridge.
 
         Returns:
-            bool: True if the interface is added to the bridge successfully (STATUS_NOK), False otherwise (STATUS_OK).
+            bool: STATUS_OK if the interface is added to the bridge successfully, otherwise (STATUS_OK).
         """
-        if not br_name or self.does_bridge_exist(br_name):
-            self.log.error(f"Bridge does not exist: {br_name}")
+        self.log.debug(f"add_interface_cmd() -> Interface: {interface_name} -> Bridge: {bridge_name} STP: {stp}")
+        
+        if not (bridge_name and self.does_bridge_exist(bridge_name)):
+            self.log.error(f"add_interface_cmd() -> Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         
         if not interface_name:
             self.log.error(f"No Interface provided")
             return STATUS_NOK
         
-        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', br_name])
+        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', bridge_name])
 
         if result.exit_code:
-            self.log.error(f"Interface {interface_name} unable to be added to bridge {br_name}.")
+            self.log.error(f"add_interface_cmd() -> Interface {interface_name} unable to be added to bridge {bridge_name}.")
             return STATUS_NOK
         
-        self.stp_status_cmd(br_name)
+        self.stp_status_cmd(bridge_name)
 
-        self.log.debug(f"Interface {interface_name} added to bridge {br_name}.")
+        self.log.debug(f"add_interface_cmd() -> Interface {interface_name} added to bridge {bridge_name}.")
+        
         return STATUS_OK
 
     def stp_status_cmd(self, bridge_name: str, stp_status: Optional[str] = 'enable') -> bool:
@@ -227,7 +232,7 @@ class Bridge(MacServiceLayer):
             stp_status (str, optional): The STP status ('enable' or 'disable'). Defaults to 'enable'.
 
         Returns:
-            bool: True if the STP status is set successfully (STATUS_NOK), False otherwise (STATUS_OK).
+            bool: STATUS_OK if the interface is added to the bridge successfully, otherwise (STATUS_OK).
         """
         if not bridge_name or self.does_bridge_exist(bridge_name):
             self.log.error(f"No Bridge name provided")

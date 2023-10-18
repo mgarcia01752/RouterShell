@@ -107,7 +107,7 @@ bridge my-bridge
     no shutdown
 end
 
-interface GigabitEthernet0/1
+interface GigabitEthernet0
     bridge-group my-bridge
     no shutdown
 end
@@ -121,3 +121,8 @@ In this example:
 - We enable the GigabitEthernet0/1 interface within the bridge group.
 
 By following these steps, you can create a bridge configuration on your network device, allowing multiple network segments to be connected within a single logical network. Always be cautious when making changes to bridge settings, as misconfiguration can impact network connectivity.
+
+## Cisco Reference
+
+[Cisco IOS Bridge Commands](https://www.cisco.com/c/en/us/td/docs/ios/bridging/command/reference/br_book.pdf)
+
