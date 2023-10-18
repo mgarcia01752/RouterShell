@@ -7,6 +7,7 @@ from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.router_prompt import ExecMode, RouterPrompt
+from lib.network_manager.network_manager import InterfaceType
 from lib.network_manager.phy import State
 from lib.common.constants import *
 
@@ -18,7 +19,7 @@ class InvalidBridge(Exception):
 class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
     """Command set for configuring Bridge-Config-Configuration"""
 
-    PROMPT_CMD_ALIAS = "br"
+    PROMPT_CMD_ALIAS = InterfaceType.BRIDGE.value
     
     def __init__(self, bridge_ifName: str):
         super().__init__()

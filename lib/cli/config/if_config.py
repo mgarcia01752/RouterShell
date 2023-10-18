@@ -11,7 +11,7 @@ from lib.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection, Nat
 
-from lib.db.interface_db import InterfaceConfigDB
+from lib.db.interface_db import InterfaceConfigDB as IFCDB
 
 from lib.common.constants import *
 
@@ -29,7 +29,7 @@ class InterfaceConfig(cmd2.Cmd,
     
     bridge_name=""
     
-    def __init__(self, ifName: str, if_type:str=None):
+    def __init__(self, ifName: str, ifType:str=None):
         super().__init__()
             
         self.log = logging.getLogger(self.__class__.__name__)
@@ -41,36 +41,44 @@ class InterfaceConfig(cmd2.Cmd,
         
         self.log.debug(f"InterfaceConfig() -> ({ifName})")
         
-        if if_type in [member.value for member in InterfaceType]:
-            self.PROMPT_CMD_ALIAS = if_type
-            self.log.debug(f"Interface Type is {if_type} - Type-> {InterfaceType.LOOPBACK.value}")
+        if ifType in [member.value for member in InterfaceType]:
+            self.PROMPT_CMD_ALIAS = ifType
+            self.log.debug(f"Interface Type is {ifType} - Type-> {InterfaceType.LOOPBACK.value}")
             
             '''Concatenate for Vlan + loopback (Assuming at this point)'''
-            ifName = if_type + ifName
+            ifName = ifType + ifName
             
-            if if_type == InterfaceType.LOOPBACK.value:
+            if ifType == InterfaceType.LOOPBACK.value:
                 self.log.debug(f"Creating {ifName} if it does not exists....")
                 
                 #Create interface if it does not exists
-                if self.does_interface_exist(ifName):
+                if not self.does_interface_exist(ifName):
                     self.log.debug(f"Creating Loopback {ifName}")
                     if self.create_loopback(ifName):
                         return STATUS_NOK
+                    else:
+                        self.log.debug(f"Adding Loopback to DB")
+                        IFCDB().add_interface(ifName, ifType)
                 else:
                     self.log.debug(f"Not Creating Loopback {ifName}")
         else:
-            self.PROMPT_CMD_ALIAS = 'if'
+            self.PROMPT_CMD_ALIAS = InterfaceType.DEFAULT.value
         
-        if (self.does_interface_exist(ifName)):
+        if not self.does_interface_exist(ifName):
             print(f"Interface {ifName} does not exists.")
             RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
             self.do_end()
         else:
             RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
+            '''
+                TODO:   Need a way to auto detect or verify the interface type
+                        Right now, all interfaces are ethernet, except loopback
+            '''
+            IFCDB().add_interface(ifName, InterfaceType.ETHERNET.value)
             
         self.ifName = ifName
         self.prompt = self.set_prompt()
-        self.log.debug(f"InterfaceConfig() - ifType: {if_type} -> ifName: {ifName}")
+        self.log.debug(f"InterfaceConfig() - ifType: {ifType} -> ifName: {ifName}")
         
     def do_help(self, args=None):
         print("mac\t\t\t\tmac address")
@@ -354,7 +362,7 @@ class InterfaceConfig(cmd2.Cmd,
         if args in duplex_values:
             duplex = duplex_values[args]
             self.set_duplex(self.ifName, duplex)
-            InterfaceConfigDB.add_line_to_interface(self.ifName, f"duplex {duplex}")
+            # TODO IFCDB.add_line_to_interface(self.ifName, f"duplex {duplex}")
         else:
             print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
 
@@ -374,12 +382,12 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args == "auto":
             self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
-            InterfaceConfigDB.add_line_to_interface(self.ifName, f"speed auto")
+            # TODO IFCDB.add_line_to_interface(self.ifName, f"speed auto")
 
         elif args in speed_values:
             speed = speed_values[args]
             self.set_ifSpeed(self.ifName, speed)
-            InterfaceConfigDB.add_line_to_interface(self.ifName, f"speed {speed}")
+            # TODO IFCDB.add_line_to_interface(self.ifName, f"speed {speed}")
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
 

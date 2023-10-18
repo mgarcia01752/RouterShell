@@ -90,34 +90,36 @@ class Interface(NetworkManager):
             
         return InterfaceType.UNKNOWN
 
-    def does_interface_exist(self, ifName:str) -> bool:
+    def does_interface_exist(self, ifName: str) -> bool:
         """
-        Check if a network interface with the given name exists on the system.
+        Determine if a network interface with the specified name exists on the current system.
 
-        This method uses the 'ip link' command to list all network interfaces on
-        the system and checks if the specified interface name exists in the output.
+        This method utilizes the 'ip link' command to retrieve a list of all network interfaces
+        present on the system and subsequently verifies if the provided interface name is
+        included in the command's output.
 
         Args:
-            ifName (str): The name of the network interface to check.
+            ifName (str): The name of the network interface to be checked.
 
         Returns:
-            bool: A status indicating whether the interface is valid or not.
-                - STATUS_OK: If the interface exists.
-                - STATUS_NOK: If the interface does not exist or an error occurred.
+            bool: A boolean value indicating the existence of the specified interface.
+                - True: The interface exists.
+                - False: The interface is not found or an error has occurred.
         """
+
         command = ['ip', 'link', 'show', ifName]
 
         try:
             result = self.run(command, suppress_error=True)
 
             if result.exit_code == 0:
-                return STATUS_OK
+                return True
             else:
                 self.log.debug(f"does_interface_exist return a non-zero: {result.exit_code}")
-                return STATUS_NOK
+                return False
         except Exception as e:
             print(f"Error: {e}")
-            return STATUS_NOK
+            return False
         
     def set_if_mac(self, ifName: str, mac: Optional[str] = None) -> bool:
         """

@@ -2,10 +2,29 @@
 DROP TABLE IF EXISTS Interfaces;
 
 -- Create the Interface table if it doesn't exist
+-- Columns are the minimum entries needed to establish an interface
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
     IfName VARCHAR(100) UNIQUE,
-    InterfaceType VARCHAR(100)
+    InterfaceType VARCHAR(100),         -- Interface Type (ethernet, loopback, wireless-wifi, wireless-cell)
+    ShutdownStatus BOOLEAN              -- True = interface is shutdown
+);
+
+CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INT,
+    MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
+    Duplex INT,                         -- Duplex [half | full | auto]
+    Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
+    CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+);
+
+CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INT,
+    IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask-Prefix (adjust length as needed)
+    SecondaryIp BOOLEAN,                -- True = Secondary
+    CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
 -- Drop the Bridges table if it exists
