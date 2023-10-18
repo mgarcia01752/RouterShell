@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT,
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
-    Duplex INT,                         -- Duplex [half | full | auto]
+    Duplex VARCHAR(4),                  -- Duplex [half | full | auto]
     Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
     CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
