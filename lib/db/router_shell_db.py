@@ -1,6 +1,8 @@
 import sqlite3
 import logging
 import os
+import re
+
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
 
@@ -52,7 +54,6 @@ class RouterShellDatabaseConnector:
         else:
             self.log.debug(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
 
-
     def create_database(self):
         """
         Create an SQLite database file and populate it with tables and data from an SQL file.
@@ -86,34 +87,6 @@ class RouterShellDatabaseConnector:
         """
         if self.connection:
             self.connection.close()
-
-    def insert_interface(self, 
-                         id: int, 
-                         if_name: str, 
-                         interface_type: InterfaceType, 
-                         if_name_alias: str = None):
-        """
-        Insert data into the 'Interfaces' table.
-
-        Args:
-            id (int): The unique ID of the interface.
-            if_name (str): The name of the interface.
-            interface_type (InterfaceType): The type of the interface.
-            if_name_alias (str, optional): An alias name for the interface.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute(
-                "INSERT INTO Interfaces (ID, IfName, IfNameAlias, InterfaceType) VALUES (?, ?, ?, ?)",
-                (id, if_name, if_name_alias, interface_type.value)
-            )
-            self.connection.commit()
-            self.log.debug("Data inserted into the 'Interfaces' table successfully.")
-        except sqlite3.Error as e:
-            self.log.error("Error inserting data into 'Interfaces': %s", e)
 
     def insert_bridge(self, 
                       bridge_name: str,
@@ -996,3 +969,283 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error deleting bridge entry: %s", e)
             return False  # Deletion failed
+
+    def interface_exists(self, if_name: str) -> Result:
+        """
+        Check if an interface with the given name exists in the 'Interfaces' table.
+
+        Args:
+            if_name (str): The name of the interface to check.
+
+        Returns:
+            Result: A Result object with the status and row ID of the existing interface.
+                    status True = exists
+        """
+        try:
+            self.cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
+            existing_row = self.cursor.fetchone()
+            if existing_row:
+                return Result(status=True, row_id=existing_row[0])
+            else:
+                return Result(status=False, row_id=0)
+        except sqlite3.Error as e:
+            self.log.error("Error checking if interface exists: %s", e)
+            return Result(status=False, row_id=0)
+
+    def insert_interface(self, if_name, interface_type, shutdown_status=True) -> Result:
+        """
+        Insert data into the 'Interfaces' table.
+
+        Args:
+            if_name (str): The name of the interface.
+            interface_type (InterfaceType): The type of the interface.
+            shutdown_status (bool, optional): True if the interface is shutdown, False otherwise.
+
+        Returns:
+            Result: A Result object with the status of the insertion and the row ID.
+                    status = STATUS_OK success, STATUS_NOK otherwise
+        """
+        
+        existing_result = self.interface_exists(if_name)
+        if existing_result.status:
+            return Result(status=STATUS_NOK, 
+                        row_id=existing_result.row_id, 
+                        result=f"Interface: {if_name} already exists")
+
+        try:
+            self.cursor.execute(
+                "INSERT INTO Interfaces (IfName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
+                (if_name, interface_type.value, shutdown_status)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'Interfaces' table successfully.")
+            return Result(status=STATUS_OK, row_id=self.cursor.lastrowid)
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'Interfaces': %s", e)
+            return Result(status=STATUS_NOK, row_id=0, result=f"{e}")
+
+    def delete_interface(self, if_name: str) -> Result:
+        """
+        Delete an interface from the 'Interfaces' table.
+
+        Args:
+            if_name (str): The name of the interface to delete.
+
+        Returns:
+            Result: A Result object with the status of the deletion.
+        """
+        try:
+            existing_result = self.interface_exists(if_name)
+            
+            if existing_result.status:
+                self.cursor.execute("DELETE FROM Interfaces WHERE IfName = ?", (if_name,))
+                self.connection.commit()
+                self.log.debug(f"Deleted interface '{if_name}' from the 'Interfaces' table.")
+                return Result(status=STATUS_OK, row_id=0, result=f"Interface '{if_name}' deleted successfully.")
+            else:
+                self.log.debug(f"Interface '{if_name}' does not exist.")
+                return Result(status=STATUS_NOK, row_id=0, result=f"Interface '{if_name}' does not exist.")
+        except sqlite3.Error as e:
+            self.log.error("Error deleting interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=0, result=f"{e}")
+    
+    def update_interface_shutdown(self, if_name: str, shutdown_status: bool) -> Result:
+        """
+        Update the shutdown status of an interface in the 'Interfaces' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            shutdown_status (bool): The new shutdown status.
+                                    True = shutdown interface
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        try:
+            self.cursor.execute(
+                "UPDATE Interfaces SET ShutdownStatus = ? WHERE IfName = ?",
+                (shutdown_status, if_name)
+            )
+            self.connection.commit()
+            self.log.debug(f"Shutdown status updated for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=existing_result.row_id)
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating shutdown status for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=existing_result.row_id, result=f"{e}")
+
+    def update_interface_duplex(self, if_name: str, duplex: str) -> Result:
+        """
+        Update the duplex setting of an interface in the 'InterfaceSubOptions' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            duplex (str): The new duplex setting.
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        interface_id = existing_result.row_id
+        
+        try:
+
+            # Check if there is an entry for this interface in InterfaceSubOptions
+            self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            sub_options_row = self.cursor.fetchone()
+
+            if sub_options_row:
+                # If an entry exists, update the duplex setting
+                self.cursor.execute(
+                    "UPDATE InterfaceSubOptions SET Duplex = ? WHERE Interface_FK = ?",
+                    (duplex, interface_id)
+                )
+            else:
+                # If no entry exists, add a new row and associate it with the interface
+                self.cursor.execute(
+                    "INSERT INTO InterfaceSubOptions (Interface_FK, Duplex) VALUES (?, ?)",
+                    (interface_id, duplex)
+                )
+
+            self.connection.commit()
+            self.log.debug(f"Duplex setting updated for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating duplex setting for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
+
+    def update_interface_mac_address(self, if_name: str, mac_address: str) -> Result:
+        """
+        Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            mac_address (str): MAC address in the format xx:xx:xx:xx:xx:xx.
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        try:
+            interface_id = existing_result.row_id
+
+            # Check if there is an entry for this interface in InterfaceSubOptions
+            self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            sub_options_row = self.cursor.fetchone()
+
+            if sub_options_row:
+                # If an entry exists, update the MAC address setting
+                self.cursor.execute(
+                    "UPDATE InterfaceSubOptions SET MacAddress = ? WHERE Interface_FK = ?",
+                    (mac_address, interface_id)
+                )
+            else:
+                # If no entry exists, add a new row and associate it with the interface
+                self.cursor.execute(
+                    "INSERT INTO InterfaceSubOptions (Interface_FK, MacAddress) VALUES (?, ?)",
+                    (interface_id, mac_address)
+                )
+
+            self.connection.commit()
+            self.log.debug(f"MAC address setting updated for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating MAC address setting for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
+
+
+    def update_interface_speed(self, if_name: str, speed: str) -> Result:
+        """
+        Update the speed setting of an interface in the 'InterfaceSubOptions' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            speed (str): Speed setting, one of ['10', '100', '1000', '10000', 'auto'].
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        try:
+            interface_id = existing_result.row_id
+
+            self.cursor.execute(
+                "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interface_FK = ?",
+                (speed, interface_id)
+            )
+
+            self.connection.commit()
+            self.log.debug(f"Speed {speed} setting updated for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating speed: {speed} setting for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=existing_result.row_id, result=f"{e}")
+
+    def update_interface_speed(self, if_name: str, speed: str) -> Result:
+        """
+        Update the speed setting of an interface in the 'InterfaceSubOptions' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            speed (str): Speed setting, one of ['10', '100', '1000', '10000', 'auto'].
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        try:
+            interface_id = existing_result.row_id
+
+            # Check if there is an entry for this interface in InterfaceSubOptions
+            self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            sub_options_row = self.cursor.fetchone()
+
+            if sub_options_row:
+                # If an entry exists, update the speed setting
+                self.cursor.execute(
+                    "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interface_FK = ?",
+                    (speed, interface_id)
+                )
+            else:
+                # If no entry exists, add a new row and associate it with the interface
+                self.cursor.execute(
+                    "INSERT INTO InterfaceSubOptions (Interface_FK, Speed) VALUES (?, ?)",
+                    (interface_id, speed)
+                )
+
+            self.connection.commit()
+            self.log.debug(f"Speed {speed} setting updated for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating speed: {speed} setting for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+  
