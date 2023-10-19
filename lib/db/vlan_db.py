@@ -57,7 +57,6 @@ class VLANDatabase():
         """
         return cls.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description)
 
-        
     def vlan_exists(cls, vlan_id: int) -> bool:
         """
         Check if a VLAN with the given ID exists in the database.

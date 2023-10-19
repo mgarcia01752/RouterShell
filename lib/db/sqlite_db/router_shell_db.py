@@ -1,7 +1,6 @@
 import sqlite3
 import logging
 import os
-import re
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
@@ -208,7 +207,7 @@ class RouterShellDatabaseConnector:
 
         except sqlite3.Error as e:
             self.log.error("Error deleting bridge entry: %s", e)
-            return False  # Deletion failed
+            return STATUS_NOK
 
 
     '''
@@ -390,7 +389,6 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error retrieving 'VlanInterfaces' ID: %s", e)
         return None
-
 
     '''
                         NAT DATABASE
