@@ -47,7 +47,6 @@ class InterfaceConfigDB:
         
         return STATUS_OK
 
-        
     def del_interface(cls, interface_name: str) -> bool:
         """
         Delete an interface from the 'Interfaces' table.
@@ -76,7 +75,6 @@ class InterfaceConfigDB:
         result = cls.rsdb.update_interface_shutdown(interface_name, shutdown_status)
         return result.status
 
-    
     def update_duplex_status(cls, interface_name: str, duplex: str) -> bool:
         """
         Update the duplex status of an interface in the 'Interfaces' table.
@@ -122,12 +120,27 @@ class InterfaceConfigDB:
             speed (str): The speed setting (e.g., '10', '100', '1000', '10000', 'auto').
 
         Returns:
-            bool: True (STATUS_OK) if the speed was successfully updated, False (STATUS_NOK) otherwise.
+            bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
         """
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 
+    def update_ip_address(cls, interface_name, ip_address_mask, secondary=False, negate=False):
+        """
+        Update or delete an IP address setting for an interface.
 
-    def update_ip_address(cls, interface_name:str, ip_address_mask:str, secondary:bool) -> bool:
-        '''Bool: STATUS_OK/STATUS_NOK'''
-        pass        
+        Args:
+            interface_name (str): The name of the interface.
+            ip_address_mask (str): The IP address/mask to update or delete.
+            secondary (bool): True if the IP address is secondary, False otherwise.
+            negate (bool): True to delete the IP address, False to update.
+
+        Returns:
+            bool: bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
+        """
+        if not negate:
+            result = cls.rsdb.insert_interface_ip_address(interface_name, ip_address_mask, secondary)
+        else:
+            result = cls.rsdb.delete_interface_ip_address(interface_name, ip_address_mask)
+
+        return result.status     

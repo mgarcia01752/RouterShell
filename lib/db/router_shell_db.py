@@ -1248,4 +1248,72 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error(f"Error updating speed: {speed} setting for interface {if_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+        
+    def insert_interface_ip_address(self, if_name: str, ip_address: str, is_secondary: bool) -> Result:
+        """
+        Insert an IP address entry for an interface into the 'InterfaceIpAddress' table.
+
+        Args:
+            if_name (str): The name of the interface to associate the IP address with.
+            ip_address (str): The IP address in the format IPv4 or IPv6 Address/Mask-Prefix.
+            is_secondary (bool): True if the IP address is secondary, False otherwise.
+
+        Returns:
+            Result: A Result object with the status of the insertion.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        try:
+            interface_id = existing_result.row_id
+
+            self.cursor.execute(
+                "INSERT INTO InterfaceIpAddress (Interface_FK, IpAddress, SecondaryIp) VALUES (?, ?, ?)",
+                (interface_id, ip_address, is_secondary)
+            )
+
+            self.connection.commit()
+            self.log.debug(f"IP address {ip_address} inserted for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error inserting IP address for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+
+    def delete_interface_ip_address(self, if_name: str, ip_address: str) -> Result:
+        """
+        Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
+
+        Args:
+            if_name (str): The name of the interface.
+            ip_address (str): The IP address to delete.
+
+        Returns:
+            Result: A Result object with the status of the deletion.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        if not existing_result.status:
+            # Interface does not exist
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
+        try:
+            interface_id = existing_result.row_id
+
+            # Check if the IP address exists for the given interface
+            self.cursor.execute(
+                "DELETE FROM InterfaceIpAddress WHERE Interface_FK = ? AND IpAddress = ?",
+                (interface_id, ip_address)
+            )
+            self.connection.commit()
+            self.log.debug(f"IP address {ip_address} row deleted for interface: {if_name}")
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error deleting IP address for interface {if_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+
   
