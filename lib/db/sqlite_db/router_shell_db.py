@@ -7,38 +7,43 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
 
 class Result:
-    
-    def __init__(self, status: bool, row_id:int, result:str=None):
-
-        self.status = status
-        self.row_id = row_id
-        self.result = result
-
-class UpdateResult:
     """
-    Represents the result of an insert operation into the database.
+    Represents the result of an operation in the database.
+
+    This class is designed to encapsulate the outcome of various database operations, providing information
+    about the status, associated row ID, and an optional result message.
 
     Attributes:
-        status (bool): The status of the insert operation. True for success (STATUS_OK), False for failure (STATUS_NOK).
-        row_id (int): The row ID of the inserted item in the database. -1 if the insert operation failed.
+        status (bool): A boolean indicating the operation's success (True) or failure (False).
+        row_id (int): The row ID associated with the database operation.
+        result (str, optional): An optional result message that provides additional information about the operation.
+
+    Example:
+        You can use the Result class to handle the outcome of database operations, such as insertions, updates, or deletions.
+        For example, after inserting a new record into the database, you can create a Result object to represent the outcome.
+
+        Usage:
+        result = Result(status=True, row_id=12, result="Record inserted successfully")
+        if result.status:
+            print(f"Operation was successful. Row ID: {result.row_id}")
+        else:
+            print(f"Operation failed. Error: {result.result}")
+
+    Note:
+        - The 'status' attribute should be set to True for successful operations and False for failed ones.
+        - 'row_id' represents the unique identifier of the affected row, and it can be 0 or any relevant integer.
+        - 'result' provides additional information about the operation, which is particularly useful for error messages.
     """
-
-    def __init__(self, status: bool, result: str=None):
-        """
-        Initialize an InsertResult object.
-
-        Args:
-            status (bool): The status of the insert operation. STATUS_OK is success, STATUS_NOK for failure.
-            result (str): 
-        """
+    def __init__(self, status: bool, row_id: int, result: str = None):
         self.status = status
+        self.row_id = row_id
         self.result = result
 
 class RouterShellDatabaseConnector:
     connection = None
     
     ROUTER_SHELL_DB = 'routershell.db'
-    ROUTER_SHELL_SQL_STARTUP = 'db_schema.sql'
+    ROUTER_SHELL_SQL_STARTUP = '../db_schema.sql'
     ROW_ID_NOT_FOUND = -1
 
     def __init__(self):
@@ -88,6 +93,55 @@ class RouterShellDatabaseConnector:
         if self.connection:
             self.connection.close()
 
+
+    '''
+                        BRIDGE DATABASE
+    '''
+
+    def bridge_exists(self, bridge_name) -> Result:
+        """
+        Check if a bridge with the given name exists in the 'Bridges' table.
+
+        Args:
+            bridge_name (str): The name of the bridge to check.
+
+        Returns:
+            Result: An instance of Result with status True if the bridge exists, False otherwise.
+        """
+        self.log.debug(f"bridge_exists() -> Bridge: {bridge_name}")
+        
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT COUNT(*) FROM Bridges WHERE BridgeName = ?", (bridge_name))
+            result = cursor.fetchone()
+            return Result(True, result[0], None)
+
+        except sqlite3.Error as e:
+            return Result(False, self.ROW_ID_NOT_FOUND, f"bridge: {bridge_name} not found")
+
+    def get_bridge_id(self, bridge_name: str) -> int:
+        """
+        Retrieve the ID of a bridge by its name.
+
+        Args:
+            bridge_name (str): The name of the bridge.
+
+        Returns:
+            int: The ID of the bridge if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
+        return None
+
     def insert_bridge(self, 
                       bridge_name: str,
                       bridge_protocol: str = None,
@@ -127,6 +181,40 @@ class RouterShellDatabaseConnector:
             self.log.error(error_message)
             return Result(STATUS_NOK, -1, error_message)
 
+    def delete_bridge_entry(self, bridge_name) -> bool:
+        try:
+            cursor = self.connection.cursor()
+
+            # Get the associated Bridge ID
+            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
+            bridge_id = cursor.fetchone()
+            
+            if not bridge_id:
+                self.log.error(f"Bridge entry not found for BridgeName: {bridge_name}")
+                return STATUS_NOK  # Bridge entry not found
+
+            bridge_id = bridge_id[0]  # Get the Bridge ID from the result
+
+            # Delete records in the associated table VlanInterfaces
+            cursor.execute("DELETE FROM VlanInterfaces WHERE Bridge_FK = ?", (bridge_id,))
+
+            # Delete the bridge entry
+            cursor.execute("DELETE FROM Bridges WHERE ID = ?", (bridge_id,))
+
+            # Commit the changes
+            self.connection.commit()
+
+            return STATUS_OK
+
+        except sqlite3.Error as e:
+            self.log.error("Error deleting bridge entry: %s", e)
+            return False  # Deletion failed
+
+
+    '''
+                        VLAN DATABASE
+    '''
+    
     def vlan_id_exists(self, vlan_id: int) -> bool:
         """
         Check if a VLAN with the given ID exists in the database.
@@ -146,7 +234,7 @@ class RouterShellDatabaseConnector:
             self.log.error("Error checking VLAN existence: %s", e)
             return False
 
-    def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND):
+    def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
         Insert data into the 'Vlans' table.
 
@@ -156,26 +244,26 @@ class RouterShellDatabaseConnector:
             vlan_interfaces_fk (int, optional): The foreign key referencing VLAN interfaces.
 
         Returns:
-            int: The row ID of the inserted VLAN.
+            Result: A Result object with the status and row ID of the inserted VLAN.
 
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
         self.log.debug(f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
-        
+
         try:
             cursor = self.connection.cursor()
             cursor.execute(
                 "INSERT INTO Vlans (VlanID, VlanInterfaces_FK, VlanName) VALUES (?, ?, ?)",
                 (vlanid, vlan_interfaces_fk, vlan_name)
             )
-            
+
             self.connection.commit()
             self.log.debug("Data inserted into the 'Vlans' table successfully.")
-            return cursor.lastrowid  # Return the row ID
+            return Result(status=STATUS_OK, row_id=cursor.lastrowid)
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
-            return -1
+            return Result(status=STATUS_NOK, row_id=0, result=str(e))
 
     def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> bool:
         """
@@ -280,6 +368,34 @@ class RouterShellDatabaseConnector:
             print("Error:", e)
             return []
 
+    def get_vlan_interfaces_id(self, vlan_name: str) -> int:
+        """
+        Retrieve the ID of VLAN interfaces by the VLAN name.
+
+        Args:
+            vlan_name (str): The name of the VLAN.
+
+        Returns:
+            int: The ID of the VLAN interfaces if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM VlanInterfaces WHERE VlanName = ?", (vlan_name,))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'VlanInterfaces' ID: %s", e)
+        return None
+
+
+    '''
+                        NAT DATABASE
+    '''
+    
     def insert_nat(self, id: int, nat_pool_name: str, interface_fk: int):
         """
         Insert data into the 'Nats' table.
@@ -327,6 +443,58 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'NatDirections': %s", e)
 
+    def get_nat_id(self, nat_pool_name: str) -> int:
+        """
+        Retrieve the ID of a NAT by its pool name.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool.
+
+        Returns:
+            int: The ID of the NAT if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'Nats' ID: %s", e)
+        return None
+
+    def get_nat_directions(self, nat_fk: int) -> list:
+        """
+        Retrieve the directions of a NAT by its foreign key.
+
+        Args:
+            nat_fk (int): The foreign key referencing a NAT.
+
+        Returns:
+            list: A list of directions for the NAT if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        directions = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT Direction FROM NatDirections WHERE NAT_FK = ?", (nat_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                directions = [row[0] for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving NAT directions: %s", e)
+        return directions
+
+
+    '''
+                        DHCP DATABASE
+    '''
+    
     def insert_dhcp(self, id: int, interface_fk: int, dhcp_poolname: str):
         """
         Insert data into the 'DHCP' table.
@@ -493,119 +661,6 @@ class RouterShellDatabaseConnector:
             self.log.debug("Data inserted into the 'OptionsReservations' table successfully.")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'OptionsReservations': %s", e)
-
-    def get_interface_id(self, if_name: str) -> int:
-        """
-        Retrieve the ID of an interface by its name.
-
-        Args:
-            if_name (str): The name of the interface.
-
-        Returns:
-            int: The ID of the interface if found, or None if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
-            row = cursor.fetchone()
-            if row:
-                return row[0]
-        except sqlite3.Error as e:
-            self.log.error("Error retrieving 'Interfaces' ID: %s", e)
-        return None
-
-    def bridge_exists(self, bridge_name) -> Result:
-        """
-        Check if a bridge with the given name exists in the 'Bridges' table.
-
-        Args:
-            bridge_name (str): The name of the bridge to check.
-
-        Returns:
-            Result: An instance of Result with status True if the bridge exists, False otherwise.
-        """
-        self.log.debug(f"bridge_exists() -> Bridge: {bridge_name}")
-        
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM Bridges WHERE BridgeName = ?", (bridge_name))
-            result = cursor.fetchone()
-            return Result(True, result[0], None)
-
-        except sqlite3.Error as e:
-            return Result(False, self.ROW_ID_NOT_FOUND, f"bridge: {bridge_name} not found")
-
-    def get_bridge_id(self, bridge_name: str) -> int:
-        """
-        Retrieve the ID of a bridge by its name.
-
-        Args:
-            bridge_name (str): The name of the bridge.
-
-        Returns:
-            int: The ID of the bridge if found, or None if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name))
-            row = cursor.fetchone()
-            if row:
-                return row[0]
-        except sqlite3.Error as e:
-            self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
-        return None
-
-    def get_vlan_interfaces_id(self, vlan_name: str) -> int:
-        """
-        Retrieve the ID of VLAN interfaces by the VLAN name.
-
-        Args:
-            vlan_name (str): The name of the VLAN.
-
-        Returns:
-            int: The ID of the VLAN interfaces if found, or None if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM VlanInterfaces WHERE VlanName = ?", (vlan_name,))
-            row = cursor.fetchone()
-            if row:
-                return row[0]
-        except sqlite3.Error as e:
-            self.log.error("Error retrieving 'VlanInterfaces' ID: %s", e)
-        return None
-
-    def get_nat_id(self, nat_pool_name: str) -> int:
-        """
-        Retrieve the ID of a NAT by its pool name.
-
-        Args:
-            nat_pool_name (str): The name of the NAT pool.
-
-        Returns:
-            int: The ID of the NAT if found, or None if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
-            row = cursor.fetchone()
-            if row:
-                return row[0]
-        except sqlite3.Error as e:
-            self.log.error("Error retrieving 'Nats' ID: %s", e)
-        return None
 
     def get_dhcp_id(self, dhcp_poolname: str) -> int:
         """
@@ -797,30 +852,6 @@ class RouterShellDatabaseConnector:
             self.log.error("Error retrieving 'Interfaces' type: %s", e)
         return None
 
-    def get_nat_directions(self, nat_fk: int) -> list:
-        """
-        Retrieve the directions of a NAT by its foreign key.
-
-        Args:
-            nat_fk (int): The foreign key referencing a NAT.
-
-        Returns:
-            list: A list of directions for the NAT if found, or an empty list if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
-        directions = []
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT Direction FROM NatDirections WHERE NAT_FK = ?", (nat_fk,))
-            rows = cursor.fetchall()
-            if rows:
-                directions = [row[0] for row in rows]
-        except sqlite3.Error as e:
-            self.log.error("Error retrieving NAT directions: %s", e)
-        return directions
-
     def get_dhcp_subnets(self, dhcp_fk: int) -> list:
         """
         Retrieve the subnets associated with a DHCP configuration by its foreign key.
@@ -941,34 +972,33 @@ class RouterShellDatabaseConnector:
             self.log.error("Error retrieving pool reservations options: %s", e)
         return options
 
-    def delete_bridge_entry(self, bridge_name) -> bool:
+
+    '''
+                        INTERFACE DATABASE
+    '''
+    
+    def get_interface_id(self, if_name: str) -> int:
+        """
+        Retrieve the ID of an interface by its name.
+
+        Args:
+            if_name (str): The name of the interface.
+
+        Returns:
+            int: The ID of the interface if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
         try:
             cursor = self.connection.cursor()
-
-            # Get the associated Bridge ID
-            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
-            bridge_id = cursor.fetchone()
-            
-            if not bridge_id:
-                self.log.error(f"Bridge entry not found for BridgeName: {bridge_name}")
-                return STATUS_NOK  # Bridge entry not found
-
-            bridge_id = bridge_id[0]  # Get the Bridge ID from the result
-
-            # Delete records in the associated table VlanInterfaces
-            cursor.execute("DELETE FROM VlanInterfaces WHERE Bridge_FK = ?", (bridge_id,))
-
-            # Delete the bridge entry
-            cursor.execute("DELETE FROM Bridges WHERE ID = ?", (bridge_id,))
-
-            # Commit the changes
-            self.connection.commit()
-
-            return STATUS_OK
-
+            cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
         except sqlite3.Error as e:
-            self.log.error("Error deleting bridge entry: %s", e)
-            return False  # Deletion failed
+            self.log.error("Error retrieving 'Interfaces' ID: %s", e)
+        return None
 
     def interface_exists(self, if_name: str) -> Result:
         """
@@ -1169,7 +1199,6 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error(f"Error updating MAC address setting for interface {if_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
-
 
     def update_interface_speed(self, if_name: str, speed: str) -> Result:
         """

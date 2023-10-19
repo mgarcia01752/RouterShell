@@ -10,7 +10,7 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show.show_operation import ShowMode
 from lib.cli.config.configuration_operation import ConfigureMode
-from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB
+from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB
 
 logging.basicConfig(
     level=logging.INFO,

@@ -1,7 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, Result
 
 class VLANDatabase():
     
@@ -35,7 +35,7 @@ class VLANDatabase():
             return STATUS_NOK, -1
 
         # Insert the VLAN into the database
-        row_id = cls.rsdb.insert_vlan(vlan_id, vlan_name, description)
+        row_id = cls.rsdb.insert_vlan(vlan_id, vlan_name, description).row_id
 
         if row_id > 0:
             return Result(STATUS_OK, row_id)
@@ -43,7 +43,7 @@ class VLANDatabase():
             cls.log.error("Failed to insert VLAN into the database")
             return Result(STATUS_NOK, -1)
 
-    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> UpdateResult:
+    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> Result:
         """
         Update the description of a VLAN by its ID.
 
@@ -52,9 +52,11 @@ class VLANDatabase():
             vlan_description (str): The new description for the VLAN.
 
         Returns:
-            bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
+            Result: 
+
         """
         return cls.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description)
+
         
     def vlan_exists(cls, vlan_id: int) -> bool:
         """

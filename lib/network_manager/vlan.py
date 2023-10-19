@@ -1,7 +1,7 @@
 import logging
 
 from tabulate import tabulate
-from lib.db.router_shell_db import Result 
+from lib.db.sqlite_db.router_shell_db import Result 
 from lib.network_manager.mac import MacServiceLayer
 from lib.db.vlan_db import VLANDatabase
 from lib.network_manager.bridge import Bridge
