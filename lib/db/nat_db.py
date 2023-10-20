@@ -2,16 +2,16 @@ import json
 
 class NatDB:
 
-    def exist_nat_pool_name(cls, pool_name: str) -> bool:
+    def pool_name_exists(cls, pool_name: str) -> bool:
         pass
     
-    def create_global_nat_pool(cls, pool_name: str) -> bool:
+    def create_global_pool_name(cls, pool_name: str) -> bool:
         pass
     
-    def delete_global_nat_pool(cls, pool_name: str) -> bool:
+    def delete_global_nat_pool_name(cls, pool_name: str) -> bool:
         pass
 
-    def get_pool(cls, pool_name: str):
+    def get_pool(cls, pool_name: str, interface_name:str):
         pass
 
     def add_inside_interface(self, pool_name: str, interface_name: str) -> bool:
