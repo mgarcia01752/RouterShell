@@ -44,27 +44,63 @@ class Nat(InetServiceLayer):
 
     def create_nat_pool(self, nat_pool_name: str, negate: bool = False) -> bool:
         """
-        Create or destroy a NAT pool.
+        Create or delete a NAT pool configuration in the NAT database.
 
         Args:
-            nat_pool_name (str): The name of the NAT pool to create or destroy.
-            negate (bool, optional): True to destroy the NAT pool, False to create it. Defaults to False.
-        """
-        self.log.debug(f"create_nat_pool() nat-pool: {nat_pool_name} -> negate:{negate}")
-        
-        # Check if the NAT pool with the given name already exists in your database
-        if nat_pool_name in NatDB().nat_pool_db:
-            if negate:
-                NatDB().delete_global_pool_name(nat_pool_name)
-                self.log.info(f"Destroyed NAT pool: {nat_pool_name}")
-            else:
-                self.log.warn(f"NAT pool with the name {nat_pool_name} already exists.")
+            nat_pool_name (str): The name of the NAT pool to create or delete.
+            negate (bool, optional): If True, delete the NAT pool; if False, create it (default: False).
+
+        Returns:
+            bool: True if the operation is successful, False otherwise.
+
+        This method allows you to create or delete a NAT pool configuration in the NAT database.
+        You can specify the `nat_pool_name` to create or delete, and set `negate` to True to delete
+        the NAT pool.
+
+        Args:
+            - nat_pool_name (str): The name of the NAT pool to create or delete.
+            - negate (bool, optional): If True, the method will delete the NAT pool; if False, it will create it (default: False).
+
+        Returns:
+            - bool: True if the operation is successful, False if there was an error during the operation.
+
+        Example:
+        ```
+        # Create a NAT pool
+        success = YourClass.create_nat_pool("MyNATPool")
+        if success:
+            print("NAT pool created successfully.")
         else:
+            print("Failed to create NAT pool.")
+
+        # Delete a NAT pool
+        success = YourClass.create_nat_pool("MyNATPool", negate=True)
+        if success:
+            print("NAT pool deleted successfully.")
+        else:
+            print("Failed to delete NAT pool.")
+        """
+        try:
+            # Check if the NAT pool already exists
+            if not NatDB().pool_name_exists(nat_pool_name):
+                self.log.error(f"NAT pool '{nat_pool_name}' does not exist.")
+                return False
+
             if negate:
-                self.log.warn(f"NAT pool with the name {nat_pool_name} does not exist.")
+                # Delete the NAT pool
+                result = NatDB().delete_global_nat_pool_name(nat_pool_name)
+                self.log.debug(f"Deleted NAT pool: {nat_pool_name}")
             else:
-                nat_pool = NatDB().create_global_pool_name(nat_pool_name)
-                self.log.info(f"Created NAT pool: {nat_pool}")
+                # Create the NAT pool
+                result = NatDB().insert_global_nat_pool(nat_pool_name)
+                self.log.debug(f"Created NAT pool: {nat_pool_name}")
+
+            return result.status == STATUS_OK
+
+        except Exception as e:
+            self.log.error(f"An error occurred while creating or deleting NAT pool: {e}")
+            return False
+
     
     def create_nat_ip_pool(self, nat_pool_name: str,
                         nat_inside_ip_start: ipaddress.IPv4Address,
