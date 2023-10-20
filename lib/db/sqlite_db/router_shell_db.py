@@ -66,15 +66,12 @@ class RouterShellDatabaseConnector:
         self.log.debug(f"create_database()")
         
         try:
-            # Connect to the SQLite database file
-            self.connection = sqlite3.connect(self.db_file_path)
+            self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
             cursor = self.connection.cursor()
 
-            # Read the SQL file
             with open(self.sql_file_path, 'r') as sql_file:
                 sql_script = sql_file.read()
 
-            # Execute the SQL script to create tables and populate data
             cursor.executescript(sql_script)
 
             # Commit the changes
@@ -1218,39 +1215,6 @@ class RouterShellDatabaseConnector:
         try:
             interface_id = existing_result.row_id
 
-            self.cursor.execute(
-                "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interface_FK = ?",
-                (speed, interface_id)
-            )
-
-            self.connection.commit()
-            self.log.debug(f"Speed {speed} setting updated for interface: {if_name}")
-            return Result(status=STATUS_OK, row_id=interface_id)
-
-        except sqlite3.Error as e:
-            self.log.error(f"Error updating speed: {speed} setting for interface {if_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=existing_result.row_id, result=f"{e}")
-
-    def update_interface_speed(self, if_name: str, speed: str) -> Result:
-        """
-        Update the speed setting of an interface in the 'InterfaceSubOptions' table.
-
-        Args:
-            if_name (str): The name of the interface to update.
-            speed (str): Speed setting, one of ['10', '100', '1000', '10000', 'auto'].
-
-        Returns:
-            Result: A Result object with the status of the update.
-        """
-        existing_result = self.interface_exists(if_name)
-
-        if not existing_result.status:
-            # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
-
-        try:
-            interface_id = existing_result.row_id
-
             # Check if there is an entry for this interface in InterfaceSubOptions
             self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
             sub_options_row = self.cursor.fetchone()
@@ -1343,4 +1307,75 @@ class RouterShellDatabaseConnector:
             self.log.error(f"Error deleting IP address for interface {if_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
 
-  
+    def update_interface_proxy_arp(self, if_name: str, status: bool) -> Result:
+        """
+        Update the Proxy ARP setting of an interface in the 'InterfaceSubOptions' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            status (bool): True to enable Proxy ARP, False to disable it.
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        try:
+            interface_id = existing_result.row_id
+            if existing_result.status:
+                # If an entry exists, update the Proxy ARP setting
+                self.cursor.execute(
+                    "UPDATE InterfaceSubOptions SET ProxyArp = ? WHERE Interface_FK = ?",
+                    (status, interface_id)
+                )
+            else:
+                # If no entry exists, add a new row and associate it with the interface
+                self.cursor.execute(
+                    "INSERT INTO InterfaceSubOptions (Interface_FK, ProxyArp) VALUES (?, ?)",
+                    (interface_id, status)
+                )
+                interface_id = self.cursor.lastrowid  # Get the ID of the newly inserted row
+
+            self.connection.commit()
+            self.log.debug(f"Proxy ARP setting updated for interface: {if_name}")
+            return Result(STATUS_OK, row_id=interface_id)
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating Proxy ARP setting for interface {if_name}: {e}")
+            return Result(STATUS_NOK, row_id=interface_id, result=str(e))
+
+    def update_interface_drop_gratuitous_arp(self, if_name: str, status: bool) -> Result:
+        """
+        Update the setting to drop Gratuitous ARP packets for an interface in the 'InterfaceSubOptions' table.
+
+        Args:
+            if_name (str): The name of the interface to update.
+            status (bool): True to enable dropping Gratuitous ARP, False to disable it.
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        existing_result = self.interface_exists(if_name)
+
+        try:
+            interface_id = existing_result.row_id
+            if existing_result.status:
+                # If an entry exists, update the Drop Gratuitous ARP setting
+                self.cursor.execute(
+                    "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interface_FK = ?",
+                    (status, interface_id)
+                )
+            else:
+                # If no entry exists, add a new row and associate it with the interface
+                self.cursor.execute(
+                    "INSERT INTO InterfaceSubOptions (Interface_FK, DropGratuitousArp) VALUES (?, ?)",
+                    (interface_id, status)
+                )
+                interface_id = self.cursor.lastrowid  # Get the ID of the newly inserted row
+
+            self.connection.commit()
+            self.log.debug(f"Drop Gratuitous ARP setting updated for interface: {if_name}")
+            return Result(STATUS_OK, row_id=interface_id)
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating Drop Gratuitous ARP setting for interface {if_name}: {e}")
+            return Result(STATUS_NOK, row_id=interface_id, result=str(e))
+

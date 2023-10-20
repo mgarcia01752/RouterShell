@@ -85,18 +85,18 @@ class InterfaceConfigDB:
         
         return result.status
  
-    def update_shutdown_status(cls, interface_name: str, shutdown_status: bool) -> bool:
+    def update_shutdown_status(cls, interface_name: str, status: bool) -> bool:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
         Args:
             interface_name (str): The name of the interface to update.
-            shutdown_status (bool): The new shutdown status.
+            status (bool): The new shutdown status.
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
-        result = cls.rsdb.update_interface_shutdown(interface_name, shutdown_status)
+        result = cls.rsdb.update_interface_shutdown(interface_name, status)
         return result.status
 
     def update_duplex_status(cls, interface_name: str, duplex: str) -> bool:
@@ -195,3 +195,30 @@ class InterfaceConfigDB:
         """
         return STATUS_OK
     
+    def update_proxy_arp(cls, interface_name: str, status: bool) -> bool:
+        """
+        Update the Proxy ARP status for a network interface.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            status (bool): The new Proxy ARP status (True for enabled, False for disabled).
+
+        Returns:
+            Result: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+        """
+        result = cls.rsdb.update_interface_proxy_arp(interface_name, status)
+        return result.status
+
+    def update_drop_gratuitous_arp(cls, interface_name: str, status: bool) -> bool:
+        """
+        Update the Drop Gratuitous ARP status for a network interface.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            status (bool): The new Drop Gratuitous ARP status (True for enabled, False for disabled).
+
+        Returns:
+            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+        """
+        result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
+        return result.status

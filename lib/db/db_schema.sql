@@ -18,6 +18,18 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
+DROP TABLE IF EXISTS InterfaceSubOptions;
+CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INT,
+    MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
+    Duplex VARCHAR(4),                  -- Duplex [half | full | auto]
+    Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
+    ProxyArp BOOLEAN,
+    DropGratuitousArp BOOLEAN,
+    CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+);
+
 DROP TABLE IF EXISTS InterfaceStaticArp;
 CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
     ID INTEGER PRIMARY KEY,
@@ -86,7 +98,7 @@ CREATE TABLE IF NOT EXISTS NatDirections (
 
 DROP TABLE IF EXISTS DHCP;
 CREATE TABLE IF NOT EXISTS DHCP (
-    id INTEGER PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     Interface_FK INT,
     DhcpPoolname VARCHAR(50) UNIQUE,
     CONSTRAINT FK_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -94,40 +106,40 @@ CREATE TABLE IF NOT EXISTS DHCP (
 
 DROP TABLE IF EXISTS Subnet;
 CREATE TABLE IF NOT EXISTS Subnet (
-    id INTEGER PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     DHCP_FK INT,
     IpSubnet VARCHAR(45),
-    CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id)
+    CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(ID)
 );
 
 DROP TABLE IF EXISTS Pools;
 CREATE TABLE IF NOT EXISTS Pools (
-    id INTEGER PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     Subnet_FK INT,
     IpAddressStart VARCHAR(45),
     IpAddressEnd VARCHAR(45),
     IpSubnet VARCHAR(45),
-    CONSTRAINT FK_Pools_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
+    CONSTRAINT FK_Pools_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(ID)
 );
 
 DROP TABLE IF EXISTS Reservations;
 CREATE TABLE IF NOT EXISTS Reservations (
-    id INT PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     Subnet_FK INT,
     MacAddress VARCHAR(12),
     IPAddress VARCHAR(45),
-    CONSTRAINT FK_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(id)
+    CONSTRAINT FK_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(ID)
 );
 
 DROP TABLE IF EXISTS Options;
 CREATE TABLE IF NOT EXISTS Options (
-    id INTEGER PRIMARY KEY,
+    ID INTEGER PRIMARY KEY,
     DhcpOptions VARCHAR(20),
     DhcpValue VARCHAR(50),
     Pools_FK INT,
     DHCP_FK INT,
     Reservations_FK INT,
-    CONSTRAINT FK_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(id),
-    CONSTRAINT FK_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(id),
-    CONSTRAINT FK_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(id)
+    CONSTRAINT FK_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(ID),
+    CONSTRAINT FK_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(ID),
+    CONSTRAINT FK_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(ID)
 );
