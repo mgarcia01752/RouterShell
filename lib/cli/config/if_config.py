@@ -75,6 +75,7 @@ class InterfaceConfig(cmd2.Cmd,
                 TODO:   Need a way to auto detect or verify the interface type
                         Right now, all interfaces are ethernet, except loopback
             '''
+            
             if IFCDB().add_interface(ifName, InterfaceType.ETHERNET.value):
                 self.log.debug(f"Unable to add interface: {ifName} to DB")
                 return STATUS_NOK
@@ -332,6 +333,7 @@ class InterfaceConfig(cmd2.Cmd,
             
             ipv4_addr_arp = args.ipv4_addr_arp
             mac_addr_arp = args.mac_addr_arp
+            nat_direction = args.nat_direction_pool
             encap_arp = Encapsulate.ARPA         
                     
             self.log.debug(f"Set static-arp on Interface {self.ifName}")
@@ -340,32 +342,45 @@ class InterfaceConfig(cmd2.Cmd,
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=False)
                 IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
-                IFCDB().add_line_to_interface(self.ifName, f"no {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
+                IFCDB().add_line_to_interface(self.ifName, f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=True)
                 IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, not negate)
-                IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
+                IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
         elif args.subcommand == "nat":
+            '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
             pool_name = args.pool_name
             
-            self.log.info(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {args.nat_direction_pool} -> Pool: {pool_name}")
+            self.log.info(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction} -> Pool: {pool_name}")
 
-            if args.nat_direction_pool == NATDirection.INSIDE.value:
+            if nat_direction == NATDirection.INSIDE.value:
                 self.log.info("Configuring NAT for the inside interface")
+                
                 if Nat().create_inside_nat(pool_name, self.ifName, negate):
                     self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
 
-                IFCDB().
-                
-            elif args.nat_direction_pool == NATDirection.OUTSIDE.value:
+                if IFCDB().update_nat_direction(self.ifName, pool_name, NATDirection.INSIDE, negate):
+                    self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
+                    return STATUS_NOK
+                else:
+                    IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {nat_direction} pool {pool_name}")
+                  
+            elif nat_direction == NATDirection.OUTSIDE.value:
                 self.log.info("Configuring NAT for the outside interface")
+                
                 if Nat().create_outside_nat(pool_name, self.ifName, negate):
                     self.log.error(f"Unable to set OUTSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
+                
+                if IFCDB().update_nat_direction(self.ifName, pool_name, NATDirection.OUTSIDE, negate):
+                    self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
+                    return STATUS_NOK
+                else:
+                    IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {nat_direction} pool {pool_name}")                
             else:
                 self.log.error(f"Invalid NAT type: {args.nat_type}, Use '{NATDirection.INSIDE.value}' or '{NATDirection.OUTSIDE.value}'")
 
@@ -387,7 +402,13 @@ class InterfaceConfig(cmd2.Cmd,
         if args in duplex_values:
             duplex = duplex_values[args]
             self.set_duplex(self.ifName, duplex)
-            # TODO IFCDB().add_line_to_interface(self.ifName, f"duplex {duplex}")
+            
+            if IFCDB.update_duplex_status(self.ifName, duplex):
+                self.log.debug(f"Unable to update duplex: {duplex}")
+                return STATUS_NOK    
+            
+            IFCDB().add_line_to_interface(self.ifName, f"duplex {duplex}")
+            
         else:
             print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
 
@@ -407,8 +428,7 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args == "auto":
             self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
-            # TODO IFCDB().add_line_to_interface(self.ifName, f"speed auto")
-
+            
         elif args in speed_values:
             speed = speed_values[args]
             self.set_ifSpeed(self.ifName, speed)
@@ -519,7 +539,7 @@ class InterfaceConfig(cmd2.Cmd,
         else:
             shutdown_stat = f"shutdown"
         
-        InterfaceConfigDB.add_line_to_interface(self.ifName, f"{shutdown_stat}")
+        IFCDB().add_line_to_interface(self.ifName, f"{shutdown_stat}")
         
         return self.set_interface_state(self.ifName, ifState)
 
@@ -669,6 +689,15 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"Remove switchport -> ({line})")
             self.do_switchport(parts[1:], negate=True)
        
-   
-
+    def create_default_interface_config(self) -> bool:
+        '''
+        Default configuration 
+        interface <physical_interface>
+            duplex auto
+            speed auto
+            shutdown     
+        '''
+        self.do_speed(Speed.AUTO_NEGOTIATE.value)
+        self.do_duplex(Duplex.AUTO.value)
+        self.do_shutdown(False)
 

@@ -93,8 +93,8 @@ class PhyServiceLayer(RunCommand):
         else:
             self.log.error(f"Failed to set duplex mode of {ifName} to {duplex.name}")
             return False
-    
-    def set_ifSpeed(self, ifName: str, ifSpeed: Speed, auto: bool = False):
+
+    def set_ifSpeed(self, ifName: str, ifSpeed: Speed, auto: bool = False) -> bool:
         """
         Set the speed of a network interface and optionally enable or disable auto-negotiation.
 
@@ -104,32 +104,37 @@ class PhyServiceLayer(RunCommand):
             autoneg (bool, optional): Whether to enable (True) or disable (False) auto-negotiation. Defaults to False.
 
         Returns:
-            bool: True if the speed is successfully set, False otherwise.
+            bool: STATUS_OK if the speed is successfully set, STATUS_NOK otherwise.
         """
-        
-        cmd_auto = ['ethtool', '-s', ifName, 'autoneg', 'on' if auto else 'off']
-        '''Update both variable, its the same as updating one and makes the return less complicated'''
-        status_speed = status_auto = self.run(cmd_auto).exit_code   
-        
-        if not auto:
-            cmd_speed = ["ethtool", "-s", ifName, "speed", str(ifSpeed.value)]
-            
-            status_speed = self.run(cmd_speed).exit_code
-            
-            if status_speed == STATUS_OK:
-                self.log.debug(f"Set speed of {ifName} to {ifSpeed.name}")
-            else:
-                self.log.error(f"Failed to set speed of {ifName} to {ifSpeed.name}")
+        try:
+            cmd_auto = ['ethtool', '-s', ifName, 'autoneg', 'on' if auto else 'off']
+            status_auto = self.run(cmd_auto).exit_code
 
-        if status_auto == STATUS_OK:
-            if auto:
-                self.log.debug(f"Enabled auto-negotiation on {ifName}")
-            else:
-                self.log.debug(f"Disabled auto-negotiation on {ifName}")
-        else:
-            self.log.error(f"Failed to set auto-negotiation on {ifName} to {'on' if auto else 'off'}")
+            if not auto:
+                cmd_speed = ["ethtool", "-s", ifName, "speed", str(ifSpeed.value)]
+                status_speed = self.run(cmd_speed).exit_code
 
-        return status_speed == STATUS_OK and status_auto == STATUS_OK
+                if status_speed == STATUS_OK:
+                    self.log.debug(f"Set speed of {ifName} to {ifSpeed.name}")
+                else:
+                    self.log.error(f"Failed to set speed of {ifName} to {ifSpeed.name}")
+            else:
+                status_speed = STATUS_OK
+
+            if status_auto == STATUS_OK:
+                if auto:
+                    self.log.debug(f"Enabled auto-negotiation on {ifName}")
+                else:
+                    self.log.debug(f"Disabled auto-negotiation on {ifName}")
+            else:
+                self.log.error(f"Failed to set auto-negotiation on {ifName} to {'on' if auto else 'off'}")
+
+            return status_speed == STATUS_OK and status_auto == STATUS_OK
+
+        except Exception as e:
+            self.log.error(f"An error occurred while setting interface speed: {e}")
+            return STATUS_NOK
+
 
     def set_interface_state(self, ifName: str, state: State) -> bool:
         """

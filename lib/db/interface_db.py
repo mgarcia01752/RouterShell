@@ -284,11 +284,28 @@ class InterfaceConfigDB:
             print("NAT direction removed successfully.")
         else:
             print("Failed to update NAT direction.")
-        ```
         """
-        if negate:
-            result = cls.rsdb.delete_interface_nat_direction(interface_name, nat_pool_name)
-        else:
-            result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, nat_direction)
+        try:
+            if not cls.pool_name_exists(nat_pool_name):
+                cls.log.debug(f"NAT pool '{nat_pool_name}' not found. Update aborted.")
+                return STATUS_NOK
 
-        return result.status == STATUS_OK
+            interface_result = cls.interface_exists(interface_name)
+            if not interface_result.status:
+                cls.log.debug(f"Interface '{interface_name}' not found. Update aborted.")
+                return STATUS_NOK
+
+            if negate:
+                result = cls.rsdb.delete_interface_nat_direction(interface_name, nat_pool_name)
+                cls.log.debug(f"Deleted NAT direction: Interface '{interface_name}' -> NAT Pool '{nat_pool_name}'")
+            else:
+                result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, nat_direction)
+                cls.log.debug(f"Added NAT direction: Interface '{interface_name}' -> NAT Pool '{nat_pool_name}' ({nat_direction})")
+
+            return result.status == STATUS_OK
+
+        except Exception as e:
+            error_message = f"Error updating NAT direction: {e}"
+            cls.log.error(error_message)
+            return STATUS_NOK
+
