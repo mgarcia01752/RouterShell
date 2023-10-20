@@ -428,7 +428,7 @@ class RouterShellDatabaseConnector:
         else:
             return False
 
-    def insert_global_nat_pool(self, nat_pool_name: str, interface_fk: int = FK_NOT_FOUND) -> Result:
+    def insert_global_nat_pool(self, nat_pool_name: str) -> Result:
         """
         Insert a new global NAT configuration into the 'Nats' table.
 
@@ -440,8 +440,8 @@ class RouterShellDatabaseConnector:
             Result: A Result object with the status of the insertion and the row ID.
         """
         try:
-            self.cursor.execute("INSERT INTO Nats (NatPoolName, Interface_FK) VALUES (?, ?)", 
-                (nat_pool_name, interface_fk))
+            self.cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", 
+                (nat_pool_name))
             
             self.connection.commit()
             row_id = self.cursor.lastrowid
@@ -452,8 +452,52 @@ class RouterShellDatabaseConnector:
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
 
-    def delete_global_nat_pool_name(self, nat_pool_name: str, interface_fk: int = FK_NOT_FOUND) -> Result:
-        pass
+    def delete_global_nat_pool_name(self, nat_pool_name: str) -> Result:
+        """
+        Delete a global NAT configuration from the 'Nats' table by NAT pool name.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool to be deleted.
+
+        Returns:
+            Result: A Result object with the status of the deletion and additional information.
+
+        This method deletes a global NAT configuration from the 'Nats' table of the NAT database based on the
+        specified NAT pool name. If a NAT pool with the provided name is found, it will be removed.
+
+        Args:
+            - nat_pool_name (str): The name of the NAT pool to be deleted.
+
+        Returns:
+            - Result: An object that encapsulates the result of the deletion operation, including:
+              - The status (STATUS_OK for success, STATUS_NOK for failure).
+              - Additional information about the deletion, such as success message or error details.
+
+        Example:
+        ```
+        result = nat_pool.delete_global_nat_pool_name("MyNATPool")
+        if result.status == STATUS_OK:
+            print("Global NAT configuration deleted successfully.")
+        else:
+            print(f"Failed to delete global NAT configuration. Error: {result.result}")
+        ```
+        """
+        try:
+            # Perform the deletion based on NAT pool name
+            self.cursor.execute("DELETE FROM Nats WHERE NatPoolName = ?", 
+                                (nat_pool_name,))
+            self.connection.commit()
+
+            # Check if any rows were affected by the deletion
+            if self.cursor.rowcount > 0:
+                return Result(STATUS_OK, result="Global NAT configuration deleted successfully")
+            else:
+                return Result(STATUS_NOK, result="No matching NAT pool found for deletion")
+
+        except sqlite3.Error as e:
+            error_message = f"Error deleting global NAT configuration: {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
 
     def update_global_nat_interface_fk(self, nat_pool_name: str, interface_name: str) -> Result:
         try:
@@ -496,6 +540,29 @@ class RouterShellDatabaseConnector:
 
         Returns:
             Result: A Result object with the status and the row ID of the NAT pool if found.
+
+        This method queries the 'Nats' table in the NAT database to retrieve the row ID of a
+        global NAT configuration based on its name.
+
+        Args:
+            - nat_pool_name (str): The name of the NAT pool to look up.
+
+        Returns:
+            - Result: An object that encapsulates the result of the retrieval operation, including:
+              - The status (STATUS_OK for success, STATUS_NOK for failure).
+              - The row ID of the NAT pool if it is found.
+
+        If the NAT pool is found, the row ID is included in the result object. If it is not found, an
+        appropriate error message is logged, and the result object indicates failure.
+
+        Example:
+        ```
+        result = nat_pool.get_global_nat_row_id("MyNATPool")
+        if result.status == STATUS_OK:
+            print(f"Row ID for 'MyNATPool' is {result.row_id}")
+        else:
+            print(f"Failed to retrieve NAT row ID. Error: {result.result}")
+        ```
         """
         try:
             self.cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
@@ -513,37 +580,56 @@ class RouterShellDatabaseConnector:
             error_message = f"Error retrieving global NAT row ID: {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
-
-    def insert_interface_nat_direction(self, interface_name: str, nat_pool_name: str, direction: bool) -> Result:
+        
+    def insert_interface_nat_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
         """
         Insert a new NAT direction configuration into the 'NatDirections' table.
 
         Args:
-            interface_name (str): The name of the interface.
-            nat_pool_name (str): The name of the NAT pool.
-            direction (bool): The direction for NAT (True for outside, False for inside).
+            interface_name (str): The name of the interface for the NAT direction.
+            nat_pool_name (str): The name of the NAT pool associated with the direction.
+            direction (str): The direction (e.g., 'inside' or 'outside').
 
         Returns:
             Result: A Result object with the status of the insertion.
+
+        This method inserts a new NAT direction configuration into the 'NatDirections' table of the NAT database.
+        It associates an interface with a NAT pool and specifies the direction (inside or outside).
+
+        Args:
+            - interface_name (str): The name of the interface for the NAT direction.
+            - nat_pool_name (str): The name of the NAT pool associated with the direction.
+            - direction (str): The direction of the NAT configuration, e.g., 'inside' or 'outside'.
+
+        Returns:
+            - Result: An object that encapsulates the result of the insertion operation, including:
+              - The status (STATUS_OK for success, STATUS_NOK for failure).
+
+        Example:
+        ```
+        result = nat_pool.insert_interface_nat_direction("LAN", "MyNATPool", "inside")
+        if result.status == STATUS_OK:
+            print("NAT direction configuration inserted successfully.")
+        else:
+            print(f"Failed to insert NAT direction configuration. Error: {result.result}")
+        ```
         """
         try:
-            # Retrieve the row ID of the NAT pool based on its name
+            
             nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
 
             if not nat_pool_result.status:
-                return nat_pool_result  # Return the error from getting the NAT pool row ID
+                return nat_pool_result
 
             nat_pool_id = nat_pool_result.row_id
 
-            # Retrieve the row ID of the interface based on its name
             interface_result = self.interface_exists(interface_name)
 
             if not interface_result.status:
-                return interface_result  # Return the error from getting the interface row ID
+                return interface_result 
 
             interface_id = interface_result.row_id
 
-            # Insert the new NAT direction configuration
             self.cursor.execute('''
                 INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction)
                 VALUES (?, ?, ?)
@@ -556,6 +642,59 @@ class RouterShellDatabaseConnector:
             error_message = f"Error inserting NAT direction: {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
+
+    def delete_interface_nat_direction(self, nat_pool_name: str, direction: str) -> Result:
+        """
+        Delete a NAT direction configuration from the 'NatDirections' table.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool associated with the direction.
+            direction (str): The direction (e.g., 'inside' or 'outside').
+
+        Returns:
+            Result: A Result object with the status of the deletion.
+
+        This method deletes a NAT direction configuration from the 'NatDirections' table of the NAT database.
+        It removes the association of a NAT pool with a specified direction.
+
+        Args:
+            - nat_pool_name (str): The name of the NAT pool associated with the direction.
+            - direction (str): The direction of the NAT configuration, e.g., 'inside' or 'outside'.
+
+        Returns:
+            - Result: An object that encapsulates the result of the deletion operation, including:
+              - The status (STATUS_OK for success, STATUS_NOK for failure).
+
+        Example:
+        ```
+        result = nat_pool.delete_interface_nat_direction("MyNATPool", "inside")
+        if result.status == STATUS_OK:
+            print("NAT direction configuration deleted successfully.")
+        else:
+            print(f"Failed to delete NAT direction configuration. Error: {result.result}")
+        ```
+        """
+        try:
+            nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
+
+            if not nat_pool_result.status:
+                return nat_pool_result
+
+            nat_pool_id = nat_pool_result.row_id
+
+            self.cursor.execute('''
+                DELETE FROM NatDirections
+                WHERE NAT_FK = ? AND Direction = ?
+            ''', (nat_pool_id, direction))
+
+            self.connection.commit()
+            return Result(STATUS_OK)
+
+        except sqlite3.Error as e:
+            error_message = f"Error deleting NAT direction: {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
+
 
     '''
                         DHCP DATABASE

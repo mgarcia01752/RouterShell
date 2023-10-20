@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS VlanInterfaces (
 DROP TABLE IF EXISTS Nats;
 CREATE TABLE IF NOT EXISTS Nats (
     ID INTEGER PRIMARY KEY,
-    NatPoolName VARCHAR(50) UNIQUE,
+    NatPoolName VARCHAR(50) UNIQUE
 );
 
 DROP TABLE IF EXISTS NatDirections;
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS NatDirections (
     NAT_FK INT,
     Interface_FK INT UNIQUE,                -- Only 1 direction per interface                                             
     Direction VARCHAR(7),                   -- Direction inside | outside -> NATDirection()
-    CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID)
+    CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID),
     CONSTRAINT FK_NatDirections_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 

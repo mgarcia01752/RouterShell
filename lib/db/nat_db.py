@@ -23,9 +23,8 @@ class NatDB:
             cls.rsdb = RSDB()  
 
     def pool_name_exists(cls, pool_name: str) -> bool:
+        pass
 
-
-    
     def create_global_pool_name(cls, pool_name: str) -> bool:
         pass
     
