@@ -390,7 +390,45 @@ class RouterShellDatabaseConnector:
                         NAT DATABASE
     '''
 
-    def insert_global_nat(self, nat_pool_name: str, interface_fk: int = FK_NOT_FOUND) -> Result:
+    def pool_name_exists(cls) -> bool:
+        '''
+        Check if a NAT pool with the given name exists in the NAT database.
+
+        Args:
+            pool_name (str): The name of the NAT pool to check for existence.
+
+        Returns:
+            bool: True if a NAT pool with the specified name exists, False otherwise.
+
+        This method queries the NAT database to determine whether a NAT pool with the
+        provided name exists. It connects to the database, executes a query, and checks
+        the count of matching entries in the 'Nats' table with the specified 'NatPoolName'.
+        If any matching pool is found, it returns True; otherwise, it returns False.
+
+        Example:
+            >>> if NatPool.pool_name_exists("MyNATPool"):
+            ...     print("The NAT pool exists.")
+            ... else:
+            ...     print("The NAT pool doesn't exist.")
+        '''
+        # Establish a database connection
+        connection = sqlite3.connect('your_database.db')
+        cursor = connection.cursor()
+
+        # Query the database to check if the pool name exists
+        cursor.execute("SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name,))
+        result = cursor.fetchone()
+
+        # Close the database connection
+        connection.close()
+
+        # Check if a pool with the given name exists
+        if result and result[0] > 0:
+            return True
+        else:
+            return False
+
+    def insert_global_nat_pool(self, nat_pool_name: str, interface_fk: int = FK_NOT_FOUND) -> Result:
         """
         Insert a new global NAT configuration into the 'Nats' table.
 
@@ -413,6 +451,9 @@ class RouterShellDatabaseConnector:
             error_message = f"Error inserting global NAT: {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
+
+    def delete_global_nat_pool_name(self, nat_pool_name: str, interface_fk: int = FK_NOT_FOUND) -> Result:
+        pass
 
     def update_global_nat_interface_fk(self, nat_pool_name: str, interface_name: str) -> Result:
         try:

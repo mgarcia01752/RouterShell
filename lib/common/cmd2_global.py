@@ -1,6 +1,7 @@
 import logging
 
 '''
+TODO ADD TO CLASS
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
@@ -34,8 +35,9 @@ class RouterShellLoggingGlobalSettings():
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    NAT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
     VLAN                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -58,10 +60,15 @@ class Cmd2GlobalSettings():
     
     DEBUG_BRIDGE_CONFIG     = DEBUG_GLOBAL or True
     DEBUG_BRIDGE_DB         = DEBUG_GLOBAL or True 
-    DEBUG_BRIDGE            = DEBUG_GLOBAL or True 
+    DEBUG_BRIDGE            = DEBUG_GLOBAL or True
+     
     DEBUG_CONFIGURE_MODE    = DEBUG_GLOBAL or True
-    
+
     DEBUG_IF_CONFIG         = DEBUG_GLOBAL or True
+    
+    DEBUG_NAT               = DEBUG_GLOBAL or True
+    DEBUG_NAT_CONFIG        = DEBUG_GLOBAL or True
+    DEBUG_NAT_DB            = DEBUG_GLOBAL or True
     
     DEBUG_RUN               = DEBUG_GLOBAL or True
     DEBUG_SYSCTL            = DEBUG_GLOBAL or True

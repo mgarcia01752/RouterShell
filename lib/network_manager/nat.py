@@ -42,7 +42,7 @@ class Nat(InetServiceLayer):
 
         return STATUS_OK
 
-    def create_nat_pool(self, nat_pool_name: str, negate: bool = False) -> None:
+    def create_nat_pool(self, nat_pool_name: str, negate: bool = False) -> bool:
         """
         Create or destroy a NAT pool.
 
@@ -55,7 +55,7 @@ class Nat(InetServiceLayer):
         # Check if the NAT pool with the given name already exists in your database
         if nat_pool_name in NatDB().nat_pool_db:
             if negate:
-                NatDB().delete_global_nat_pool(nat_pool_name)
+                NatDB().delete_global_pool_name(nat_pool_name)
                 self.log.info(f"Destroyed NAT pool: {nat_pool_name}")
             else:
                 self.log.warn(f"NAT pool with the name {nat_pool_name} already exists.")
@@ -63,7 +63,7 @@ class Nat(InetServiceLayer):
             if negate:
                 self.log.warn(f"NAT pool with the name {nat_pool_name} does not exist.")
             else:
-                nat_pool = NatDB().create_global_nat_pool(nat_pool_name)
+                nat_pool = NatDB().create_global_pool_name(nat_pool_name)
                 self.log.info(f"Created NAT pool: {nat_pool}")
     
     def create_nat_ip_pool(self, nat_pool_name: str,
