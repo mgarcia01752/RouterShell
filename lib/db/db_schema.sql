@@ -91,7 +91,7 @@ DROP TABLE IF EXISTS NatDirections;
 CREATE TABLE IF NOT EXISTS NatDirections (
     ID INTEGER PRIMARY KEY,
     NAT_FK INT,
-    Direction VARCHAR(7),                   -- Direction inside | outside
+    Direction VARCHAR(7),                   -- Direction inside | outside -> NATDirection()
     CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID)
 );
 
