@@ -43,7 +43,8 @@ class RouterShellDatabaseConnector:
     
     ROUTER_SHELL_DB = 'routershell.db'
     ROUTER_SHELL_SQL_STARTUP = '../db_schema.sql'
-    ROW_ID_NOT_FOUND, FK_NOT_FOUND = -1
+    ROW_ID_NOT_FOUND = -1
+    FK_NOT_FOUND = -1
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)

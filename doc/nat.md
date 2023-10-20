@@ -91,6 +91,28 @@ ip nat pool <nat-pool-name> [inside|outside] source list <acl-id>
 
 ---
 
+## Full Configuration
+
+```bash
+
+; When negating, user MUST remove pool from interfaces first
+[no] nat pool <nat-pool-name>
+
+interface <inside-nat-interface-name>
+    
+    #; Optional ip address when selecting the nat outside pool
+    ip address <ipv4-address> <ipv4-subnet>
+
+    [no] ip nat [inside | outside] pool <nat-pool-name>
+    
+    #; Optional dhcp-server pool when selecting nat inside pool
+    ip dhcp-server pool <dhcp-server-pool-name>
+end
+
+access-list 999 permit $SOURCE_ADDRESS $SUBNET_MASK
+
+```
+
 This user manual provides a detailed guide for configuring NAT on your router or network device. Follow the steps outlined above to enable NAT and set up NAT pools, interfaces, access control lists, and more to control network traffic and IP address translation.
 
 For any additional assistance or troubleshooting, please refer to the documentation for your specific router or device or contact your network administrator.
