@@ -643,23 +643,23 @@ class RouterShellDatabaseConnector:
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
 
-    def delete_interface_nat_direction(self, nat_pool_name: str, direction: str) -> Result:
+    def delete_interface_nat_direction(self, interface_name: str, nat_pool_name: str) -> Result:
         """
-        Delete a NAT direction configuration from the 'NatDirections' table.
+        Delete all NAT direction configurations for a specified interface and NAT pool.
 
         Args:
-            nat_pool_name (str): The name of the NAT pool associated with the direction.
-            direction (str): The direction (e.g., 'inside' or 'outside').
+            interface_name (str): The name of the interface for which NAT directions should be deleted.
+            nat_pool_name (str): The name of the NAT pool associated with the directions.
 
         Returns:
             Result: A Result object with the status of the deletion.
 
-        This method deletes a NAT direction configuration from the 'NatDirections' table of the NAT database.
-        It removes the association of a NAT pool with a specified direction.
+        This method deletes all NAT direction configurations associated with a specified interface and NAT pool. 
+        It removes all directions for the specified combination of interface and NAT pool.
 
         Args:
-            - nat_pool_name (str): The name of the NAT pool associated with the direction.
-            - direction (str): The direction of the NAT configuration, e.g., 'inside' or 'outside'.
+            - interface_name (str): The name of the interface for which NAT directions should be deleted.
+            - nat_pool_name (str): The name of the NAT pool associated with the directions.
 
         Returns:
             - Result: An object that encapsulates the result of the deletion operation, including:
@@ -667,11 +667,11 @@ class RouterShellDatabaseConnector:
 
         Example:
         ```
-        result = nat_pool.delete_interface_nat_direction("MyNATPool", "inside")
+        result = nat_pool.delete_interface_nat_direction("LAN", "MyNATPool")
         if result.status == STATUS_OK:
-            print("NAT direction configuration deleted successfully.")
+            print("NAT directions deleted successfully.")
         else:
-            print(f"Failed to delete NAT direction configuration. Error: {result.result}")
+            print(f"Failed to delete NAT directions. Error: {result.result}")
         ```
         """
         try:
@@ -682,19 +682,16 @@ class RouterShellDatabaseConnector:
 
             nat_pool_id = nat_pool_result.row_id
 
-            self.cursor.execute('''
-                DELETE FROM NatDirections
-                WHERE NAT_FK = ? AND Direction = ?
-            ''', (nat_pool_id, direction))
+            self.cursor.execute("DELETE FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ?", 
+                (nat_pool_id, interface_name))
 
             self.connection.commit()
             return Result(STATUS_OK)
 
         except sqlite3.Error as e:
-            error_message = f"Error deleting NAT direction: {e}"
+            error_message = f"Error deleting NAT directions: {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
-
 
     '''
                         DHCP DATABASE

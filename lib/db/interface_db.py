@@ -1,6 +1,7 @@
 import logging
 import re
 
+from lib.network_manager.nat import Nat, NATDirection
 from lib.db.sqlite_db.router_shell_db import Result, RouterShellDatabaseConnector as RSDB
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
@@ -243,3 +244,51 @@ class InterfaceConfigDB:
 
         return result.status
 
+    def update_nat_direction(cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
+        """
+        Update a NAT direction configuration for a specified interface and NAT pool.
+
+        Args:
+            interface_name (str): The name of the interface for the NAT direction.
+            nat_pool_name (str): The name of the NAT pool associated with the direction.
+            nat_direction (NATDirection): The NAT direction to update.
+            negate (bool): Whether to negate the update (i.e., remove the direction if True) (default: False).
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+
+        This method allows you to update a NAT direction configuration for a specific interface and NAT pool. 
+        You can either add or remove a NAT direction, based on the `negate` parameter.
+
+        Args:
+            - interface_name (str): The name of the interface for the NAT direction.
+            - nat_pool_name (str): The name of the NAT pool associated with the direction.
+            - nat_direction (NATDirection): The NAT direction to update.
+            - negate (bool): If True, the method will remove the NAT direction. If False, it will add the direction (default: False).
+
+        Returns:
+            - bool: True if the update was successful, False if there was an error during the update.
+
+        Example:
+        ```
+        # Add a NAT direction
+        success = NatPool.update_nat_direction("LAN", "MyNATPool", NATDirection.OUTSIDE)
+        if success:
+            print("NAT direction added successfully.")
+        else:
+            print("Failed to update NAT direction.")
+        
+        # Remove a NAT direction
+        success = NatPool.update_nat_direction("LAN", "MyNATPool", NATDirection.INSIDE, negate=True)
+        if success:
+            print("NAT direction removed successfully.")
+        else:
+            print("Failed to update NAT direction.")
+        ```
+        """
+        if negate:
+            result = cls.rsdb.delete_interface_nat_direction(interface_name, nat_pool_name)
+        else:
+            result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, nat_direction)
+
+        return result.status == STATUS_OK

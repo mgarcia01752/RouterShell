@@ -359,7 +359,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
 
-                IFCDB()
+                IFCDB().
                 
             elif args.nat_direction_pool == NATDirection.OUTSIDE.value:
                 self.log.info("Configuring NAT for the outside interface")
