@@ -278,36 +278,40 @@ A physical interface connects the network device to the external network. To con
 Configuring network interfaces is crucial for establishing network connectivity and optimizing network performance. By following the steps outlined in this guide, you can customize interface settings on your network device to meet your specific requirements. Always exercise caution when making changes to interface settings, as misconfiguration can impact network connectivity.
 
 ```shell
-    enable
+   enable
 
-    configure terminal
+   configure terminal
 
-    interface vlan <vlan-id [1 - 4096] >
-        name <name>
-        [no] [mac [auto | <mac-address>]]
-        [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
-        [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
-        [no] [bridge-group <bridge-name>]
-        [no] shutdown
-        destroy
+   interface vlan <vlan-id [1 - 4096] >
+      name <name>
+      [no] [mac [auto | <mac-address>]]
+      [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
+      [no] [bridge-group <bridge-name>]
+      [no] shutdown
+      destroy
+      end
 
-    interface loopback <id>
-        [no] [mac [auto | <mac-address>]]
-        [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
-        [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
-        [no] [bridge-group <bridge-name>]
-        [no] shutdown
-        destroy
+   interface loopback <id>
+      [no] [mac [auto | <mac-address>]]
+      [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
+      [no] [bridge-group <bridge-name>]
+      [no] shutdown
+      destroy
+      end
 
-    interface <physical_interface>
-        [no] [mac [auto | <mac-address>]]
-        [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
-        [no] [ip proxy-arp]  
-        [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
-        [no] [duplex [half | full | auto]]
-        [no] [speed [10 | 100 | 1000 | 10000 | auto]]
-        [no] [bridge-group <bridge-name>]
-        [no] switchport mode access [vlan <vlan-id>]
-        [no] shutdown
+   interface <physical_interface>
+      [no] [mac [auto | <mac-address>]]
+      [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
+      [no] [ip proxy-arp]
+      [no] [ip nat [inside | outside] pool <nat-pool-name>]
+      [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
+      [no] [duplex [half | full | auto]]
+      [no] [speed [10 | 100 | 1000 | 10000 | auto]]
+      [no] [bridge-group <bridge-name>]
+      [no] switchport mode access [vlan <vlan-id>]
+      [no] shutdown
+      end
 
 ```
