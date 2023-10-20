@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS Interfaces;
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
     IfName VARCHAR(100) UNIQUE,
-    InterfaceType VARCHAR(100),         -- Interface Type (ethernet, loopback, wireless-wifi, wireless-cell)
+    InterfaceType VARCHAR(100),         -- Interface Type (ethernet, loopback, wireless wifi, wireless cell)
     ShutdownStatus BOOLEAN              -- True = interface is shutdown
 );
 
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
     Duplex VARCHAR(4),                  -- Duplex [half | full | auto]
     Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
-    Proxy-Arp BOOLEAN,
+    ProxyArp BOOLEAN,
     DropGratuitousArp BOOLEAN,
     CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
@@ -22,7 +22,7 @@ DROP TABLE IF EXISTS InterfaceStaticArp;
 CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT,
-    IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask-Prefix (adjust length as needed)              
+    IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)              
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
     Encapsulation VARCHAR(10),          -- arpa | TBD
     CONSTRAINT FK_InterfaceStaticArp_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS InterfaceIpAddress;
 CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT,
-    IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask-Prefix (adjust length as needed)
+    IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)
     SecondaryIp BOOLEAN,                -- True = Secondary
     CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
@@ -71,7 +71,7 @@ DROP TABLE IF EXISTS Nats;
 CREATE TABLE IF NOT EXISTS Nats (
     ID INTEGER PRIMARY KEY,
     NatPoolName VARCHAR(50) UNIQUE,
-    Interface_FK INT,  -- Add the missing column
+    Interface_FK INT,
     CONSTRAINT FK_Nats_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
