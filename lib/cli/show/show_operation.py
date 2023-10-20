@@ -14,7 +14,7 @@ from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceConfigDB
-from lib.db.nat_db import NatPoolDB
+from lib.db.nat_db import NatDB
 from lib.common.constants import *
 
 class InvalidShowMode(Exception):
@@ -162,7 +162,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             return
         elif args.subcommand == 'nat-db':
             self.log.debug("Show nat command")
-            print(NatPoolDB().to_json())
+            print(NatDB().to_json())
             return
         elif args.subcommand == 'vlan':
             self.log.debug("Show vlan command")

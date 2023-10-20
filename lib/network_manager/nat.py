@@ -3,7 +3,7 @@ import ipaddress
 import logging
 
 from lib.network_manager.inet import InetServiceLayer
-from lib.db.nat_db import NatPoolDB
+from lib.db.nat_db import NatDB
 from lib.network_manager.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -23,6 +23,7 @@ class Nat(InetServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.sysctl = SysCtl()
 
     def enable_ip_forwarding(self, negate: bool = False) -> bool:
         """
@@ -35,8 +36,7 @@ class Nat(InetServiceLayer):
             bool: STATUS_OK if IP forwarding was successfully enabled or disabled, STATUS_NOK otherwise.
         """
         self.log.debug(f"enable_ip_forwarding() negate:{negate}")
-        sysctl = SysCtl()
-        if sysctl.write_sysctl('net.ipv4.ip_forward', 1 if not negate else 0):
+        if self.sysctl.write_sysctl('net.ipv4.ip_forward', 1 if not negate else 0):
             self.log.error("Failed to set IP forwarding.")
             return STATUS_NOK
 
@@ -53,9 +53,9 @@ class Nat(InetServiceLayer):
         self.log.debug(f"create_nat_pool() nat-pool: {nat_pool_name} -> negate:{negate}")
         
         # Check if the NAT pool with the given name already exists in your database
-        if nat_pool_name in NatPoolDB().nat_pool_db:
+        if nat_pool_name in NatDB().nat_pool_db:
             if negate:
-                NatPoolDB().delete_nat_pool(nat_pool_name)
+                NatDB().delete_global_nat_pool(nat_pool_name)
                 self.log.info(f"Destroyed NAT pool: {nat_pool_name}")
             else:
                 self.log.warn(f"NAT pool with the name {nat_pool_name} already exists.")
@@ -63,7 +63,7 @@ class Nat(InetServiceLayer):
             if negate:
                 self.log.warn(f"NAT pool with the name {nat_pool_name} does not exist.")
             else:
-                nat_pool = NatPoolDB().create_nat_pool(nat_pool_name)
+                nat_pool = NatDB().create_global_nat_pool(nat_pool_name)
                 self.log.info(f"Created NAT pool: {nat_pool}")
     
     def create_nat_ip_pool(self, nat_pool_name: str,
@@ -138,7 +138,7 @@ class Nat(InetServiceLayer):
         create_destroy = '-D' if negate else '-A'
 
         # Check if the NAT pool exists
-        nat_pool = NatPoolDB().get_pool(nat_pool_name)
+        nat_pool = NatDB().get_pool(nat_pool_name)
         if not nat_pool:
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
@@ -158,11 +158,11 @@ class Nat(InetServiceLayer):
                 return STATUS_NOK
 
             if not negate:
-                if NatPoolDB().set_outside_interface(nat_pool_name, ifName):
+                if NatDB().set_outside_interface(nat_pool_name, ifName):
                     self.log.error(f"Unable to add outside interface: {ifName} to NAT pool: {nat_pool_name}")
                     return STATUS_NOK
             else:
-                NatPoolDB().delete_outside_interface(ifName)
+                NatDB().delete_outside_interface(ifName)
 
             return STATUS_OK
         except Exception as e:
@@ -184,7 +184,7 @@ class Nat(InetServiceLayer):
         create_destroy = '-D' if negate else '-A'
 
         # Check if the NAT pool exists
-        nat_pool = NatPoolDB().get_pool(nat_pool_name)
+        nat_pool = NatDB().get_pool(nat_pool_name)
         if not nat_pool:
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
@@ -194,7 +194,7 @@ class Nat(InetServiceLayer):
             self.log.info(f"Inside interface {inside_ifName} is not part of NAT pool {nat_pool_name}")
 
         # Check if an outside interface is defined in the NAT pool
-        outside_nat_ifName = NatPoolDB().get_outside_interface(nat_pool_name)
+        outside_nat_ifName = NatDB().get_outside_interface(nat_pool_name)
         if not outside_nat_ifName:
             self.log.error(f"Define an outside interface before creating inside NAT rules for poll: {nat_pool}.")
             return STATUS_NOK
@@ -219,9 +219,9 @@ class Nat(InetServiceLayer):
                 return STATUS_NOK
 
             if negate:
-                NatPoolDB().delete_inside_interface(nat_pool_name, inside_ifName)
+                NatDB().delete_inside_interface(nat_pool_name, inside_ifName)
             else:
-                NatPoolDB().add_inside_interface(nat_pool_name, inside_ifName)
+                NatDB().add_inside_interface(nat_pool_name, inside_ifName)
 
             return STATUS_OK
         
@@ -295,7 +295,7 @@ class Nat(InetServiceLayer):
         # Delete any user-defined chains in the nat table for IPv6 (optional)
         self.run(['sudo', 'ip6tables', '-t', 'nat', '-X'], suppress_error=True)
 
-        NatPoolDB().reset_db()
+        NatDB().reset_db()
         
     def getNatIpTable(self) -> str:
         command = "iptables -t nat -L"

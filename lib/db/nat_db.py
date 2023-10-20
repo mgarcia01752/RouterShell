@@ -1,6 +1,6 @@
 import json
 
-class NatPoolDB:
+class NatDB:
 
     def create_global_nat_pool(cls, pool_name: str) -> bool:
         pass
