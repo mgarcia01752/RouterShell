@@ -113,6 +113,8 @@ access-list 999 permit $SOURCE_ADDRESS $SUBNET_MASK
 
 ```
 
+[NAT-IOS](https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/ipaddr/command/ipaddr-cr-book/ipaddr-i4.html)
+
 This user manual provides a detailed guide for configuring NAT on your router or network device. Follow the steps outlined above to enable NAT and set up NAT pools, interfaces, access control lists, and more to control network traffic and IP address translation.
 
 For any additional assistance or troubleshooting, please refer to the documentation for your specific router or device or contact your network administrator.

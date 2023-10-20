@@ -2,6 +2,9 @@ import json
 
 class NatDB:
 
+    def exist_nat_pool_name(cls, pool_name: str) -> bool:
+        pass
+    
     def create_global_nat_pool(cls, pool_name: str) -> bool:
         pass
     
