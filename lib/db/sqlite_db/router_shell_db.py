@@ -43,7 +43,7 @@ class RouterShellDatabaseConnector:
     
     ROUTER_SHELL_DB = 'routershell.db'
     ROUTER_SHELL_SQL_STARTUP = '../db_schema.sql'
-    ROW_ID_NOT_FOUND = -1
+    ROW_ID_NOT_FOUND, FK_NOT_FOUND = -1
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -88,7 +88,6 @@ class RouterShellDatabaseConnector:
         """
         if self.connection:
             self.connection.close()
-
 
     '''
                         BRIDGE DATABASE
@@ -205,7 +204,6 @@ class RouterShellDatabaseConnector:
         except sqlite3.Error as e:
             self.log.error("Error deleting bridge entry: %s", e)
             return STATUS_NOK
-
 
     '''
                         VLAN DATABASE
@@ -390,101 +388,132 @@ class RouterShellDatabaseConnector:
     '''
                         NAT DATABASE
     '''
-    
-    def insert_nat(self, id: int, nat_pool_name: str, interface_fk: int):
+
+    def insert_global_nat(self, nat_pool_name: str, interface_fk: int = FK_NOT_FOUND) -> Result:
         """
-        Insert data into the 'Nats' table.
+        Insert a new global NAT configuration into the 'Nats' table.
 
         Args:
-            id (int): The unique ID of the NAT.
             nat_pool_name (str): The name of the NAT pool.
-            interface_fk (int): The foreign key referencing an interface.
+            interface_fk (int): The foreign key reference to the associated interface (default: FK_NOT_FOUND).
 
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
+        Returns:
+            Result: A Result object with the status of the insertion and the row ID.
         """
         try:
-            cursor = self.connection.cursor()
-            cursor.execute(
-                "INSERT INTO Nats (ID, NatPoolName, Interface_FK) VALUES (?, ?, ?)",
-                (id, nat_pool_name, interface_fk)
-            )
+            self.cursor.execute("INSERT INTO Nats (NatPoolName, Interface_FK) VALUES (?, ?)", 
+                (nat_pool_name, interface_fk))
+            
             self.connection.commit()
-            self.log.debug("Data inserted into the 'Nats' table successfully.")
+            row_id = self.cursor.lastrowid
+            return Result(STATUS_OK, row_id=row_id)
+        
         except sqlite3.Error as e:
-            self.log.error("Error inserting data into 'Nats': %s", e)
+            error_message = f"Error inserting global NAT: {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
 
-    def insert_nat_direction(self, id: int, nat_fk: int, interface_fk: int, direction: str):
-        """
-        Insert data into the 'NatDirections' table.
-
-        Args:
-            id (int): The unique ID of the NAT direction.
-            nat_fk (int): The foreign key referencing a NAT.
-            interface_fk (int): The foreign key referencing an interface.
-            direction (str): The direction of the NAT.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
-        """
+    def update_global_nat_interface_fk(self, nat_pool_name: str, interface_name: str) -> Result:
         try:
-            cursor = self.connection.cursor()
-            cursor.execute(
-                "INSERT INTO NatDirections (ID, NAT_FK, INTERFACE_FK, Direction) VALUES (?, ?, ?, ?)",
-                (id, nat_fk, interface_fk, direction)
-            )
-            self.connection.commit()
-            self.log.debug("Data inserted into the 'NatDirections' table successfully.")
-        except sqlite3.Error as e:
-            self.log.error("Error inserting data into 'NatDirections': %s", e)
+            # Retrieve the row ID of the NAT pool based on its name
+            nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
 
-    def get_nat_id(self, nat_pool_name: str) -> int:
+            if not nat_pool_result.status:
+                return nat_pool_result  # Return the error from getting the NAT pool row ID
+
+            nat_pool_id = nat_pool_result.row_id
+
+            # Retrieve the row ID of the interface based on its name
+            interface_result = self.interface_exists(interface_name)
+
+            if not interface_result.status:
+                return interface_result  # Return the error from getting the interface row ID
+
+            interface_id = interface_result.row_id
+
+            # Now, insert the NAT pool row ID and interface row ID into the NatDirections table
+            self.cursor.execute('''
+                INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction)
+                VALUES (?, ?, ?)
+            ''', (nat_pool_id, interface_id, True))  # Assuming the "Direction" is boolean
+
+            self.connection.commit()
+            return Result(STATUS_OK)
+
+        except sqlite3.Error as e:
+            error_message = f"Error updating global NAT interface FK: {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
+
+    def get_global_nat_row_id(self, nat_pool_name: str) -> Result:
         """
-        Retrieve the ID of a NAT by its pool name.
+        Retrieve the row ID of a global NAT configuration in the 'Nats' table based on its name.
 
         Args:
             nat_pool_name (str): The name of the NAT pool.
 
         Returns:
-            int: The ID of the NAT if found, or None if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
+            Result: A Result object with the status and the row ID of the NAT pool if found.
         """
         try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
-            row = cursor.fetchone()
-            if row:
-                return row[0]
-        except sqlite3.Error as e:
-            self.log.error("Error retrieving 'Nats' ID: %s", e)
-        return None
+            self.cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
+            row = self.cursor.fetchone()
 
-    def get_nat_directions(self, nat_fk: int) -> list:
+            if row is not None:
+                row_id = row[0]
+                return Result(STATUS_OK, row_id=row_id)
+            else:
+                error_message = f"Global NAT pool '{nat_pool_name}' not found."
+                self.log.error(error_message)
+                return Result(STATUS_NOK, result=error_message)
+        
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving global NAT row ID: {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
+
+    def insert_interface_nat_direction(self, interface_name: str, nat_pool_name: str, direction: bool) -> Result:
         """
-        Retrieve the directions of a NAT by its foreign key.
+        Insert a new NAT direction configuration into the 'NatDirections' table.
 
         Args:
-            nat_fk (int): The foreign key referencing a NAT.
+            interface_name (str): The name of the interface.
+            nat_pool_name (str): The name of the NAT pool.
+            direction (bool): The direction for NAT (True for outside, False for inside).
 
         Returns:
-            list: A list of directions for the NAT if found, or an empty list if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
+            Result: A Result object with the status of the insertion.
         """
-        directions = []
         try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT Direction FROM NatDirections WHERE NAT_FK = ?", (nat_fk,))
-            rows = cursor.fetchall()
-            if rows:
-                directions = [row[0] for row in rows]
-        except sqlite3.Error as e:
-            self.log.error("Error retrieving NAT directions: %s", e)
-        return directions
+            # Retrieve the row ID of the NAT pool based on its name
+            nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
 
+            if not nat_pool_result.status:
+                return nat_pool_result  # Return the error from getting the NAT pool row ID
+
+            nat_pool_id = nat_pool_result.row_id
+
+            # Retrieve the row ID of the interface based on its name
+            interface_result = self.interface_exists(interface_name)
+
+            if not interface_result.status:
+                return interface_result  # Return the error from getting the interface row ID
+
+            interface_id = interface_result.row_id
+
+            # Insert the new NAT direction configuration
+            self.cursor.execute('''
+                INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction)
+                VALUES (?, ?, ?)
+            ''', (nat_pool_id, interface_id, direction))
+            
+            self.connection.commit()
+            return Result(STATUS_OK)
+        
+        except sqlite3.Error as e:
+            error_message = f"Error inserting NAT direction: {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
 
     '''
                         DHCP DATABASE

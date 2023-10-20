@@ -242,3 +242,4 @@ class InterfaceConfigDB:
             result = cls.rsdb.delete_interface_ip_address(interface_name, ip_address)
 
         return result.status
+
