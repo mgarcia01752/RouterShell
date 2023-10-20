@@ -339,11 +339,13 @@ class InterfaceConfig(cmd2.Cmd,
             if negate:
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=False)
+                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
                 IFCDB().add_line_to_interface(self.ifName, f"no {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=True)
+                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, not negate)
                 IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
         elif args.subcommand == "nat":

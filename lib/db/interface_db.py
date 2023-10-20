@@ -149,7 +149,7 @@ class InterfaceConfigDB:
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 
-    def update_ip_address(cls, interface_name, ip_address_mask, secondary=False, negate=False):
+    def update_ip_address(cls, interface_name, ip_address_mask, secondary=False, negate=False) -> bool:
         """
         Update or delete an IP address setting for an interface.
 
@@ -223,7 +223,7 @@ class InterfaceConfigDB:
         result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
         return result.status
     
-    def update_static_arp(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str, negate=False) -> bool:
+    def update_static_arp(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
         """
         Update a static ARP record in the 'InterfaceStaticArp' table.
 
