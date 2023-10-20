@@ -96,7 +96,7 @@ ip nat pool <nat-pool-name> [inside|outside] source list <acl-id>
 ```bash
 
 ; When negating, user MUST remove pool from interfaces first
-[no] nat pool <nat-pool-name>
+[no] ip nat pool <nat-pool-name>
 
 interface <inside-nat-interface-name>
     
