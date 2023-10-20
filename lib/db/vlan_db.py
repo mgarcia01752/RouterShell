@@ -1,7 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, Result
 
 class VLANDatabase():
     
@@ -90,7 +90,7 @@ class VLANDatabase():
             cls.log.error(f"VLAN with ID {vlan_id} not found.")
             return Result(STATUS_NOK, None)
 
-    def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> UpdateResult:
+    def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> Result:
         """
         Update the name of a VLAN by its ID.
 

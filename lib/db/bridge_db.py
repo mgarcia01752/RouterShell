@@ -1,7 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, UpdateResult, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, Result
 
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS

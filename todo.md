@@ -41,3 +41,4 @@ show log
 cls - clear screen
 quit = end = exit
 
+tree | grep -v -e '__pycache__' -e '\.pyc$'

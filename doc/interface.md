@@ -302,6 +302,7 @@ Configuring network interfaces is crucial for establishing network connectivity 
     interface <physical_interface>
         [no] [mac [auto | <mac-address>]]
         [no] [ip address <ip-address> <ip-subnet-mask> [secondary]]
+        [no] [ip proxy-arp]  
         [no] [ipv6 address <ipv6-ip-address>/<subnet> [secondary]]
         [no] [duplex [half | full | auto]]
         [no] [speed [10 | 100 | 1000 | 10000 | auto]]

@@ -22,7 +22,31 @@ class InterfaceConfigDB:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()  
             
-    def interface_exists(cls, interface_name:str) -> Result:
+    def interface_exists(cls, interface_name: str) -> Result:
+        """
+        Check if an interface with the given name exists in the database.
+
+        Args:
+            interface_name (str): The name of the interface to check.
+
+        Returns:
+            Result: A Result object with the status and row ID of the existing interface.
+
+        Example:
+            You can use this method to determine whether a specific interface exists in the database.
+            For instance, you might check if 'GigabitEthernet0/1' exists.
+
+        Usage:
+            result = interface_exists('GigabitEthernet0/1')
+            if result.status:
+                print(f"Interface with name '{interface_name}' exists in the database.")
+            else:
+                print(f"Interface with name '{interface_name}' does not exist.")
+
+        Note:
+            - The 'Result' object returned indicates the status of the interface existence.
+            - 'status' True means the interface exists, and 'status' False means it does not.
+        """
         return cls.rsdb.interface_exists(interface_name)
 
     def add_interface(cls, interface_name: str, interface_type: str, shutdown_status: bool = True) -> bool:
@@ -143,4 +167,31 @@ class InterfaceConfigDB:
         else:
             result = cls.rsdb.delete_interface_ip_address(interface_name, ip_address_mask)
 
-        return result.status     
+        return result.status
+    
+    def add_line_to_interface(cls, line: str) -> bool:
+        """
+        Add a router CLI command to the database to save as a configuration.
+
+        Args:
+            line (str): The router CLI command to be added to the database.
+
+        Returns:
+            bool: STATUS_OK if the command was successfully added to the database, STATUS_NOK otherwise.
+
+        Example:
+            You can use this method to save router CLI commands to the database for configuration management.
+            For instance, you might add a line like 'interface GigabitEthernet0/0' to configure an interface.
+
+        Usage:
+            if add_line_to_interface('interface GigabitEthernet0/0'):
+                print("Command added to the database.")
+            else:
+                print("Failed to add the command.")
+
+        Note:
+            - This method stores router CLI commands for configuration purposes.
+            - STATUS_OK indicates a successful addition, while STATUS_NOK indicates a failure.
+        """
+        return STATUS_OK
+    

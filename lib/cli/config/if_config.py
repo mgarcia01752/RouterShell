@@ -1,6 +1,7 @@
 import argparse
 import cmd2
 import logging
+from lib.common.inet_ultils import IPUtilities as IPUltils
 
 from lib.network_manager.interface import Interface, InterfaceType
 from lib.network_manager.phy import Duplex, Speed, State
@@ -74,7 +75,9 @@ class InterfaceConfig(cmd2.Cmd,
                 TODO:   Need a way to auto detect or verify the interface type
                         Right now, all interfaces are ethernet, except loopback
             '''
-            IFCDB().add_interface(ifName, InterfaceType.ETHERNET.value)
+            if IFCDB().add_interface(ifName, InterfaceType.ETHERNET.value):
+                self.log.debug(f"Unable to add interface: {ifName} to DB")
+                return STATUS_NOK
             
         self.ifName = ifName
         self.prompt = self.set_prompt()
@@ -104,16 +107,23 @@ class InterfaceConfig(cmd2.Cmd,
         if len(parts) == 1 and parts[0] == "auto":
             new_mac = self.generate_random_mac()
             self.log.debug(f"do_mac() -> auto -> {new_mac}")
-            self.update_if_mac_address(new_mac, self.ifName)
-            InterfaceConfigDB.add_line_to_interface(self.ifName, f"mac auto")
+            
+            if not self.update_if_mac_address(self.ifName, new_mac):
+                
+                IFCDB().update_mac_address(self.ifName,new_mac)
+                IFCDB().add_line_to_interface(self.ifName, f"mac auto")
+                
         elif len(parts) == 2 and parts[0] == "address":
             mac = parts[1]
             self.log.debug(f"do_mac() -> address -> {mac}")
+            
             if self.is_valid_mac_address(mac) == STATUS_OK:
-                stat, format_mac = self.format_mac_address(mac)
+                _, format_mac = self.format_mac_address(mac)
+                
                 self.log.debug(f"do_mac() -> mac: {mac} -> format_mac: {format_mac}")
-                self.update_if_mac_address(format_mac, self.ifName)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"mac address f{format_mac}")
+                self.update_if_mac_address(self.ifName, format_mac)
+                IFCDB().update_mac_address(self.ifName,format_mac)
+                IFCDB().add_line_to_interface(self.ifName, f"mac address f{format_mac}")
             else:
                 print(f"Invalid MAC address: {mac}")
         else:
@@ -283,28 +293,35 @@ class InterfaceConfig(cmd2.Cmd,
             
             if negate:
                 self.del_inet_address(self.ifName, ipv4_address, subnet_mask)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"no ip {args.subcommand} {ipv4_address} {subnet_mask}")
+                
+                ip_prefix = IPUltils().convert_ip_mask_to_ip_prefix(ipv4_address, subnet_mask)
+                
+                if ip_prefix:
+                    IFCDB().update_ip_address(self.ifName, ip_prefix)
+                    IFCDB().add_line_to_interface(self.ifName, f"no ip {args.subcommand} {ipv4_address} {subnet_mask}")
+                else:
+                    self.log.fatal("Unable to add IP address to DB")
             else:
                 self.set_inet_address(self.ifName, ipv4_address, subnet_mask)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"ip {args.subcommand} {ipv4_address} {subnet_mask}")
+                IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {ipv4_address} {subnet_mask}")
             
         elif args.subcommand == "proxy-arp":
             self.log.debug(f"Set proxy-arp on Interface {self.ifName}")
             if negate:
                 Arp().set_proxy_arp(self.ifName, not negate)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"no {args.subcommand}") 
+                IFCDB.add_line_to_interface(self.ifName, f"no {args.subcommand}") 
             else:
                 Arp().set_proxy_arp(self.ifName, negate)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"{args.subcommand}")
+                IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand}")
                 
         elif args.subcommand == "drop-gratuitous-arp":
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
             if negate:
                 Arp().set_drop_gratuitous_arp(self.ifName, not negate)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"no {args.subcommand}")
+                IFCDB().add_line_to_interface(self.ifName, f"no {args.subcommand}")
             else:
                 Arp().set_drop_gratuitous_arp(self.ifName, negate)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"{args.subcommand}")
+                IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand}")
 
         elif args.subcommand == "static-arp":
             self.log.debug(f"Set static-arp on Interface {self.ifName}")
@@ -318,12 +335,12 @@ class InterfaceConfig(cmd2.Cmd,
             if negate:
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=False)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"no {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
+                IFCDB().add_line_to_interface(self.ifName, f"no {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=True)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"{args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
+                IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
         elif args.subcommand == "nat":
             pool_name = args.pool_name
@@ -362,7 +379,7 @@ class InterfaceConfig(cmd2.Cmd,
         if args in duplex_values:
             duplex = duplex_values[args]
             self.set_duplex(self.ifName, duplex)
-            # TODO IFCDB.add_line_to_interface(self.ifName, f"duplex {duplex}")
+            # TODO IFCDB().add_line_to_interface(self.ifName, f"duplex {duplex}")
         else:
             print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
 
@@ -382,12 +399,12 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args == "auto":
             self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
-            # TODO IFCDB.add_line_to_interface(self.ifName, f"speed auto")
+            # TODO IFCDB().add_line_to_interface(self.ifName, f"speed auto")
 
         elif args in speed_values:
             speed = speed_values[args]
             self.set_ifSpeed(self.ifName, speed)
-            # TODO IFCDB.add_line_to_interface(self.ifName, f"speed {speed}")
+            # TODO IFCDB().add_line_to_interface(self.ifName, f"speed {speed}")
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
 

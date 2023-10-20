@@ -27,30 +27,58 @@ class MacServiceLayer(PhyServiceLayer):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         
-    # Method to change the MAC address of the network interface
-    def update_if_mac_address(self, mac:str, ifName:str=None):
+    def update_if_mac_address(self, ifName: str, mac_address: str) -> bool:
+        """
+        Update the MAC address of a network interface.
+
+        Args:
+            ifName (str, optional): The name of the network interface to update. Defaults to None.
+            mac_address (str): The new MAC address to set for the network interface.
+            
+        Returns:
+            bool: STATUS_OK if the MAC address was successfully updated, STATUS_NOK otherwise.
+
+        Example:
+            You can use this method to update the MAC address of a network interface, such as 'eth0', to a new MAC address.
+            For instance, you might want to change the MAC address to '00:11:22:33:44:55'.
+
+        Usage:
+            status = update_if_mac_address('00:11:22:33:44:55', 'eth0')
+            if status == STATUS_OK:
+                print(f"MAC address of 'eth0' updated successfully.")
+            else:
+                print(f"Failed to update MAC address of 'eth0'.")
+
+        Note:
+            - This method requires administrative privileges to update the MAC address.
+            - The 'ifName' parameter is optional, and if not provided, the method will not perform any actions.
+            - It checks if the MAC address is in a valid format and returns STATUS_NOK if not.
+        """
         
         if not ifName:
-            self.log.error(f"update_if_mac_address() No Interface Defined -> mac {mac} -> ifName: {ifName}")
+            self.log.error(f"update_if_mac_address() No Interface Defined -> mac {mac_address} -> ifName: {ifName}")
             MacServiceLayerFoundError("No Interface Defined")
             return STATUS_NOK
+            
+        self.log.debug(f"update_if_mac_address() -> mac {mac_address} -> ifName: {ifName}")
         
-        self.log.debug(f"update_if_mac_address() -> mac {mac} -> ifName: {ifName}")
-        
-        if self.is_valid_mac_address(mac):
-            self.log.debug(f"update_if_mac_address() -> Error -> mac {mac} -> ifName: {ifName}")
-            MacServiceLayerFoundError("Mac Address is not valid: {mac}")
+        if self.is_valid_mac_address(mac_address):
+            self.log.debug(f"update_if_mac_address() -> Error -> mac {mac_address} -> ifName: {ifName}")
+            MacServiceLayerFoundError(f"Mac Address is not valid: {mac_address}")
             return STATUS_NOK
             
-        self.log.debug(f"update_if_mac_address() -> ifName: {ifName} -> mac: {mac}")
+        self.log.debug(f"update_if_mac_address() -> ifName: {ifName} -> mac: {mac_address}")
         try:
             self.run(["ip", "link", "set", "dev", ifName, "down"])
-            self.run(["ip", "link", "set", "dev", ifName, "address", mac])
+            self.run(["ip", "link", "set", "dev", ifName, "address", mac_address])
             self.run(["ip", "link", "set", "dev", ifName, "up"])
 
-            self.log.debug(f"Changed MAC address of {ifName} to {mac}")
+            self.log.debug(f"Changed MAC address of {ifName} to {mac_address}")
+            return STATUS_OK
         except Exception as e:
             print(f"An error occurred: {str(e)}")
+            return STATUS_NOK
+
             
     def is_valid_mac_address(self, mac: str) -> bool:
         """
