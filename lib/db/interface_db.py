@@ -222,3 +222,23 @@ class InterfaceConfigDB:
         """
         result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
         return result.status
+    
+    def update_static_arp(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str, negate=False) -> bool:
+        """
+        Update a static ARP record in the 'InterfaceStaticArp' table.
+
+        Args:
+            ip_address (str): The IP address to update.
+            mac_address (str): The new MAC address in the format: xx:xx:xx:xx:xx:xx.
+            encapsulation (str): The new encapsulation type, e.g., 'arpa' or 'TBD'.
+            negate (bool): True to negate the update (i.e., remove the record), False to perform the update.
+
+        Returns:
+            bool: STATUS_OK if the update (or deletion) was successful, STATUS_NOK otherwise.
+        """
+        if not negate:
+            result = cls.rsdb.insert_interface_static_arp(interface_name, ip_address, mac_address, encapsulation)
+        else:
+            result = cls.rsdb.delete_interface_ip_address(interface_name, ip_address)
+
+        return result.status
