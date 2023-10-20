@@ -24,17 +24,22 @@ class Nat(InetServiceLayer):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
 
-    def enable_ip_forwarding(self, negate=False):
-        '''
-        sudo nano /etc/sysctl.conf
-        net.ipv4.ip_forward=1
-        sudo sysctl -p
-        '''
+    def enable_ip_forwarding(self, negate: bool = False) -> bool:
+        """
+        Enable or disable IP forwarding in the system.
+
+        Args:
+            negate (bool): If True, disable IP forwarding; if False, enable IP forwarding. (default: False)
+
+        Returns:
+            bool: STATUS_OK if IP forwarding was successfully enabled or disabled, STATUS_NOK otherwise.
+        """
+        self.log.debug(f"enable_ip_forwarding() negate:{negate}")
         sysctl = SysCtl()
-        if sysctl.write_sysctl('net.ipv4.ip_forward', 1):
-            self.log.error()
+        if sysctl.write_sysctl('net.ipv4.ip_forward', 1 if not negate else 0):
+            self.log.error("Failed to set IP forwarding.")
             return STATUS_NOK
-        
+
         return STATUS_OK
 
     def create_nat_pool(self, nat_pool_name: str, negate: bool = False) -> None:
@@ -45,6 +50,8 @@ class Nat(InetServiceLayer):
             nat_pool_name (str): The name of the NAT pool to create or destroy.
             negate (bool, optional): True to destroy the NAT pool, False to create it. Defaults to False.
         """
+        self.log.debug(f"create_nat_pool() nat-pool: {nat_pool_name} -> negate:{negate}")
+        
         # Check if the NAT pool with the given name already exists in your database
         if nat_pool_name in NatPoolDB().nat_pool_db:
             if negate:

@@ -83,7 +83,7 @@ DROP TABLE IF EXISTS Nats;
 CREATE TABLE IF NOT EXISTS Nats (
     ID INTEGER PRIMARY KEY,
     NatPoolName VARCHAR(50) UNIQUE,
-    Interface_FK INT,
+    Interface_FK INT,                       -- MUST Interface MUST have a Primary IP address for OUTSIDE-NAT
     CONSTRAINT FK_Nats_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
@@ -91,8 +91,7 @@ DROP TABLE IF EXISTS NatDirections;
 CREATE TABLE IF NOT EXISTS NatDirections (
     ID INTEGER PRIMARY KEY,
     NAT_FK INT,
-    INTERFACE_FK INT,
-    Direction VARCHAR(7),                       -- Direction inside | outside
+    Direction VARCHAR(7),                   -- Direction inside | outside
     CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID)
 );
 
