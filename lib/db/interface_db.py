@@ -309,3 +309,5 @@ class InterfaceConfigDB:
             cls.log.error(error_message)
             return STATUS_NOK
 
+    def update_bridge_group(cls, interface_name: str, bridge_group:str, negate: bool = False) -> bool:
+        pass

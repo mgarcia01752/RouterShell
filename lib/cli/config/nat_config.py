@@ -91,26 +91,26 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
         # Determine the subcommand and take appropriate actions
         if parsed_args.subcommand == "pool":
             # Handle "nat pool <pool-name>"
-            self.handle_nat_pool(parsed_args.pool_name)
+            self._handle_nat_pool(parsed_args.pool_name)
         elif parsed_args.subcommand == "pool_ip":
             # Handle "nat pool <pool-name> <pool-ip-start> <pool-ip-end> netmask <pool-netmask>"
-            self.handle_nat_pool_ip_range(parsed_args.pool_name, parsed_args.pool_ip_start, parsed_args.pool_ip_end, parsed_args.pool_netmask)
+            self._handle_nat_pool_ip_range(parsed_args.pool_name, parsed_args.pool_ip_start, parsed_args.pool_ip_end, parsed_args.pool_netmask)
         elif parsed_args.subcommand == "domain":
             # Handle "nat pool <pool-name> [inside|outside] source list <access-control-list-id>"
-            self.handle_nat_access_control(parsed_args.pool_name, parsed_args.direction, parsed_args.acl_id)
+            self._handle_nat_access_control(parsed_args.pool_name, parsed_args.direction, parsed_args.acl_id)
         else:
             print("Invalid command")
 
-    def handle_nat_pool(self, pool_name):
+    def _handle_nat_pool(self, pool_name):
         self.log.info(f"do_nat() -> create_nat_ip_poolConfiguring NAT pool: {pool_name}")
         if Nat().create_nat_pool(pool_name):
             self.log.debug(f"Unable to create NAT Pool ({pool_name})")
             return STATUS_NOK
             
-    def handle_nat_pool_ip_range(self, pool_name, pool_ip_start, pool_ip_end, pool_netmask):
+    def _handle_nat_pool_ip_range(self, pool_name, pool_ip_start, pool_ip_end, pool_netmask):
         self.log.info(f"Configuring NAT pool IP range for {pool_name}: {pool_ip_start} - {pool_ip_end} (Netmask: {pool_netmask})")
 
-    def handle_nat_access_control(self, pool_name, direction, acl_id):
+    def _handle_nat_access_control(self, pool_name, direction, acl_id):
         self.log.info(f"Configuring NAT Access Control for {pool_name} ({direction}): ACL ID {acl_id}")
 
 

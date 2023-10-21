@@ -94,7 +94,6 @@ class Nat(InetServiceLayer):
             self.log.error(f"An error occurred while creating or deleting NAT pool: {e}")
             return STATUS_NOK
 
-    
     def create_nat_ip_pool(self, nat_pool_name: str,
                         nat_inside_ip_start: ipaddress.IPv4Address,
                         nat_inside_ip_end: ipaddress.IPv4Address,

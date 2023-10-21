@@ -464,9 +464,12 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"do_bridge_group() -> Adding to Bridge {bridge_name}")
             if not negate:
                 Bridge().add_interface_cmd(self.ifName, bridge_name)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"bridge group {self.ifName} {bridge_name}")
+                # TODO
+                IFCDB().update_bridge_group(self.ifName, bridge_name)
+                IFCDB().add_line_to_interface(self.ifName, f"bridge group {self.ifName} {bridge_name}")
             else:
                 Bridge().del_interface_cmd(self.ifName)
+                IFCDB().add_line_to_interface(self.ifName, f"no bridge group {self.ifName} {bridge_name}")
         
     def do_bridge(self, args, negate=False):
         """

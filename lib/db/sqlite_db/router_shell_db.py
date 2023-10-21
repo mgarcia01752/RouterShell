@@ -15,30 +15,34 @@ class Result:
     about the status, associated row ID, and an optional result message.
 
     Attributes:
-        status (bool): A boolean indicating the operation's success STATUS_OK(0) or failure STATUS_NOK(1).
-        row_id (int): The row ID associated with the database operation.
+        status (bool): A boolean indicating the operation's success: STATUS_OK (0) for success, STATUS_NOK (1) for failure.
+        row_id (int, optional): The row ID associated with the database operation.
         result (str, optional): An optional result message that provides additional information about the operation.
 
     Example:
-        You can use the Result class to handle the outcome of database operations, such as insertions, updates, or deletions.
-        For example, after inserting a new record into the database, you can create a Result object to represent the outcome.
+    You can use the Result class to handle the outcome of database operations, such as insertions, updates, or deletions.
+    For example, after inserting a new record into the database, you can create a Result object to represent the outcome.
 
-        Usage:
-        result = Result(status=True, row_id=12, result="Record inserted successfully")
-        if result.status:
-            print(f"Operation was successful. Row ID: {result.row_id}")
-        else:
-            print(f"Operation failed. Error: {result.result}")
+    Usage:
+    result = Result(status=True, row_id=12, result="Record inserted successfully")
+    if result.status:
+        print(f"Operation was successful. Row ID: {result.row_id}")
+    else:
+        print(f"Operation failed. Error: {result.result}")
 
     Note:
-        - 'status' attribute should be set to STATUS_OK(0) for successful operations and STATUS_NOK(1) for failed ones.
-        - 'row_id' represents the unique identifier of the affected row, and it can be 0 or any relevant integer.
-        - 'result' provides additional information about the operation, which is particularly useful for error messages.
+    - 'status' attribute should be set to STATUS_OK (0) for successful operations and STATUS_NOK (1) for failed ones.
+    - 'status' can be any boolean, refer to method documentation.
+    - 'row_id' represents the unique identifier of the affected row, and it can be 0 or any relevant integer.
+    - 'result' provides additional information about the operation, which is particularly useful for error messages.
     """
-    def __init__(self, status: bool, row_id: int, result: str = None):
+    def __init__(self, status: bool, row_id: int=None, result: str=None):
         self.status = status
         self.row_id = row_id
         self.result = result
+    
+    def __str__(self):
+        return f"Status: {self.status}, Row ID: {self.row_id}, Result: {self.result}"
 
 class RouterShellDB:
     connection = None
@@ -142,26 +146,37 @@ class RouterShellDB:
             self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
         return None
 
-    def insert_bridge(self, 
-                      bridge_name: str,
-                      bridge_protocol: str = None,
-                      stp_status: bool = False, 
-                      interface_fk: int = ROW_ID_NOT_FOUND) -> Result:
+    def insert_bridge(self, bridge_name: str,
+                            bridge_protocol: str = None,
+                            stp_status: bool = False, 
+                            interface_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
-        Insert data into the 'Bridges' table.
+        Insert a new bridge configuration into the 'Bridges' table.
 
         Args:
-            bridge_name (str): The name of the bridge.
-            bridge_protocol (str, optional): The bridge protocol.
-            interface_fk (int, optional): The foreign key referencing an interface.
-            
-        Returns:
-            Result: An instance of Result containing the status, row ID, and result message.
+            bridge_name (str): The name of the bridge to insert.
+            bridge_protocol (str, optional): The protocol used by the bridge (default: None).
+            stp_status (bool, optional): The Spanning Tree Protocol (STP) status (default: False).
+            interface_fk (int, optional): The foreign key reference to the associated interface (default: ROW_ID_NOT_FOUND).
 
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
+        Returns:
+            Result: A Result object with the status of the insertion, the row ID, and a result message.
+
+        This method allows you to insert a new bridge configuration into the 'Bridges' table of the database.
+        You can specify the bridge name, protocol, STP status, and the foreign key reference to the associated interface.
+
+        Args:
+            - bridge_name (str): The name of the bridge to insert.
+            - bridge_protocol (str, optional): The protocol used by the bridge (default: None).
+            - stp_status (bool, optional): The Spanning Tree Protocol (STP) status (default: False).
+            - interface_fk (int, optional): The foreign key reference to the associated interface (default: ROW_ID_NOT_FOUND).
+
+        Returns:
+            - Result: An object that encapsulates the result of the insertion operation, including:
+                - The status (STATUS_OK for success, STATUS_NOK for failure).
+                - The row ID of the inserted bridge.
+                - A result message indicating the success or error message.
         """
-        
         self.log.debug(f"insert_bridge() Bridge: {bridge_name} -> Protocol: {bridge_protocol} -> Interface-F-Key: {interface_fk}")
         
         try:
@@ -451,7 +466,6 @@ class RouterShellDB:
             error_message = f"Error inserting global NAT: {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
-
 
     def delete_global_nat_pool_name(self, nat_pool_name: str) -> Result:
         """
