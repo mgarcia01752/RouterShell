@@ -146,7 +146,7 @@ class RouterShellDB:
             self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
         return None
 
-    def insert_bridge(self, bridge_name: str, bridge_protocol: str = None, stp_status: bool = False, bridge_group_fk: int = ROW_ID_NOT_FOUND) -> Result:
+    def insert_bridge(self, bridge_name: str, bridge_protocol: str = None, stp_status: bool = False, bridge_group_fk: int = ROW_ID_NOT_FOUND, shutdown:bool = True) -> Result:
         """
         Insert a new bridge configuration into the 'Bridges' table.
 
@@ -162,8 +162,8 @@ class RouterShellDB:
         try:
 
             # Construct the SQL query with placeholders
-            sql = "INSERT INTO Bridges (BridgeGroups_FK, BridgeName, Protocol, StpStatus) VALUES (?, ?, ?, ?)"
-            data = (bridge_group_fk, bridge_name, bridge_protocol, stp_status)
+            sql = "INSERT INTO Bridges (BridgeGroups_FK, BridgeName, Protocol, StpStatus, shutdownStatus) VALUES (?, ?, ?, ?, ?)"
+            data = (bridge_group_fk, bridge_name, bridge_protocol, stp_status, shutdown)
 
             # Insert data into the database
             cursor = self.connection.cursor()

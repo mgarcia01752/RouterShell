@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS Interfaces (
 DROP TABLE IF EXISTS InterfaceSubOptions;
 CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT,
+    Interface_FK INT DEFAULT -1,
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
     Duplex VARCHAR(4),                  -- Duplex [half | full | auto]
     Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
 DROP TABLE IF EXISTS InterfaceSubOptions;
 CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT,
+    Interface_FK INT DEFAULT -1,
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
     Duplex VARCHAR(4),                  -- Duplex [half | full | auto]
     Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
 DROP TABLE IF EXISTS InterfaceStaticArp;
 CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT,
+    Interface_FK INT DEFAULT -1,
     IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)              
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
     Encapsulation VARCHAR(10),          -- arpa | TBD
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
 DROP TABLE IF EXISTS InterfaceIpAddress;
 CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT,
+    Interface_FK INT DEFAULT -1,
     IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)
     SecondaryIp BOOLEAN,                -- True = Secondary
     CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -53,7 +53,7 @@ DROP TABLE IF EXISTS BridgeGroups;
 CREATE TABLE IF NOT EXISTS BridgeGroups (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT UNIQUE,
-    BridgeGroups_FK INT,
+    BridgeGroups_FK INT DEFAULT -1,
     CONSTRAINT FK_BridgeGroups_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID),
     CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (BridgeGroups_FK) REFERENCES Bridges(ID)
 );
@@ -61,10 +61,11 @@ CREATE TABLE IF NOT EXISTS BridgeGroups (
 DROP TABLE IF EXISTS Bridges;
 CREATE TABLE IF NOT EXISTS Bridges (
     ID INTEGER PRIMARY KEY,
-    BridgeGroups_FK INT,
+    BridgeGroups_FK INT DEFAULT -1,
     BridgeName VARCHAR(50),
-    Protocol VARCHAR(15),               -- Bridge Protocol
-    StpStatus BOOLEAN,                  -- STB STATUS ENABLE = 1 , DISABLE = 0 
+    Protocol VARCHAR(15),                -- Bridge Protocol
+    StpStatus BOOLEAN,                   -- STB STATUS ENABLE = 1 , DISABLE = 0
+    ShutdownStatus BOOLEAN DEFAULT TRUE, -- TRUE should be in uppercase
     CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID)
 );
 
@@ -72,7 +73,7 @@ DROP TABLE IF EXISTS Vlans;
 CREATE TABLE IF NOT EXISTS Vlans (
     ID INTEGER PRIMARY KEY,
     VlanID INT UNIQUE,
-    VlanInterfaces_FK INT,
+    VlanInterfaces_FK INT DEFAULT -1,
     VlanName VARCHAR(20) UNIQUE,
     VlanDescription VARCHAR(50),
     CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanInterfaces_FK) REFERENCES VlanInterfaces(ID)
@@ -82,8 +83,8 @@ DROP TABLE IF EXISTS VlanInterfaces;
 CREATE TABLE IF NOT EXISTS VlanInterfaces (
     ID INTEGER PRIMARY KEY,
     VlanName VARCHAR(20),
-    Interface_FK INT,
-    Bridge_FK INT,
+    Interface_FK INT DEFAULT -1,
+    Bridge_FK INT DEFAULT -1,
     CONSTRAINT FK_VLANs_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID),
     CONSTRAINT FK_VLANs_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID)
 );
@@ -97,7 +98,7 @@ CREATE TABLE IF NOT EXISTS Nats (
 DROP TABLE IF EXISTS NatDirections;
 CREATE TABLE IF NOT EXISTS NatDirections (
     ID INTEGER PRIMARY KEY,
-    NAT_FK INT,
+    NAT_FK INT DEFAULT -1,
     Interface_FK INT UNIQUE,                -- Only 1 direction per interface                                             
     Direction VARCHAR(7),                   -- Direction inside | outside -> NATDirection()
     CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID),
@@ -107,7 +108,7 @@ CREATE TABLE IF NOT EXISTS NatDirections (
 DROP TABLE IF EXISTS DHCP;
 CREATE TABLE IF NOT EXISTS DHCP (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT,
+    Interface_FK INT DEFAULT -1,
     DhcpPoolname VARCHAR(50) UNIQUE,
     CONSTRAINT FK_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
@@ -115,7 +116,7 @@ CREATE TABLE IF NOT EXISTS DHCP (
 DROP TABLE IF EXISTS Subnet;
 CREATE TABLE IF NOT EXISTS Subnet (
     ID INTEGER PRIMARY KEY,
-    DHCP_FK INT,
+    DHCP_FK INT DEFAULT -1,
     IpSubnet VARCHAR(45),
     CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(ID)
 );
@@ -123,7 +124,7 @@ CREATE TABLE IF NOT EXISTS Subnet (
 DROP TABLE IF EXISTS Pools;
 CREATE TABLE IF NOT EXISTS Pools (
     ID INTEGER PRIMARY KEY,
-    Subnet_FK INT,
+    Subnet_FK INT DEFAULT -1,
     IpAddressStart VARCHAR(45),
     IpAddressEnd VARCHAR(45),
     IpSubnet VARCHAR(45),
@@ -133,7 +134,7 @@ CREATE TABLE IF NOT EXISTS Pools (
 DROP TABLE IF EXISTS Reservations;
 CREATE TABLE IF NOT EXISTS Reservations (
     ID INTEGER PRIMARY KEY,
-    Subnet_FK INT,
+    Subnet_FK INT DEFAULT -1,
     MacAddress VARCHAR(12),
     IPAddress VARCHAR(45),
     CONSTRAINT FK_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(ID)
@@ -144,8 +145,8 @@ CREATE TABLE IF NOT EXISTS Options (
     ID INTEGER PRIMARY KEY,
     DhcpOptions VARCHAR(20),
     DhcpValue VARCHAR(50),
-    Pools_FK INT,
-    DHCP_FK INT,
+    Pools_FK INT DEFAULT -1,
+    DHCP_FK INT DEFAULT -1,
     Reservations_FK INT,
     CONSTRAINT FK_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(ID),
     CONSTRAINT FK_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(ID),
