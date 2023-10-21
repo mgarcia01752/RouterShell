@@ -17,29 +17,30 @@ class RouterShellLoggingGlobalSettings():
     
     GLOBAL_DEBUG = False
 
-    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
       
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    NAT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     VLAN                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -69,6 +70,7 @@ class Cmd2GlobalSettings():
     DEBUG_CONFIGURE_MODE    = DEBUG_GLOBAL or True
 
     DEBUG_IF_CONFIG         = DEBUG_GLOBAL or True
+    DEBUG_INTERFACE_DB      = DEBUG_GLOBAL or True
     
     DEBUG_NAT               = DEBUG_GLOBAL or True
     DEBUG_NAT_CONFIG        = DEBUG_GLOBAL or True

@@ -1258,12 +1258,16 @@ class RouterShellDB:
                     status True = exists
         """
         try:
-            self.cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
-            existing_row = self.cursor.fetchone()
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
+            self.connection.commit()
+            existing_row = cursor.fetchone()
+            
             if existing_row:
                 return Result(status=True, row_id=existing_row[0])
             else:
                 return Result(status=False, row_id=0)
+        
         except sqlite3.Error as e:
             self.log.error("Error checking if interface exists: %s", e)
             return Result(status=False, row_id=0)
@@ -1283,19 +1287,27 @@ class RouterShellDB:
         """
         
         existing_result = self.interface_exists(if_name)
+        
         if existing_result.status:
             return Result(status=STATUS_NOK, 
                         row_id=existing_result.row_id, 
                         result=f"Interface: {if_name} already exists")
 
         try:
-            self.cursor.execute(
+            self.log.debug(f"insert_interface() -> Interface: {if_name} -> Interface-Type: {interface_type.value} -> shutdown: {shutdown_status}")
+            
+            cursor = self.connection.cursor()
+            cursor.execute(
                 "INSERT INTO Interfaces (IfName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
                 (if_name, interface_type.value, shutdown_status)
             )
+            
             self.connection.commit()
+            
             self.log.debug("Data inserted into the 'Interfaces' table successfully.")
-            return Result(status=STATUS_OK, row_id=self.cursor.lastrowid)
+            
+            return Result(status=STATUS_OK, row_id=cursor.lastrowid)
+        
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Interfaces': %s", e)
             return Result(status=STATUS_NOK, row_id=0, result=f"{e}")

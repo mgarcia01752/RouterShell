@@ -14,7 +14,7 @@ class InterfaceConfigDB:
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().INTERFACE_DB)
+        cls.log.setLevel(RSLGS().IF_CONFIG_DB)
         
         '''CMD2 DEBUG LOGGING'''
         cls.debug = CGS().DEBUG_INTERFACE_DB
@@ -314,7 +314,6 @@ class InterfaceConfigDB:
         Update the bridge group for an interface.
 
         Args:
-            cls: The class (typically a database-related class) that contains the update methods.
             interface_name (str): The name of the interface to update.
             bridge_group (str): The name of the bridge group to assign or remove.
             negate (bool):  If True, remove the interface from the bridge group. 

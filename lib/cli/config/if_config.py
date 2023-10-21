@@ -76,7 +76,7 @@ class InterfaceConfig(cmd2.Cmd,
                         Right now, all interfaces are ethernet, except loopback
             '''
             
-            if IFCDB().add_interface(ifName, InterfaceType.ETHERNET.value):
+            if IFCDB().add_interface(ifName, InterfaceType.ETHERNET):
                 self.log.debug(f"Unable to add interface: {ifName} to DB")
                 return STATUS_NOK
             
@@ -464,7 +464,6 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"do_bridge_group() -> Adding to Bridge {bridge_name}")
             if not negate:
                 Bridge().add_interface_cmd(self.ifName, bridge_name)
-                # TODO
                 IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
                 IFCDB().add_line_to_interface(self.ifName, f"bridge group {self.ifName} {bridge_name}")
             else:
