@@ -5,6 +5,8 @@ import os
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
 
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 class Result:
     """
     Represents the result of an operation in the database.
@@ -38,7 +40,7 @@ class Result:
         self.row_id = row_id
         self.result = result
 
-class RouterShellDatabaseConnector:
+class RouterShellDB:
     connection = None
     
     ROUTER_SHELL_DB = 'routershell.db'
@@ -48,7 +50,9 @@ class RouterShellDatabaseConnector:
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        
+        self.log.setLevel(RSLGS().ROUTER_SHELL_DB)
+        self.debug = CGS().DEBUG_ROUTER_SHELL_DB
+                
         self.log.debug(f"__init__() - DB Connection Status -> {self.connection}")
         self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
         self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
@@ -432,8 +436,10 @@ class RouterShellDatabaseConnector:
         Returns:
             Result: A Result object with the status of the insertion and the row ID.
         """
+        self.log.debug(f"insert_global_nat_pool({nat_pool_name})")
         try:
-            self.cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", 
+            cursor = self.connection.cursor()
+            cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", 
                                 (nat_pool_name,))
             self.connection.commit()
             row_id = self.cursor.lastrowid
@@ -456,7 +462,8 @@ class RouterShellDatabaseConnector:
                     Result.status = STATUS_OK if successful, STATUS_NOK otherwise
         """
         try:
-            self.cursor.execute("DELETE FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
+            cursor = self.connection.cursor()
+            cursor.execute("DELETE FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
             self.connection.commit()
 
             if self.cursor.rowcount > 0:
@@ -506,7 +513,8 @@ class RouterShellDatabaseConnector:
 
             interface_id = interface_result.row_id
 
-            self.cursor.execute("INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction) VALUES (?, ?, ?)", 
+            cursor = self.connection.cursor()
+            cursor.execute("INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction) VALUES (?, ?, ?)", 
                                 (nat_pool_id, interface_id, direction))
 
             self.connection.commit()
@@ -528,7 +536,8 @@ class RouterShellDatabaseConnector:
             Result: A Result object with the status and the row ID of the NAT pool if found.
         """
         try:
-            self.cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name))
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name))
             row = self.cursor.fetchone()
 
             if row is not None:
@@ -571,7 +580,8 @@ class RouterShellDatabaseConnector:
 
             interface_id = interface_result.row_id
 
-            self.cursor.execute("INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction) VALUES (?, ?, ?)", 
+            cursor = self.connection.cursor()
+            cursor.execute("INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction) VALUES (?, ?, ?)", 
                                 (nat_pool_id, interface_id, direction))
 
             self.connection.commit()
@@ -601,7 +611,8 @@ class RouterShellDatabaseConnector:
 
             nat_pool_id = nat_pool_result.row_id
 
-            self.cursor.execute("DELETE FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ?", 
+            cursor = self.connection.cursor()
+            cursor.execute("DELETE FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ?", 
                                 (nat_pool_id, interface_name))
             self.connection.commit()
             return Result(STATUS_OK)

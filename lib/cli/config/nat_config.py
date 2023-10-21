@@ -102,9 +102,11 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
             print("Invalid command")
 
     def handle_nat_pool(self, pool_name):
-        self.log.info(f"Configuring NAT pool: {pool_name}")
-        Nat().create_nat_pool(pool_name)
-
+        self.log.info(f"do_nat() -> create_nat_ip_poolConfiguring NAT pool: {pool_name}")
+        if Nat().create_nat_pool(pool_name):
+            self.log.debug(f"Unable to create NAT Pool ({pool_name})")
+            return STATUS_NOK
+            
     def handle_nat_pool_ip_range(self, pool_name, pool_ip_start, pool_ip_end, pool_netmask):
         self.log.info(f"Configuring NAT pool IP range for {pool_name}: {pool_ip_start} - {pool_ip_end} (Netmask: {pool_netmask})")
 

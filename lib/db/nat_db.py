@@ -1,7 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
@@ -43,9 +43,10 @@ class NatDB:
             - bool: True if a NAT pool with the specified name exists, False otherwise.
 
         """
-        return cls.rsdb.global_nat_pool_name_exists(pool_name)
+        cls.log.debug(f"pool_name_exists() Pool-Name: {pool_name}")
+        return cls.rsdb.global_nat_pool_name_exists(pool_name).status
        
-    def create_global_pool_name(cls, pool_name: str) -> bool:
+    def insert_global_pool_name(cls, pool_name: str) -> bool:
         """
         Create a new global NAT pool configuration in the NAT database.
 
@@ -61,11 +62,12 @@ class NatDB:
             - pool_name (str): The name of the NAT pool to create.
 
         Returns:
-            - bool: True if the NAT pool is created successfully, False if there was an error during creation.
+            - bool: STATUS_OK if the NAT pool is created successfully, STATUS_NOK if there was an error during creation.
         """
         try:
             # Check if the NAT pool already exists
             if cls.pool_name_exists(pool_name):
+                cls.log.debug(f"insert_global_pool_name() Check -> '{pool_name}' already exists.")
                 cls.log.error(f"Global NAT pool '{pool_name}' already exists.")
                 return STATUS_NOK
 
@@ -73,7 +75,7 @@ class NatDB:
             result = cls.rsdb.insert_global_nat_pool(pool_name)
 
             if result.status == STATUS_OK:
-                cls.log.debug(f"Created global NAT pool: {pool_name}")
+                cls.log.debug(f"insert_global_pool_name() -> Created global NAT pool: {pool_name}")
                 return STATUS_OK
             else:
                 cls.log.error(f"Failed to create global NAT pool: {pool_name}")

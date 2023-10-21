@@ -69,22 +69,26 @@ class Nat(InetServiceLayer):
             - bool: True if the operation is successful, False if there was an error during the operation.
 
         """
+        self.log.debug(f"create_nat_pool() -> NAT Pool: {nat_pool_name} -> negate: {negate}")
+        
         try:
-            # Check if the NAT pool already exists
-            if not NatDB().pool_name_exists(nat_pool_name):
-                self.log.error(f"NAT pool '{nat_pool_name}' does not exist.")
+            if NatDB().pool_name_exists(nat_pool_name):
+                self.log.error(f"Can Not create NAT pool '{nat_pool_name}' does exist.")
                 return STATUS_NOK
 
             if negate:
-                # Delete the NAT pool
-                result = NatDB().delete_global_nat_pool_name(nat_pool_name)
-                self.log.debug(f"Deleted NAT pool: {nat_pool_name}")
+                result = NatDB().delete_global_pool_name(nat_pool_name)
+                self.log.debug(f"Deleting NAT pool: {nat_pool_name}")
             else:
-                # Create the NAT pool
-                result = NatDB().insert_global_nat_pool(nat_pool_name)
-                self.log.debug(f"Created NAT pool: {nat_pool_name}")
-
-            return result.status == STATUS_OK
+                result = NatDB().insert_global_pool_name(nat_pool_name)
+                self.log.debug(f"Creating NAT pool: {nat_pool_name}")
+            
+            if result:
+                self.log.debug(f"Did Not Update NAT pool: {nat_pool_name} -> negate: {negate}")
+                return STATUS_NOK
+            else:
+                self.log.debug(f"Updated NAT pool: {nat_pool_name} -> negate: {negate}")
+                return STATUS_OK
 
         except Exception as e:
             self.log.error(f"An error occurred while creating or deleting NAT pool: {e}")
@@ -110,6 +114,7 @@ class Nat(InetServiceLayer):
         Returns:
             bool: True if NAT pool creation is successful, False otherwise.
         """
+        self.log.debug(f"create_nat_ip_pool()")
         try:
             if nat_outside_ip_address:
                 outside_nat_arg = f"--to-source {nat_outside_ip_address}"

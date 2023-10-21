@@ -1,7 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDatabaseConnector as RSDB, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 
 class VLANDatabase():
     

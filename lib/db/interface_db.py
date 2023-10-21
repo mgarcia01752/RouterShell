@@ -2,7 +2,7 @@ import logging
 import re
 
 from lib.network_manager.nat import Nat, NATDirection
-from lib.db.sqlite_db.router_shell_db import Result, RouterShellDatabaseConnector as RSDB
+from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as RSDB
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
