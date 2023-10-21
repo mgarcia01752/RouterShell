@@ -24,9 +24,9 @@ class RouterShellLoggingGlobalSettings():
     ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
       
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -101,7 +101,7 @@ class Bridge(MacServiceLayer):
         
         if bridge_exist_os:
             
-            self.log.warning(f"Bridge {bridge_name} already exists in the Linux system.")
+            self.log.debug(f"Bridge {bridge_name} already exists in the Linux system.")
 
             if not bridge_exist_in_db:
                 self.log.debug(f"Bridge {bridge_name} exists in the database.")

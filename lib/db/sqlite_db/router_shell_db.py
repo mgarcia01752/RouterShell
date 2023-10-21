@@ -146,10 +146,7 @@ class RouterShellDB:
             self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
         return None
 
-    def insert_bridge(self, bridge_name: str,
-                            bridge_protocol: str = None,
-                            stp_status: bool = False, 
-                            interface_fk: int = ROW_ID_NOT_FOUND) -> Result:
+    def insert_bridge(self, bridge_name: str, bridge_protocol: str = None, stp_status: bool = False, bridge_group_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
         Insert a new bridge configuration into the 'Bridges' table.
 
@@ -157,44 +154,36 @@ class RouterShellDB:
             bridge_name (str): The name of the bridge to insert.
             bridge_protocol (str, optional): The protocol used by the bridge (default: None).
             stp_status (bool, optional): The Spanning Tree Protocol (STP) status (default: False).
-            interface_fk (int, optional): The foreign key reference to the associated interface (default: ROW_ID_NOT_FOUND).
+            bridge_group_fk (int, optional): The foreign key reference to the associated bridge group (default: ROW_ID_NOT_FOUND).
 
         Returns:
             Result: A Result object with the status of the insertion, the row ID, and a result message.
-
-        This method allows you to insert a new bridge configuration into the 'Bridges' table of the database.
-        You can specify the bridge name, protocol, STP status, and the foreign key reference to the associated interface.
-
-        Args:
-            - bridge_name (str): The name of the bridge to insert.
-            - bridge_protocol (str, optional): The protocol used by the bridge (default: None).
-            - stp_status (bool, optional): The Spanning Tree Protocol (STP) status (default: False).
-            - interface_fk (int, optional): The foreign key reference to the associated interface (default: ROW_ID_NOT_FOUND).
-
-        Returns:
-            - Result: An object that encapsulates the result of the insertion operation, including:
-                - The status (STATUS_OK for success, STATUS_NOK for failure).
-                - The row ID of the inserted bridge.
-                - A result message indicating the success or error message.
         """
-        self.log.debug(f"insert_bridge() Bridge: {bridge_name} -> Protocol: {bridge_protocol} -> Interface-F-Key: {interface_fk}")
-        
         try:
+
+            # Construct the SQL query with placeholders
+            sql = "INSERT INTO Bridges (BridgeGroups_FK, BridgeName, Protocol, StpStatus) VALUES (?, ?, ?, ?)"
+            data = (bridge_group_fk, bridge_name, bridge_protocol, stp_status)
+
+            # Insert data into the database
             cursor = self.connection.cursor()
-            cursor.execute(
-                "INSERT INTO Bridges (Interface_FK, BridgeName, Protocol, StpStatus) VALUES (?, ?, ?, ?)",
-                (interface_fk, bridge_name, bridge_protocol, stp_status)
-            )
-            
+            cursor.execute(sql, data)
             self.connection.commit()
-            self.log.debug("Data inserted into the 'Bridges' table successfully.")
+            
+            # Get the last inserted row ID
             row_id = cursor.lastrowid
+
             return Result(STATUS_OK, row_id, "Bridge added successfully")
+
+        except ValueError as e:
+            self.log.error(f"Invalid input parameters: {e}")
+            return Result(STATUS_NOK, -1, "Invalid input parameters")
         
         except sqlite3.Error as e:
             error_message = f"Error inserting data into 'Bridges': {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, -1, error_message)
+
 
     def delete_bridge_entry(self, bridge_name) -> bool:
         try:

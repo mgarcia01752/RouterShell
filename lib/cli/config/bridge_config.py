@@ -25,6 +25,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         super().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.debug(f"__init__() -> Bridge: {bridge_ifName}")
         self.log.setLevel(RSLGS().BRIDGE_CONFIG)
         self.debug = CGS().DEBUG_BRIDGE_CONFIG
         
@@ -32,12 +33,11 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
         Bridge.__init__(self)
         
-        self.log.debug(f"__init__() -> Bridge: {bridge_ifName}")
+        self.bridge_ifName = bridge_ifName
         
         if self.add_bridge_global(bridge_ifName):
-            self.log.error(f"Unable to add ({bridge_ifName}) to DB")
+            self.log.debug(f"Unable to add ({bridge_ifName}) to DB")
                         
-        self.bridge_ifName = bridge_ifName
         self.prompt = self.set_prompt()
              
     def do_protocol(self, args=None):

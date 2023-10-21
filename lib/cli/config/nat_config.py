@@ -23,7 +23,7 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
         Nat.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
 
-        self.log.info(f"__init__ -> (negate={negate}) -> arg -> {arg}")
+        self.log.debug(f"__init__ -> (negate={negate}) -> arg -> {arg}")
 
         self.arg = arg
         self.prompt = self.set_prompt()
@@ -34,11 +34,11 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
             self.run_command(f'no {arg}')
 
     def run_command(self, cli: str, negate=False):
-        self.log.info(f"run_command() -> cli: {cli} -> negate: {negate}")
+        self.log.debug(f"run_command() -> cli: {cli} -> negate: {negate}")
 
         if not isinstance(cli, list):
             cli = cli.strip().split()
-            self.log.info(f"convert cli to a list: {cli}")
+            self.log.debug(f"convert cli to a list: {cli}")
 
         self.command = cli[0]
 
@@ -46,7 +46,7 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
 
         do_method_name = f"do_{self.command}"
 
-        self.log.info(f"run_command({self.command}) -> {do_method_name}() -> Args: {cli}, negate={negate}")
+        self.log.debug(f"run_command({self.command}) -> {do_method_name}() -> Args: {cli}, negate={negate}")
 
         if hasattr(self, do_method_name) and callable(getattr(self, do_method_name)):
             getattr(self, do_method_name)(cli, negate)
@@ -54,7 +54,7 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
             print(f"Command '{self.command}' not recognized.")
 
     def do_nat(self, args, negate=False):
-        self.log.info(f"do_nat() - args: {args}")
+        self.log.debug(f"do_nat() - args: {args}")
 
         parser = argparse.ArgumentParser(
             description="Configure Network Address Translation (NAT)",
@@ -102,15 +102,15 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
             print("Invalid command")
 
     def _handle_nat_pool(self, pool_name):
-        self.log.info(f"do_nat() -> create_nat_ip_poolConfiguring NAT pool: {pool_name}")
+        self.log.debug(f"do_nat() -> create_nat_ip_poolConfiguring NAT pool: {pool_name}")
         if Nat().create_nat_pool(pool_name):
             self.log.debug(f"Unable to create NAT Pool ({pool_name})")
             return STATUS_NOK
             
     def _handle_nat_pool_ip_range(self, pool_name, pool_ip_start, pool_ip_end, pool_netmask):
-        self.log.info(f"Configuring NAT pool IP range for {pool_name}: {pool_ip_start} - {pool_ip_end} (Netmask: {pool_netmask})")
+        self.log.debug(f"Configuring NAT pool IP range for {pool_name}: {pool_ip_start} - {pool_ip_end} (Netmask: {pool_netmask})")
 
     def _handle_nat_access_control(self, pool_name, direction, acl_id):
-        self.log.info(f"Configuring NAT Access Control for {pool_name} ({direction}): ACL ID {acl_id}")
+        self.log.debug(f"Configuring NAT Access Control for {pool_name} ({direction}): ACL ID {acl_id}")
 
 
