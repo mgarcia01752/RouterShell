@@ -75,7 +75,6 @@ class InterfaceConfig(cmd2.Cmd,
                 TODO:   Need a way to auto detect or verify the interface type
                         Right now, all interfaces are ethernet, except loopback
             '''
-            
             if IFCDB().add_interface(ifName, InterfaceType.ETHERNET):
                 self.log.debug(f"Unable to add interface: {ifName} to DB")
                 return STATUS_NOK
@@ -432,7 +431,8 @@ class InterfaceConfig(cmd2.Cmd,
         elif args in speed_values:
             speed = speed_values[args]
             self.set_ifSpeed(self.ifName, speed)
-            # TODO IFCDB().add_line_to_interface(self.ifName, f"speed {speed}")
+            IFCDB().update_speed(self.ifName, speed)
+            IFCDB().add_line_to_interface(self.ifName, f"speed {speed}")
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
 

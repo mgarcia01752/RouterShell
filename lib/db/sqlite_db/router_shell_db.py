@@ -1461,19 +1461,18 @@ class RouterShellDB:
         existing_result = self.interface_exists(if_name)
 
         if not existing_result.status:
-            # Interface does not exist
+            self.log.error(f"Interface: {if_name} does not exists.")
             return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
-
-            # Check if there is an entry for this interface in InterfaceSubOptions
-            self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
             sub_options_row = self.cursor.fetchone()
 
             if sub_options_row:
-                # If an entry exists, update the speed setting
-                self.cursor.execute(
+                cursor.execute(
                     "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interface_FK = ?",
                     (speed, interface_id)
                 )

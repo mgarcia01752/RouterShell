@@ -147,6 +147,8 @@ class InterfaceConfigDB:
         Returns:
             bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
         """
+        cls.log.debug(f"update_speed() -> Interface: {interface_name} -> Speed: {speed}")
+        
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 

@@ -238,6 +238,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
     def complete_rename(self, text, line, begidx, endidx):
         completions = ['if', 'if-alias', 'auto']
+        completions.extend(Interface().get_network_interfaces())
         return [comp for comp in completions if comp.startswith(text)]
 
     def do_rename(self, args: str, negate: bool = False) -> None:
