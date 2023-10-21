@@ -435,24 +435,23 @@ class RouterShellDB:
 
         Returns:
             Result: A Result object with the status of the insertion and the row ID.
-                    - 'status' STATUS_OK is successful , STATUS_NOK otherwise
+                    - 'status' STATUS_OK if successful, STATUS_NOK otherwise
         """
         self.log.debug(f"insert_global_nat_pool({nat_pool_name})")
         try:
             cursor = self.connection.cursor()
-            cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", 
-                                (nat_pool_name))
-            
+            cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", (nat_pool_name,))
             self.connection.commit()
-            row_id = cursor.lastrowid
-            self.log.debug(f"insert_global_nat_pool({nat_pool_name})")
             
-            return Result(STATUS_OK, row_id[0])
-
+            row_id = cursor.lastrowid
+            self.log.debug(f"Inserted global NAT pool '{nat_pool_name}' with row ID: {row_id}")
+            
+            return Result(STATUS_OK, row_id=row_id)
         except sqlite3.Error as e:
             error_message = f"Error inserting global NAT: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, 0, error_message)
+            return Result(STATUS_NOK, result=error_message)
+
 
     def delete_global_nat_pool_name(self, nat_pool_name: str) -> Result:
         """
