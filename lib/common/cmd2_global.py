@@ -31,9 +31,9 @@ class RouterShellLoggingGlobalSettings():
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

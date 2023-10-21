@@ -430,9 +430,10 @@ class InterfaceConfig(cmd2.Cmd,
             
         elif args in speed_values:
             speed = speed_values[args]
+            self.log.debug(f"speed -> {speed}")
             self.set_ifSpeed(self.ifName, speed)
-            IFCDB().update_speed(self.ifName, speed)
-            IFCDB().add_line_to_interface(self.ifName, f"speed {speed}")
+            IFCDB().update_speed(self.ifName, speed.value)
+            IFCDB().add_line_to_interface(f"speed {speed.value}")
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
 
@@ -542,7 +543,7 @@ class InterfaceConfig(cmd2.Cmd,
         else:
             shutdown_stat = f"shutdown"
         
-        IFCDB().add_line_to_interface(self.ifName, f"{shutdown_stat}")
+        IFCDB().add_line_to_interface(f"{shutdown_stat}")
         
         return self.set_interface_state(self.ifName, ifState)
 

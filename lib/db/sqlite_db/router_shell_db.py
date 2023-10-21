@@ -1469,7 +1469,8 @@ class RouterShellDB:
             
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
-            sub_options_row = self.cursor.fetchone()
+            
+            sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 cursor.execute(
@@ -1477,8 +1478,7 @@ class RouterShellDB:
                     (speed, interface_id)
                 )
             else:
-                # If no entry exists, add a new row and associate it with the interface
-                self.cursor.execute(
+                cursor.execute(
                     "INSERT INTO InterfaceSubOptions (Interface_FK, Speed) VALUES (?, ?)",
                     (interface_id, speed)
                 )
