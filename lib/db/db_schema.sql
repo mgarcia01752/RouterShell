@@ -49,14 +49,23 @@ CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
     CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
+DROP TABLE IF EXISTS BridgeGroups;
+CREATE TABLE IF NOT EXISTS BridgeGroups (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INT UNIQUE,
+    BridgeGroups_FK INT,
+    CONSTRAINT FK_BridgeGroups_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID),
+    CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (BridgeGroups_FK) REFERENCES Bridges(ID)
+);
+
 DROP TABLE IF EXISTS Bridges;
 CREATE TABLE IF NOT EXISTS Bridges (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT,
+    BridgeGroups_FK INT,
     BridgeName VARCHAR(50),
     Protocol VARCHAR(15),               -- Bridge Protocol
     StpStatus BOOLEAN,                  -- STB STATUS ENABLE = 1 , DISABLE = 0 
-    CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID)
 );
 
 DROP TABLE IF EXISTS Vlans;

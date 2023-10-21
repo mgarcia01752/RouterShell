@@ -1690,3 +1690,80 @@ class RouterShellDB:
         except sqlite3.Error as e:
             self.log.error(f"Error deleting static ARP record for interface {if_name}: {e}")
             return Result(STATUS_NOK, row_id=interface_id, result=str(e))
+
+    def insert_interface_bridge_group(self, if_name: str, bridge_name: str) -> Result:
+        """
+        Insert an interface into a bridge group in the 'BridgeGroups' table.
+
+        Args:
+            if_name (str): The name of the interface.
+            bridge_name (str): The name of the bridge group.
+
+        Returns:
+            Result: A Result object with the status of the insertion or deletion.
+        """
+        interface_result = self.interface_exists(if_name)
+        
+        if not interface_result.status:
+            return Result(STATUS_NOK, result=f"Interface: {if_name} does not exist")
+
+        bridge_result = self.bridge_exists(bridge_name)
+
+        if not bridge_result.status:
+            return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")
+
+        interface_id = interface_result.row_id
+        bridge_id = bridge_result.row_id
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO BridgeGroups (Interface_FK, BridgeGroups_FK) VALUES (?, ?)",
+                (interface_id, bridge_id)
+            )
+            self.connection.commit()
+            return Result(STATUS_OK, result="Interface added to the bridge group successfully")
+        
+        except sqlite3.Error as e:
+            error_message = f"Error inserting data into 'BridgeGroups': {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)
+
+    def delete_interface_bridge_group(self, if_name: str, bridge_name: str) -> Result:
+        """
+        Remove an interface from a bridge group in the 'BridgeGroups' table.
+
+        Args:
+            if_name (str): The name of the interface.
+            bridge_name (str): The name of the bridge group.
+
+        Returns:
+            Result: A Result object with the status of the deletion.
+        """
+        # Look up the interface and bridge group by name
+        interface_result = self.interface_exists(if_name)
+        
+        if not interface_result.status:
+            return Result(STATUS_NOK, result=f"Interface: {if_name} does not exist")
+
+        bridge_result = self.bridge_exists(bridge_name)
+
+        if not bridge_result.status:
+            return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")
+
+        interface_id = interface_result.row_id
+        bridge_id = bridge_result.row_id
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "DELETE FROM BridgeGroups WHERE Interface_FK = ? AND BridgeGroups_FK = ?",
+                (interface_id, bridge_id)
+            )
+            self.connection.commit()
+            return Result(STATUS_OK, result="Interface removed from the bridge group successfully")
+        
+        except sqlite3.Error as e:
+            error_message = f"Error deleting data from 'BridgeGroups': {e}"
+            self.log.error(error_message)
+            return Result(STATUS_NOK, result=error_message)

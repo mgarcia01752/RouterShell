@@ -309,5 +309,26 @@ class InterfaceConfigDB:
             cls.log.error(error_message)
             return STATUS_NOK
 
-    def update_bridge_group(cls, interface_name: str, bridge_group:str, negate: bool = False) -> bool:
-        pass
+    def update_bridge_group(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
+        """
+        Update the bridge group for an interface.
+
+        Args:
+            cls: The class (typically a database-related class) that contains the update methods.
+            interface_name (str): The name of the interface to update.
+            bridge_group (str): The name of the bridge group to assign or remove.
+            negate (bool):  If True, remove the interface from the bridge group. 
+                            If False, assign the interface to the bridge group.
+
+        Returns:
+            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+        """
+        if negate:
+            result = cls.rsdb.delete_interface_bridge_group(interface_name, bridge_group)
+            cls.log.debug(f"Removed interface '{interface_name}' from bridge group '{bridge_group}'")
+        else:
+            result = cls.rsdb.insert_interface_bridge_group(interface_name, bridge_group)
+            cls.log.debug(f"Assigned interface '{interface_name}' to bridge group '{bridge_group}'")
+
+        return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
+
