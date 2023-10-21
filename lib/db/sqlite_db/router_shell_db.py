@@ -390,7 +390,7 @@ class RouterShellDatabaseConnector:
                         NAT DATABASE
     '''
 
-    def global_nat_pool_name_exists(cls, pool_name: str) -> Result:
+    def global_nat_pool_name_exists(self, pool_name: str) -> Result:
         """
         Check if a NAT pool with the given name exists in the NAT database.
 
@@ -407,13 +407,15 @@ class RouterShellDatabaseConnector:
 
         """
         try:
-            cursor = cls.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name,))
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name))
             result = cursor.fetchone()
 
             if result and result[0] > 0:
+                self.log.debug(f"global_nat_pool_name_exists({pool_name}) Exists")
                 return Result(True, row_id=result[0])
             else:
+                self.log.debug(f"global_nat_pool_name_exists({pool_name}) NOT Exists")
                 return Result(False, 0)
 
         except sqlite3.Error as e:

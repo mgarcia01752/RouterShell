@@ -7,6 +7,8 @@ from lib.db.nat_db import NatDB
 from lib.network_manager.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
+from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class NATDirection(Enum):
     """
@@ -23,6 +25,8 @@ class Nat(InetServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().NAT)
+        self.debug = CGS().DEBUG_NAT
         self.sysctl = SysCtl()
 
     def enable_ip_forwarding(self, negate: bool = False) -> bool:
@@ -64,27 +68,12 @@ class Nat(InetServiceLayer):
         Returns:
             - bool: True if the operation is successful, False if there was an error during the operation.
 
-        Example:
-        ```
-        # Create a NAT pool
-        success = YourClass.create_nat_pool("MyNATPool")
-        if success:
-            print("NAT pool created successfully.")
-        else:
-            print("Failed to create NAT pool.")
-
-        # Delete a NAT pool
-        success = YourClass.create_nat_pool("MyNATPool", negate=True)
-        if success:
-            print("NAT pool deleted successfully.")
-        else:
-            print("Failed to delete NAT pool.")
         """
         try:
             # Check if the NAT pool already exists
             if not NatDB().pool_name_exists(nat_pool_name):
                 self.log.error(f"NAT pool '{nat_pool_name}' does not exist.")
-                return False
+                return STATUS_NOK
 
             if negate:
                 # Delete the NAT pool
@@ -99,7 +88,7 @@ class Nat(InetServiceLayer):
 
         except Exception as e:
             self.log.error(f"An error occurred while creating or deleting NAT pool: {e}")
-            return False
+            return STATUS_NOK
 
     
     def create_nat_ip_pool(self, nat_pool_name: str,
