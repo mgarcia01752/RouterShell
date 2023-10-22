@@ -1370,15 +1370,14 @@ class RouterShellDB:
         existing_result = self.interface_exists(if_name)
 
         if not existing_result.status:
-            # Interface does not exist
             return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
 
         interface_id = existing_result.row_id
         
         try:
 
-            # Check if there is an entry for this interface in InterfaceSubOptions
-            self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
             sub_options_row = self.cursor.fetchone()
 
             if sub_options_row:
@@ -1388,8 +1387,7 @@ class RouterShellDB:
                     (duplex, interface_id)
                 )
             else:
-                # If no entry exists, add a new row and associate it with the interface
-                self.cursor.execute(
+                cursor.execute(
                     "INSERT INTO InterfaceSubOptions (Interface_FK, Duplex) VALUES (?, ?)",
                     (interface_id, duplex)
                 )
@@ -1416,25 +1414,22 @@ class RouterShellDB:
         existing_result = self.interface_exists(if_name)
 
         if not existing_result.status:
-            # Interface does not exist
             return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
 
-            # Check if there is an entry for this interface in InterfaceSubOptions
-            self.cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
-            sub_options_row = self.cursor.fetchone()
+            cursor = self.connection.cursor()  # Create a cursor object
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            sub_options_row = cursor.fetchone()
 
             if sub_options_row:
-                # If an entry exists, update the MAC address setting
-                self.cursor.execute(
+                cursor.execute(
                     "UPDATE InterfaceSubOptions SET MacAddress = ? WHERE Interface_FK = ?",
                     (mac_address, interface_id)
                 )
             else:
-                # If no entry exists, add a new row and associate it with the interface
-                self.cursor.execute(
+                cursor.execute(
                     "INSERT INTO InterfaceSubOptions (Interface_FK, MacAddress) VALUES (?, ?)",
                     (interface_id, mac_address)
                 )

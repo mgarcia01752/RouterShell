@@ -56,7 +56,7 @@ class InterfaceConfig(cmd2.Cmd,
                 if not self.does_interface_exist(ifName):
                     self.log.debug(f"Creating Loopback {ifName}")
                     if self.create_loopback(ifName):
-                        return STATUS_NOK
+                        return None
                     else:
                         self.log.debug(f"Adding Loopback to DB")
                         IFCDB().add_interface(ifName, ifType)
@@ -77,7 +77,7 @@ class InterfaceConfig(cmd2.Cmd,
             '''
             if IFCDB().add_interface(ifName, InterfaceType.ETHERNET):
                 self.log.debug(f"Unable to add interface: {ifName} to DB")
-                return STATUS_NOK
+                return None
             
         self.ifName = ifName
         self.prompt = self.set_prompt()
@@ -109,7 +109,6 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"do_mac() -> auto -> {new_mac}")
             
             if not self.update_if_mac_address(self.ifName, new_mac):
-                
                 IFCDB().update_mac_address(self.ifName,new_mac)
                 IFCDB().add_line_to_interface(self.ifName, f"mac auto")
                 
@@ -123,7 +122,7 @@ class InterfaceConfig(cmd2.Cmd,
                 self.log.debug(f"do_mac() -> mac: {mac} -> format_mac: {format_mac}")
                 self.update_if_mac_address(self.ifName, format_mac)
                 IFCDB().update_mac_address(self.ifName,format_mac)
-                IFCDB().add_line_to_interface(self.ifName, f"mac address f{format_mac}")
+                IFCDB().add_line_to_interface(f"mac address f{format_mac}")
             else:
                 print(f"Invalid MAC address: {mac}")
         else:
@@ -383,6 +382,10 @@ class InterfaceConfig(cmd2.Cmd,
             else:
                 self.log.error(f"Invalid NAT type: {args.nat_type}, Use '{NATDirection.INSIDE.value}' or '{NATDirection.OUTSIDE.value}'")
 
+    def complete_speed(self, text, line, begidx, endidx):
+        completions = ['half', 'full', 'auto']        
+        return [comp for comp in completions if comp.startswith(text)]
+
     def do_duplex(self, args):
         '''
         Set the duplex mode of a network interface.
@@ -402,7 +405,7 @@ class InterfaceConfig(cmd2.Cmd,
             duplex = duplex_values[args]
             self.set_duplex(self.ifName, duplex)
             
-            if IFCDB.update_duplex_status(self.ifName, duplex):
+            if IFCDB().update_duplex_status(self.ifName, duplex):
                 self.log.debug(f"Unable to update duplex: {duplex}")
                 return STATUS_NOK    
             
@@ -410,6 +413,10 @@ class InterfaceConfig(cmd2.Cmd,
             
         else:
             print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
+
+    def complete_speed(self, text, line, begidx, endidx):
+        completions = ['10', '100', '1000', '10000', 'auto']        
+        return [comp for comp in completions if comp.startswith(text)]
 
     def do_speed(self, args):
         '''
@@ -427,6 +434,7 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args == "auto":
             self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
+            IFCDB().update_speed(self.ifName, speed.value)
             
         elif args in speed_values:
             speed = speed_values[args]
@@ -545,7 +553,7 @@ class InterfaceConfig(cmd2.Cmd,
         
         IFCDB().add_line_to_interface(f"{shutdown_stat}")
         
-        return self.set_interface_state(self.ifName, ifState)
+        self.set_interface_state(self.ifName, ifState)
 
     def complete_switchport(self, text, line, begidx, endidx):
         completions = ['access', 'mode']
