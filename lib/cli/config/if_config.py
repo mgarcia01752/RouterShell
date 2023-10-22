@@ -77,7 +77,6 @@ class InterfaceConfig(cmd2.Cmd,
             '''
             if IFCDB().add_interface(ifName, InterfaceType.ETHERNET):
                 self.log.debug(f"Unable to add interface: {ifName} to DB")
-                return None
             
         self.ifName = ifName
         self.prompt = self.set_prompt()
@@ -110,7 +109,7 @@ class InterfaceConfig(cmd2.Cmd,
             
             if not self.update_if_mac_address(self.ifName, new_mac):
                 IFCDB().update_mac_address(self.ifName,new_mac)
-                IFCDB().add_line_to_interface(self.ifName, f"mac auto")
+                IFCDB().add_line_to_interface(f"mac auto")
                 
         elif len(parts) == 2 and parts[0] == "address":
             mac = parts[1]
@@ -297,34 +296,34 @@ class InterfaceConfig(cmd2.Cmd,
                 
                 if ip_prefix:
                     IFCDB().update_ip_address(self.ifName, ip_prefix)
-                    IFCDB().add_line_to_interface(self.ifName, f"no ip {args.subcommand} {ipv4_address} {subnet_mask}")
+                    IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_address} {subnet_mask}")
                 else:
                     self.log.fatal("Unable to add IP address to DB")
             else:
                 self.set_inet_address(self.ifName, ipv4_address, subnet_mask)
-                IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {ipv4_address} {subnet_mask}")
+                IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address} {subnet_mask}")
             
         elif args.subcommand == "proxy-arp":
             self.log.debug(f"Set proxy-arp on Interface {self.ifName}")
             if negate:
                 Arp().set_proxy_arp(self.ifName, not negate)
                 IFCDB.update_proxy_arp(self.ifName, True)
-                IFCDB.add_line_to_interface(self.ifName, f"no {args.subcommand}") 
+                IFCDB().add_line_to_interface(f"no {args.subcommand}") 
             else:
                 Arp().set_proxy_arp(self.ifName, negate)
                 IFCDB.update_proxy_arp(self.ifName, False)
-                IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand}")
+                IFCDB().add_line_to_interface(f"{args.subcommand}")
                 
         elif args.subcommand == "drop-gratuitous-arp":
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
             if negate:
                 Arp().set_drop_gratuitous_arp(self.ifName, not negate)
                 IFCDB().update_drop_gratuitous_arp(self.ifName, True)
-                IFCDB().add_line_to_interface(self.ifName, f"no {args.subcommand}")
+                IFCDB().add_line_to_interface(f"no {args.subcommand}")
             else:
                 Arp().set_drop_gratuitous_arp(self.ifName, negate)
                 IFCDB().update_drop_gratuitous_arp(self.ifName, False)
-                IFCDB().add_line_to_interface(self.ifName, f"{args.subcommand}")
+                IFCDB().add_line_to_interface(f"{args.subcommand}")
 
         elif args.subcommand == "static-arp":
             self.log.debug(f"Set static-arp on Interface {self.ifName}")
@@ -340,13 +339,13 @@ class InterfaceConfig(cmd2.Cmd,
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=False)
                 IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
-                IFCDB().add_line_to_interface(self.ifName, f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
+                IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, add_arp_entry=True)
                 IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, not negate)
-                IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
+                IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
         elif args.subcommand == "nat":
             '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
@@ -365,7 +364,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
                     return STATUS_NOK
                 else:
-                    IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {nat_direction} pool {pool_name}")
+                    IFCDB().add_line_to_interface(f"ip {args.subcommand} {nat_direction} pool {pool_name}")
                   
             elif nat_direction == NATDirection.OUTSIDE.value:
                 self.log.info("Configuring NAT for the outside interface")
@@ -378,7 +377,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
                     return STATUS_NOK
                 else:
-                    IFCDB().add_line_to_interface(self.ifName, f"ip {args.subcommand} {nat_direction} pool {pool_name}")                
+                    IFCDB().add_line_to_interface(f"ip {args.subcommand} {nat_direction} pool {pool_name}")                
             else:
                 self.log.error(f"Invalid NAT type: {args.nat_type}, Use '{NATDirection.INSIDE.value}' or '{NATDirection.OUTSIDE.value}'")
 
@@ -409,7 +408,7 @@ class InterfaceConfig(cmd2.Cmd,
                 self.log.debug(f"Unable to update duplex: {duplex}")
                 return STATUS_NOK    
             
-            IFCDB().add_line_to_interface(self.ifName, f"duplex {duplex}")
+            IFCDB().add_line_to_interface(f"duplex {duplex}")
             
         else:
             print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
@@ -434,7 +433,7 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args == "auto":
             self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
-            IFCDB().update_speed(self.ifName, speed.value)
+            IFCDB().update_speed(self.ifName, Speed.AUTO_NEGOTIATE.value)
             
         elif args in speed_values:
             speed = speed_values[args]
@@ -474,11 +473,11 @@ class InterfaceConfig(cmd2.Cmd,
             if not negate:
                 Bridge().add_interface_cmd(self.ifName, bridge_name)
                 IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
-                IFCDB().add_line_to_interface(self.ifName, f"bridge group {self.ifName} {bridge_name}")
+                IFCDB().add_line_to_interface(f"bridge group {self.ifName} {bridge_name}")
             else:
                 Bridge().del_interface_cmd(self.ifName)
                 IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
-                IFCDB().add_line_to_interface(self.ifName, f"no bridge group {self.ifName} {bridge_name}")
+                IFCDB().add_line_to_interface(f"no bridge group {self.ifName} {bridge_name}")
         
     def do_bridge(self, args, negate=False):
         """
