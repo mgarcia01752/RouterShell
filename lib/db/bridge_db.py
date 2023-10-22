@@ -108,4 +108,3 @@ class BridgeDatabase():
     def get_interfaces(cls, bridge_name:str) -> list:
         cls.log.debug(f"bridge_exists() -> BridgeName: {bridge_name}")
         pass
-    

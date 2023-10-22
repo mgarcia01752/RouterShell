@@ -30,6 +30,18 @@ show log
 
 ### OSPF
 
+### Auto Generate Configuration based on local network settings
+
+```shell
+    # Based on OS network
+    show os configuration
+
+    # Based on RouterShell running/start-up network
+    show running configuration
+    show start configuration
+
+```
+
 ### BGP
 
 ## System Commands

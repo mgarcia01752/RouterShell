@@ -25,7 +25,7 @@ class IPUtilities:
             return False
 
     @staticmethod
-    def convert_ip_mask_to_ip_prefix(ip_address, prefix_length):
+    def convert_ip_mask_to_cidr(ip_address:str, prefix_length:IndentationError):
         """
         Convert an IP address and prefix length into a formatted IP address with CIDR notation.
 

@@ -185,9 +185,9 @@ class InterfaceConfig(cmd2.Cmd,
             # Implement the logic to configure DHCP client here.       
 
     def complete_ip(self, text, line, begidx, endidx):
-        completions = ['address', 'proxy-arp', 'drop-gratuitous-arp', 'static-arp']
+        completions = ['address', 'secondary']
+        completions.extend(['proxy-arp', 'drop-gratuitous-arp', 'static-arp'])
         completions.extend(['nat', 'inside', 'outside', 'pool'])
-        
         return [comp for comp in completions if comp.startswith(text)]
     
     def do_ip(self, args, negate=False):
@@ -199,7 +199,7 @@ class InterfaceConfig(cmd2.Cmd,
             negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
 
         Available suboptions:
-        - `address <IPv4 Address> <IPv4 Subnet Mask>`: Set a static IP address.
+        - `address <IP Address>/<CIDR> secondary`: Set a static IP address.
         - `proxy-arp`: Enable proxy ARP.
         - `drop-gratuitous-arp`: Enable drop gratuitous ARP.
         - `static-arp <inet> <mac> [arpa]`: Add/Del static ARP entry.
@@ -211,7 +211,7 @@ class InterfaceConfig(cmd2.Cmd,
         parser = argparse.ArgumentParser(
             description="Configure IP settings on the interface and NAT.",
             epilog="Available suboptions:\n"
-                    "   address <IPv4 Address> <IPv4 Subnet Mask>           Set static IP address.\n"
+                    "   address <IPv4 Address>/<CIDR> [secondary]           Set IP address/CIDR {optional secondary}.\n"
                     "   proxy-arp                                           Enable proxy ARP.\n"
                     "   drop-gratuitous-arp                                 Enable drop-gratuitous-ARP.\n"
                     "   static-arp <inet> <mac> [arpa]                      Add/Del static ARP entry.\n"
@@ -223,13 +223,15 @@ class InterfaceConfig(cmd2.Cmd,
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        address_parser = subparsers.add_parser( "address",
-            help="Set a static IP address on the interface (e.g., 'ip address 192.168.1.1 255.255.255.0')."
+        address_cidr_parser = subparsers.add_parser("address",
+            help="Set a static IP address on the interface (e.g., 'ip address 192.168.1.1/24 [secondary]')."
         )
-        address_parser.add_argument("ipv4_address", 
-                                    help="IPv4 address to configure.")
-        address_parser.add_argument("subnet_mask", 
-                                    help="IPv4 subnet mask to configure.")
+        
+        address_cidr_parser.add_argument("ipv4_address_cidr",
+                                help="IPv4 address/subnet to configure.")
+        
+        address_cidr_parser.add_argument("secondary", nargs="?", const=True, default=False, 
+                                    help="Indicate that this is a secondary IP address.")
 
         subparsers.add_parser("proxy-arp",
             help="Set proxy-arp on the interface 'ip proxy-arp')."
@@ -278,32 +280,39 @@ class InterfaceConfig(cmd2.Cmd,
             return
 
         if args.subcommand == "address":
-            ipv4_address = args.ipv4_address
-            subnet_mask = args.subnet_mask
-            
-            self.log.debug(f"Configuring static IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address}) Mask:({subnet_mask})")
-            
+            ipv4_address_cidr = args.ipv4_address_cidr
+            is_secondary = args.secondary
+
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Static'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+
+            if '/' in ipv4_address_cidr:
+                ipv4_address, cidr = ipv4_address_cidr.split('/')
+            else:
+                ipv4_address, cidr = ipv4_address_cidr, "24"
+
             if not self.is_valid_ipv4(ipv4_address):
                 raise InvalidInterface(f"Invalid Inet Address ({ipv4_address})")
-            
-            if not self.is_valid_ipv4(subnet_mask):
-                raise InvalidInterface(f"Invalid Inet Subnet ({ipv4_address})")
-            
-            ip_prefix = IPUltils().convert_ip_mask_to_ip_prefix(ipv4_address, subnet_mask)
-            
+
+            if not cidr.isdigit() or int(cidr) < 0 or int(cidr) > 32:
+                raise InvalidInterface(f"Invalid CIDR prefix length ({cidr}). Must be between 0 and 32.")
+
+            ip_prefix = IPUltils().convert_ip_mask_to_cidr(ipv4_address, int(cidr))
+
             if negate:
-                self.del_inet_address(self.ifName, ipv4_address, subnet_mask)
-                
+                self.log.debug(f"Removing IP: {ipv4_address}/{int(cidr)} to interface: {self.if_name} secondary: {is_secondary}")
+                self.del_inet_address(self.ifName, ipv4_address, int(cidr), is_secondary)
+
                 if ip_prefix:
-                    IFCDB().update_ip_address(self.ifName, ip_prefix, negate)
-                    IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_address} {subnet_mask}")
+                    IFCDB().update_ip_address(self.ifName, ip_prefix, is_secondary, negate)
+                    IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_address}/{cidr}")
                 else:
                     self.log.fatal("Unable to add IP address to DB")
             else:
-                self.set_inet_address(self.ifName, ipv4_address, subnet_mask)
-                IFCDB().update_ip_address(self.ifName, ip_prefix, negate)
-                IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address} {subnet_mask}")
-            
+                self.log.debug(f"Setting IP: {ipv4_address}/{int(cidr)} to interface: {self.if_name} secondary: {is_secondary}")
+                self.set_inet_address(self.ifName, ipv4_address, int(cidr), is_secondary)
+                IFCDB().update_ip_address(self.ifName, ip_prefix, is_secondary, negate)
+                IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address}/{cidr}")
+ 
         elif args.subcommand == "proxy-arp":
             self.log.debug(f"Set proxy-arp on Interface {self.ifName}")
             if negate:
@@ -523,10 +532,12 @@ class InterfaceConfig(cmd2.Cmd,
         if args.subcommand == 'group':
             if negate:
                 self.log.debug(f"do_bridge().group -> Deleting Bridge {args.bridge_group_id}")
+                IFCDB().update_bridge_group(self.ifName, args.bridge_group_id, negate)
                 Bridge().del_interface_cmd(self.ifName, args.bridge_group_id)
             else:
                 self.log.debug(f"do_bridge().group -> Adding Bridge: {args.bridge_group_id} to Interface: {self.ifName}")
                 Bridge().add_interface_cmd(self.ifName, args.bridge_group_id)
+                IFCDB().update_bridge_group(self.ifName, args.bridge_group_id, negate)
                 IFCDB().add_line_to_interface(f"bridge {args.subcommand} {self.ifName}")
         
         return 
