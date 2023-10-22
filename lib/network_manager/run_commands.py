@@ -8,6 +8,16 @@ from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class RunResult(NamedTuple):
+    """
+    Represents the result of running a command.
+
+    Attributes:
+        stdout (str): The standard output of the command.
+        stderr (str): The standard error output of the command.
+        exit_code (int): The exit code of the command.
+        command (List[str]): The list of command arguments used.
+    """
+
     stdout: str
     stderr: str
     exit_code: int
@@ -18,8 +28,6 @@ class RunCommand:
     A class for running Linux commands with sudo and logging successful and failed commands.
     """
     def __init__(self):
-        self.log = logging.getLogger(self.__class__.__name__)
-        
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().RUN)
         self.debug = CGS().DEBUG_RUN

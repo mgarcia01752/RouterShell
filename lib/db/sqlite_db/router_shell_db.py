@@ -546,7 +546,7 @@ class RouterShellDB:
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name))
-            row = self.cursor.fetchone()
+            row = cursor.fetchone()
 
             if row is not None:
                 row_id = row[0]
@@ -1315,7 +1315,8 @@ class RouterShellDB:
             existing_result = self.interface_exists(if_name)
             
             if existing_result.status:
-                self.cursor.execute("DELETE FROM Interfaces WHERE IfName = ?", (if_name,))
+                cursor = self.connection.cursor()
+                cursor.execute("DELETE FROM Interfaces WHERE IfName = ?", (if_name,))
                 self.connection.commit()
                 self.log.debug(f"Deleted interface '{if_name}' from the 'Interfaces' table.")
                 return Result(status=STATUS_OK, row_id=0, result=f"Interface '{if_name}' deleted successfully.")
@@ -1345,7 +1346,7 @@ class RouterShellDB:
             return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
 
         try:
-            self.cursor.execute(
+            cursor.execute(
                 "UPDATE Interfaces SET ShutdownStatus = ? WHERE IfName = ?",
                 (shutdown_status, if_name)
             )
@@ -1378,11 +1379,11 @@ class RouterShellDB:
 
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
-            sub_options_row = self.cursor.fetchone()
+            sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 # If an entry exists, update the duplex setting
-                self.cursor.execute(
+                cursor.execute(
                     "UPDATE InterfaceSubOptions SET Duplex = ? WHERE Interface_FK = ?",
                     (duplex, interface_id)
                 )
@@ -1507,7 +1508,8 @@ class RouterShellDB:
         try:
             interface_id = existing_result.row_id
 
-            self.cursor.execute(
+            cursor = self.connection.cursor()
+            cursor.execute(
                 "INSERT INTO InterfaceIpAddress (Interface_FK, IpAddress, SecondaryIp) VALUES (?, ?, ?)",
                 (interface_id, ip_address, is_secondary)
             )
@@ -1540,8 +1542,8 @@ class RouterShellDB:
         try:
             interface_id = existing_result.row_id
 
-            # Check if the IP address exists for the given interface
-            self.cursor.execute(
+            cursor = self.connection.cursor()
+            cursor.execute(
                 "DELETE FROM InterfaceIpAddress WHERE Interface_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )
@@ -1569,18 +1571,19 @@ class RouterShellDB:
         try:
             interface_id = existing_result.row_id
             if existing_result.status:
-                # If an entry exists, update the Proxy ARP setting
-                self.cursor.execute(
+
+                cursor = self.connection.cursor()
+                cursor.execute(
                     "UPDATE InterfaceSubOptions SET ProxyArp = ? WHERE Interface_FK = ?",
                     (status, interface_id)
                 )
             else:
                 # If no entry exists, add a new row and associate it with the interface
-                self.cursor.execute(
+                cursor.execute(
                     "INSERT INTO InterfaceSubOptions (Interface_FK, ProxyArp) VALUES (?, ?)",
                     (interface_id, status)
                 )
-                interface_id = self.cursor.lastrowid  # Get the ID of the newly inserted row
+                interface_id = cursor.lastrowid  # Get the ID of the newly inserted row
 
             self.connection.commit()
             self.log.debug(f"Proxy ARP setting updated for interface: {if_name}")
@@ -1605,18 +1608,19 @@ class RouterShellDB:
         try:
             interface_id = existing_result.row_id
             if existing_result.status:
-                # If an entry exists, update the Drop Gratuitous ARP setting
-                self.cursor.execute(
+                
+                cursor = self.connection.cursor()
+                cursor.execute(
                     "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interface_FK = ?",
                     (status, interface_id)
                 )
             else:
                 # If no entry exists, add a new row and associate it with the interface
-                self.cursor.execute(
+                cursor.execute(
                     "INSERT INTO InterfaceSubOptions (Interface_FK, DropGratuitousArp) VALUES (?, ?)",
                     (interface_id, status)
                 )
-                interface_id = self.cursor.lastrowid  # Get the ID of the newly inserted row
+                interface_id = cursor.lastrowid  # Get the ID of the newly inserted row
 
             self.connection.commit()
             self.log.debug(f"Drop Gratuitous ARP setting updated for interface: {if_name}")
@@ -1645,12 +1649,13 @@ class RouterShellDB:
 
         try:
             interface_id = existing_result.row_id
-            self.cursor.execute(
+            cursor = self.connection.cursor()
+            cursor.execute(
                 "INSERT INTO InterfaceStaticArp (Interface_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
                 (interface_id, ip_address, mac_address, encapsulation)
             )
             self.connection.commit()
-            static_arp_id = self.cursor.lastrowid  # Get the ID of the newly inserted record
+            static_arp_id = cursor.lastrowid  # Get the ID of the newly inserted record
             self.log.debug(f"Static ARP record added for interface: {if_name}")
             return Result(STATUS_OK, row_id=static_arp_id)
         except sqlite3.Error as e:
@@ -1675,7 +1680,7 @@ class RouterShellDB:
 
         try:
             interface_id = existing_result.row_id
-            self.cursor.execute(
+            cursor.execute(
                 "DELETE FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )

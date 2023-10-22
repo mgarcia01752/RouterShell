@@ -289,18 +289,19 @@ class InterfaceConfig(cmd2.Cmd,
             if not self.is_valid_ipv4(subnet_mask):
                 raise InvalidInterface(f"Invalid Inet Subnet ({ipv4_address})")
             
+            ip_prefix = IPUltils().convert_ip_mask_to_ip_prefix(ipv4_address, subnet_mask)
+            
             if negate:
                 self.del_inet_address(self.ifName, ipv4_address, subnet_mask)
                 
-                ip_prefix = IPUltils().convert_ip_mask_to_ip_prefix(ipv4_address, subnet_mask)
-                
                 if ip_prefix:
-                    IFCDB().update_ip_address(self.ifName, ip_prefix)
+                    IFCDB().update_ip_address(self.ifName, ip_prefix, negate)
                     IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_address} {subnet_mask}")
                 else:
                     self.log.fatal("Unable to add IP address to DB")
             else:
                 self.set_inet_address(self.ifName, ipv4_address, subnet_mask)
+                IFCDB().update_ip_address(self.ifName, ip_prefix, negate)
                 IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address} {subnet_mask}")
             
         elif args.subcommand == "proxy-arp":

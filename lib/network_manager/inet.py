@@ -57,12 +57,33 @@ class InetServiceLayer(MacServiceLayer):
             return True
         except (ipaddress.AddressValueError, ValueError):
             return False
-    
+
+    def is_ip_assigned_to_interface(self, ip_address, interface):
+        """
+        Check if an IP address is assigned to a specific network interface on a Linux system.
+
+        Args:
+            ip_address (str): The IP address to check.
+            interface (str): The network interface to check.
+
+        Returns:
+            bool: True if the IP address is assigned to the interface, False otherwise.
+        """
+        command = ['ip', 'addr', 'show', interface]
+        result = self.run(command)
+
+        lines = result.stdout.split('\n')
+        for line in lines:
+            if ip_address in line:
+                return True
+        return False
+
+
     def set_inet_address(self,
-                         interface: str, 
-                         inet_address: ipaddress.IPv4Network, 
-                         inet_subnet: ipaddress.IPv4Network, 
-                         secondary: bool = False) -> RunResult:
+                        interface: str, 
+                        inet_address: ipaddress.IPv4Network, 
+                        inet_subnet: ipaddress.IPv4Network, 
+                        secondary: bool = False) -> bool:
         """
         Set an IPv4 address on an interface.
 
@@ -70,18 +91,23 @@ class InetServiceLayer(MacServiceLayer):
             interface (str): The network interface.
             inet_address (str): The IPv4 address to set as a string.
             inet_subnet (ipaddress.IPv4Network): The IPv4 subnet.
-            secondary (bool, optional): Set as secondary address. Defaults to False.
+            secondary (bool, optional): Set as a secondary address. Defaults to False.
 
         Returns:
-            str: Status code, either STATUS_OK or STATUS_NOK.
+            bool: True for success, False for failure.
         """
+        
+        if self.is_ip_assigned_to_interface(inet_address, interface):
+            self.log.debug(f"Ip: {inet_address} already assigned to Interface: {interface}")
+            return False  # Indicates failure
+            
         if not self.is_valid_ipv4(inet_address):
             logging.error(f"Invalid IPv4 address: {inet_address}")
-            return STATUS_NOK
+            return False  # Indicates failure
 
         if not self.is_valid_ipv4(inet_subnet):
             logging.error(f"Invalid IPv4 subnet: {inet_address}")
-            return STATUS_NOK
+            return False  # Indicates failure
                 
         subnet = ipaddress.IPv4Network(f"0.0.0.0/{inet_subnet}", strict=False)
         
@@ -89,7 +115,8 @@ class InetServiceLayer(MacServiceLayer):
         if secondary:
             cmd += ["secondary"]
         cmd += [f"{inet_address}/{subnet.prefixlen}", "dev", interface]
-        return self.run(cmd)
+        
+        return STATUS_NOK if self.run(cmd).exit_code else STATUS_OK
 
     def del_inet_address(self,
                          interface: str, 
