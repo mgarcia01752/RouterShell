@@ -254,8 +254,8 @@ class Bridge(MacServiceLayer):
         Returns:
             bool: STATUS_OK if the interface is added to the bridge successfully, otherwise (STATUS_OK).
         """
-        if not bridge_name or self.does_bridge_exist(bridge_name):
-            self.log.error(f"No Bridge name provided")
+        if not self.does_bridge_exist(bridge_name):
+            self.log.error(f"stp_status_cmd() -> No Bridge name provided")
             return STATUS_NOK
         
         stp = '1' if stp_status == 'enable' else '0'
@@ -263,10 +263,10 @@ class Bridge(MacServiceLayer):
         result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', stp])
 
         if result.exit_code:
-            self.log.debug(f"STP status for bridge {bridge_name} was NOT set to {stp}.")
+            self.log.debug(f"stp_status_cmd() -> STP status for bridge {bridge_name} was NOT set to {stp}.")
             return STATUS_NOK
 
-        self.log.debug(f"STP status for bridge {bridge_name} set to {stp}.")
+        self.log.debug(f"stp_status_cmd() -> STP status for bridge {bridge_name} set to {stp}.")
         return STATUS_OK
 
     def shutdown_cmd(self, bridge_name: str, negate=False) -> bool:

@@ -105,10 +105,10 @@ class VLANDatabase():
         
         if cls.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name) == STATUS_OK:
             cls.log.info(f"update_vlan_name_via_vlanID() -> Vlan-Name: {vlan_name} updated successfully.")
-            return UpdateResult(STATUS_OK, vlan_name)
+            return Result(STATUS_OK, vlan_name)
         else:
             cls.log.error(f"update_vlan_name_via_vlanID() -> Failed to update the name: {vlan_name} of VLAN {vlan_id}.")
-            return UpdateResult(STATUS_NOK, vlan_name)
+            return Result(STATUS_NOK, vlan_name)
     
     def add_ports_to_vlan(cls, vlan_id: int, ports_to_add: list):
         # Add ports to a VLAN

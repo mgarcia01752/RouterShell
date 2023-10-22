@@ -527,7 +527,7 @@ class InterfaceConfig(cmd2.Cmd,
             else:
                 self.log.debug(f"do_bridge().group -> Adding Bridge: {args.bridge_group_id} to Interface: {self.ifName}")
                 Bridge().add_interface_cmd(self.ifName, args.bridge_group_id)
-                InterfaceConfigDB.add_line_to_interface(self.ifName, f"bridge {args.subcommand} {self.ifName}")
+                IFCDB().add_line_to_interface(f"bridge {args.subcommand} {self.ifName}")
         
         return 
     
