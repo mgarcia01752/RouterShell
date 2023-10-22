@@ -184,7 +184,6 @@ class RouterShellDB:
             self.log.error(error_message)
             return Result(STATUS_NOK, -1, error_message)
 
-
     def delete_bridge_entry(self, bridge_name) -> bool:
         try:
             cursor = self.connection.cursor()
