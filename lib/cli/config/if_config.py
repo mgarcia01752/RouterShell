@@ -199,7 +199,7 @@ class InterfaceConfig(cmd2.Cmd,
             negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
 
         Available suboptions:
-        - `address <IP Address>/<CIDR> secondary`: Set a static IP address.
+        - `address <IP Address>/<CIDR> [secondary]`: Set a static IP address.
         - `proxy-arp`: Enable proxy ARP.
         - `drop-gratuitous-arp`: Enable drop gratuitous ARP.
         - `static-arp <inet> <mac> [arpa]`: Add/Del static ARP entry.
@@ -230,8 +230,8 @@ class InterfaceConfig(cmd2.Cmd,
         address_cidr_parser.add_argument("ipv4_address_cidr",
                                 help="IPv4 address/subnet to configure.")
         
-        address_cidr_parser.add_argument("secondary", nargs="?", const=True, default=False, 
-                                    help="Indicate that this is a secondary IP address.")
+        address_cidr_parser.add_argument("secondary", action="store_true", 
+                                         help="Indicate that this is a secondary IP address.")
 
         subparsers.add_parser("proxy-arp",
             help="Set proxy-arp on the interface 'ip proxy-arp')."
