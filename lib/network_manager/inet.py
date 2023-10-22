@@ -4,8 +4,9 @@ import logging
 from typing import List
 
 from lib.network_manager.mac import MacServiceLayer
-from lib.common.constants import *
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.run_commands import RunResult
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class InetServiceLayer(MacServiceLayer):
     """
@@ -14,7 +15,8 @@ class InetServiceLayer(MacServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-            
+        self.log.setLevel(RSLGS().INET)
+                    
     def is_valid_ipv4(self, inet_address: str) -> bool:
         """
         Check if an IPv4 address is valid.
@@ -77,81 +79,64 @@ class InetServiceLayer(MacServiceLayer):
             if ip_address in line:
                 return True
         return False
-
-
+    
     def set_inet_address(self,
                         interface: str, 
-                        inet_address: ipaddress.IPv4Network, 
-                        inet_subnet: ipaddress.IPv4Network, 
+                        inet_address: str, 
+                        inet_cidr: str, 
                         secondary: bool = False) -> bool:
         """
         Set an IPv4 address on an interface.
 
         Args:
             interface (str): The network interface.
-            inet_address (str): The IPv4 address to set as a string.
-            inet_subnet (ipaddress.IPv4Network): The IPv4 subnet.
+            inet_address (str): The IPv4 address to set as a string in CIDR notation, including the label.
+            inet_cidr (str): The IPv4 subnet in CIDR notation.
             secondary (bool, optional): Set as a secondary address. Defaults to False.
 
         Returns:
-            bool: True for success, False for failure.
+            bool: STATUS_OK for success, STATUS_NOK for failure.
         """
         
         if self.is_ip_assigned_to_interface(inet_address, interface):
             self.log.debug(f"Ip: {inet_address} already assigned to Interface: {interface}")
-            return False  # Indicates failure
-            
-        if not self.is_valid_ipv4(inet_address):
-            logging.error(f"Invalid IPv4 address: {inet_address}")
-            return False  # Indicates failure
-
-        if not self.is_valid_ipv4(inet_subnet):
-            logging.error(f"Invalid IPv4 subnet: {inet_address}")
-            return False  # Indicates failure
+            return STATUS_NOK
                 
-        subnet = ipaddress.IPv4Network(f"0.0.0.0/{inet_subnet}", strict=False)
+        if not self.is_valid_ipv4(inet_cidr):
+            self.log.error(f"Invalid IPv4 subnet: {inet_cidr}")
+            return STATUS_NOK
+
+        cmd = ["ip", "addr", "add", f"{inet_address}/{inet_cidr}", "dev", interface]
         
-        cmd = ["ip", "addr", "add"]
         if secondary:
-            cmd += ["secondary"]
-        cmd += [f"{inet_address}/{subnet.prefixlen}", "dev", interface]
+            cmd += ["label", f"{interface}:secondary"]
+            
+        self.log.debug(f"set_inet_address() -> cmd: {cmd}")
         
         return STATUS_NOK if self.run(cmd).exit_code else STATUS_OK
 
-    def del_inet_address(self,
-                         interface: str, 
-                         inet_address: ipaddress.IPv4Network, 
-                         inet_subnet: ipaddress.IPv4Network, 
-                         secondary: bool = False) -> RunResult:
+    def del_ip_address(self, interface: str, ip_address: str) -> bool:
         """
-        delete an IPv4 address on an interface.
+        Delete an IP address from a network interface.
 
         Args:
-            interface (str): The network interface.
-            inet_address (str): The IPv4 address to set as a string.
-            inet_subnet (ipaddress.IPv4Network): The IPv4 subnet.
-            secondary (bool, optional): Set as secondary address. Defaults to False.
+            interface (str): The name of the network interface.
+            ip_address (str): The IPv4 address to delete.
 
         Returns:
-            str: Status code, either STATUS_OK or STATUS_NOK.
+            bool: STATUS_OK for success, STATUS_NOK for failure.
         """
-        if not self.is_valid_ipv4(inet_address):
-            logging.error(f"Invalid IPv4 address: {inet_address}")
+        self.log.debug(f"Deleting IP address {ip_address} from interface {interface}")
+
+        result = self.run(["sudo", "ip", "addr", "del", ip_address, "dev", interface])
+
+        if result.exit_code:
+            self.log.debug(f"Unable to delete IP address {ip_address} from Interface {interface}")
             return STATUS_NOK
 
-        if not self.is_valid_ipv4(inet_subnet):
-            logging.error(f"Invalid IPv4 subnet: {inet_address}")
-            return STATUS_NOK
-                
-        subnet = ipaddress.IPv4Network(f"0.0.0.0/{inet_subnet}", strict=False)
-        
-        cmd = ["ip", "addr", "del"]
-        if secondary:
-            cmd += ["secondary"]
-        cmd += [f"{inet_address}/{subnet.prefixlen}", "dev", interface]
-        
-        return self.run(cmd)
-    
+        self.log.debug(f"Deleted IP address {ip_address} from interface {interface}")
+        return STATUS_OK
+
     def set_ipv4_default_gateway(self,
                                  interface: str, inet_address: str) -> RunResult:
         """

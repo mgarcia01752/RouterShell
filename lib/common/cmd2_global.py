@@ -5,7 +5,6 @@ TODO ADD TO CLASS
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
-        self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG)
         self.debug = CGS().DEBUG_BRIDGE_CONFIG
 '''
@@ -15,7 +14,7 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL
     '''
     
-    GLOBAL_DEBUG = False
+    GLOBAL_DEBUG = True
 
     ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
@@ -53,7 +52,7 @@ class RouterShellLoggingGlobalSettings():
     RUN                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSCTL              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INET                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INET                = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     MAC                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     PHY                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
