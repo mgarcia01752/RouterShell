@@ -2,7 +2,7 @@ import datetime
 import logging
 import os
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.run_commands import RunCommand, RunResult
+from lib.network_manager.common.run_commands import RunCommand, RunResult
 
 class SysCtl(RunCommand):
     """

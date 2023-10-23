@@ -7,7 +7,7 @@ from typing import List
 from tabulate import tabulate 
 
 from lib.common.common import Common
-from lib.network_manager.phy import PhyServiceLayer
+from lib.network_manager.common.phy import PhyServiceLayer
 from lib.common.constants import *
 
 class MacServiceLayerFoundError(Exception):

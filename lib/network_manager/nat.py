@@ -2,9 +2,9 @@ from enum import Enum
 import ipaddress
 import logging
 
-from lib.network_manager.inet import InetServiceLayer
+from lib.network_manager.common.inet import InetServiceLayer
 from lib.db.nat_db import NatDB
-from lib.network_manager.sysctl import SysCtl
+from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS

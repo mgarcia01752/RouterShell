@@ -5,7 +5,7 @@ import subprocess
 from enum import Enum, auto
 from tabulate import tabulate
 
-from lib.network_manager.inet import InetServiceLayer
+from lib.network_manager.common.inet import InetServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class InterfaceNotFoundError(Exception):

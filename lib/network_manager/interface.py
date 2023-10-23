@@ -9,7 +9,7 @@ from lib.network_manager.vlan import Vlan
 from lib.network_manager.network_manager import InterfaceType, NetworkManager
 from lib.network_manager.nat import Nat, NATDirection
 from lib.common.common import STATUS_NOK, STATUS_OK
-from lib.network_manager.phy import Duplex, Speed, State
+from lib.network_manager.common.phy import Duplex, Speed, State
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -50,7 +50,6 @@ class Interface(NetworkManager):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
             return []
-
 
     def get_interface_type(self, interface_name:str) -> InterfaceType:
         """

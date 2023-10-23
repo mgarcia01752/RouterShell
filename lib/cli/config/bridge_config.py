@@ -8,7 +8,7 @@ from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.network_manager import InterfaceType
-from lib.network_manager.phy import State
+from lib.network_manager.common.phy import State
 from lib.common.constants import *
 
 from lib.network_manager.bridge import Bridge

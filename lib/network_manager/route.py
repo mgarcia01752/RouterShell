@@ -3,7 +3,7 @@ import logging
 
 from tabulate import tabulate
 from lib.network_manager.network_manager import NetworkManager
-from lib.network_manager.sysctl import SysCtl
+from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class Route(NetworkManager):

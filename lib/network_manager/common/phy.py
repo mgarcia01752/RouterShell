@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from lib.common.common import Common
-from lib.network_manager.run_commands import RunCommand
+from lib.network_manager.common.run_commands import RunCommand
 from lib.common.constants import *
 
 from enum import Enum, auto

@@ -2,9 +2,9 @@ from enum import Enum
 import logging
 
 from tabulate import tabulate 
-from lib.network_manager.mac import MacServiceLayer
-from lib.network_manager.inet import InetServiceLayer
-from lib.network_manager.sysctl import SysCtl
+from lib.network_manager.common.mac import MacServiceLayer
+from lib.network_manager.common.inet import InetServiceLayer
+from lib.network_manager.common.sysctl import SysCtl
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS

@@ -4,7 +4,7 @@ import logging
 from lib.common.inet_ultils import IPUtilities as IPUltils
 
 from lib.network_manager.interface import Interface, InterfaceType
-from lib.network_manager.phy import Duplex, Speed, State
+from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.arp import Arp, Encapsulate
 
 from lib.cli.base.global_operation import GlobalUserCommand

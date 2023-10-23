@@ -5,8 +5,8 @@ from typing import Optional
 
 from tabulate import tabulate
 from lib.db.bridge_db import BridgeDatabase 
-from lib.network_manager.mac import MacServiceLayer
-from lib.network_manager.phy import State
+from lib.network_manager.common.mac import MacServiceLayer
+from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS

@@ -3,9 +3,9 @@ import json
 import logging
 from typing import List
 
-from lib.network_manager.mac import MacServiceLayer
+from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.run_commands import RunResult
+from lib.network_manager.common.run_commands import RunResult
 from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class InetServiceLayer(MacServiceLayer):
