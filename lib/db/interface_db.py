@@ -209,6 +209,7 @@ class InterfaceConfigDB:
         Returns:
             Result: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
+        cls.log.debug(f"update_proxy_arp() -> Interface: {interface_name} -> status:{status}")
         result = cls.rsdb.update_interface_proxy_arp(interface_name, status)
         return result.status
 

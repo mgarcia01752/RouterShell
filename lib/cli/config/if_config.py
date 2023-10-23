@@ -32,7 +32,6 @@ class InterfaceConfig(cmd2.Cmd,
     
     def __init__(self, ifName: str, ifType:str=None):
         super().__init__()
-            
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().IF_CONFIG)
         self.debug = CGS().DEBUG_IF_CONFIG
@@ -316,14 +315,19 @@ class InterfaceConfig(cmd2.Cmd,
                 IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address}/{cidr}")
  
         elif args.subcommand == "proxy-arp":
-            self.log.debug(f"Set proxy-arp on Interface {self.ifName}")
+            
+            self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
+            
             if negate:
-                Arp().set_proxy_arp(self.ifName, not negate)
-                IFCDB().update_proxy_arp(self.ifName, True)
+                self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> enable: {negate}")
+                Arp().set_proxy_arp(self.ifName, negate)
+                IFCDB().update_proxy_arp(self.ifName, negate)
                 IFCDB().add_line_to_interface(f"no {args.subcommand}") 
             else:
-                Arp().set_proxy_arp(self.ifName, negate)
-                IFCDB().update_proxy_arp(self.ifName, False)
+                enable_proxy_arp = not negate
+                self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> enable: {enable_proxy_arp}")
+                Arp().set_proxy_arp(self.ifName, enable_proxy_arp)
+                IFCDB().update_proxy_arp(self.ifName, enable_proxy_arp)
                 IFCDB().add_line_to_interface(f"{args.subcommand}")
                 
         elif args.subcommand == "drop-gratuitous-arp":
