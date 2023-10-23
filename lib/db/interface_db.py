@@ -272,23 +272,8 @@ class InterfaceConfigDB:
             - negate (bool): If True, the method will remove the NAT direction. If False, it will add the direction (default: False).
 
         Returns:
-            - bool: True if the update was successful, False if there was an error during the update.
+            - bool: STATUS_OK if the update was successful, STATUS_NOK if there was an error during the update.
 
-        Example:
-        ```
-        # Add a NAT direction
-        success = NatPool.update_nat_direction("LAN", "MyNATPool", NATDirection.OUTSIDE)
-        if success:
-            print("NAT direction added successfully.")
-        else:
-            print("Failed to update NAT direction.")
-        
-        # Remove a NAT direction
-        success = NatPool.update_nat_direction("LAN", "MyNATPool", NATDirection.INSIDE, negate=True)
-        if success:
-            print("NAT direction removed successfully.")
-        else:
-            print("Failed to update NAT direction.")
         """
         try:
             if not cls.pool_name_exists(nat_pool_name):

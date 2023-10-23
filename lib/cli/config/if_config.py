@@ -198,24 +198,22 @@ class InterfaceConfig(cmd2.Cmd,
             negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
 
         Available suboptions:
-        - `address <IP Address>/<CIDR> [secondary]`: Set a static IP address.
-        - `proxy-arp`: Enable proxy ARP.
-        - `drop-gratuitous-arp`: Enable drop gratuitous ARP.
-        - `static-arp <inet> <mac> [arpa]`: Add/Del static ARP entry.
-        - `nat pool <nat-pool-name>`: Configure NAT pool name. 
-        - `nat [inside|outside]`: Configure NAT address pool for inside or outside interface.
+        - `address <IP Address>/<CIDR> [secondary]`     : Set a static IP address.
+        - `proxy-arp`                                   : Enable proxy ARP.
+        - `drop-gratuitous-arp`                         : Enable drop gratuitous ARP.
+        - `static-arp <inet> <mac> [arpa]`              : Add/Del static ARP entry.
+        - `nat [inside|outside] pool <nat-pool-name>`   : Configure NAT address pool for inside or outside interface.
 
         Use `<suboption> --help` to get help for specific suboptions.
         """                   
         parser = argparse.ArgumentParser(
             description="Configure IP settings on the interface and NAT.",
             epilog="Available suboptions:\n"
-                    "   address <IPv4 Address>/<CIDR> [secondary]           Set IP address/CIDR {optional secondary}.\n"
-                    "   proxy-arp                                           Enable proxy ARP.\n"
-                    "   drop-gratuitous-arp                                 Enable drop-gratuitous-ARP.\n"
-                    "   static-arp <inet> <mac> [arpa]                      Add/Del static ARP entry.\n"
-                    "   nat pool <pool-name>                                Configure NAP pool name.\n"   
-                    "   nat pool <pool-name> [inside|outside] acl <acl-id>  Configure NAT for inside or outside interface."
+                    "   address <IPv4 Address>/<CIDR> [secondary]               Set IP address/CIDR {optional secondary}.\n"
+                    "   proxy-arp                                               Enable proxy ARP.\n"
+                    "   drop-gratuitous-arp                                     Enable drop-gratuitous-ARP.\n"
+                    "   static-arp <inet> <mac> [arpa]                          Add/Del static ARP entry.\n"
+                    "   nat [inside|outside] pool <nat-pool-name> acl <acl-id>  Configure NAT for inside or outside interface."
                     "\n"
                     "Use <suboption> --help to get help for specific suboptions."
         )
@@ -253,6 +251,11 @@ class InterfaceConfig(cmd2.Cmd,
         nat_in_out_parser = subparsers.add_parser("nat",
             help="Configure Network Address Translation (NAT) for inside or outside interfaces."
         )
+
+        nat_in_out_parser.add_argument("nat_direction_pool",
+            choices=['inside', 'outside'],
+            help="Specify 'inside' for configuring NAT on the internal interface or 'outside' for the external interface."
+        )
         
         nat_in_out_parser.add_argument("pool_option",
             nargs='?',
@@ -263,11 +266,6 @@ class InterfaceConfig(cmd2.Cmd,
         nat_in_out_parser.add_argument("pool_name",
             nargs='?',
             help="Specify the NAT pool name when configuring NAT."
-        )
-
-        nat_in_out_parser.add_argument("nat_direction_pool",
-            choices=['inside', 'outside'],
-            help="Specify 'inside' for configuring NAT on the internal interface or 'outside' for the external interface."
         )
 
         try:
@@ -375,8 +373,9 @@ class InterfaceConfig(cmd2.Cmd,
 
         elif args.subcommand == "nat":
             '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
+            nat_direction = args.nat_direction_pool
             pool_name = args.pool_name
-            
+                        
             self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction} -> Pool: {pool_name}")
 
             if nat_direction == NATDirection.INSIDE.value:
