@@ -37,7 +37,6 @@ class NetworkManager(InetServiceLayer):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
     
-        
     def is_valid_interface(self, ifName):
         """
         Check if a network interface with the given name exists on the system.
@@ -229,8 +228,6 @@ class NetworkManager(InetServiceLayer):
         table = tabulate(table_data, headers, tablefmt="simple")
 
         print(table)
-
-
 
     def detect_network_hardware(self, args=None):
         """

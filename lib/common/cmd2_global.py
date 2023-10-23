@@ -16,7 +16,7 @@ class RouterShellLoggingGlobalSettings():
     
     GLOBAL_DEBUG = False
 
-    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
 
     CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -37,9 +37,9 @@ class RouterShellLoggingGlobalSettings():
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NAT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    NAT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
     VLAN                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

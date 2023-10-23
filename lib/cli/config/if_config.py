@@ -223,10 +223,8 @@ class InterfaceConfig(cmd2.Cmd,
         address_cidr_parser = subparsers.add_parser("address",
             help="Set a static IP address on the interface (e.g., 'ip address 192.168.1.1/24 [secondary]')."
         )
-        
         address_cidr_parser.add_argument("ipv4_address_cidr",
-                                help="IPv4 address/subnet to configure.")
-        
+                                help="IPv4 address/subnet to configure.")       
         address_cidr_parser.add_argument("secondary", nargs="?", const=True, default=False, 
             help="Indicate that this is a secondary IP address.")
 
@@ -251,18 +249,15 @@ class InterfaceConfig(cmd2.Cmd,
         nat_in_out_parser = subparsers.add_parser("nat",
             help="Configure Network Address Translation (NAT) for inside or outside interfaces."
         )
-
         nat_in_out_parser.add_argument("nat_direction_pool",
             choices=['inside', 'outside'],
             help="Specify 'inside' for configuring NAT on the internal interface or 'outside' for the external interface."
         )
-        
         nat_in_out_parser.add_argument("pool_option",
             nargs='?',
             choices=["pool"],
             help="Specify 'pool' followed by the NAT pool name when configuring NAT."
         )
-
         nat_in_out_parser.add_argument("pool_name",
             nargs='?',
             help="Specify the NAT pool name when configuring NAT."
