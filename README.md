@@ -30,25 +30,25 @@ In conclusion, RouterShell is a router CLI distribution with features well-suite
 
 ## Table of Contents
 
-- [Global Privileged EXEC Commands](doc/global_priv_exec_cmd.md): Learn about global privileged EXEC commands used for system-level tasks.
+- [Global Privileged EXEC Commands](doc/cli/global_priv_exec_cmd.md): Learn about global privileged EXEC commands used for system-level tasks.
 
-- [ARP (Address Resolution Protocol)](doc/arp.md): Understand ARP and how it works in RouterShell.
+- [ARP (Address Resolution Protocol)](doc/cli/arp.md): Understand ARP and how it works in RouterShell.
 
-- [Bridge Configuration](doc/bridge.md): Configure and manage bridges in RouterShell.
+- [Bridge Configuration](doc/cli/bridge.md): Configure and manage bridges in RouterShell.
 
-- [DHCPv4/v6 Configuration](doc/dhcp.md): Explore DHCP (Dynamic Host Configuration Protocol) setup for IPv4 and IPv6.
+- [DHCPv4/v6 Configuration](doc/cli/dhcp.md): Explore DHCP (Dynamic Host Configuration Protocol) setup for IPv4 and IPv6.
 
-- [Interface Configuration](doc/interface.md): Configure and manage network interfaces in RouterShell.
+- [Interface Configuration](doc/cli/interface.md): Configure and manage network interfaces in RouterShell.
 
-- [NAT (Network Address Translation)](doc/nat.md): Set up Network Address Translation for your RouterShell router.
+- [NAT (Network Address Translation)](doc/cli/nat.md): Set up Network Address Translation for your RouterShell router.
 
-- [Route Configuration](doc/route.md): Understand routing and how to configure it in RouterShell.
+- [Route Configuration](doc/cli/route.md): Understand routing and how to configure it in RouterShell.
 
-- [VLAN Configuration](doc/vlan.md): Configure and manage VLANs in your RouterShell network.
+- [VLAN Configuration](doc/cli/vlan.md): Configure and manage VLANs in your RouterShell network.
 
-- [System Configuration](doc/system.md): Learn about system-level configuration options in RouterShell.
+- [System Configuration](doc/cli/system.md): Learn about system-level configuration options in RouterShell.
 
-- [Wireless Configuration](doc/wireless.md): Explore wireless network configuration in RouterShell.
+- [Wireless Configuration](doc/cli/wireless.md): Explore wireless network configuration in RouterShell.
 
 ## Router Configuration Examples
 
@@ -56,11 +56,11 @@ Explore a variety of router configuration examples to help you get started with 
 
 These examples cover scenarios like configuring a four-port bridge with VLAN support, setting up a four-port switch, and configuring NAT for a two-port setup. You can access the detailed instructions and information in the respective configuration files.
 
-- [Four-Port Bridge with VLAN Configuration](doc/four_port_bridge_vlan_config.md): This example guides you through setting up a four-port bridge with VLAN support, allowing for network segmentation and efficient traffic management.
+- [Four-Port Bridge with VLAN Configuration](doc/cli/four_port_bridge_vlan_config.md): This example guides you through setting up a four-port bridge with VLAN support, allowing for network segmentation and efficient traffic management.
 
-- [Four-Port Switch Configuration](doc/four_port_switch_config.md): Learn how to configure a four-port switch, essential for creating a network with multiple connected devices.
+- [Four-Port Switch Configuration](doc/cli/four_port_switch_config.md): Learn how to configure a four-port switch, essential for creating a network with multiple connected devices.
 
-- [Two-Port NAT Configuration](doc/two_port_nat_config.md): Understand how to set up Network Address Translation (NAT) for a two-port router, enabling the translation of private IP addresses to public IP addresses.
+- [Two-Port NAT Configuration](doc/cli/two_port_nat_config.md): Understand how to set up Network Address Translation (NAT) for a two-port router, enabling the translation of private IP addresses to public IP addresses.
 
 These configuration examples serve as practical guides to help you implement specific networking setups with RouterShell. You can refer to the linked documentation files for step-by-step instructions and detailed explanations.
 
