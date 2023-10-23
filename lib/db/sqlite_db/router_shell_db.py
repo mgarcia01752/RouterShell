@@ -1737,10 +1737,9 @@ class RouterShellDB:
             self.log.error(f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {if_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
 
-
-    def insert_interface_static_arp(self, if_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
+    def update_interface_static_arp(self, if_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
         """
-        Insert a new record into the 'InterfaceStaticArp' table.
+        Create a default entry in the 'InterfaceStaticArp' table if it does not already exist, or update it if it exists.
 
         Args:
             if_name (str): The name of the interface to associate the static ARP record with.
@@ -1749,27 +1748,44 @@ class RouterShellDB:
             encapsulation (str): The encapsulation type, e.g., 'arpa' or 'TBD'.
 
         Returns:
-            Result: A Result object with the status of the insertion.
+            Result: A Result object with the status of the operation.
         """
-        existing_result = self.interface_exists(if_name)
-
-        if not existing_result.status:
-            return Result(STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
-
+        self.log.debug(f"update_interface_static_arp() If: {if_name} , IP: {ip_address} , mac: {mac_address} , encap: {encapsulation}")
         try:
-            interface_id = existing_result.row_id
+            # Check if the interface exists and get its ID
+            interface_exists_result = self.interface_exists(if_name)
+            if not interface_exists_result.status:
+                return Result(STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO InterfaceStaticArp (Interface_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
-                (interface_id, ip_address, mac_address, encapsulation)
+                "SELECT ID FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
+                (interface_exists_result.row_id, ip_address)
             )
-            self.connection.commit()
-            static_arp_id = cursor.lastrowid  # Get the ID of the newly inserted record
-            self.log.debug(f"Static ARP record added for interface: {if_name}")
-            return Result(STATUS_OK, row_id=static_arp_id)
+            existing_entry = cursor.fetchone()
+
+            if existing_entry:
+                self.log.debug(f"update_interface_static_arp() -> Entry Exist, Updating IP: {ip_address} -> Mac: {mac_address}")
+                cursor.execute(
+                    "UPDATE InterfaceStaticArp SET MacAddress = ?, Encapsulation = ? WHERE ID = ?",
+                    (mac_address, encapsulation, existing_entry[0])
+                )
+                self.connection.commit()
+                self.log.debug(f"Static ARP entry updated for interface: {if_name}")
+            else:
+                self.log.debug(f"update_interface_static_arp() -> Entry NOT Found, inserting IP: {ip_address} -> Mac: {mac_address}")
+                cursor.execute(
+                    "INSERT INTO InterfaceStaticArp (Interface_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
+                    (interface_exists_result.row_id, ip_address, mac_address, encapsulation)
+                )
+                self.connection.commit()
+                self.log.debug(f"Static ARP entry added for interface: {if_name}")
+
+            return Result(STATUS_OK, row_id=existing_entry[0] if existing_entry else cursor.lastrowid)
+
         except sqlite3.Error as e:
-            self.log.error(f"Error inserting static ARP record for interface {if_name}: {e}")
-            return Result(STATUS_NOK, row_id=interface_id, result=str(e))
+            self.log.error(f"Error creating or updating static ARP entry for interface {if_name}: {e}")
+            return Result(STATUS_NOK, row_id=0, result=str(e))
 
     def delete_interface_static_arp(self, if_name: str, ip_address: str) -> Result:
         """
@@ -1782,6 +1798,8 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the deletion.
         """
+        self.log.debug(f"delete_interface_static_arp() If: {if_name} , IP: {ip_address}")
+        
         existing_result = self.interface_exists(if_name)
 
         if not existing_result.status:
@@ -1789,13 +1807,22 @@ class RouterShellDB:
 
         try:
             interface_id = existing_result.row_id
+            
+            cursor = self.connection.cursor()
+            
+            self.log.debug(f"delete_interface_static_arp() Deleting Row -> Interface-FK: {if_name} , IP: {ip_address}")
+  
             cursor.execute(
                 "DELETE FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )
+            
             self.connection.commit()
+            
             self.log.debug(f"Static ARP record deleted for interface: {if_name}")
+            
             return Result(STATUS_OK, row_id=interface_id)
+        
         except sqlite3.Error as e:
             self.log.error(f"Error deleting static ARP record for interface {if_name}: {e}")
             return Result(STATUS_NOK, row_id=interface_id, result=str(e))

@@ -349,31 +349,38 @@ class InterfaceConfig(cmd2.Cmd,
             
             ipv4_addr_arp = args.ipv4_addr_arp
             mac_addr_arp = args.mac_addr_arp
-            nat_direction = args.nat_direction_pool
             encap_arp = Encapsulate.ARPA         
                     
-            self.log.debug(f"Set static-arp on Interface {self.ifName}")
+            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}")
             
             if negate:
+                
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
-                                     self.ifName, encap_arp, add_arp_entry=False)
-                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
+                                     self.ifName, encap_arp, 
+                                     add_arp_entry=False)
+                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp.value, negate=True)
                 IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
+                
+                self.log.debug(f"Set static-arp on Interface {self.ifName} -> Add ARP Entry: {True}")
+                
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
-                                     self.ifName, encap_arp, add_arp_entry=True)
-                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, not negate)
+                                     self.ifName, encap_arp, 
+                                     add_arp_entry=True)
+                
+                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, str(encap_arp.value), negate=False)
+                
                 IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
         elif args.subcommand == "nat":
             '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
             pool_name = args.pool_name
             
-            self.log.info(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction} -> Pool: {pool_name}")
+            self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction} -> Pool: {pool_name}")
 
             if nat_direction == NATDirection.INSIDE.value:
-                self.log.info("Configuring NAT for the inside interface")
+                self.log.debug("Configuring NAT for the inside interface")
                 
                 if Nat().create_inside_nat(pool_name, self.ifName, negate):
                     self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
@@ -386,7 +393,7 @@ class InterfaceConfig(cmd2.Cmd,
                     IFCDB().add_line_to_interface(f"ip {args.subcommand} {nat_direction} pool {pool_name}")
                   
             elif nat_direction == NATDirection.OUTSIDE.value:
-                self.log.info("Configuring NAT for the outside interface")
+                self.log.debug("Configuring NAT for the outside interface")
                 
                 if Nat().create_outside_nat(pool_name, self.ifName, negate):
                     self.log.error(f"Unable to set OUTSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")

@@ -14,9 +14,9 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL
     '''
     
-    GLOBAL_DEBUG = True
+    GLOBAL_DEBUG = False
 
-    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -31,8 +31,8 @@ class RouterShellLoggingGlobalSettings():
     DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -58,7 +58,7 @@ class RouterShellLoggingGlobalSettings():
     
 class Cmd2GlobalSettings():
     
-    DEBUG_GLOBAL = True
+    DEBUG_GLOBAL = False
     
     DEBUG_ROUTER_SHELL_DB   = DEBUG_GLOBAL or True
     
