@@ -1577,12 +1577,11 @@ class RouterShellDB:
                     (status, interface_id)
                 )
             else:
-                # If no entry exists, add a new row and associate it with the interface
                 cursor.execute(
                     "INSERT INTO InterfaceSubOptions (Interface_FK, ProxyArp) VALUES (?, ?)",
                     (interface_id, status)
                 )
-                interface_id = cursor.lastrowid  # Get the ID of the newly inserted row
+                interface_id = cursor.lastrowid
 
             self.connection.commit()
             self.log.debug(f"Proxy ARP setting updated for interface: {if_name}")

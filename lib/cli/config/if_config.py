@@ -319,11 +319,11 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"Set proxy-arp on Interface {self.ifName}")
             if negate:
                 Arp().set_proxy_arp(self.ifName, not negate)
-                IFCDB.update_proxy_arp(self.ifName, True)
+                IFCDB().update_proxy_arp(self.ifName, True)
                 IFCDB().add_line_to_interface(f"no {args.subcommand}") 
             else:
                 Arp().set_proxy_arp(self.ifName, negate)
-                IFCDB.update_proxy_arp(self.ifName, False)
+                IFCDB().update_proxy_arp(self.ifName, False)
                 IFCDB().add_line_to_interface(f"{args.subcommand}")
                 
         elif args.subcommand == "drop-gratuitous-arp":

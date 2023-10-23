@@ -1,12 +1,13 @@
 from enum import Enum
-import ipaddress
 import logging
 
 from tabulate import tabulate 
 from lib.network_manager.mac import MacServiceLayer
 from lib.network_manager.inet import InetServiceLayer
 from lib.network_manager.sysctl import SysCtl
+
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class Encapsulate(Enum):
     ARPA = 'arpa'
@@ -23,6 +24,7 @@ class Arp(MacServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().ARP)
 
     def arp_clear(self, ifName:str=None):
         """
@@ -123,33 +125,42 @@ class Arp(MacServiceLayer):
         arp_ignore_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_ignore"
         return SysCtl().write_sysctl(arp_ignore_file, str(value))
 
-    def set_arp_notify(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_arp_notify(self, ifName: str = "all", enable: bool = True) -> bool:
         """
         Enable or disable ARP notifications for a specific network interface.
 
-        :param ifName: The name of the network interface. Default is 'all' to apply to all interfaces.
-        :param enable: True to enable ARP notifications, False to disable them.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        Args:
+            ifName (str): The name of the network interface. Default is 'all' to apply to all interfaces.
+            enable (bool): True to enable ARP notifications, False to disable them.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
         """
         arp_notify_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_notify"
         value = "1" if enable else "0"
         
         return SysCtl().write_sysctl(arp_notify_file, value)
 
-    def set_drop_gratuitous_arp(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_drop_gratuitous_arp(self, ifName: str = "all", enable: bool = True) -> bool:
         """
         Enable or disable the dropping of gratuitous ARP packets for a specific network interface.
 
-        :param ifName: The name of the network interface. Default is 'all' to apply to all interfaces.
-        :param enable: True to enable dropping of gratuitous ARP packets, False to disable it.
-        :return: True if the operation was successful, False otherwise.
+        Args:
+            ifName (str): The name of the network interface. Default is 'all' to apply to all interfaces.
+            enable (bool): True to enable dropping of gratuitous ARP packets, False to disable it.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
         """
+
         value = "1" if enable else "0"
         arp_file = f"/proc/sys/net/ipv4/conf/{ifName}/drop_gratuitous_arp"
         
         command = ["sh", "-c", f"echo {value} > {arp_file}"]
         
         results = self.run(command)
+        
+        self.log.debug(f"set_drop_gratuitous_arp(ifname: {ifName} -> enable: {enable}) -> Cmd: {command}")
         
         if results.exit_code:
             self.log.error(f"Failed to set gratuitous ARP to {value} due to {results.stderr}")
@@ -158,21 +169,26 @@ class Arp(MacServiceLayer):
             self.log.debug(f"Set gratuitous ARP to {value}")
             return STATUS_OK
 
-    def set_proxy_arp(self, ifName: str='all', enable: bool=True) -> bool:
+    def set_proxy_arp(self, ifName: str = 'all', enable: bool = True) -> bool:
         """
         Enable or disable proxy ARP for a specific network interface.
 
-        :param ifName: The name of the network interface. Default is 'all' to apply to all interfaces.
-        :param enable: True to enable proxy ARP, False to disable it.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
-        """
-        
+        Args:
+            ifName (str): The name of the network interface. Default is 'all' to apply to all interfaces.
+            enable (bool): True to enable proxy ARP, False to disable it.
+
+        Returns:
+            bool: True for success (STATUS_OK), False for failure (STATUS_NOK).
+        """       
         value = "1" if enable else "0"
+        
         arp_file = f"/proc/sys/net/ipv4/conf/{ifName}/proxy_arp"
         
         command = ["sh", "-c", f"echo {value} > {arp_file}"]
-        
+
         results = self.run(command)
+        
+        self.log.debug(f"set_proxy_arp(ifname: {ifName} -> enable: {enable}) -> Cmd: {command}")
         
         if results.exit_code:
             self.log.error(f"Failed to set proxy ARP to {value} due to {results.stderr}")
@@ -185,13 +201,19 @@ class Arp(MacServiceLayer):
         """
         Enable or disable proxy ARP for Private VLAN (PVLAN) on a specific network interface.
 
-        :param ifName: The name of the network interface.
-        :param enable: True to enable proxy ARP for PVLAN, False to disable it.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        Args:
+            ifName (str): The name of the network interface.
+            enable (bool): True to enable proxy ARP for PVLAN, False to disable it.
+
+        Returns:
+            bool: STATUS_OK for success, STATUS_NOK for failure.
         """
+
         proxy_arp_pvlan_file = f"/proc/sys/net/ipv4/conf/{ifName}/proxy_arp_pvlan"
         value = "1" if enable else "0"
         
+        self.log.debug(f"set_proxy_arp(ifname: {ifName}) -> File: {proxy_arp_pvlan_file} -> enable: {enable}")
+                
         return SysCtl().write_sysctl(proxy_arp_pvlan_file, value)
 
     def set_static_arp(self, inet:str, mac_address:str, ifName:str,
@@ -238,7 +260,7 @@ class Arp(MacServiceLayer):
             self.log.error(f"Unable to set static arp entry {inet} -> {mac_address} : {results.stderr}")
             return STATUS_NOK
         
-        self.log.debug(f"Set static arp entry {inet} -> {mac_address}")
+        self.log.debug(f"set_static_arp(ifName: {ifName}) -> inet: {inet} -> mac: {mac_address}")
         return STATUS_OK
             
     def get_arp(self, args=None):
