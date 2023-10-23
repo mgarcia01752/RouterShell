@@ -315,13 +315,13 @@ class InterfaceConfig(cmd2.Cmd,
                 IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address}/{cidr}")
  
         elif args.subcommand == "proxy-arp":
-            
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
             
             if negate:
-                self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> enable: {negate}")
+                disable = not negate
+                self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> disable: {negate}")
                 Arp().set_proxy_arp(self.ifName, negate)
-                IFCDB().update_proxy_arp(self.ifName, negate)
+                IFCDB().update_proxy_arp(self.ifName, disable)
                 IFCDB().add_line_to_interface(f"no {args.subcommand}") 
             else:
                 enable_proxy_arp = not negate
@@ -334,8 +334,9 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
             
             if negate:
+                disable = not negate
                 Arp().set_drop_gratuitous_arp(self.ifName, negate)
-                IFCDB().update_drop_gratuitous_arp(self.ifName, negate)
+                IFCDB().update_drop_gratuitous_arp(self.ifName, disable)
                 IFCDB().add_line_to_interface(f"no {args.subcommand}")
             else:
                 enable_drop_grat_arp = not negate
