@@ -230,8 +230,8 @@ class InterfaceConfig(cmd2.Cmd,
         address_cidr_parser.add_argument("ipv4_address_cidr",
                                 help="IPv4 address/subnet to configure.")
         
-        address_cidr_parser.add_argument("secondary", action="store_true", 
-                                         help="Indicate that this is a secondary IP address.")
+        address_cidr_parser.add_argument("secondary", nargs="?", const=True, default=False, 
+            help="Indicate that this is a secondary IP address.")
 
         subparsers.add_parser("proxy-arp",
             help="Set proxy-arp on the interface 'ip proxy-arp')."
@@ -282,8 +282,10 @@ class InterfaceConfig(cmd2.Cmd,
         if args.subcommand == "address":
             ipv4_address_cidr = args.ipv4_address_cidr
             is_secondary = args.secondary
+            
+            is_secondary = True if is_secondary else False
 
-            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Static'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
             if '/' in ipv4_address_cidr:
                 ipv4_address, cidr = ipv4_address_cidr.split('/')
