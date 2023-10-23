@@ -1694,45 +1694,49 @@ class RouterShellDB:
             self.log.error(f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {if_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
 
-
-
-
     def update_interface_drop_gratuitous_arp(self, if_name: str, status: bool) -> Result:
         """
-        Update the setting to drop Gratuitous ARP packets for an interface in the 'InterfaceSubOptions' table.
+        Update the 'Drop Gratuitous ARP' setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
             if_name (str): The name of the interface to update.
-            status (bool): True to enable dropping Gratuitous ARP, False to disable it.
+            status (bool): True to enable 'Drop Gratuitous ARP,' False to disable it.
 
         Returns:
             Result: A Result object with the status of the update.
+                    'status' : STATUS_OK if successful, STATUS_NOK otherwise
+                    'row_id' : If exists, row_id > 0
+                    'result' : Result of SQL query
         """
-        existing_result = self.interface_exists(if_name)
-
+        
+        # Check if the interface exists
+        if_exists = self.interface_exists(if_name)
+        
+        if not if_exists.status:
+            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=if_exists.result)
+        
+        # Check if the sub-option row exists
+        if_sub_opt = self.interface_and_sub_option_exist(if_name)
+        
+        if not if_sub_opt.status:
+            # If the sub-option row doesn't exist, insert a default row
+            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(if_name)
+        
         try:
-            interface_id = existing_result.row_id
-            if existing_result.status:
-                
-                cursor = self.connection.cursor()
-                cursor.execute(
-                    "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interface_FK = ?",
-                    (status, interface_id)
-                )
-            else:
-                # If no entry exists, add a new row and associate it with the interface
-                cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, DropGratuitousArp) VALUES (?, ?)",
-                    (interface_id, status)
-                )
-                interface_id = cursor.lastrowid  # Get the ID of the newly inserted row
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interface_FK = ?",
+                (status, if_exists.row_id)
+            )
 
             self.connection.commit()
-            self.log.debug(f"Drop Gratuitous ARP setting updated for interface: {if_name}")
-            return Result(STATUS_OK, row_id=interface_id)
+            self.log.debug(f"update_interface_drop_gratuitous_arp() -> 'Drop Gratuitous ARP' setting updated for interface: {if_name}")
+            return Result(STATUS_OK, row_id=if_sub_opt.row_id)
+
         except sqlite3.Error as e:
-            self.log.error(f"Error updating Drop Gratuitous ARP setting for interface {if_name}: {e}")
-            return Result(STATUS_NOK, row_id=interface_id, result=str(e))
+            self.log.error(f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {if_name}: {e}")
+            return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
+
 
     def insert_interface_static_arp(self, if_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
         """

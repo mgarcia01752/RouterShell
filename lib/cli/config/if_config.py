@@ -332,13 +332,15 @@ class InterfaceConfig(cmd2.Cmd,
                 
         elif args.subcommand == "drop-gratuitous-arp":
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
+            
             if negate:
-                Arp().set_drop_gratuitous_arp(self.ifName, not negate)
-                IFCDB().update_drop_gratuitous_arp(self.ifName, True)
+                Arp().set_drop_gratuitous_arp(self.ifName, negate)
+                IFCDB().update_drop_gratuitous_arp(self.ifName, negate)
                 IFCDB().add_line_to_interface(f"no {args.subcommand}")
             else:
-                Arp().set_drop_gratuitous_arp(self.ifName, negate)
-                IFCDB().update_drop_gratuitous_arp(self.ifName, False)
+                enable_drop_grat_arp = not negate
+                Arp().set_drop_gratuitous_arp(self.ifName, enable_drop_grat_arp)
+                IFCDB().update_drop_gratuitous_arp(self.ifName, enable_drop_grat_arp)
                 IFCDB().add_line_to_interface(f"{args.subcommand}")
 
         elif args.subcommand == "static-arp":
