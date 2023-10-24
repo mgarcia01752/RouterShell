@@ -15,7 +15,7 @@ from lib.network_manager.bridge import Bridge
 from lib.cli.common.router_prompt import RouterPrompt
 from lib.common.constants import *
 
-from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 
 class InvalidConfigureMode(Exception):

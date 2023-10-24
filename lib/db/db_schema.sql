@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT DEFAULT -1,
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
-    Duplex VARCHAR(4) DEFAULT 'auto',                  -- Duplex [half | full | auto]
-    Speed VARCHAR(5) DEFAULT 'auto',      -- Speed [10 | 100 | 1000 | 10000 | auto]
+    Duplex VARCHAR(4) DEFAULT 'auto',   -- Duplex [half | full | auto]
+    Speed VARCHAR(5) DEFAULT 'auto',    -- Speed [10 | 100 | 1000 | 10000 | auto]
     ProxyArp BOOLEAN,
     DropGratuitousArp BOOLEAN,
     CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
@@ -151,4 +151,33 @@ CREATE TABLE IF NOT EXISTS Options (
     CONSTRAINT FK_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(ID),
     CONSTRAINT FK_Options_DHCP FOREIGN KEY (DHCP_FK) REFERENCES DHCP(ID),
     CONSTRAINT FK_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(ID)
+);
+
+DROP TABLE IF EXISTS FireWallPolicies;
+CREATE TABLE IF NOT EXISTS FireWallPolicies (
+    ID INTEGER PRIMARY KEY,
+    Description VARCHAR(255)                -- Description of the policy
+);
+
+DROP TABLE IF EXISTS FWDirectionInterfaces;
+CREATE TABLE IF NOT EXISTS FWDirectionInterfaces (
+    ID INTEGER PRIMARY KEY,
+    FirewallPolicy_FK INT,                  -- Foreign key to link with FirewallPolicies
+    Interface_FK INT,
+    Direction VARCHAR(8),                   -- Direction (inbound or outbound)
+    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FireWallPolicy_FK) REFERENCES FireWallPolicies(ID)
+);
+
+DROP TABLE IF EXISTS FirewallRules;
+CREATE TABLE IF NOT EXISTS FirewallRules (
+    ID INTEGER PRIMARY KEY,
+    Description VARCHAR(255),               -- Description of the rule
+    FireWallPolicy_FK INT,                  -- Foreign key to link with FirewallPolicies
+    SourceIP VARCHAR(45),                   -- Source IP or network
+    SourcePort INT,                         -- Source port (optional)
+    DestinationIP VARCHAR(45),              -- Destination IP or network
+    DestinationPort INT,                    -- Destination port (optional)
+    Protocol VARCHAR(10),                   -- Protocol (e.g., TCP, UDP, ICMP, any)
+    Action VARCHAR(10),                     -- Action (allow, deny)
+    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FireWallPolicy_FK) REFERENCES FireWallPolicies(ID)
 );

@@ -10,7 +10,7 @@ from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class BridgeProtocol(Enum):
     

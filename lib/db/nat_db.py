@@ -4,7 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.nat import *
 
 
@@ -132,6 +132,27 @@ class NatDB:
             cls.log.error(f"An error occurred while retrieving global NAT pool names: {e}")
             return []
 
+    def is_interface_direction_in_nat_pool(cls, nat_pool_name: str, interface_name: str, direction: str) -> Result:
+        """
+        Check if the specified interface is associated with the given NAT pool and direction.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool to check.
+            interface_name (str): The name of the interface to check.
+            direction (str): The direction to check (inside or outside).
+
+        Returns:
+            Result: A Result object with the following fields:
+                    - status (bool): True if the interface is found in the specified NAT pool and direction, False otherwise.
+                    - row_id (int): The row ID of the found entry, or 0 if not found.
+
+        Raises:
+            sqlite3.Error: If there is an error with the database query.
+
+        """
+        return cls.rsdb.get_nat_interface_direction_list(nat_pool_name, interface_name, direction)
+
+        
     def add_inside_interface(cls, pool_name: str, interface_name: str) -> bool:
         """
         Add an inside interface to a NAT pool configuration.
@@ -145,7 +166,7 @@ class NatDB:
         """
         try:
             # Check if the NAT pool exists
-            if not cls.rsdb.pool_name_exists(pool_name):
+            if not cls.rsdb.global_nat_pool_name_exists(pool_name):
                 cls.log.error(f"Global NAT pool '{pool_name}' does not exist.")
                 return False
 

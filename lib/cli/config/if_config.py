@@ -17,7 +17,7 @@ from lib.db.interface_db import InterfaceConfigDB as IFCDB
 from lib.common.constants import *
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class InvalidInterface(Exception):
     def __init__(self, message):

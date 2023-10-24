@@ -8,7 +8,7 @@ from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class NATDirection(Enum):
     """
@@ -166,13 +166,11 @@ class Nat(InetServiceLayer):
         
         create_destroy = '-D' if negate else '-A'
 
-        # Check if the NAT pool exists
-        nat_pool = NatDB().get_pool(nat_pool_name)
+        nat_pool = NatDB().pool_name_exists(nat_pool_name)
         if not nat_pool:
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
 
-        # Check if there are inside interfaces associated with the NAT pool
         if not negate and nat_pool.inside_interfaces:
             self.log.error(f"Cannot create outside NAT rule for NAT pool {nat_pool_name} "
                             "with active inside interfaces. Delete inside interfaces first.")
@@ -198,13 +196,13 @@ class Nat(InetServiceLayer):
             self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} outside NAT rule: {e}")
             return STATUS_NOK
 
-    def create_inside_nat(self, nat_pool_name: str, inside_ifName: str, negate: bool = False) -> bool:
+    def create_inside_nat(self, nat_pool_name: str, ifName_inside: str, negate: bool = False) -> bool:
         """
         Create or destroy inside NAT (Source NAT) rule.
 
         Args:
             nat_pool_name (str): Name of the NAT pool.
-            inside_ifName (str): Name of the internal interface.
+            ifName_inside (str): Name of the internal interface.
             negate (bool, optional): True to destroy the NAT rule, False to create it. Defaults to False.
 
         Returns:
@@ -213,22 +211,27 @@ class Nat(InetServiceLayer):
         create_destroy = '-D' if negate else '-A'
 
         # Check if the NAT pool exists
-        nat_pool = NatDB().get_pool(nat_pool_name)
+        nat_pool = NatDB().pool_name_exists(nat_pool_name)
         if not nat_pool:
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
 
         # Check if the inside interface is part of the NAT pool
-        if inside_ifName not in nat_pool.inside_interfaces:
-            self.log.info(f"Inside interface {inside_ifName} is not part of NAT pool {nat_pool_name}")
+        if ifName_inside not in NatDB().is_interface_direction_in_nat_pool(nat_pool_name, 
+                                                                           ifName_inside,
+                                                                           NATDirection.INSIDE.value):
+            self.log.info(f"Interface {ifName_inside} is not part of {NATDirection.INSIDE.value} NAT pool {nat_pool_name}")
 
         # Check if an outside interface is defined in the NAT pool
-        outside_nat_ifName = NatDB().get_outside_interface(nat_pool_name)
-        if not outside_nat_ifName:
+        outside_nat_ifName = NatDB().is_interface_direction_in_nat_pool(nat_pool_name, 
+                                                                        ifName_inside,
+                                                                        NATDirection.OUTSIDE.value)
+            
+        if not outside_nat_ifName.status:
             self.log.error(f"Define an outside interface before creating inside NAT rules for poll: {nat_pool}.")
             return STATUS_NOK
 
-        if outside_nat_ifName == inside_ifName:
+        if outside_nat_ifName == ifName_inside:
             self.log.error(f"Outside interface and inside interface cannot be the same in NAT pool {nat_pool_name}.")
             return STATUS_NOK
 
@@ -240,7 +243,7 @@ class Nat(InetServiceLayer):
             return STATUS_NOK
         
         try:
-            command = f'iptables -t nat {create_destroy} PREROUTING -i {inside_ifName} -j DNAT --to-destination {outside_nat_ip_addr[0]}'
+            command = f'iptables -t nat {create_destroy} PREROUTING -i {ifName_inside} -j DNAT --to-destination {outside_nat_ip_addr[0]}'
             result = self.run(command.split())
             
             if result.exit_code:
@@ -248,9 +251,9 @@ class Nat(InetServiceLayer):
                 return STATUS_NOK
 
             if negate:
-                NatDB().delete_inside_interface(nat_pool_name, inside_ifName)
+                NatDB().delete_inside_interface(nat_pool_name, ifName_inside)
             else:
-                NatDB().add_inside_interface(nat_pool_name, inside_ifName)
+                NatDB().add_inside_interface(nat_pool_name, ifName_inside)
 
             return STATUS_OK
         

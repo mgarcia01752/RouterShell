@@ -7,7 +7,7 @@ from lib.network_manager.common.inet import InetServiceLayer
 from lib.network_manager.common.sysctl import SysCtl
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class Encapsulate(Enum):
     ARPA = 'arpa'

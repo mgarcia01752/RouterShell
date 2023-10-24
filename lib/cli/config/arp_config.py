@@ -6,6 +6,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.arp import Arp
+from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import *
 
 class InvalidArpConfig(Exception):
@@ -22,8 +23,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
         Arp.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
-        
-        """START"""
+        self.log.setLevel(RSLGS().ARP)
         
         self.log.debug(f"__init__ -> (negate={negate}) -> arg -> {arg}")
         self.arg = arg 
