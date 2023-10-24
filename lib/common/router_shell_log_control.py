@@ -15,7 +15,7 @@ class RouterShellLoggingGlobalSettings():
     
     GLOBAL_DEBUG = False
 
-    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -23,7 +23,7 @@ class RouterShellLoggingGlobalSettings():
     CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
       
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -236,10 +236,11 @@ class Interface(NetworkManager):
         
         return STATUS_OK
     
-    def set_if_speed(self, args):
+    def set_if_speed(self, ifName: str, speed: Speed) -> bool:
         '''
-        Set the speed of a network interface.
-        Usage: speed <10 | 100 | 1000 | 10000 | auto>
+        Set the speed of a network interface via os.
+        Update speed via db
+    
         '''
         if not args:
             print("Usage: speed <10 | 100 | 1000 | 10000 | auto>")
