@@ -5,8 +5,8 @@ import os
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
 
-from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 class Result:
     """
     Represents the result of an operation in the database.

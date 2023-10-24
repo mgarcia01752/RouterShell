@@ -7,8 +7,8 @@ from lib.db.nat_db import NatDB
 from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
-from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class NATDirection(Enum):
     """

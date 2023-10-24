@@ -4,7 +4,7 @@ import logging
 import argparse
 
 from lib.cli.base.global_operation import GlobalUserCommand
-from lib.common.router_prompt import RouterPrompt
+from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.network_manager.arp import Arp
 from lib.common.constants import *
