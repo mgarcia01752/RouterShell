@@ -9,9 +9,9 @@ import cmd2
 from lib.db.dhcp_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
-from lib.common.router_prompt import RouterPrompt
+from lib.cli.common.router_prompt import RouterPrompt
 
-from lib.common.cmd2_global import Cmd2GlobalSettings as cgs
+from lib.cli.common.cmd2_global import Cmd2GlobalSettings as cgs
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 

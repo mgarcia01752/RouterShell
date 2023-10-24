@@ -5,7 +5,7 @@ import logging
 import cmd2
 
 from lib.cli.base.clear_commands import ClearMode
-from lib.common.router_prompt import RouterPrompt
+from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show.show_operation import ShowMode

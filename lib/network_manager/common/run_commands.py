@@ -4,8 +4,8 @@ import logging
 import datetime
 from typing import List, NamedTuple
 
-from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class RunResult(NamedTuple):
     """

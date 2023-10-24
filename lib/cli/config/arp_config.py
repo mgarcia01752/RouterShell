@@ -4,7 +4,7 @@ import logging
 
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.network_manager.common.mac import MacServiceLayer
-from lib.common.router_prompt import RouterPrompt, ExecMode
+from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.arp import Arp
 from lib.common.constants import *
 

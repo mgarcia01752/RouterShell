@@ -3,7 +3,7 @@ import logging
 import argparse
 
 from lib.cli.base.global_operation import GlobalUserCommand
-from lib.common.router_prompt import ExecMode, RouterPrompt
+from lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from lib.common.constants import *
 
 class InvalidSubCommand(Exception):

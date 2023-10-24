@@ -3,10 +3,10 @@ import cmd2
 
 from tabulate import tabulate
 from lib.cli.base.global_operation import GlobalUserCommand
-from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
-from lib.common.router_prompt import ExecMode, RouterPrompt
+from lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.network_manager import InterfaceType
 from lib.network_manager.common.phy import State
 from lib.common.constants import *

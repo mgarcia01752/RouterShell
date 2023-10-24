@@ -2,7 +2,7 @@ import logging
 import cmd2
 from lib.cli.base.exec_priv_mode import ExecMode
 
-from lib.common.router_prompt import RouterPrompt
+from lib.cli.common.router_prompt import RouterPrompt
 
 
 class RunShow(cmd2.Cmd, RouterPrompt):

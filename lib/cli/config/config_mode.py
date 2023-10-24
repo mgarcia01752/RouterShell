@@ -12,11 +12,11 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.network_manager.interface import Interface
 from lib.network_manager.bridge import Bridge
-from lib.common.router_prompt import RouterPrompt
+from lib.cli.common.router_prompt import RouterPrompt
 from lib.common.constants import *
 
-from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 
 class InvalidConfigureMode(Exception):
     def __init__(self, message):

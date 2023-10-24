@@ -8,7 +8,7 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.arp import Arp, Encapsulate
 
 from lib.cli.base.global_operation import GlobalUserCommand
-from lib.common.router_prompt import RouterPrompt, ExecMode
+from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection, Nat
 
@@ -16,8 +16,8 @@ from lib.db.interface_db import InterfaceConfigDB as IFCDB
 
 from lib.common.constants import *
 
-from lib.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.cli.common.cmd2_global import  RouterShellLoggingGlobalSettings as RSLGS
 
 class InvalidInterface(Exception):
     def __init__(self, message):
