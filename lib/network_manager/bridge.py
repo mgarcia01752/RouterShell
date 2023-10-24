@@ -204,9 +204,11 @@ class Bridge(MacServiceLayer):
 
         return ""     
 
-    def del_interface_cmd(self, interface_name: str, bridge_name:str) -> bool:
+    def del_bridge_from_interface(self, interface_name: str, bridge_name:str) -> bool:
         """
-        Delete an interface from a bridge.
+        Delete bridge from interface via os
+        Delete bridge from interface bridge-group via db
+        
         This is applied at the interface level
 
         Args:
@@ -217,21 +219,38 @@ class Bridge(MacServiceLayer):
             bool: True if the interface is added to the bridge successfully (STATUS_NOK), False otherwise (STATUS_OK).
         """
         if not (bridge_name and self.does_bridge_exist_os(bridge_name)):
-            self.log.error(f"Bridge does not exist: {bridge_name}")
+            self.log.error(f"del_bridge_from_interface() -> Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         
         if not interface_name:
-            self.log.error(f"del_interface_cmd()-> No Interface provided")
+            self.log.fatal(f"del_bridge_from_interface()-> No Interface provided")
             return STATUS_NOK
 
-        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'nomaster'])
+        if self._del_bridge_from_interface_bridge_group(bridge_name):
+            self.log.error(f"del_bridge_from_interface()-> Interface {interface_name} unable to delete from bridge {bridge_name}.")
+            return STATUS_NOK
+        
+        if self.bridgeDB.update_interface_bridge_group(interface_name, bridge_name, True):
+            self.log.error(f"del_bridge_from_interface90 -> Unable to delete bridge: {bridge_name} from interface: {interface_name} bridge-group via db")
+            return STATUS_NOK
+        
+        return STATUS_OK
 
+    def _del_bridge_from_interface_bridge_group(self, bridge_name: str) -> bool:
+        """
+        Set an interface to have no master.
+
+        Args:
+            bridge_name (str): The name of the bridge to set to have no master.
+
+        Returns:
+            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
+        """
+        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'nomaster'])
         if result.exit_code:
-            self.log.error(f"del_interface_cmd()-> Interface {interface_name} unable to delete from bridge {bridge_name}.")
+            self.log.warning(f"Failed to set {bridge_name} to have no master - exit-code: {result.exit_code}")
             return STATUS_NOK
-        
-        self.log.debug(f"del_interface_cmd(exit-code: ({result.exit_code}))-> Interface {interface_name} deleted from bridge {bridge_name}.")
-        
+
         return STATUS_OK
 
     def add_interface_cmd(self, interface_name: str, bridge_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
@@ -451,3 +470,5 @@ class Bridge(MacServiceLayer):
         # Display the information in a tabulated format
         headers = ["Bridge", "Mac", "IPv4", "IPv6", "State", "Interfaces"]
         print(tabulate(bridge_info, headers, tablefmt="simple"))
+        
+        

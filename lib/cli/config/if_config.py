@@ -495,7 +495,7 @@ class InterfaceConfig(cmd2.Cmd,
                 IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
                 IFCDB().add_line_to_interface(f"bridge group {self.ifName} {bridge_name}")
             else:
-                Bridge().del_interface_cmd(self.ifName)
+                Bridge().del_bridge_from_interface(self.ifName)
                 IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
                 IFCDB().add_line_to_interface(f"no bridge group {self.ifName} {bridge_name}")
         
@@ -511,7 +511,7 @@ class InterfaceConfig(cmd2.Cmd,
             - This method logs debugging information with the provided arguments.
 
         Suboptions:
-            - group <id>: Set the bridge group identifier.
+            - group <bridge name>: Set the bridge group identifier.
             - <suboption> --help: Get help for specific suboptions.
         """        
         self.log.debug(f"do_bridge() -> ARGS: ({args}) -> Negate: ({negate}))")
@@ -519,17 +519,16 @@ class InterfaceConfig(cmd2.Cmd,
         parser = argparse.ArgumentParser(
             description="Apply bridge to interface",
             epilog="Suboptions:\n"
-                "  group <id>                                   Set static IPv6 address.\n"
+                "  group <bridge name>                          Add bridge to interface bridge group\n"
                 "  <suboption> --help                           Get help for specific suboptions."
         )
          
         subparsers = parser.add_subparsers(dest="subcommand")
-        bridge_parser = subparsers.add_parser(
-            "group",
+        bridge_parser = subparsers.add_parser("group",
             help="Set the bridge group ID"
         )
         
-        bridge_parser.add_argument("bridge_group_id", help="Bridge Group")
+        bridge_parser.add_argument("br_grp_name", help="Bridge Group")
 
         try:
             if not isinstance(args, list):
@@ -540,15 +539,17 @@ class InterfaceConfig(cmd2.Cmd,
             return
 
         if args.subcommand == 'group':
+            bridge_name = args.br_grp_name
             if negate:
-                self.log.debug(f"do_bridge().group -> Deleting Bridge {args.bridge_group_id}")
-                IFCDB().update_bridge_group(self.ifName, args.bridge_group_id, negate)
-                Bridge().del_interface_cmd(self.ifName, args.bridge_group_id)
+                self.log.debug(f"do_bridge().group -> Deleting Bridge {bridge_name}")
+                IFCDB().update_bridge_group(self.ifName, args.bridge_name, negate)
+                
+                Bridge().del_bridge_from_interface(self.ifName, args.bridge_name)
             else:
-                self.log.debug(f"do_bridge().group -> Adding Bridge: {args.bridge_group_id} to Interface: {self.ifName}")
-                Bridge().add_interface_cmd(self.ifName, args.bridge_group_id)
-                IFCDB().update_bridge_group(self.ifName, args.bridge_group_id, negate)
-                IFCDB().add_line_to_interface(f"bridge {args.subcommand} {self.ifName}")
+                self.log.debug(f"do_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self.ifName}")
+                Bridge().add_interface_cmd(self.ifName, bridge_name)
+                IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
+                IFCDB().add_line_to_interface(f"bridge {args.subcommand}")
         
         return 
     
