@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS Options (
     CONSTRAINT FK_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(ID)
 );
 
-DROP TABLE IF EXISTS FireWallPolicies;
+DROP TABLE IF EXISTS FirewallPolicies;
 CREATE TABLE IF NOT EXISTS FireWallPolicies (
     ID INTEGER PRIMARY KEY,
     Description VARCHAR(255)                -- Description of the policy
@@ -165,19 +165,19 @@ CREATE TABLE IF NOT EXISTS FWDirectionInterfaces (
     FirewallPolicy_FK INT,                  -- Foreign key to link with FirewallPolicies
     Interface_FK INT,
     Direction VARCHAR(8),                   -- Direction (inbound or outbound)
-    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FireWallPolicy_FK) REFERENCES FireWallPolicies(ID)
+    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID)
 );
 
 DROP TABLE IF EXISTS FirewallRules;
 CREATE TABLE IF NOT EXISTS FirewallRules (
     ID INTEGER PRIMARY KEY,
     Description VARCHAR(255),               -- Description of the rule
-    FireWallPolicy_FK INT,                  -- Foreign key to link with FirewallPolicies
+    FirewallPolicy_FK INT,                  -- Foreign key to link with FirewallPolicies
     SourceIP VARCHAR(45),                   -- Source IP or network
     SourcePort INT,                         -- Source port (optional)
     DestinationIP VARCHAR(45),              -- Destination IP or network
     DestinationPort INT,                    -- Destination port (optional)
     Protocol VARCHAR(10),                   -- Protocol (e.g., TCP, UDP, ICMP, any)
     Action VARCHAR(10),                     -- Action (allow, deny)
-    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FireWallPolicy_FK) REFERENCES FireWallPolicies(ID)
+    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID)
 );

@@ -102,7 +102,7 @@ class RouterShellDB:
                         BRIDGE DATABASE
     '''
 
-    def bridge_exists(self, bridge_name) -> Result:
+    def bridge_exist_db(self, bridge_name) -> Result:
         """
         Check if a bridge with the given name exists in the 'Bridges' table.
 
@@ -112,7 +112,7 @@ class RouterShellDB:
         Returns:
             Result: An instance of Result with status True if the bridge exists, False otherwise.
         """
-        self.log.debug(f"bridge_exists() -> Bridge: {bridge_name}")
+        self.log.debug(f"bridge_exist_db() -> Bridge: {bridge_name}")
         
         try:
             cursor = self.connection.cursor()
@@ -780,8 +780,6 @@ class RouterShellDB:
             self.log.error(error_message)
             return Result(status=False, row_id=0, result=error_message)
 
-
-    
     '''
                         DHCP DATABASE
     '''
@@ -1900,7 +1898,7 @@ class RouterShellDB:
         if not interface_result.status:
             return Result(STATUS_NOK, result=f"Interface: {if_name} does not exist")
 
-        bridge_result = self.bridge_exists(bridge_name)
+        bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
             return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")
@@ -1939,7 +1937,7 @@ class RouterShellDB:
         if not interface_result.status:
             return Result(STATUS_NOK, result=f"Interface: {if_name} does not exist")
 
-        bridge_result = self.bridge_exists(bridge_name)
+        bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
             return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")

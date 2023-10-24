@@ -102,7 +102,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             InterfaceConfig(args[1], args[0]).cmdloop()
 
     def complete_bridge(self, text, line, begidx, endidx):
-        completions = Bridge().get_bridge_list()
+        completions = Bridge().get_bridge_list_os()
         return [comp for comp in completions if comp.startswith(text)]
 
     @cmd2.with_argument_list

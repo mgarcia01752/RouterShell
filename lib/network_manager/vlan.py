@@ -103,7 +103,7 @@ class Vlan(MacServiceLayer):
 
     def add_bridge_to_vlan(self, br_ifName:str, vlan_id:int) -> str:
         
-        if Bridge().does_bridge_exist(br_ifName):
+        if Bridge().does_bridge_exist_os(br_ifName):
             self.log.debug(f"Bridge does not exists: {br_ifName}")
             return STATUS_NOK
         

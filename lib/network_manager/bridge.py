@@ -9,7 +9,6 @@ from lib.network_manager.common.mac import MacServiceLayer
 from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class BridgeProtocol(Enum):
@@ -52,16 +51,14 @@ class Bridge(MacServiceLayer):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-
         self.log.setLevel(RSLGS().BRIDGE)
-        self.debug = CGS().DEBUG_BRIDGE
         
         self.bridgeDB = BridgeDatabase()
         self.arg = arg
         
-    def get_bridge_list(self) -> list:
+    def get_bridge_list_os(self) -> list:
         """
-        Get a list of bridge names using the 'ip' command.
+        Get a list of bridge names from OS
 
         Returns:
             List[str]: A list of bridge names.
@@ -77,7 +74,7 @@ class Bridge(MacServiceLayer):
 
     def add_bridge_global(self, bridge_name: str, bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, stp_status: bool=True) -> bool:
         """
-        Add a bridge using global commands and store its configuration in the database if it doesn't already exist.
+        Add a bridge using global commands and store in the database
 
         Args:bridge_exists
             bridge_name (str): The name of the bridge to add.
@@ -85,48 +82,51 @@ class Bridge(MacServiceLayer):
             stp_status (bool, optional): Whether to enable STP on the bridge (default is True).
 
         Returns:
-            bool: STATUS_OK if the bridge was added successfully, STATUS_NOK if there was an error.
+            bool: STATUS_OK if the bridge was added successfully, STATUS_NOK otherwise.
         """
         self.log.debug(f"add_bridge_global_cmd() - Bridge: {bridge_name} -> Protocol: {bridge_protocol.value} -> STP: {stp_status}")
 
         if not bridge_name:
-            self.log.error(f"No Bridge name provided")
+            self.log.fatal(f"No Bridge name provided")
             return STATUS_NOK
 
         # Check if the bridge already exists in the database
-        bridge_exist_in_db = self.bridgeDB.bridge_exists(bridge_name)
-
-        # Check if the bridge already exists in Linux system
-        bridge_exist_os = self.does_bridge_exist(bridge_name)
+        bridge_exist_db = self.bridgeDB.does_bridge_exists_db(bridge_name)
+        self.log.debug(f"add_bridge_global_cmd() - Bridge: {bridge_name} -> Exists in DB: {bridge_exist_db}")
         
-        if bridge_exist_os:
-            
-            self.log.debug(f"Bridge {bridge_name} already exists in the Linux system.")
+        # Check if the bridge already exists in Linux system
+        bridge_exist_os = self.does_bridge_exist_os(bridge_name)
+        self.log.debug(f"add_bridge_global_cmd() - Bridge: {bridge_name} -> Exists in OS: {bridge_exist_os}")
+        
+        if bridge_exist_os:          
+            self.log.debug(f"Bridge {bridge_name} exists in os")
 
-            if not bridge_exist_in_db:
-                self.log.debug(f"Bridge {bridge_name} exists in the database.")
+            if not bridge_exist_db:
+                self.log.debug(f"Adding bridge: {bridge_name} to DB")
                 
-                add_result = self.bridgeDB.add_bridge(bridge_name, bridge_protocol.value, stp_status)
+                add_result = self.bridgeDB.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
                 if add_result.status:
                     self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.result}")
-                    return STATUS_NOK            
-
-            return STATUS_NOK
+                    return STATUS_NOK
+                            
+                '''Exit if bridge exist and added to DB '''
+                return STATUS_OK            
+        
         else:
+            self.log.debug(f"Bridge {bridge_name} does not exists in os")
             
-            result = self.run(['ip', 'link', 'add', 'name', bridge_name, 'type', 'bridge'])
-            if result.exit_code:
-                self.log.warning(f"Bridge {bridge_name} cannot be created - exit-code: {result.exit_code}")
+            if self._create_bridge_os(bridge_name):
+                self.log.error(f"add_bridge_global() - Unable to configure bridge: {bridge_name} to os")
+                
+                if bridge_exist_db:
+                    self.bridgeDB.del_bridge_db(bridge_name, bridge_protocol.value, stp_status)
+                    
                 return STATUS_NOK
 
-            result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(STP_STATE.STP_ENABLE.value)])
-            if result.exit_code:
-                self.log.warning(f"Bridge {bridge_name} unable to enable IEEE_802_1D - exit-code: {result.exit_code}")
-                return STATUS_NOK
-
-        if bridge_exist_in_db:
-            add_result = self.bridgeDB.add_bridge(bridge_name, bridge_protocol.value, stp_status)
+        if not bridge_exist_db:
+            self.log.debug(f"add_bridge_global() - Adding bridge: {bridge_name} to db")
+            add_result = self.bridgeDB.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
             if add_result.status:
                 self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.result}")
@@ -135,7 +135,32 @@ class Bridge(MacServiceLayer):
         self.log.debug(f"Bridge {bridge_name} created.")
         return STATUS_OK
 
-    def does_bridge_exist(self, bridge_name, suppress_error=False) -> bool:
+    def _create_bridge_os(self, bridge_name: str) -> bool:
+        """
+        Create a bridge with Spanning Tree Protocol (STP) enabled.
+
+        Args:
+            bridge_name (str): The name of the bridge to create.
+
+        Returns:
+            bool: STATUS_OK (False) if the bridge is created with STP enabled successfully, STATUS_NOK (True) if creation fails.
+        """
+        self.log.debug(f"_create_bridge_with_stp() -> Adding bridge: {bridge_name} to os")
+        
+        result = self.run(['ip', 'link', 'add', 'name', bridge_name, 'type', 'bridge'])
+        if result.exit_code:
+            self.log.warning(f"Bridge {bridge_name} cannot be created - exit-code: {result.exit_code}")
+            return STATUS_NOK
+
+        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(STP_STATE.STP_ENABLE.value)])
+        if result.exit_code:
+            self.log.warning(f"Bridge {bridge_name} unable to enable IEEE_802_1D - exit-code: {result.exit_code}")
+            return STATUS_NOK
+
+        self.log.debug(f"_create_bridge_with_stp() -> Added bridge: {bridge_name} to os")
+        return STATUS_OK
+
+    def does_bridge_exist_os(self, bridge_name, suppress_error=False) -> bool:
         """
         Check if a bridge with the given name exists via iproute.
         Will also remove bridge name in db if the interface is not available
@@ -191,7 +216,7 @@ class Bridge(MacServiceLayer):
         Returns:
             bool: True if the interface is added to the bridge successfully (STATUS_NOK), False otherwise (STATUS_OK).
         """
-        if not (bridge_name and self.does_bridge_exist(bridge_name)):
+        if not (bridge_name and self.does_bridge_exist_os(bridge_name)):
             self.log.error(f"Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         
@@ -223,7 +248,7 @@ class Bridge(MacServiceLayer):
         """
         self.log.debug(f"add_interface_cmd() -> Interface: {interface_name} -> Bridge: {bridge_name} STP: {stp}")
         
-        if not (bridge_name and self.does_bridge_exist(bridge_name)):
+        if not (bridge_name and self.does_bridge_exist_os(bridge_name)):
             self.log.error(f"add_interface_cmd() -> Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         
@@ -254,7 +279,7 @@ class Bridge(MacServiceLayer):
         Returns:
             bool: STATUS_OK if the interface is added to the bridge successfully, otherwise (STATUS_OK).
         """
-        if not self.does_bridge_exist(bridge_name):
+        if not self.does_bridge_exist_os(bridge_name):
             self.log.error(f"stp_status_cmd() -> No Bridge name provided")
             return STATUS_NOK
         
@@ -277,7 +302,7 @@ class Bridge(MacServiceLayer):
             bool: STATUS_OK if the bridge was successfully change state, STATUS_NOK otherwise.
         """
         
-        if not bridge_name or self.does_bridge_exist(bridge_name):
+        if not bridge_name or self.does_bridge_exist_os(bridge_name):
             self.log.error(f"No Bridge name provided")
             return STATUS_NOK
 
@@ -307,7 +332,7 @@ class Bridge(MacServiceLayer):
             self.log.error("No bridge selected. Use 'bridge <bridge_name>' to select a bridge.")
             return STATUS_NOK
         
-        if not self.does_bridge_exist(bridge_name):
+        if not self.does_bridge_exist_os(bridge_name):
             self.log.debug(f"Invalid Bridge Name: {bridge_name}")
             return STATUS_NOK
         

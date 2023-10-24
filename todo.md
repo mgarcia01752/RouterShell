@@ -54,3 +54,36 @@ cls - clear screen
 quit = end = exit
 
 tree | grep -v -e '__pycache__' -e '\.pyc$'
+
+### Testing Config
+
+cls
+
+flush Gig0
+flush Gig1
+
+configure terminal
+
+ip nat pool home-nat
+
+bridge brlan0
+    no shutdown
+end
+
+bridge brlan1
+    no shutdown
+end
+
+interface Gig0
+    ip address 172.16.0.1/24
+    ip nat outside pool home-nat
+    bridge group brlan0
+    no shutdown
+end
+
+interface Gig1
+    ip address 172.16.1.1/24
+    ip nat inside pool home-nat
+    bridge group brlan1
+    no shutdown
+end
