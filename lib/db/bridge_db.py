@@ -180,8 +180,8 @@ class BridgeDatabase():
         Args:
             interface_name (str): The name of the interface to update.
             bridge_group (str): The name of the bridge group to assign or remove.
-            negate (bool):  If True, remove the interface from the bridge group. 
-                            If False, assign the interface to the bridge group.
+            negate (bool optional): If True, remove the interface from the bridge group. 
+                                    If False, assign the interface to the bridge group.
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.

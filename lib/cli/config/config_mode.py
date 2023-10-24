@@ -30,7 +30,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         dhcp
         interface <ifName>  (Implemented)
         interface <vlan-id> (Implemented)
-        ip nat
+        ip nat              (Implemented)
         ip route
         ipv6 route
         vlan                (Implemented)

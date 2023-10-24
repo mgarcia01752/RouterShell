@@ -293,7 +293,7 @@ class Interface(NetworkManager):
                  'STATUS_NOK' if the specified bridge group does not exist.
 
         """
-        if Bridge().add_interface_cmd(ifName, br_id, stp_protocol) == STATUS_NOK:
+        if Bridge().add_bridge_to_interface(ifName, br_id, stp_protocol) == STATUS_NOK:
             print(f"bridge-group {br_id} does not exists")
             return STATUS_NOK
         return STATUS_OK

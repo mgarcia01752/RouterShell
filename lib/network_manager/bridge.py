@@ -253,9 +253,10 @@ class Bridge(MacServiceLayer):
 
         return STATUS_OK
 
-    def add_interface_cmd(self, interface_name: str, bridge_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
+    def add_bridge_to_interface(self, interface_name: str, bridge_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
         """
-        Add an interface to a bridge.
+        Add bridge to interface bridge-group via os.
+        Add bridge to interface bridge-group via db
         This is applied at the interface level
 
         Args:
@@ -263,7 +264,7 @@ class Bridge(MacServiceLayer):
             bridge_name (str): The name of the bridge.
 
         Returns:
-            bool: STATUS_OK if the interface is added to the bridge successfully, otherwise (STATUS_OK).
+            bool: STATUS_OK if the interface is added to the bridge successfully, STATUS_NOK otherwise.
         """
         self.log.debug(f"add_interface_cmd() -> Interface: {interface_name} -> Bridge: {bridge_name} STP: {stp}")
         
@@ -272,19 +273,42 @@ class Bridge(MacServiceLayer):
             return STATUS_NOK
         
         if not interface_name:
-            self.log.error(f"No Interface provided")
+            self.log.fatal(f"No Interface provided")
             return STATUS_NOK
         
+        if self._set_bridge_to_interface_bridge_group(interface_name, bridge_name):
+            self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via os")
+            return STATUS_NOK        
+
+        if self.bridgeDB.update_interface_bridge_group(interface_name, bridge_name):
+            self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via db")
+            return STATUS_NOK        
+    
+        return STATUS_OK
+
+    def _set_bridge_to_interface_bridge_group(self, interface_name: str, bridge_name: str) -> bool:
+        """
+        Set an interface as a master of a bridge.
+
+        Args:
+            interface_name (str): The name of the network interface to set as the master.
+            bridge_name (str): The name of the bridge.
+
+        Returns:
+            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
+        """
+        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface: {interface_name} -> Bridge: {bridge_name}")
+
         result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', bridge_name])
 
         if result.exit_code:
-            self.log.error(f"add_interface_cmd() -> Interface {interface_name} unable to be added to bridge {bridge_name}.")
+            self.log.error(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} unable to be set as the master of bridge {bridge_name}.")
             return STATUS_NOK
-        
+
         self.stp_status_cmd(bridge_name)
 
-        self.log.debug(f"add_interface_cmd() -> Interface {interface_name} added to bridge {bridge_name}.")
-        
+        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} set as the master of bridge {bridge_name}.")
+
         return STATUS_OK
 
     def stp_status_cmd(self, bridge_name: str, stp_status: Optional[str] = 'enable') -> bool:

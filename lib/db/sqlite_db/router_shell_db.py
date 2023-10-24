@@ -113,15 +113,18 @@ class RouterShellDB:
             Result: An instance of Result with status True if the bridge exists, False otherwise.
         """
         self.log.debug(f"bridge_exist_db() -> Bridge: {bridge_name}")
-        
+
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM Bridges WHERE BridgeName = ?", (bridge_name))
-            result = cursor.fetchone()
-            return Result(True, result[0], None)
+            cursor.execute("SELECT ROWID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
+            row_id = cursor.fetchone()
+            if row_id:
+                return Result(True, row_id[0], None)
+            else:
+                return Result(False, self.ROW_ID_NOT_FOUND, f"Bridge: {bridge_name} not found")
 
         except sqlite3.Error as e:
-            return Result(False, self.ROW_ID_NOT_FOUND, f"bridge: {bridge_name} not found")
+            return Result(False, self.ROW_ID_NOT_FOUND, f"Error while checking for bridge: {bridge_name}")
 
     def get_bridge_id(self, bridge_name: str) -> int:
         """
@@ -1882,28 +1885,31 @@ class RouterShellDB:
             self.log.error(f"Error deleting static ARP record for interface {if_name}: {e}")
             return Result(STATUS_NOK, row_id=interface_id, result=str(e))
 
-    def insert_interface_bridge_group(self, if_name: str, bridge_name: str) -> Result:
+    def insert_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
         """
         Insert an interface into a bridge group in the 'BridgeGroups' table.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
             bridge_name (str): The name of the bridge group.
 
         Returns:
-            Result: A Result object with the status of the insertion or deletion.
+            Result: A Result object with the status of the insertion.
         """
-        interface_result = self.interface_exists(if_name)
+        interface_result = self.interface_exists(interface_name)
         
         if not interface_result.status:
-            return Result(STATUS_NOK, result=f"Interface: {if_name} does not exist")
+            self.log.debug(f"insert_interface_bridge_group() -> interface: {interface_name} does not exist, Exiting")
+            return Result(STATUS_NOK, result=f"Interface: {interface_name} does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
+            self.log.debug(f"insert_interface_bridge_group() -> Bridge group: {bridge_name} does not exist, Exiting")
             return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")
 
         interface_id = interface_result.row_id
+        
         bridge_id = bridge_result.row_id
 
         try:
@@ -1912,13 +1918,14 @@ class RouterShellDB:
                 "INSERT INTO BridgeGroups (Interface_FK, BridgeGroups_FK) VALUES (?, ?)",
                 (interface_id, bridge_id)
             )
+            row_id = cursor.lastrowid
             self.connection.commit()
-            return Result(STATUS_OK, result="Interface added to the bridge group successfully")
+            return Result(STATUS_OK, row_id=row_id, result="Interface added to the bridge group successfully")
         
         except sqlite3.Error as e:
             error_message = f"Error inserting data into 'BridgeGroups': {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, result=error_message)
+            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=error_message)
 
     def delete_interface_bridge_group(self, if_name: str, bridge_name: str) -> Result:
         """

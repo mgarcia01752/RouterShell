@@ -467,37 +467,6 @@ class InterfaceConfig(cmd2.Cmd,
     def complete_bridge(self, text, line, begidx, endidx):
         completions = ['group']
         return [comp for comp in completions if comp.startswith(text)]
-
-    def do_bridge_group(self, args, negate=False):
-        """
-        Apply a bridge configuration to the interface.
-
-        Args:
-            args (str): Command arguments.
-            negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
-
-        Debugging information:
-            - This method logs debugging information with the provided arguments.
-
-        Suboptions:
-            - group <id>: Set the bridge group identifier.
-            - <suboption> --help: Get help for specific suboptions.
-        """        
-        self.log.debug(f"do_bridge_group() -> ARGS: ({args}) -> Negate: ({negate})")
-        
-        # Split the arguments to obtain the bridge name
-        bridge_name = args.strip().split()[0] if args else None
-
-        if bridge_name:
-            self.log.debug(f"do_bridge_group() -> Adding to Bridge {bridge_name}")
-            if not negate:
-                Bridge().add_interface_cmd(self.ifName, bridge_name)
-                IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
-                IFCDB().add_line_to_interface(f"bridge group {self.ifName} {bridge_name}")
-            else:
-                Bridge().del_bridge_from_interface(self.ifName)
-                IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
-                IFCDB().add_line_to_interface(f"no bridge group {self.ifName} {bridge_name}")
         
     def do_bridge(self, args, negate=False):
         """
@@ -542,14 +511,10 @@ class InterfaceConfig(cmd2.Cmd,
             bridge_name = args.br_grp_name
             if negate:
                 self.log.debug(f"do_bridge().group -> Deleting Bridge {bridge_name}")
-                IFCDB().update_bridge_group(self.ifName, args.bridge_name, negate)
-                
                 Bridge().del_bridge_from_interface(self.ifName, args.bridge_name)
             else:
                 self.log.debug(f"do_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self.ifName}")
-                Bridge().add_interface_cmd(self.ifName, bridge_name)
-                IFCDB().update_bridge_group(self.ifName, bridge_name, negate)
-                IFCDB().add_line_to_interface(f"bridge {args.subcommand}")
+                Bridge().add_bridge_to_interface(self.ifName, bridge_name)
         
         return 
     

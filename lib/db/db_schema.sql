@@ -1,3 +1,12 @@
+DROP TABLE IF EXISTS InterfaceAlias;
+CREATE TABLE IF NOT EXISTS InterfaceAlias (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INT UNIQUE,
+    IfName VARCHAR(100) UNIQUE,
+    IfNameAlias VARCHAR(100) UNIQUE
+);
+
+
 DROP TABLE IF EXISTS Interfaces;
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
@@ -61,11 +70,11 @@ CREATE TABLE IF NOT EXISTS BridgeGroups (
 DROP TABLE IF EXISTS Bridges;
 CREATE TABLE IF NOT EXISTS Bridges (
     ID INTEGER PRIMARY KEY,
-    BridgeGroups_FK INT DEFAULT -1,
-    BridgeName VARCHAR(50),
+    BridgeGroups_FK INT,
+    BridgeName VARCHAR(50) UNIQUE,
     Protocol VARCHAR(15),                -- Bridge Protocol
     StpStatus BOOLEAN,                   -- STB STATUS ENABLE = 1 , DISABLE = 0
-    ShutdownStatus BOOLEAN DEFAULT TRUE, -- TRUE should be in uppercase
+    ShutdownStatus BOOLEAN DEFAULT TRUE,
     CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID)
 );
 
