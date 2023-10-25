@@ -1,3 +1,4 @@
+import ipaddress
 import json
 import logging
 import re
@@ -11,6 +12,7 @@ from lib.network_manager.network_manager import InterfaceType, NetworkManager
 from lib.network_manager.nat import Nat, NATDirection
 from lib.network_manager.common.phy import Duplex, Speed, State
 
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 class InvalidInterface(Exception):
@@ -22,6 +24,7 @@ class Interface(NetworkManager, InterfaceDatabase):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().INTERFACE)
         self.arg = arg
 
     def get_network_interfaces(self) -> list:
@@ -171,61 +174,41 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_ipv6(self, interface_name: str, ipv6_address_mask: str):
+    def update_interface_ip(self, interface_name: str, ipv4_address_cidr: str, negate: bool = False) -> bool:
         """
-        Add an IPv6 address to a network interface.
+        Add or remove an IPv4 address to/from a network interface.
+        Update the IPv4 address to the DB.
 
-        This method validates the IPv6 address and adds it to the specified network interface.
+        This method either adds or removes an IPv4 address from the specified network interface.
 
         Args:
-            interface_name (str): The name of the network interface to which the IPv6 address will be added.
-            ipv6_address_mask (str): The IPv6 address with prefix length (e.g., '2001:db8::1/64').
+            interface_name (str): The name of the network interface.
+            ipv4_address_cidr (str): The IPv4 address in CIDR notation (e.g., "192.168.1.1/24").
+            negate (bool): If True, the method will remove the specified IPv4 address from the interface. If False, it will add the address.
 
         Returns:
-            None
-
-        Raises:
-            InvalidInterface: If the provided IPv6 address is invalid or if adding the address fails.
-
-        Example:
-            To add an IPv6 address to 'eth0':
-            >>> add_ipv6('eth0', '2001:db8::1/64')
+            bool: STATUS_OK if the IP address was successfully updated, STATUS_NOK otherwise.
         """
-        if not self.is_valid_ipv6(ipv6_address_mask):
-            raise InvalidInterface(f"Invalid IPv6 Address: {ipv6_address_mask}")
+        try:
+            ip_network = ipaddress.IPv4Network(ipv4_address_cidr, strict=False)
+            ipv4_cidr_dot_notation = str(ip_network.network_address)
 
-        if self.set_inet6_address(interface_name, ipv6_address_mask):
-            raise InvalidInterface(f"Unable to add IPv6 Address: {ipv6_address_mask}")
+            if negate:
+                
+                if self.del_inet_address(interface_name, ipv4_cidr_dot_notation):
+                    self.log.debug(f"Unable to remove IP Address: {ipv4_cidr_dot_notation} from interface: {interface_name}")
+                    return STATUS_NOK
+            else:
+                                
+                if self.del_inet_address(interface_name, ipv4_cidr_dot_notation):
+                    self.log.debug(f"Unable to add IP Address: {ipv4_cidr_dot_notation} to interface: {interface_name}")
+                    return STATUS_NOK
 
-    def update_interface_ip(self, ipv4_address: str, subnet_mask: str):
-        """
-        Add an IPv4 address to a network interface.
-
-        This method validates the IPv4 address and subnet mask and adds them to the specified network interface.
-
-        Args:
-            ipv4_address (str): The IPv4 address (e.g., '192.168.1.1').
-            subnet_mask (str): The IPv4 subnet mask (e.g., '255.255.255.0').
-
-        Returns:
-            None
-
-        Raises:
-            InvalidInterface: If the provided IPv4 address or subnet mask is invalid
-                or if adding the address fails.
-
-        Example:
-            To add an IPv4 address to 'eth0':
-            >>> add_ip('192.168.1.1', '255.255.255.0')
-        """
-        if not self.is_valid_ipv4(ipv4_address):
-            raise InvalidInterface(f"Invalid IPv4 Address: {ipv4_address}")
-
-        if not self.is_valid_ipv4(subnet_mask):
-            raise InvalidInterface(f"Invalid IPv4 Subnet: {subnet_mask}")
-
-        if self.set_inet_address(self.interface_name, ipv4_address, subnet_mask):
-            raise InvalidInterface(f"Unable to add IPv4 Address: {ipv4_address}")
+            return STATUS_OK
+        
+        except ValueError as e:
+            self.log.debug(f"Invalid IPv4 address in CIDR notation: {ipv4_cidr_dot_notation}, Error: {e}")
+            return STATUS_NOK
 
     def update_interface_duplex(self, interface_name: str, duplex: Duplex) -> bool:
         """

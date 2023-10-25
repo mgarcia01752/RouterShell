@@ -152,13 +152,13 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 
-    def update_ip_address(cls, interface_name, ip_address_mask, secondary=False, negate=False) -> bool:
+    def update_ip_address(cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
         """
         Update or delete an IP address setting for an interface.
 
         Args:
             interface_name (str): The name of the interface.
-            ip_address_mask (str): The IP address/mask to update or delete.
+            inet_address_cidr (str): The IP address/mask to update or delete.
             secondary (bool): True if the IP address is secondary, False otherwise.
             negate (bool): True to delete the IP address, False to update.
 
@@ -166,9 +166,9 @@ class InterfaceDatabase:
             bool: bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
         """
         if not negate:
-            result = cls.rsdb.insert_interface_ip_address(interface_name, ip_address_mask, secondary)
+            result = cls.rsdb.insert_interface_inet_address(interface_name, inet_address_cidr, secondary)
         else:
-            result = cls.rsdb.delete_interface_ip_address(interface_name, ip_address_mask)
+            result = cls.rsdb.delete_interface_inet_address(interface_name, inet_address_cidr)
 
         return result.status
     

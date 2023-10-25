@@ -279,18 +279,18 @@ class InterfaceConfig(cmd2.Cmd,
 
             if negate:
                 self.log.debug(f"Removing IP: {ipv4_address}/{int(cidr)} to interface: {self.if_name} secondary: {is_secondary}")
-                self.del_inet_address(self.ifName, ipv4_address, int(cidr), is_secondary)
+                self.update_interface_ip(self.ifName, ipv4_address, int(cidr), is_secondary)
 
                 if ip_prefix:
                     IFCDB().update_ip_address(self.ifName, ip_prefix, is_secondary, negate)
-                    IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_address}/{cidr}")
                 else:
                     self.log.fatal("Unable to add IP address to DB")
+            
             else:
                 self.log.debug(f"Setting IP: {ipv4_address}/{int(cidr)} to interface: {self.if_name} secondary: {is_secondary}")
-                self.set_inet_address(self.ifName, ipv4_address, int(cidr), is_secondary)
+                self.update_interface_ip(self.ifName, ipv4_address, int(cidr), is_secondary)
+                
                 IFCDB().update_ip_address(self.ifName, ip_prefix, is_secondary, negate)
-                IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_address}/{cidr}")
  
         elif args.subcommand == "proxy-arp":
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")

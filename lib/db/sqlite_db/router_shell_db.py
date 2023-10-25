@@ -1569,7 +1569,7 @@ class RouterShellDB:
                     INTERFACE-IP-ADDRESS DATABASE
     '''
             
-    def insert_interface_ip_address(self, interface_name: str, ip_address: str, is_secondary: bool) -> Result:
+    def insert_interface_inet_address(self, interface_name: str, ip_address: str, is_secondary: bool) -> Result:
         """
         Insert an IP address entry for an interface into the 'InterfaceIpAddress' table.
 
@@ -1622,7 +1622,7 @@ class RouterShellDB:
         except sqlite3.Error:
             return Result(status=True, row_id=0)
 
-    def delete_interface_ip_address(self, interface_name: str, ip_address: str) -> Result:
+    def delete_interface_inet_address(self, interface_name: str, ip_address: str) -> Result:
         """
         Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
 

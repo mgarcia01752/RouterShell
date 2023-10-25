@@ -79,66 +79,24 @@ class InetServiceLayer(MacServiceLayer):
             if ip_address in line:
                 return True
         return False
-    
-    def set_inet_address(self,
-                        interface: str, 
-                        inet_address: str, 
-                        inet_cidr: str, 
-                        secondary: bool = False) -> bool:
+
+    def is_valid_inet_address(self, ip_address: str) -> bool:
         """
-        Set an IPv4 address on an interface.
+        Check if a string is a valid IP address.
 
         Args:
-            interface (str): The network interface.
-            inet_address (str): The IPv4 address to set as a string in CIDR notation, including the label.
-            inet_cidr (str): The IPv4 subnet in CIDR notation.
-            secondary (bool, optional): Set as a secondary address. Defaults to False.
+            ip_address (str): The IP address to validate.
 
         Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
+            bool: True if the input is a valid IP address, False otherwise.
         """
-        
-        if self.is_ip_assigned_to_interface(inet_address, interface):
-            self.log.debug(f"Ip: {inet_address} already assigned to Interface: {interface}")
-            return STATUS_NOK
-                
-        if not self.is_valid_ipv4(inet_cidr):
-            self.log.error(f"Invalid IPv4 subnet: {inet_cidr}")
-            return STATUS_NOK
+        try:
+            ip = ipaddress.ip_address(ip_address)
+            return True
+        except ValueError:
+            return False
 
-        cmd = ["ip", "addr", "add", f"{inet_address}/{inet_cidr}", "dev", interface]
-        
-        if secondary:
-            cmd += ["label", f"{interface}:secondary"]
-            
-        self.log.debug(f"set_inet_address() -> cmd: {cmd}")
-        
-        return STATUS_NOK if self.run(cmd).exit_code else STATUS_OK
-
-    def del_ip_address(self, interface: str, ip_address: str) -> bool:
-        """
-        Delete an IP address from a network interface.
-
-        Args:
-            interface (str): The name of the network interface.
-            ip_address (str): The IPv4 address to delete.
-
-        Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
-        """
-        self.log.debug(f"Deleting IP address {ip_address} from interface {interface}")
-
-        result = self.run(["sudo", "ip", "addr", "del", ip_address, "dev", interface])
-
-        if result.exit_code:
-            self.log.debug(f"Unable to delete IP address {ip_address} from Interface {interface}")
-            return STATUS_NOK
-
-        self.log.debug(f"Deleted IP address {ip_address} from interface {interface}")
-        return STATUS_OK
-
-    def set_ipv4_default_gateway(self,
-                                 interface: str, inet_address: str) -> RunResult:
+    def set_ipv4_default_gateway(self, interface: str, inet_address: str) -> RunResult:
         """
         Set the default IPv4 gateway on an interface.
 
@@ -155,59 +113,7 @@ class InetServiceLayer(MacServiceLayer):
         
         cmd = ["ip", "route", "add", "default", "via", inet_address, "dev", interface]
         return self.run(cmd)
-    
-    def set_inet6_address(self,
-                          interface: str, 
-                          inet6_address: str,
-                          secondary: bool = False) -> RunResult:
-        """
-        Set an IPv6 address on an interface.
-
-        Args:
-            interface (str): The network interface.
-            inet6_address (str): The IPv6 address to set as a string.
-            inet6_subnet (ipaddress.IPv6Network): The IPv6 subnet.
-            secondary (bool, optional): Set as secondary address. Defaults to False.
-
-        Returns:
-            str: Status code, either STATUS_OK or STATUS_NOK.
-        """
-        if not self.is_valid_ipv6(inet6_address):
-            logging.error(f"Invalid IPv6 address: {inet6_address}")
-            return STATUS_NOK
-        
-        cmd = ["ip", "-6", "addr", "add"]
-        if secondary:
-            cmd += ["secondary"]
-        cmd += [f"{inet6_address}", "dev", interface]
-        return self.run(cmd)
-   
-    def del_inet6_address(self,
-                          interface: str, 
-                          inet6_address: str,
-                          secondary: bool = False) -> RunResult:
-        """
-        Delete an IPv6 address on an interface.
-
-        Args:
-            interface (str): The network interface.
-            inet6_address (str): The IPv6 address to set as a string.
-            inet6_subnet (ipaddress.IPv6Network): The IPv6 subnet.
-            secondary (bool, optional): Set as secondary address. Defaults to False.
-
-        Returns:
-            str: Status code, either STATUS_OK or STATUS_NOK.
-        """
-        if not self.is_valid_ipv6(inet6_address):
-            logging.error(f"Invalid IPv6 address: {inet6_address}")
-            return STATUS_NOK
-        
-        cmd = ["ip", "addr", "del"]
-        if secondary:
-            cmd += ["secondary"]
-        cmd += [f"{inet6_address}", "dev", interface]
-        return self.run(cmd)
- 
+     
     def set_ipv6_default_gateway(self, interface: str, inet6_address: str) -> RunResult:
         """
         Set the default IPv6 gateway on an interface.
@@ -226,12 +132,25 @@ class InetServiceLayer(MacServiceLayer):
         cmd = ["ip", "-6", "route", "add", "default", "via", inet6_address, "dev", interface]
         return self.run(cmd)
 
-    def get_interface_ip_addresses(self, ifName, ip_version=None):
+    def is_valid_network_interface(self, interface: str) -> bool:
+        """
+        Check if a string is a valid network interface name.
+
+        Args:
+            interface (str): The network interface name.
+
+        Returns:
+            bool: True if the input is a valid network interface name, False otherwise.
+        """
+        # Add your network interface validation logic here
+        return True  # Replace with actual validation logic
+
+    def get_interface_ip_addresses(self, interface_name, ip_version=None):
         """
         Get IP addresses of a network interface using iproute2 --json option.
 
         Args:
-            ifName (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
             ip_version (str, optional): IP version to filter (None for both IPv4 and IPv6,
                                         'ipv4' for IPv4 only, 'ipv6' for IPv6 only).
 
@@ -239,10 +158,10 @@ class InetServiceLayer(MacServiceLayer):
             list: List of IP addresses associated with the interface.
         """
         # Run the ip command with --json option
-        output = self.run(['ip', '--json', 'addr', 'show', ifName])
+        output = self.run(['ip', '--json', 'addr', 'show', interface_name])
         
         if output.exit_code:
-            self.log.error(f"Unable to obtain ip addresses from interface: {ifName}")
+            self.log.error(f"Unable to obtain ip addresses from interface: {interface_name}")
             return []
 
         # Parse the JSON output
@@ -256,3 +175,64 @@ class InetServiceLayer(MacServiceLayer):
                 addresses.append(ip_addr)
 
         return addresses
+
+    def set_inet_address(self, interface: str, inet_address_cidr: str, secondary: bool = False) -> bool:
+        """
+        Set an IP address on an interface.
+
+        Args:
+            interface (str): The network interface.
+            inet_address (str): The IP address to set as a string in CIDR notation, including the label.
+            secondary (bool, optional): Set as a secondary address. Defaults to False.
+
+        Returns:
+            bool: True for success, False for failure.
+        """
+        try:
+            ip = ipaddress.ip_address(inet_address_cidr)
+        except ValueError as e:
+            self.log.debug(f"Invalid IP address: {inet_address_cidr}, Error: {e}")
+            return False
+
+        if self.is_ip_assigned_to_interface(inet_address_cidr, interface):
+            self.log.debug(f"IP: {inet_address_cidr} already assigned to Interface: {interface}, must delete first before re-assigning")
+            return False
+
+        cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface]
+
+        if secondary:
+            cmd += ["label", f"{interface}:secondary"]
+
+        self.log.debug(f"set_inet_address() -> cmd: {cmd}")
+
+        return not self.run(cmd).exit_code
+
+    def del_inet_address(self, interface: str, ip_address: str) -> bool:
+        """
+        Remove an IP address from a network interface.
+
+        Args:
+            interface (str): The name of the network interface.
+            ip_address (str): The IP address to remove.
+
+        Returns:
+            bool: STATUS_OK for success, STATUS_NOK for failure.
+        """
+        if not self.is_valid_network_interface(interface):
+            self.log.debug(f"Invalid network interface: {interface}")
+            return STATUS_NOK
+
+        if not self.is_valid_inet_address(ip_address):
+            self.log.debug(f"Invalid IP address: {ip_address}")
+            return STATUS_NOK
+
+        self.log.debug(f"Removing IP address {ip_address} from interface {interface}")
+
+        result = self.run(["sudo", "ip", "addr", "del", ip_address, "dev", interface])
+
+        if result.exit_code:
+            self.log.debug(f"Unable to remove IP address {ip_address} from Interface {interface}")
+            return STATUS_NOK
+
+        self.log.debug(f"Removed IP address {ip_address} from interface {interface}")
+        return STATUS_OK
