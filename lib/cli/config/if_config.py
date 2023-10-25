@@ -102,10 +102,12 @@ class InterfaceConfig(cmd2.Cmd,
         
         if len(parts) == 1 and parts[0] == "auto":
             self.log.debug(f"do_mac() -> auto")
+            self.update_interface_mac(self.ifName)
                             
         elif len(parts) == 2 and parts[0] == "address":
             mac = parts[1]
             self.log.debug(f"do_mac() -> address -> {mac}")
+            self.update_interface_mac(self.ifName, mac)
             
         else:
             print("Usage: mac [auto | <mac address>]")

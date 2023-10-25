@@ -47,7 +47,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return []
 
             # Filter out interfaces based on your criteria (e.g., excluding bridges)
-            interface_list = [iface["interface_name"] for iface in interfaces if "BROADCAST,MULTICAST" not in iface.get("flags", [])]
+            interface_list = [iface["ifname"] for iface in interfaces if "BROADCAST,MULTICAST" not in iface.get("flags", [])]
             return interface_list
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
@@ -125,17 +125,20 @@ class Interface(NetworkManager, InterfaceDatabase):
     def update_interface_mac(self, interface_name: str, mac: Optional[str] = None) -> bool:
         """
         Update the MAC address of a network interface.
+        Update the MAC address to the DB 
 
         This method either generates a random MAC address or uses the provided MAC address
         (if valid) and assigns it to the specified network interface.
 
         Args:
-            interface_name (str): The name of the network interface to which the MAC address will be assigned.
-            mac (str, optional): Supported MAC address formats:
-                - xx:xx:xx:xx:xx:xx
-                - xx-xx-xx-xx-xx-xx
-                - xxxx.xxxx.xxxx
-                - xxxxxxxxxxxx
+        
+        interface_name (str): The name of the network interface to which the MAC address will be assigned.
+        
+        mac (str, optional): Supported MAC address formats:
+        - xx:xx:xx:xx:xx:xx
+        - xx-xx-xx-xx-xx-xx
+        - xxxx.xxxx.xxxx
+        - xxxxxxxxxxxx
 
         Returns:
             bool: STATUS_OK if the MAC address was successfully added, STATUS_NOK otherwise.
@@ -162,12 +165,11 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Unable to set MAC address to interface: {interface_name} via OS")
             return STATUS_NOK
 
-        if self.update_interface_mac(interface_name, new_mac if not mac else format_mac):
+        if self.update_mac_address_db(interface_name, new_mac if not mac else format_mac):
             self.log.error(f"Unable to set MAC address to interface: {interface_name} via DB")
             return STATUS_NOK
 
         return STATUS_OK
-
 
     def update_interface_ipv6(self, interface_name: str, ipv6_address_mask: str):
         """
