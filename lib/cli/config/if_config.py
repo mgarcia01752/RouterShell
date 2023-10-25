@@ -134,23 +134,21 @@ class InterfaceConfig(cmd2.Cmd,
  
         parser = argparse.ArgumentParser(
             description="Configure IPv6 settings on the interface",
-            epilog="Cisco-style suboptions:\n"
-                "  address <IPv6 Address>/<Mask>               Set static IPv6 address.\n"
-                "  dhcp                                        Configure DHCP client.\n"
+            epilog="Suboptions:\n"
+                "  address <IPv6 Address>/<CIDR>               Set static IPv6 address.\n"
+                "  dhcp-client                                 Configure DHCP client.\n"
                 "  <suboption> --help                          Get help for specific suboptions."
         )
         subparsers = parser.add_subparsers(dest="subcommand")
 
         # Subparser for 'ip address' command
-        address_parser = subparsers.add_parser(
-            "address",
+        address_parser = subparsers.add_parser("address",
             help="Set a static IP address on the interface (e.g., 'ipv6 address fd00:1234:5678:abcd::1/64')."
         )
         address_parser.add_argument("ipv6_address_mask", help="IPv6 address and mask to configure.")
 
         # Subparser for 'ip dhcp' command
-        dhcp_parser = subparsers.add_parser(
-            "dhcp",
+        dhcp_parser = subparsers.add_parser("dhcp-client",
             help="Configure DHCP client on the interface (e.g., 'ipv6 dhcp')."
         )
 
@@ -179,7 +177,7 @@ class InterfaceConfig(cmd2.Cmd,
                 if result.exit_code:
                     self.log.debug(f"Unable to add IPv6 Address: {ipv6_address_mask} to interface: {self.ifName}")  
             
-        elif args.subcommand == "dhcp":
+        elif args.subcommand == "dhcp-client":
             print(f"Configuring DHCPv6 client on Interface {self.ifName}")
             # Implement the logic to configure DHCP client here.       
 
@@ -199,8 +197,9 @@ class InterfaceConfig(cmd2.Cmd,
 
         Available suboptions:
         - `address <IP Address>/<CIDR> [secondary]`     : Set a static IP address.
-        - `proxy-arp`                                   : Enable proxy ARP.
+        - `dhcp-client`                                 : Enable DHCP Client.
         - `drop-gratuitous-arp`                         : Enable drop gratuitous ARP.
+        - `proxy-arp`                                   : Enable proxy ARP.
         - `static-arp <inet> <mac> [arpa]`              : Add/Del static ARP entry.
         - `nat [inside|outside] pool <nat-pool-name>`   : Configure NAT address pool for inside or outside interface.
 
@@ -558,7 +557,7 @@ class InterfaceConfig(cmd2.Cmd,
                 args = args.split()
             args = parser.parse_args(args)
         except SystemExit:
-            return
+            returnDEBUG
 
         if args.subcommand == "access-vlan":
             vlan_id = args.vlan_id
@@ -570,9 +569,8 @@ class InterfaceConfig(cmd2.Cmd,
         else:
             self.log.error("Unknown subcommand")
 
-
     def complete_no(self, text, line, begidx, endidx):
-        completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address']
+        completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address', 'nat', 'switchport']
         return [comp for comp in completions if comp.startswith(text)]
         
     def do_no(self, line):
@@ -591,10 +589,6 @@ class InterfaceConfig(cmd2.Cmd,
             - ip <args>: Remove an IP configuration.
             - ipv6 <args>: Remove an IPv6 configuration.
             - switchport <args>: Remove switchport settings.
-
-        Example:
-            To remove a previously configured setting:
-                no setting_name
 
         Note:
             This command is used to negate or remove a previously configured setting or command.
@@ -626,15 +620,4 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"Remove switchport -> ({line})")
             self.do_switchport(parts[1:], negate=True)
        
-    def create_default_interface_config(self) -> bool:
-        '''
-        Default configuration 
-        interface <physical_interface>
-            duplex auto
-            speed auto
-            shutdown     
-        '''
-        self.do_speed(Speed.AUTO_NEGOTIATE.value)
-        self.do_duplex(Duplex.AUTO.value)
-        self.do_shutdown(False)
 

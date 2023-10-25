@@ -216,7 +216,7 @@ class Bridge(MacServiceLayer):
             bridge_name (str): The name of the bridge.
 
         Returns:
-            bool: True if the interface is added to the bridge successfully (STATUS_NOK), False otherwise (STATUS_OK).
+            bool: STATUS_OK if the interface is added to the bridge successfully, STATUS_NOK otherwise.
         """
         if not (bridge_name and self.does_bridge_exist_os(bridge_name)):
             self.log.error(f"del_bridge_from_interface() -> Bridge does not exist: {bridge_name}")
