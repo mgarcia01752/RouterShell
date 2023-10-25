@@ -145,10 +145,41 @@ class MacServiceLayer(PhyServiceLayer):
         # If none of the recognized formats, return None
         return False, None
 
-    def generate_random_mac(self):
-        # The first byte should start with '02' to indicate UA MAC address
-        mac = [0x02] + [random.randint(0x00, 0xFF) for _ in range(5)]
-        return ':'.join(map(lambda x: format(x, '02x'), mac))   
+    def generate_random_mac(self, address_type='UA') -> str:
+        """
+        Generate a random MAC address with the specified address type.
+
+        Args:
+            address_type (str): The type of MAC address to generate. Possible values:
+            - 'UA' for Universally Administered (default).
+            - 'LA' for Locally Administered.
+            - 'MC' for Multicast.
+            - 'SA' for Universally Administered but with the second least significant bit set (Stallion MAC).
+
+        Returns:
+            str: A randomly generated MAC address in the specified address type range, formatted as 'xx:xx:xx:xx:xx:xx'.
+        """
+        if address_type == 'UA':
+            # UA MAC address: The first byte should start with '02' to indicate UA MAC address
+            mac = [0x02] + [random.randint(0x00, 0xFF) for _ in range(5)]
+        elif address_type == 'LA':
+            # LA MAC address: The first byte should start with '02' to indicate LA MAC address
+            mac = [0x02] + [random.randint(0x00, 0xFF) for _ in range(5)]
+            # Set the second least significant bit to indicate LA
+            mac[0] |= 0x02
+        elif address_type == 'MC':
+            # Multicast MAC address: The first byte should start with '01' to indicate multicast MAC address
+            mac = [0x01] + [random.randint(0x00, 0xFF) for _ in range(5)]
+        elif address_type == 'SA':
+            # Stallion MAC address: The first byte should start with '02' to indicate UA MAC address
+            mac = [0x02] + [random.randint(0x00, 0xFF) for _ in range(5)]
+            # Set the second least significant bit to indicate SA
+            mac[0] |= 0x02
+        else:
+            raise ValueError("Invalid address_type. Use 'UA', 'LA', 'MC', or 'SA'.")
+
+        return ':'.join(map(lambda x: format(x, '02x'), mac))
+
     
     def get_arp(self, args=None):
         try:
