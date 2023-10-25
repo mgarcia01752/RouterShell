@@ -541,81 +541,35 @@ class InterfaceConfig(cmd2.Cmd,
         Debugging information:
             - This method logs debugging information with the provided arguments.
 
-        Subcommands:
-            - mode access: Configure the switchport in access mode.
-            - access vlan <id>: Set the access VLAN identifier.
-            - <suboption> --help: Get help for specific subcommands and suboptions.
+        Commands:
+            - switchport access-vlan <vlan-id>
         """
-        self.log.debug(f" switchport() -> {args}")
+        self.log.debug(f"switchport() -> {args}")
 
-        parser = argparse.ArgumentParser(
-            description="Configure switchport.",
-            epilog="Available subcommands:\n"
-                "  mode access\n"
-                "  access vlan <id>\n"
-                "  <suboption> --help     Get help for specific suboptions."
-        )
-
+        parser = argparse.ArgumentParser(description=f"Configure switchport.")
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        # Subparser for 'mode' subcommand
-        mode_parser = subparsers.add_parser(
-            "mode",
-            help="Set switchport mode (access or trunk)"
-        )
-
-        mode_parser.add_argument(
-            "mode_type",
-            choices=["access", "trunk"],
-            help="Select switchport mode (access or trunk)"
-        )
-
-        access_parser = subparsers.add_parser(
-            "access",
-            help="Configure access mode settings"
-        )
-
-        vlan_parser = access_parser.add_subparsers(dest="access_subcommand")
-
-        vlan_parser.add_parser(
-            "vlan",
-            help="Set the access VLAN ID"
-        ).add_argument(
-            "vlan_id",
-            type=int,
-            help="Set the access VLAN ID"
-        )
+        # Subparser for 'set-access-vlan' subcommand
+        set_access_parser = subparsers.add_parser("access-vlan", help="Configure switchport access settings")
+        set_access_parser.add_argument("vlan_id", type=int, help="Set VLAN ID")
 
         try:
             if not isinstance(args, list):
-                args = parser.parse_args(args.split())
-            else:
-                args = parser.parse_args(args)       
+                args = args.split()
+            args = parser.parse_args(args)
         except SystemExit:
             return
 
-        if args.subcommand == "mode":
-            if args.mode_type == "access":
-                self.log.debug("Setting switchport mode to access")
-            elif args.mode_type == "trunk":
-                self.log.debug("Setting switchport mode to trunk")
-            InterfaceConfigDB.add_line_to_interface(self.ifName, f"switchport {args.subcommand} {args.mode_type}")
-        
-        elif args.subcommand == "access":
-            if args.access_subcommand == "vlan":
-                vlan_id = args.vlan_id
-                if negate:
-                    self.log.debug(f"Deleting access mode with VLAN ID {vlan_id} to interface: {self.ifName}")
-                    self.del_interface_vlan(vlan_id)
-                    InterfaceConfigDB.add_line_to_interface(self.ifName, f"no switchport {args.subcommand} {args.access_subcommand} {vlan_id}")
-                else:
-                    self.log.debug(f"Setting access mode with VLAN ID {vlan_id} to interface: {self.ifName}")
-                    self.update_interface_vlan(self.ifName, vlan_id)
-                    InterfaceConfigDB.add_line_to_interface(self.ifName, f"switchport {args.subcommand} {args.access_subcommand} {vlan_id}") 
-            else:
-                self.log.error(f"Unknown subcommand under 'access': {args.access_subcommand}")
+        if args.subcommand == "access-vlan":
+            vlan_id = args.vlan_id
+            self.log.info(f"Configuring switchport as access with VLAN ID: {vlan_id}")
+            
+            if self.update_interface_vlan(self.ifName, vlan_id):
+                self.log.error(f"Unable to add vlan id: {vlan_id}")
+            
         else:
-            self.log.debug(f"Unknown subcommand: {args.subcommand}")
+            self.log.error("Unknown subcommand")
+
 
     def complete_no(self, text, line, begidx, endidx):
         completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address']

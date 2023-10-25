@@ -7,6 +7,7 @@ from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.network_manager import InterfaceType
 
 class InterfaceDatabase:
 
@@ -320,3 +321,15 @@ class InterfaceDatabase:
 
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
 
+    def update_vlan_to_interface_type(cls, vlan_id:int , interface_type_name:str, interface_type:InterfaceType) -> bool:
+        """
+        Update the VLAN configuration for a specific interface type.
+
+        Args:
+            vlan_id (int): The VLAN ID to configure.
+            interface_type_name (str): The name of the interface type {BridgeName | InterfaceName} to update.
+            interface_type (InterfaceType): The new interface {BRIDGE | ETHERNET}.
+
+        Returns:
+            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+        """

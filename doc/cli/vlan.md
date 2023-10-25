@@ -93,7 +93,7 @@ vlan 1000
 rename if enx9cebe81be18a if-alias Gig0
 
 interface Gig0
-   switchport access vlan Vlan1000
+   switchport mode access vlan 1000
    end
 ```
 

@@ -7,6 +7,7 @@ from lib.db.vlan_db import VLANDatabase
 from lib.network_manager.bridge import Bridge
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.network_manager import InterfaceType
 class Vlan(MacServiceLayer):
 
     VLAN_PREFIX_ID = "Vlan"
@@ -111,13 +112,14 @@ class Vlan(MacServiceLayer):
             self.log.debug(f"Unable to add bridge: {br_ifName} to vlan: {vlan_id}")
             return STATUS_NOK
 
-    def add_interface_to_vlan(self, ifName: str, vlan_id: int) -> bool:
+    def add_interface_to_vlan(self, ifName: str, vlan_id: int, interface_type:InterfaceType) -> bool:
         """
         Add an interface to a VLAN.
 
         Args:
             ifName (str): The name of the network interface.
             vlan_id (int): The VLAN ID to assign to the VLAN.
+            interface_type (InterfaceType):
 
         Returns:
             str: A status indicating the result of the operation:

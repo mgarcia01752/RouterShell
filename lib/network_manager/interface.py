@@ -352,10 +352,10 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         if brName:
             self.log.debug(f"Assigned VLAN: {vlan_id} to Bridge: {brName}")
-            return Vlan().add_interface_to_vlan(brName, vlan_id)
+            return Vlan().add_interface_to_vlan(brName, vlan_id, InterfaceType.BRIDGE)
         else:
             self.log.debug(f"Assigned VLAN: {vlan_id} to interface: {interface_name}")
-            return Vlan().add_interface_to_vlan(interface_name, vlan_id)
+            return Vlan().add_interface_to_vlan(interface_name, vlan_id, InterfaceType.ETHERNET)
     
     def del_interface_vlan(self, vlan_id:int) -> bool:
         """
