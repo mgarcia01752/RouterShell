@@ -110,6 +110,7 @@ class MacServiceLayer(PhyServiceLayer):
         - xxxxxxxxxxxx: Twelve alphanumeric characters with no delimiters.
         - xxxx.xxxx.xxxx: Twelve alphanumeric characters separated by dots.
         - xx:xx:xx:xx:xx:xx: Six pairs of two alphanumeric characters separated by colons or hyphens.
+        - xx-xx-xx-xx-xx-xx: Six pairs of two alphanumeric characters separated by hyphens.
 
         Returns:
         tuple: A tuple containing:
@@ -136,10 +137,14 @@ class MacServiceLayer(PhyServiceLayer):
             formatted_mac = ':'.join(mac_address.split(':'))
             return True, formatted_mac
 
+        # Check if the MAC address is in the xx-xx-xx-xx-xx-xx format
+        if len(mac_address) == 17 and mac_address.count('-') == 5:
+            formatted_mac = ':'.join(mac_address.split('-'))
+            return True, formatted_mac
+
         # If none of the recognized formats, return None
         return False, None
 
-    
     def generate_random_mac(self):
         # The first byte should start with '02' to indicate UA MAC address
         mac = [0x02] + [random.randint(0x00, 0xFF) for _ in range(5)]
