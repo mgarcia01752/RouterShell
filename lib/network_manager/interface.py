@@ -124,37 +124,40 @@ class Interface(NetworkManager, InterfaceDatabase):
         
     def update_interface_mac(self, interface_name: str, mac: Optional[str] = None) -> bool:
         """
-        Add a MAC address to a network interface.
+        Add a mac address to a network interface.
+        Update interface mac to db
 
         This method either generates a random MAC address or uses the provided MAC address
         (if valid) and assigns it to the specified network interface.
 
         Args:
             interface_name (str): The name of the network interface to which the MAC address will be assigned.
-            mac (str, optional): The MAC address to assign. If not provided or invalid, a random MAC address
-                will be generated.
-
+            mac (str, optional): Supported MAC addresses formats:
+                                    - xx:xx:xx:xx:xx:xx
+                                    - xxxx.xxxx.xxxx
+                                    - xxxxxxxxxxxx
         Returns:
-            bool: True if the MAC address was successfully added, False otherwise.
+            bool: STATUS_OK if the MAC address was successfully added, STATUS_NOK otherwise.
 
-        Raises:
-            None
-
-        Example:
-            To add a MAC address to 'eth0':
-            >>> add_mac('eth0', '00:11:22:33:44:55')
         """
         self.log.debug(f"add_mac() -> interface_name: {interface_name} -> mac: {mac}")
 
         if not mac:
-            # Generate a random MAC address
             new_mac = self.generate_random_mac()
-            self.update_if_mac_address(interface_name, new_mac)
-        elif self.is_valid_mac_address(mac) == STATUS_OK:
-            # Format and assign the provided MAC address
+            self.log.debug(f"update_interface_mac() mac-auto: {new_mac}")
+            self.set_interface_mac(interface_name, new_mac)
+            self.update_interface_mac(interface_name, new_mac)
+        
+        elif self.is_valid_mac_address(mac):
             stat, format_mac = self.format_mac_address(mac)
-            self.log.debug(f"add_mac() -> mac: {mac} -> format_mac: {format_mac}")
-            self.update_if_mac_address(interface_name, format_mac)
+            self.log.debug(f"update_interface_mac() -> mac: {mac} -> format_mac: {format_mac}")
+            
+            if stat:
+                self.log.error(f"Unable to format mac-address: {mac}")
+                return STATUS_NOK
+            
+            self.set_interface_mac(interface_name, format_mac)
+        
         else:
             print(f"Invalid MAC address: {mac}")
             return STATUS_NOK

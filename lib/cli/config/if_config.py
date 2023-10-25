@@ -97,34 +97,18 @@ class InterfaceConfig(cmd2.Cmd,
         return [comp for comp in completions if comp.startswith(text)]
     
     def do_mac(self, args):
-        # Split the input arguments to separate the command and the MAC address
         parts = args.strip().split()
-
         self.log.debug(f"do_mac() -> Parts: {parts}")
         
         if len(parts) == 1 and parts[0] == "auto":
-            new_mac = self.generate_random_mac()
-            self.log.debug(f"do_mac() -> auto -> {new_mac}")
-            
-            if not self.update_if_mac_address(self.ifName, new_mac):
-                IFCDB().update_mac_address_db(self.ifName,new_mac)
-                IFCDB().add_line_to_interface(f"mac auto")
-                
+            self.log.debug(f"do_mac() -> auto")
+                            
         elif len(parts) == 2 and parts[0] == "address":
             mac = parts[1]
             self.log.debug(f"do_mac() -> address -> {mac}")
             
-            if self.is_valid_mac_address(mac) == STATUS_OK:
-                _, format_mac = self.format_mac_address(mac)
-                
-                self.log.debug(f"do_mac() -> mac: {mac} -> format_mac: {format_mac}")
-                self.update_if_mac_address(self.ifName, format_mac)
-                IFCDB().update_mac_address_db(self.ifName,format_mac)
-                IFCDB().add_line_to_interface(f"mac address f{format_mac}")
-            else:
-                print(f"Invalid MAC address: {mac}")
         else:
-            print("Usage: mac [auto | <MAC_ADDRESS>]")
+            print("Usage: mac [auto | <mac address>]")
         
     def complete_ipv6(self, text, line, begidx, endidx):
         completions = ['address', 'dhcp']
