@@ -2,7 +2,7 @@ import logging
 
 '''
 TODO ADD TO CLASS
-from lib.cli.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
         self.log.setLevel(RSLGS().BRIDGE_CONFIG)
 
@@ -52,6 +52,6 @@ class RouterShellLoggingGlobalSettings():
     
     INET                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     MAC                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    PHY                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    PHY                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     RUN                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSCTL              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

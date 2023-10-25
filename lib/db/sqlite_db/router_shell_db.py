@@ -1443,6 +1443,8 @@ class RouterShellDB:
 
         Returns:
             Result: A Result object with the status of the update.
+                    - status:   STATUS_OK successful, STATUS_NOK otherwise
+                    - row_id:   STATUS_OK row_id > 0, STATUS_NOK row_id = 0
         """
         existing_result = self.interface_exists(interface_name)
 

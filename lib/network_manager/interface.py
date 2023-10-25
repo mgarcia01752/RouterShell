@@ -47,7 +47,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return []
 
             # Filter out interfaces based on your criteria (e.g., excluding bridges)
-            interface_list = [iface["ifname"] for iface in interfaces if "BROADCAST,MULTICAST" not in iface.get("flags", [])]
+            interface_list = [iface["interface_name"] for iface in interfaces if "BROADCAST,MULTICAST" not in iface.get("flags", [])]
             return interface_list
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
@@ -91,7 +91,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             
         return InterfaceType.UNKNOWN
 
-    def does_interface_exist(self, ifName: str) -> bool:
+    def does_interface_exist(self, interface_name: str) -> bool:
         """
         Determine if a network interface with the specified name exists on the current system.
 
@@ -100,7 +100,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         included in the command's output.
 
         Args:
-            ifName (str): The name of the network interface to be checked.
+            interface_name (str): The name of the network interface to be checked.
 
         Returns:
             bool: A boolean value indicating the existence of the specified interface.
@@ -108,7 +108,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 - False: The interface is not found or an error has occurred.
         """
 
-        command = ['ip', 'link', 'show', ifName]
+        command = ['ip', 'link', 'show', interface_name]
 
         try:
             result = self.run(command, suppress_error=True)
@@ -122,7 +122,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error: {e}")
             return False
         
-    def update_interface_mac(self, ifName: str, mac: Optional[str] = None) -> bool:
+    def update_interface_mac(self, interface_name: str, mac: Optional[str] = None) -> bool:
         """
         Add a MAC address to a network interface.
 
@@ -130,7 +130,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         (if valid) and assigns it to the specified network interface.
 
         Args:
-            ifName (str): The name of the network interface to which the MAC address will be assigned.
+            interface_name (str): The name of the network interface to which the MAC address will be assigned.
             mac (str, optional): The MAC address to assign. If not provided or invalid, a random MAC address
                 will be generated.
 
@@ -144,31 +144,31 @@ class Interface(NetworkManager, InterfaceDatabase):
             To add a MAC address to 'eth0':
             >>> add_mac('eth0', '00:11:22:33:44:55')
         """
-        self.log.debug(f"add_mac() -> ifName: {ifName} -> mac: {mac}")
+        self.log.debug(f"add_mac() -> interface_name: {interface_name} -> mac: {mac}")
 
         if not mac:
             # Generate a random MAC address
             new_mac = self.generate_random_mac()
-            self.update_if_mac_address(ifName, new_mac)
+            self.update_if_mac_address(interface_name, new_mac)
         elif self.is_valid_mac_address(mac) == STATUS_OK:
             # Format and assign the provided MAC address
             stat, format_mac = self.format_mac_address(mac)
             self.log.debug(f"add_mac() -> mac: {mac} -> format_mac: {format_mac}")
-            self.update_if_mac_address(ifName, format_mac)
+            self.update_if_mac_address(interface_name, format_mac)
         else:
             print(f"Invalid MAC address: {mac}")
             return STATUS_NOK
 
         return STATUS_OK
 
-    def update_interface_ipv6(self, ifName: str, ipv6_address_mask: str):
+    def update_interface_ipv6(self, interface_name: str, ipv6_address_mask: str):
         """
         Add an IPv6 address to a network interface.
 
         This method validates the IPv6 address and adds it to the specified network interface.
 
         Args:
-            ifName (str): The name of the network interface to which the IPv6 address will be added.
+            interface_name (str): The name of the network interface to which the IPv6 address will be added.
             ipv6_address_mask (str): The IPv6 address with prefix length (e.g., '2001:db8::1/64').
 
         Returns:
@@ -184,7 +184,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         if not self.is_valid_ipv6(ipv6_address_mask):
             raise InvalidInterface(f"Invalid IPv6 Address: {ipv6_address_mask}")
 
-        if self.set_inet6_address(ifName, ipv6_address_mask):
+        if self.set_inet6_address(interface_name, ipv6_address_mask):
             raise InvalidInterface(f"Unable to add IPv6 Address: {ipv6_address_mask}")
 
     def update_interface_ip(self, ipv4_address: str, subnet_mask: str):
@@ -214,27 +214,31 @@ class Interface(NetworkManager, InterfaceDatabase):
         if not self.is_valid_ipv4(subnet_mask):
             raise InvalidInterface(f"Invalid IPv4 Subnet: {subnet_mask}")
 
-        if self.set_inet_address(self.ifName, ipv4_address, subnet_mask):
+        if self.set_inet_address(self.interface_name, ipv4_address, subnet_mask):
             raise InvalidInterface(f"Unable to add IPv4 Address: {ipv4_address}")
 
-    def update_interface_duplex(self, ifName: str, duplex: Duplex) -> bool:
+    def update_interface_duplex(self, interface_name: str, duplex: Duplex) -> bool:
         """
         Add or set the duplex mode for a network interface.
 
         This method allows adding or setting the duplex mode to 'auto', 'half', or 'full' for the specified interface.
 
         Args:
-            ifName (str): The name of the network interface to configure.
+            interface_name (str): The name of the network interface to configure.
             duplex (Duplex): The duplex mode to set. Valid values are Duplex.AUTO, Duplex.HALF, or Duplex.FULL.
 
         Returns:
-            bool: A status string indicating the result of the operation. 'STATUS_OK' if successful,
-                 'STATUS_NOK' if an invalid duplex mode is provided.
-                 
+            bool: STATUS_OK if successful, STATUS_NOK otherwise.
         """
-        if self.set_duplex(ifName, duplex):
-            print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
+        if self.set_duplex(interface_name, duplex):
+            print(f"Invalid duplex mode ({duplex.value}). Use 'auto', 'half', or 'full'.")
             return STATUS_NOK
+        
+        if self.update_duplex_status_db(interface_name, duplex.value):
+            self.log.error(f"Unable to update interface: {interface_name} to duplex: {duplex.value}")
+            return STATUS_NOK
+            
+        self.log.debug(f"Updated interface: {interface_name} to duplex: {duplex.value}")
         
         return STATUS_OK
     
@@ -266,14 +270,14 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
             
-    def update_shutdown(self, ifName: str, state: State) -> bool:
+    def update_shutdown(self, interface_name: str, state: State) -> bool:
         """
         Set the shutdown status of a network interface.
 
         This method allows setting the shutdown status of the specified network interface to 'up' or 'down'.
 
         Args:
-            ifName (str): The name of the network interface to configure.
+            interface_name (str): The name of the network interface to configure.
             state (State): The status to set. Valid values are State.UP (to bring the interface up)
                         or State.DOWN (to shut the interface down).
 
@@ -284,22 +288,21 @@ class Interface(NetworkManager, InterfaceDatabase):
         # Determine the value of 'shutdown' based on 'state'
         shutdown = state == State.UP
         
-        if self.update_shutdown_status(ifName, shutdown):
-            self.log.error(f"Unable to set interface: {ifName} to {state.value} via db")
+        if self.update_shutdown_status(interface_name, shutdown):
+            self.log.error(f"Unable to set interface: {interface_name} to {state.value} via db")
             return STATUS_NOK
         
-        self.log.debug(f"update_shutdown() -> ifName: {ifName} -> State: {state} via os")
-        return self.set_interface_shutdown(ifName, state)
-
-    
-    def update_interface_bridge_group(self, ifName:str, br_id:str, stp_protocol:BrProc=BrProc.IEEE_802_1D) -> bool:
+        self.log.debug(f"update_shutdown() -> interface_name: {interface_name} -> State: {state} via os")
+        return self.set_interface_shutdown(interface_name, state)
+ 
+    def update_interface_bridge_group(self, interface_name:str, br_id:str, stp_protocol:BrProc=BrProc.IEEE_802_1D) -> bool:
         """
         Set the bridge group and Spanning Tree Protocol (STP) configuration for a network interface.
 
         This method allows configuring a network interface to be a part of a specific bridge group with optional STP protocol selection.
 
         Args:
-            ifName (str): The name of the network interface to configure.
+            interface_name (str): The name of the network interface to configure.
             br_id (str): The identifier of the bridge group to join.
             stp_protocol (BrProc): The STP protocol to use for the bridge group (default is IEEE 802.1D).
 
@@ -308,51 +311,51 @@ class Interface(NetworkManager, InterfaceDatabase):
                  'STATUS_NOK' if the specified bridge group does not exist.
 
         """
-        if Bridge().add_bridge_to_interface(ifName, br_id, stp_protocol) == STATUS_NOK:
+        if Bridge().add_bridge_to_interface(interface_name, br_id, stp_protocol) == STATUS_NOK:
             print(f"bridge-group {br_id} does not exists")
             return STATUS_NOK
         return STATUS_OK
     
-    def create_loopback(self, ifName:str) -> bool:
+    def create_loopback(self, interface_name:str) -> bool:
         """
         Create a loopback interface with the specified name.
 
         Args:
-            ifName (str): The name for the loopback interface.
+            interface_name (str): The name for the loopback interface.
 
         Returns:
             bool: True if the loopback interface was created successfully, False otherwise.
         """
-        result = self.run(['ip', 'link', 'add', 'name', ifName , 'type', 'dummy'])
+        result = self.run(['ip', 'link', 'add', 'name', interface_name , 'type', 'dummy'])
         if result.exit_code:
-            self.log.error("Error creating loopback -> {ifName}")
+            self.log.error("Error creating loopback -> {interface_name}")
             return STATUS_NOK
         
-        self.log.debug(f"Created {ifName} Loopback")
+        self.log.debug(f"Created {interface_name} Loopback")
         return STATUS_OK
     
-    def update_interface_vlan(self, ifName:str, vlan_id:int=1000):
+    def update_interface_vlan(self, interface_name:str, vlan_id:int=1000):
         """
         Assign a VLAN to a network interface or bridge.
 
         Args:
-            ifName (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
             vlan_id (int, optional): The VLAN ID to assign. Defaults to 1000.
 
         Returns:
             STATUS_OK if the VLAN assignment was successful, STATUS_NOK is failed
         """
-        self.log.debug(f"set_vlan() -> ifName: {ifName} vlan_id: {vlan_id}")
+        self.log.debug(f"set_vlan() -> interface_name: {interface_name} vlan_id: {vlan_id}")
 
         # Check to see if the interface is part of a bridge to assign the VLAN to the bridge
-        brName = Bridge().get_assigned_bridge_from_interface(ifName)
+        brName = Bridge().get_assigned_bridge_from_interface(interface_name)
 
         if brName:
             self.log.debug(f"Assigned VLAN: {vlan_id} to Bridge: {brName}")
             return Vlan().add_interface_to_vlan(brName, vlan_id)
         else:
-            self.log.debug(f"Assigned VLAN: {vlan_id} to interface: {ifName}")
-            return Vlan().add_interface_to_vlan(ifName, vlan_id)
+            self.log.debug(f"Assigned VLAN: {vlan_id} to interface: {interface_name}")
+            return Vlan().add_interface_to_vlan(interface_name, vlan_id)
     
     def del_interface_vlan(self, vlan_id:int) -> bool:
         """
@@ -368,38 +371,38 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return Vlan().del_interface_to_vlan(vlan_id)
 
-    def rename_interface(self, current_ifName:str, new_ifName:str) -> bool:
+    def rename_interface(self, current_interface_name:str, new_interface_name:str) -> bool:
         """
         Rename a network interface
 
         Args:
-            current_ifName (str): The current name of the network interface.
-            new_ifName (str): The new name to assign to the network interface.
+            current_interface_name (str): The current name of the network interface.
+            new_interface_name (str): The new name to assign to the network interface.
 
         Returns:
             bool: STATUS_OK if the interface was successfully renamed, STATUS_NOK otherwise.
         """
                 
-        self.log.debug(f"rename_interface() -> Curr-if: {current_ifName} -> new-if: {new_ifName}")
+        self.log.debug(f"rename_interface() -> Curr-if: {current_interface_name} -> new-if: {new_interface_name}")
         
-        '''sudo ip link set <current_ifName> name <new_ifName>'''
-        result = self.run(['ip', 'link', 'set', current_ifName, 'name', new_ifName])
+        '''sudo ip link set <current_interface_name> name <new_interface_name>'''
+        result = self.run(['ip', 'link', 'set', current_interface_name, 'name', new_interface_name])
         
         if result.exit_code:
-            self.log.error(f"Unable to rename interface {current_ifName} to {new_ifName}")
+            self.log.error(f"Unable to rename interface {current_interface_name} to {new_interface_name}")
             return STATUS_NOK
         
         return STATUS_OK        
 
-    def set_nat_domain_status(self, ifName:str, nat_in_out:NATDirection, negate=False):
+    def set_nat_domain_status(self, interface_name:str, nat_in_out:NATDirection, negate=False):
         
         if nat_in_out is NATDirection.INSIDE:
-            if Nat().create_inside_nat(ifName):
-                self.log.error(f"Unable to add INSIDE NAT to interface: {ifName}")
+            if Nat().create_inside_nat(interface_name):
+                self.log.error(f"Unable to add INSIDE NAT to interface: {interface_name}")
                 return STATUS_NOK
         else:
-            if Nat().create_outside_nat(ifName):
-                self.log.error(f"Unable to add INSIDE NAT to interface: {ifName}")
+            if Nat().create_outside_nat(interface_name):
+                self.log.error(f"Unable to add INSIDE NAT to interface: {interface_name}")
                 return STATUS_NOK
             
         return STATUS_OK        

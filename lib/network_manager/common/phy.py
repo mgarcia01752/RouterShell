@@ -3,6 +3,7 @@ from typing import List
 
 from lib.common.common import Common
 from lib.network_manager.common.run_commands import RunCommand
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import *
 
 from enum import Enum, auto
@@ -67,39 +68,40 @@ class PhyServiceLayer(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().PHY)
         
-    def set_duplex(self, ifName: str, duplex: Duplex):
+    def set_duplex(self, interface_name: str, duplex: Duplex):
         """
         Set the duplex mode of a network interface.
 
         Args:
-            ifName (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
             duplex (Duplex): The desired duplex mode to set for the interface (e.g., Duplex.DUPLEX_AUTO).
 
         Returns:
-            bool: True if the duplex mode is successfully set, False otherwise.
+            bool: STATUS_OK if the duplex mode is successfully set, STATUS_NOK otherwise.
         """
         if duplex is Duplex.AUTO:
             self.log.debug(f"do_duplex() - duplex set to auto")
-            cmd = ['ethtool', '-s', ifName, 'autoneg' , 'on']
+            cmd = ['ethtool', '-s', interface_name, 'autoneg' , 'on']
         else:
-            cmd = ['ethtool', '-s', ifName, 'duplex', duplex.value]
+            cmd = ['ethtool', '-s', interface_name, 'duplex', duplex.value]
 
         status = self.run(cmd).exit_code
 
         if status == STATUS_OK:
-            self.log.debug(f"Set duplex mode of {ifName} to {duplex.name}")
-            return True
+            self.log.debug(f"Set duplex mode of {interface_name} to {duplex.name}")
+            return STATUS_OK
         else:
-            self.log.error(f"Failed to set duplex mode of {ifName} to {duplex.name}")
-            return False
+            self.log.error(f"Failed to set duplex mode of {interface_name} to {duplex.name}")
+            return STATUS_NOK
 
-    def set_speed(self, ifName: str, ifSpeed: Speed, auto: bool = False) -> bool:
+    def set_speed(self, interface_name: str, ifSpeed: Speed, auto: bool = False) -> bool:
         """
         Set the speed of a network interface and optionally enable or disable auto-negotiation.
 
         Args:
-            ifName (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
             ifSpeed (Speed): The desired speed to set for the interface.
             autoneg (bool, optional): Whether to enable (True) or disable (False) auto-negotiation. Defaults to False.
 
@@ -107,27 +109,27 @@ class PhyServiceLayer(RunCommand):
             bool: STATUS_OK if the speed is successfully set, STATUS_NOK otherwise.
         """
         try:
-            cmd_auto = ['ethtool', '-s', ifName, 'autoneg', 'on' if auto else 'off']
+            cmd_auto = ['ethtool', '-s', interface_name, 'autoneg', 'on' if auto else 'off']
             status_auto = self.run(cmd_auto).exit_code
 
             if not auto:
-                cmd_speed = ["ethtool", "-s", ifName, "speed", str(ifSpeed.value)]
+                cmd_speed = ["ethtool", "-s", interface_name, "speed", str(ifSpeed.value)]
                 status_speed = self.run(cmd_speed).exit_code
 
                 if status_speed == STATUS_OK:
-                    self.log.debug(f"Set speed of {ifName} to {ifSpeed.name}")
+                    self.log.debug(f"Set speed of {interface_name} to {ifSpeed.name}")
                 else:
-                    self.log.error(f"Failed to set speed of {ifName} to {ifSpeed.name}")
+                    self.log.error(f"Failed to set speed of {interface_name} to {ifSpeed.name}")
             else:
                 status_speed = STATUS_OK
 
             if status_auto == STATUS_OK:
                 if auto:
-                    self.log.debug(f"Enabled auto-negotiation on {ifName}")
+                    self.log.debug(f"Enabled auto-negotiation on {interface_name}")
                 else:
-                    self.log.debug(f"Disabled auto-negotiation on {ifName}")
+                    self.log.debug(f"Disabled auto-negotiation on {interface_name}")
             else:
-                self.log.error(f"Failed to set auto-negotiation on {ifName} to {'on' if auto else 'off'}")
+                self.log.error(f"Failed to set auto-negotiation on {interface_name} to {'on' if auto else 'off'}")
 
             return status_speed == STATUS_OK and status_auto == STATUS_OK
 
@@ -148,7 +150,7 @@ class PhyServiceLayer(RunCommand):
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         
-        self.log.debug(f"set_interface_state() -> ifName: {interface_name} -> state: {state}")
+        self.log.debug(f"set_interface_state() -> interface_name: {interface_name} -> state: {state}")
         
         if state not in (State.UP, State.DOWN):
             self.log.error("Invalid state. Use State.UP or State.DOWN.")
@@ -167,12 +169,12 @@ class PhyServiceLayer(RunCommand):
 
 
     
-    def set_mtu(self, ifName: str, mtu_size: int) -> bool:
+    def set_mtu(self, interface_name: str, mtu_size: int) -> bool:
         """
         Set the Maximum Transmission Unit (MTU) size for a network interface using iproute2.
 
         Args:
-            ifName (str): The name of the network interface to configure.
+            interface_name (str): The name of the network interface to configure.
             mtu_size (int): The MTU size to set for the interface.
 
         Returns:
@@ -180,7 +182,7 @@ class PhyServiceLayer(RunCommand):
 
         """
         # Run the iproute2 command to set the MTU size
-        if self.run(['ip', 'link', 'set', ifName, 'mtu', str(mtu_size)]).exit_code:
+        if self.run(['ip', 'link', 'set', interface_name, 'mtu', str(mtu_size)]).exit_code:
             return STATUS_NOK
         else:
             return STATUS_OK

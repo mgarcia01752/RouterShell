@@ -415,23 +415,15 @@ class InterfaceConfig(cmd2.Cmd,
             return
 
         duplex_values = {d.value: d for d in Duplex}
+        
         args = args.lower()
 
-        self.log.debug(f"do_duplex() -> ARGS: {args}")    
-        self.log.debug(f"do_duplex() -> duplex_modes: {duplex_values}")    
-        
         if args in duplex_values:
             duplex = duplex_values[args]
-            self.set_duplex(self.ifName, duplex)
-            
-            if IFCDB().update_duplex_status(self.ifName, duplex):
-                self.log.debug(f"Unable to update duplex: {duplex}")
-                return STATUS_NOK    
-            
-            IFCDB().add_line_to_interface(f"duplex {duplex}")
-            
+            self.update_interface_duplex(self.ifName, duplex)
+                        
         else:
-            print("Invalid duplex mode. Use 'auto', 'half', or 'full'.")
+            print(f"Invalid duplex mode ({args}). Use 'auto', 'half', or 'full'.")
 
     def complete_speed(self, text, line, begidx, endidx):
         completions = ['10', '100', '1000', '10000', 'auto']        

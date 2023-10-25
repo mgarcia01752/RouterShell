@@ -100,7 +100,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_shutdown(interface_name, status)
         return result.status
 
-    def update_duplex_status(cls, interface_name: str, duplex: str) -> bool:
+    def update_duplex_status_db(cls, interface_name: str, duplex: str) -> bool:
         """
         Update the duplex status of an interface in the 'Interfaces' table.
 
@@ -109,10 +109,9 @@ class InterfaceDatabase:
             duplex (str): The new duplex status.
 
         Returns:
-            bool: True if the update was successful, False otherwise.
+            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
-        result = cls.rsdb.update_interface_duplex(interface_name, duplex)
-        return result.status
+        return cls.rsdb.update_interface_duplex(interface_name, duplex).status
     
     def update_mac_address_db(cls, interface_name: str, mac_address: str) -> bool:
         """
