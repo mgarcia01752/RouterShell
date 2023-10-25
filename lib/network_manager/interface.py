@@ -336,7 +336,8 @@ class Interface(NetworkManager, InterfaceDatabase):
     
     def update_interface_vlan(self, interface_name:str, vlan_id:int=1000):
         """
-        Assign a VLAN to a network interface or bridge.
+        Update VLAN to a network interface or bridge via os
+        Update VLAN to a network interface or bridge via db
 
         Args:
             interface_name (str): The name of the network interface.

@@ -321,15 +321,17 @@ class InterfaceDatabase:
 
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
 
-    def update_vlan_to_interface_type(cls, vlan_id:int , interface_type_name:str, interface_type:InterfaceType) -> bool:
+    def update_vlan_to_interface_type(cls, vlan_id: int, interface_type_name: str, interface_type: InterfaceType, negate: bool = False) -> bool:
         """
         Update the VLAN configuration for a specific interface type.
 
         Args:
             vlan_id (int): The VLAN ID to configure.
-            interface_type_name (str): The name of the interface type {BridgeName | InterfaceName} to update.
-            interface_type (InterfaceType): The new interface {BRIDGE | ETHERNET}.
+            interface_type_name (str): The name of the interface type (BridgeName or InterfaceName) to update.
+            interface_type (InterfaceType): The new interface type (BRIDGE or ETHERNET).
+            negate (bool, optional): True to negate the configuration, False otherwise. Defaults to False.
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
+        pass

@@ -73,7 +73,7 @@ class Vlan(MacServiceLayer):
         """
         return VLANDatabase().update_vlan_description_by_vlan_id(vlan_id, vlan_description)
 
-    def add_vlan_if_not_exist(self, ifName: str, vlan_id: int) -> bool:
+    def add_vlan_if_not_exist(self, interface_name: str, vlan_id: int) -> bool:
         """
         Add a VLAN interface if it doesn't already exist.
 
@@ -88,11 +88,11 @@ class Vlan(MacServiceLayer):
         existing_vlans = self.run(["ip", "link", "show", "type", "vlan"])
 
         if f"{self.VLAN_PREFIX_ID}.{str(vlan_id)}" in existing_vlans:
-            print(f"VLAN interface {ifName}.{str(vlan_id)} already exists.")
+            print(f"VLAN interface {interface_name}.{str(vlan_id)} already exists.")
             return STATUS_NOK
         
         # Create the VLAN interface
-        result = self.run(["ip", "link", "add", "link", ifName, "name", f"{ifName}.{str(vlan_id)}", "type", "vlan", "id", str(vlan_id)])
+        result = self.run(["ip", "link", "add", "link", interface_name, "name", f"{interface_name}.{str(vlan_id)}", "type", "vlan", "id", str(vlan_id)])
 
         if result.exit_code:
             self.log.error(f"Unable to create Vlan: {str(vlan_id)}")
@@ -102,22 +102,22 @@ class Vlan(MacServiceLayer):
     def get_vlan_config(self):
         return VLANDatabase().generate_router_config()
 
-    def add_bridge_to_vlan(self, br_ifName:str, vlan_id:int) -> str:
+    def add_bridge_to_vlan(self, bridge_name:str, vlan_id:int) -> str:
         
-        if Bridge().does_bridge_exist_os(br_ifName):
-            self.log.debug(f"Bridge does not exists: {br_ifName}")
+        if Bridge().does_bridge_exist_os(bridge_name):
+            self.log.debug(f"Bridge does not exists: {bridge_name}")
             return STATUS_NOK
         
-        if self.add_interface_to_vlan(br_ifName, vlan_id):
-            self.log.debug(f"Unable to add bridge: {br_ifName} to vlan: {vlan_id}")
+        if self.add_interface_to_vlan(bridge_name, vlan_id):
+            self.log.debug(f"Unable to add bridge: {bridge_name} to vlan: {vlan_id}")
             return STATUS_NOK
 
-    def add_interface_to_vlan(self, ifName: str, vlan_id: int, interface_type:InterfaceType) -> bool:
+    def add_interface_to_vlan(self, interface_name: str, vlan_id: int, interface_type:InterfaceType) -> bool:
         """
         Add an interface to a VLAN.
 
         Args:
-            ifName (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
             vlan_id (int): The VLAN ID to assign to the VLAN.
             interface_type (InterfaceType):
 
@@ -137,10 +137,10 @@ class Vlan(MacServiceLayer):
         vlan_name = VLANDatabase.get_vlan_name(vlan_id)
 
         # Execute the command to add the interface to the VLAN
-        result = self.run(['ip', 'link', 'add', 'link', ifName, 'name', vlan_name , 'type', 'vlan', 'id', str(vlan_id)], suppress_error=True)
+        result = self.run(['ip', 'link', 'add', 'link', interface_name, 'name', vlan_name , 'type', 'vlan', 'id', str(vlan_id)], suppress_error=True)
 
         if result.exit_code:
-            self.log.debug(f"Unable to add VLAN {vlan_name} to interface: {ifName}")
+            self.log.debug(f"Unable to add VLAN {vlan_name} to interface: {interface_name}")
             return STATUS_NOK
 
         return STATUS_OK
