@@ -3,19 +3,21 @@ import logging
 import re
 from typing import Optional
 
-from tabulate import tabulate
+from lib.db.interface_db import InterfaceDatabase
+
 from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
 from lib.network_manager.vlan import Vlan
 from lib.network_manager.network_manager import InterfaceType, NetworkManager
 from lib.network_manager.nat import Nat, NATDirection
-from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.phy import Duplex, Speed, State
+
+from lib.common.common import STATUS_NOK, STATUS_OK
 
 class InvalidInterface(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class Interface(NetworkManager):
+class Interface(NetworkManager, InterfaceDatabase):
 
     def __init__(self, arg=None):
         super().__init__()
@@ -120,7 +122,7 @@ class Interface(NetworkManager):
             print(f"Error: {e}")
             return False
         
-    def set_if_mac(self, ifName: str, mac: Optional[str] = None) -> bool:
+    def update_interface_mac(self, ifName: str, mac: Optional[str] = None) -> bool:
         """
         Add a MAC address to a network interface.
 
@@ -159,7 +161,7 @@ class Interface(NetworkManager):
 
         return STATUS_OK
 
-    def set_if_ipv6(self, ifName: str, ipv6_address_mask: str):
+    def update_interface_ipv6(self, ifName: str, ipv6_address_mask: str):
         """
         Add an IPv6 address to a network interface.
 
@@ -185,7 +187,7 @@ class Interface(NetworkManager):
         if self.set_inet6_address(ifName, ipv6_address_mask):
             raise InvalidInterface(f"Unable to add IPv6 Address: {ipv6_address_mask}")
 
-    def set_if_ip(self, ipv4_address: str, subnet_mask: str):
+    def update_interface_ip(self, ipv4_address: str, subnet_mask: str):
         """
         Add an IPv4 address to a network interface.
 
@@ -215,7 +217,7 @@ class Interface(NetworkManager):
         if self.set_inet_address(self.ifName, ipv4_address, subnet_mask):
             raise InvalidInterface(f"Unable to add IPv4 Address: {ipv4_address}")
 
-    def set_if_duplex(self, ifName: str, duplex: Duplex) -> bool:
+    def update_interface_Duplex(self, ifName: str, duplex: Duplex) -> bool:
         """
         Add or set the duplex mode for a network interface.
 
@@ -236,7 +238,7 @@ class Interface(NetworkManager):
         
         return STATUS_OK
     
-    def set_if_speed(self, ifName: str, speed: Speed) -> bool:
+    def update_interface_speed(self, interface_name: str, speed: Speed) -> bool:
         '''
         Set the speed of a network interface via os.
         Update speed via db
@@ -246,17 +248,19 @@ class Interface(NetworkManager):
             print("Usage: speed <10 | 100 | 1000 | 10000 | auto>")
             return
 
-        self.log.debug(f"do_speed() -> ARGS: {args}")
+        self.log.debug(f"do_speed() -> interface: {interface_name} Speed: {speed}")
         
         speed_values = {str(s.value): s for s in Speed}
         args = args.lower()
 
         if args == "auto":
-            self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
+            self.set_speed(interface_name, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
+            self.update_ifSpeed_db(interface_name, Speed.AUTO_NEGOTIATE.value)
 
         elif args in speed_values:
             speed = speed_values[args]
-            self.set_ifSpeed(self.ifName, speed)
+            self.set_speed(self.ifName, speed)
+            self.update_ifSpeed_db(interface_name, speed.value)
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
             
@@ -278,7 +282,7 @@ class Interface(NetworkManager):
         self.log.debug(f"set_shutdown() -> ifName: {ifName} -> State: {state}")
         return self.set_interface_state(ifName, state)
     
-    def set_bridge_group(self, ifName:str, br_id:str, stp_protocol:BrProc=BrProc.IEEE_802_1D) -> bool:
+    def update_interface_bridge_group(self, ifName:str, br_id:str, stp_protocol:BrProc=BrProc.IEEE_802_1D) -> bool:
         """
         Set the bridge group and Spanning Tree Protocol (STP) configuration for a network interface.
 
@@ -317,7 +321,7 @@ class Interface(NetworkManager):
         self.log.debug(f"Created {ifName} Loopback")
         return STATUS_OK
     
-    def set_vlan(self, ifName:str, vlan_id:int=1000):
+    def update_interface_vlan(self, ifName:str, vlan_id:int=1000):
         """
         Assign a VLAN to a network interface or bridge.
 
@@ -340,7 +344,7 @@ class Interface(NetworkManager):
             self.log.debug(f"Assigned VLAN: {vlan_id} to interface: {ifName}")
             return Vlan().add_interface_to_vlan(ifName, vlan_id)
     
-    def del_vlan(self, vlan_id:int) -> bool:
+    def del_interface_vlan(self, vlan_id:int) -> bool:
         """
         Delete a VLAN to a network interface or bridge.
 

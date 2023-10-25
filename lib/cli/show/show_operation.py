@@ -13,7 +13,7 @@ from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.db.vlan_db import VLANDatabase
-from lib.db.interface_db import InterfaceConfigDB
+from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
 from lib.common.constants import *
 
@@ -174,7 +174,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             return
         elif args.subcommand == 'if-db':
             self.log.debug("Show interface database")
-            print(f"{json.dumps(InterfaceConfigDB.to_json(), indent=4)}")
+            print(f"{json.dumps(InterfaceDatabase.to_json(), indent=4)}")
             return
         else:
             return

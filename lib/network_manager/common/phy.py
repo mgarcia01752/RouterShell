@@ -94,7 +94,7 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"Failed to set duplex mode of {ifName} to {duplex.name}")
             return False
 
-    def set_ifSpeed(self, ifName: str, ifSpeed: Speed, auto: bool = False) -> bool:
+    def set_speed(self, ifName: str, ifSpeed: Speed, auto: bool = False) -> bool:
         """
         Set the speed of a network interface and optionally enable or disable auto-negotiation.
 
@@ -135,7 +135,6 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"An error occurred while setting interface speed: {e}")
             return STATUS_NOK
 
-
     def set_interface_state(self, ifName: str, state: State) -> bool:
         """
         Change the state of a network interface.
@@ -163,7 +162,6 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"Failed to change state of {ifName} to {state.value}")
 
         return status == STATUS_OK 
-
     
     def set_mtu(self, ifName: str, mtu_size: int) -> bool:
         """

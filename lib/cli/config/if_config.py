@@ -12,7 +12,7 @@ from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection, Nat
 
-from lib.db.interface_db import InterfaceConfigDB as IFCDB
+from lib.db.interface_db import InterfaceDatabase as IFCDB
 
 from lib.common.constants import *
 
@@ -107,7 +107,7 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"do_mac() -> auto -> {new_mac}")
             
             if not self.update_if_mac_address(self.ifName, new_mac):
-                IFCDB().update_mac_address(self.ifName,new_mac)
+                IFCDB().update_mac_address_db(self.ifName,new_mac)
                 IFCDB().add_line_to_interface(f"mac auto")
                 
         elif len(parts) == 2 and parts[0] == "address":
@@ -119,7 +119,7 @@ class InterfaceConfig(cmd2.Cmd,
                 
                 self.log.debug(f"do_mac() -> mac: {mac} -> format_mac: {format_mac}")
                 self.update_if_mac_address(self.ifName, format_mac)
-                IFCDB().update_mac_address(self.ifName,format_mac)
+                IFCDB().update_mac_address_db(self.ifName,format_mac)
                 IFCDB().add_line_to_interface(f"mac address f{format_mac}")
             else:
                 print(f"Invalid MAC address: {mac}")
@@ -452,15 +452,13 @@ class InterfaceConfig(cmd2.Cmd,
         args = args.lower()
 
         if args == "auto":
-            self.set_ifSpeed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
-            IFCDB().update_speed(self.ifName, Speed.AUTO_NEGOTIATE.value)
-            
+            self.set_speed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
+
         elif args in speed_values:
             speed = speed_values[args]
             self.log.debug(f"speed -> {speed}")
-            self.set_ifSpeed(self.ifName, speed)
-            IFCDB().update_speed(self.ifName, speed.value)
-            IFCDB().add_line_to_interface(f"speed {speed.value}")
+            self.set_speed(self.ifName, speed)
+            
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
 
@@ -622,11 +620,11 @@ class InterfaceConfig(cmd2.Cmd,
                 vlan_id = args.vlan_id
                 if negate:
                     self.log.debug(f"Deleting access mode with VLAN ID {vlan_id} to interface: {self.ifName}")
-                    self.del_vlan(vlan_id)
+                    self.del_interface_vlan(vlan_id)
                     InterfaceConfigDB.add_line_to_interface(self.ifName, f"no switchport {args.subcommand} {args.access_subcommand} {vlan_id}")
                 else:
                     self.log.debug(f"Setting access mode with VLAN ID {vlan_id} to interface: {self.ifName}")
-                    self.set_vlan(self.ifName, vlan_id)
+                    self.update_interface_vlan(self.ifName, vlan_id)
                     InterfaceConfigDB.add_line_to_interface(self.ifName, f"switchport {args.subcommand} {args.access_subcommand} {vlan_id}") 
             else:
                 self.log.error(f"Unknown subcommand under 'access': {args.access_subcommand}")

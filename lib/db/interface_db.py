@@ -8,7 +8,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
-class InterfaceConfigDB:
+class InterfaceDatabase:
 
     rsdb = RSDB()
     
@@ -114,7 +114,7 @@ class InterfaceConfigDB:
         result = cls.rsdb.update_interface_duplex(interface_name, duplex)
         return result.status
     
-    def update_mac_address(cls, interface_name: str, mac_address: str) -> bool:
+    def update_mac_address_db(cls, interface_name: str, mac_address: str) -> bool:
         """
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -136,7 +136,7 @@ class InterfaceConfigDB:
         result = cls.rsdb.update_interface_mac_address(interface_name, mac_address)
         return result.status
 
-    def update_speed(cls, interface_name: str, speed: str) -> bool:
+    def update_ifSpeed_db(cls, interface_name: str, speed: str) -> bool:
         """
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
