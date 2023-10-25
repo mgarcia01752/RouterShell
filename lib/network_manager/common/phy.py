@@ -135,33 +135,37 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"An error occurred while setting interface speed: {e}")
             return STATUS_NOK
 
-    def set_interface_state(self, ifName: str, state: State) -> bool:
+    def set_interface_shutdown(self, interface_name: str, state: State) -> bool:
         """
-        Change the state of a network interface.
+        Set the state of a network interface (up or down).
 
-        :param ifName: The name of the network interface.
-        :param state: The desired state of the network interface (State.UP or State.DOWN).
-        :type ifName: str
-        :type state: State
-        :return: True if the state change was successful, False otherwise.
-        :rtype: bool
+        Args:
+            interface_name (str): The name of the network interface to configure.
+            state (State): The state to set. Valid values are State.UP (to bring the interface up)
+                        or State.DOWN (to shut the interface down).
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        self.log.debug(f"set_interface_state() -> ifName: {ifName} -> state: {state}")
+        
+        self.log.debug(f"set_interface_state() -> ifName: {interface_name} -> state: {state}")
         
         if state not in (State.UP, State.DOWN):
             self.log.error("Invalid state. Use State.UP or State.DOWN.")
-            return False
+            return STATUS_NOK
 
-        cmd = ['ip', 'link', 'set', 'dev', ifName, state.value]
+        cmd = ['ip', 'link', 'set', 'dev', interface_name, state.value]
 
         status = self.run(cmd).exit_code
 
         if not status:
-            self.log.debug(f"Changed state of {ifName} to {state.value}")
+            self.log.debug(f"Changed state of {interface_name} to {state.value}")
         else:
-            self.log.error(f"Failed to change state of {ifName} to {state.value}")
+            self.log.error(f"Failed to change state of {interface_name} to {state.value}")
 
-        return status == STATUS_OK 
+        return status == STATUS_OK
+
+
     
     def set_mtu(self, ifName: str, mtu_size: int) -> bool:
         """

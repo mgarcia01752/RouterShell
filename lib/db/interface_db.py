@@ -14,7 +14,7 @@ class InterfaceDatabase:
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().IF_CONFIG_DB)
+        cls.log.setLevel(RSLGS().INTERFACE_DB)
         
         '''CMD2 DEBUG LOGGING'''
         cls.debug = CGS().DEBUG_INTERFACE_DB

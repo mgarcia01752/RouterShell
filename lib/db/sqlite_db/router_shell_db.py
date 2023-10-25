@@ -1397,37 +1397,43 @@ class RouterShellDB:
             self.log.error("Error deleting interface: %s", e)
             return Result(status=STATUS_NOK, row_id=0, result=f"{e}")
     
-    def update_interface_shutdown(self, if_name: str, shutdown_status: bool) -> Result:
+    def update_interface_shutdown(self, interface_name: str, shutdown_status: bool) -> Result:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
         Args:
             if_name (str): The name of the interface to update.
-            shutdown_status (bool): The new shutdown status.
-                                    True = shutdown interface
+            shutdown_status (bool): True =  shutdown interface
+                                    False = no shutdown interface     
 
         Returns:
             Result: A Result object with the status of the update.
         """
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
             # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         try:
+            cursor = self.connection.cursor()
+            
             cursor.execute(
                 "UPDATE Interfaces SET ShutdownStatus = ? WHERE IfName = ?",
-                (shutdown_status, if_name)
+                (shutdown_status, interface_name)
             )
+            
             self.connection.commit()
-            self.log.debug(f"Shutdown status updated for interface: {if_name}")
+            
+            self.log.debug(f"Shutdown status updated for interface: {interface_name}")
+            
             return Result(status=STATUS_OK, row_id=existing_result.row_id)
+        
         except sqlite3.Error as e:
-            self.log.error(f"Error updating shutdown status for interface {if_name}: {e}")
+            self.log.error(f"Error updating shutdown status for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, result=f"{e}")
 
-    def update_interface_duplex(self, if_name: str, duplex: str) -> Result:
+    def update_interface_duplex(self, interface_name: str, duplex: str) -> Result:
         """
         Update the duplex setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -1438,10 +1444,10 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the update.
         """
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         interface_id = existing_result.row_id
         
@@ -1464,14 +1470,14 @@ class RouterShellDB:
                 )
 
             self.connection.commit()
-            self.log.debug(f"Duplex setting updated for interface: {if_name}")
+            self.log.debug(f"Duplex setting updated for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating duplex setting for interface {if_name}: {e}")
+            self.log.error(f"Error updating duplex setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
 
-    def update_interface_mac_address(self, if_name: str, mac_address: str) -> Result:
+    def update_interface_mac_address(self, interface_name: str, mac_address: str) -> Result:
         """
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -1482,10 +1488,10 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the update.
         """
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1506,14 +1512,14 @@ class RouterShellDB:
                 )
 
             self.connection.commit()
-            self.log.debug(f"MAC address setting updated for interface: {if_name}")
+            self.log.debug(f"MAC address setting updated for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating MAC address setting for interface {if_name}: {e}")
+            self.log.error(f"Error updating MAC address setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
 
-    def update_interface_speed(self, if_name: str, speed: str) -> Result:
+    def update_interface_speed(self, interface_name: str, speed: str) -> Result:
         """
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -1524,11 +1530,11 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the update.
         """
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            self.log.error(f"Interface: {if_name} does not exists.")
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            self.log.error(f"Interface: {interface_name} does not exists.")
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1550,18 +1556,18 @@ class RouterShellDB:
                 )
 
             self.connection.commit()
-            self.log.debug(f"Speed {speed} setting updated for interface: {if_name}")
+            self.log.debug(f"Speed {speed} setting updated for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating speed: {speed} setting for interface {if_name}: {e}")
+            self.log.error(f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
 
     '''
                     INTERFACE-IP-ADDRESS DATABASE
     '''
             
-    def insert_interface_ip_address(self, if_name: str, ip_address: str, is_secondary: bool) -> Result:
+    def insert_interface_ip_address(self, interface_name: str, ip_address: str, is_secondary: bool) -> Result:
         """
         Insert an IP address entry for an interface into the 'InterfaceIpAddress' table.
 
@@ -1573,11 +1579,11 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the insertion.
         """
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
             # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1589,11 +1595,11 @@ class RouterShellDB:
             )
 
             self.connection.commit()
-            self.log.debug(f"IP address {ip_address} inserted for interface: {if_name}")
+            self.log.debug(f"IP address {ip_address} inserted for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error inserting IP address for interface {if_name}: {e}")
+            self.log.error(f"Error inserting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
 
     def _sub_option_row_exists(self, interface_fk: int) -> Result:
@@ -1614,7 +1620,7 @@ class RouterShellDB:
         except sqlite3.Error:
             return Result(status=True, row_id=0)
 
-    def delete_interface_ip_address(self, if_name: str, ip_address: str) -> Result:
+    def delete_interface_ip_address(self, interface_name: str, ip_address: str) -> Result:
         """
         Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
 
@@ -1625,11 +1631,11 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the deletion.
         """
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
             # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1640,18 +1646,18 @@ class RouterShellDB:
                 (interface_id, ip_address)
             )
             self.connection.commit()
-            self.log.debug(f"IP address {ip_address} row deleted for interface: {if_name}")
+            self.log.debug(f"IP address {ip_address} row deleted for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error deleting IP address for interface {if_name}: {e}")
+            self.log.error(f"Error deleting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
 
     '''
                     INTERFACE-SUB-OPTIONS DATABASE
     '''
 
-    def _insert_default_row_in_interface_sub_option(self, if_name: str) -> Result:
+    def _insert_default_row_in_interface_sub_option(self, interface_name: str) -> Result:
         """
         Insert a default row into the InterfaceSubOptions table if it does not already exist.
 
@@ -1664,9 +1670,9 @@ class RouterShellDB:
         try:
             cursor = self.connection.cursor()
 
-            interface_exists_result = self.interface_exists(if_name)
+            interface_exists_result = self.interface_exists(interface_name)
             if not interface_exists_result.status:
-                return Result(status=False, result=f"Interface:{if_name} does not exists")
+                return Result(status=False, result=f"Interface:{interface_name} does not exists")
 
             cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_exists_result.row_id,))
             existing_row = cursor.fetchone()
@@ -1683,7 +1689,7 @@ class RouterShellDB:
         except sqlite3.Error:
             return Result(status=False, result="Database error")
 
-    def interface_and_sub_option_exist(self, if_name: str) -> Result:
+    def interface_and_sub_option_exist(self, interface_name: str) -> Result:
         """
         Check if an interface with the given name exists in the 'Interfaces' table and if a corresponding row exists in
         the 'InterfaceSubOptions' table.
@@ -1697,10 +1703,10 @@ class RouterShellDB:
                     'row_id' : If exist, row_id > 0, 0 if not found
                     'result' : Result of SQL query
         """
-        interface_exists_result = self.interface_exists(if_name)
+        interface_exists_result = self.interface_exists(interface_name)
 
         if not interface_exists_result.status:
-            return Result(status=False, result="Interface doesn't exist")
+            return Result(status=False, result=f"Interface: {interface_name} doesn't exist")
 
         sub_option_row_result = self._sub_option_row_exists(interface_exists_result.row_id)
 
@@ -1709,7 +1715,7 @@ class RouterShellDB:
         else:
             return Result(status=False, result="Interface exists, but no corresponding row in InterfaceSubOptions")
 
-    def update_interface_proxy_arp(self, if_name: str, status: bool) -> Result:
+    def update_interface_proxy_arp(self, interface_name: str, status: bool) -> Result:
         """
         Update the Proxy ARP setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -1724,15 +1730,15 @@ class RouterShellDB:
                     'result' : Result of SQL query
         """
         
-        if_exists = self.interface_exists(if_name)
+        if_exists = self.interface_exists(interface_name)
         
         if not if_exists.status:
             return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=if_exists.result)
         
-        if_sub_opt = self.interface_and_sub_option_exist(if_name)
+        if_sub_opt = self.interface_and_sub_option_exist(interface_name)
         
         if not if_sub_opt.status:
-            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(if_name)
+            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(interface_name)
             if not insert_if_sub_option.status:
                 return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=insert_if_sub_option.result)
         
@@ -1745,14 +1751,14 @@ class RouterShellDB:
             )
 
             self.connection.commit()
-            self.log.debug(f"update_interface_proxy_arp() -> Proxy ARP setting updated for interface: {if_name}")
+            self.log.debug(f"update_interface_proxy_arp() -> Proxy ARP setting updated for interface: {interface_name}")
             return Result(STATUS_OK, row_id=if_sub_opt.row_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {if_name}: {e}")
+            self.log.error(f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
 
-    def update_interface_drop_gratuitous_arp(self, if_name: str, status: bool) -> Result:
+    def update_interface_drop_gratuitous_arp(self, interface_name: str, status: bool) -> Result:
         """
         Update the 'Drop Gratuitous ARP' setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -1768,17 +1774,17 @@ class RouterShellDB:
         """
         
         # Check if the interface exists
-        if_exists = self.interface_exists(if_name)
+        if_exists = self.interface_exists(interface_name)
         
         if not if_exists.status:
             return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=if_exists.result)
         
         # Check if the sub-option row exists
-        if_sub_opt = self.interface_and_sub_option_exist(if_name)
+        if_sub_opt = self.interface_and_sub_option_exist(interface_name)
         
         if not if_sub_opt.status:
             # If the sub-option row doesn't exist, insert a default row
-            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(if_name)
+            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(interface_name)
         
         try:
             cursor = self.connection.cursor()
@@ -1788,14 +1794,14 @@ class RouterShellDB:
             )
 
             self.connection.commit()
-            self.log.debug(f"update_interface_drop_gratuitous_arp() -> 'Drop Gratuitous ARP' setting updated for interface: {if_name}")
+            self.log.debug(f"update_interface_drop_gratuitous_arp() -> 'Drop Gratuitous ARP' setting updated for interface: {interface_name}")
             return Result(STATUS_OK, row_id=if_sub_opt.row_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {if_name}: {e}")
+            self.log.error(f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
 
-    def update_interface_static_arp(self, if_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
+    def update_interface_static_arp(self, interface_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
         """
         Create a default entry in the 'InterfaceStaticArp' table if it does not already exist, or update it if it exists.
 
@@ -1808,12 +1814,12 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the operation.
         """
-        self.log.debug(f"update_interface_static_arp() If: {if_name} , IP: {ip_address} , mac: {mac_address} , encap: {encapsulation}")
+        self.log.debug(f"update_interface_static_arp() If: {interface_name} , IP: {ip_address} , mac: {mac_address} , encap: {encapsulation}")
         try:
             # Check if the interface exists and get its ID
-            interface_exists_result = self.interface_exists(if_name)
+            interface_exists_result = self.interface_exists(interface_name)
             if not interface_exists_result.status:
-                return Result(STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+                return Result(STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
             cursor = self.connection.cursor()
             cursor.execute(
@@ -1829,7 +1835,7 @@ class RouterShellDB:
                     (mac_address, encapsulation, existing_entry[0])
                 )
                 self.connection.commit()
-                self.log.debug(f"Static ARP entry updated for interface: {if_name}")
+                self.log.debug(f"Static ARP entry updated for interface: {interface_name}")
             else:
                 self.log.debug(f"update_interface_static_arp() -> Entry NOT Found, inserting IP: {ip_address} -> Mac: {mac_address}")
                 cursor.execute(
@@ -1837,15 +1843,15 @@ class RouterShellDB:
                     (interface_exists_result.row_id, ip_address, mac_address, encapsulation)
                 )
                 self.connection.commit()
-                self.log.debug(f"Static ARP entry added for interface: {if_name}")
+                self.log.debug(f"Static ARP entry added for interface: {interface_name}")
 
             return Result(STATUS_OK, row_id=existing_entry[0] if existing_entry else cursor.lastrowid)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error creating or updating static ARP entry for interface {if_name}: {e}")
+            self.log.error(f"Error creating or updating static ARP entry for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=0, result=str(e))
 
-    def delete_interface_static_arp(self, if_name: str, ip_address: str) -> Result:
+    def delete_interface_static_arp(self, interface_name: str, ip_address: str) -> Result:
         """
         Delete a static ARP record from the 'InterfaceStaticArp' table.
 
@@ -1856,19 +1862,19 @@ class RouterShellDB:
         Returns:
             Result: A Result object with the status of the deletion.
         """
-        self.log.debug(f"delete_interface_static_arp() If: {if_name} , IP: {ip_address}")
+        self.log.debug(f"delete_interface_static_arp() If: {interface_name} , IP: {ip_address}")
         
-        existing_result = self.interface_exists(if_name)
+        existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            return Result(STATUS_NOK, row_id=0, result=f"Interface: {if_name} does not exist")
+            return Result(STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
             
             cursor = self.connection.cursor()
             
-            self.log.debug(f"delete_interface_static_arp() Deleting Row -> Interface-FK: {if_name} , IP: {ip_address}")
+            self.log.debug(f"delete_interface_static_arp() Deleting Row -> Interface-FK: {interface_name} , IP: {ip_address}")
   
             cursor.execute(
                 "DELETE FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
@@ -1877,12 +1883,12 @@ class RouterShellDB:
             
             self.connection.commit()
             
-            self.log.debug(f"Static ARP record deleted for interface: {if_name}")
+            self.log.debug(f"Static ARP record deleted for interface: {interface_name}")
             
             return Result(STATUS_OK, row_id=interface_id)
         
         except sqlite3.Error as e:
-            self.log.error(f"Error deleting static ARP record for interface {if_name}: {e}")
+            self.log.error(f"Error deleting static ARP record for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=interface_id, result=str(e))
 
     def insert_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
@@ -1927,7 +1933,7 @@ class RouterShellDB:
             self.log.error(error_message)
             return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=error_message)
 
-    def delete_interface_bridge_group(self, if_name: str, bridge_name: str) -> Result:
+    def delete_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
         """
         Remove an interface from a bridge group in the 'BridgeGroups' table.
 
@@ -1939,10 +1945,10 @@ class RouterShellDB:
             Result: A Result object with the status of the deletion.
         """
         # Look up the interface and bridge group by name
-        interface_result = self.interface_exists(if_name)
+        interface_result = self.interface_exists(interface_name)
         
         if not interface_result.status:
-            return Result(STATUS_NOK, result=f"Interface: {if_name} does not exist")
+            return Result(STATUS_NOK, result=f"Interface: {interface_name} does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 

@@ -452,12 +452,11 @@ class InterfaceConfig(cmd2.Cmd,
         args = args.lower()
 
         if args == "auto":
-            self.set_speed(self.ifName, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
+            self.update_interface_speed(self.ifName, Speed.AUTO_NEGOTIATE)
 
         elif args in speed_values:
             speed = speed_values[args]
-            self.log.debug(f"speed -> {speed}")
-            self.set_speed(self.ifName, speed)
+            self.update_interface_speed(self.ifName, speed)
             
         else:
             print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
@@ -532,13 +531,8 @@ class InterfaceConfig(cmd2.Cmd,
         
         if negate:
             ifState = State.UP
-            shutdown_stat = f"no shutdown"
-        else:
-            shutdown_stat = f"shutdown"
-        
-        IFCDB().add_line_to_interface(f"{shutdown_stat}")
-        
-        self.set_interface_state(self.ifName, ifState)
+
+        self.update_shutdown(self.ifName, ifState)
 
     def complete_switchport(self, text, line, begidx, endidx):
         completions = ['access', 'mode']

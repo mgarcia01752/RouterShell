@@ -217,7 +217,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         if self.set_inet_address(self.ifName, ipv4_address, subnet_mask):
             raise InvalidInterface(f"Unable to add IPv4 Address: {ipv4_address}")
 
-    def update_interface_Duplex(self, ifName: str, duplex: Duplex) -> bool:
+    def update_interface_duplex(self, ifName: str, duplex: Duplex) -> bool:
         """
         Add or set the duplex mode for a network interface.
 
@@ -239,32 +239,34 @@ class Interface(NetworkManager, InterfaceDatabase):
         return STATUS_OK
     
     def update_interface_speed(self, interface_name: str, speed: Speed) -> bool:
-        '''
-        Set the speed of a network interface via os.
-        Update speed via db
-    
-        '''
-        if not args:
-            print("Usage: speed <10 | 100 | 1000 | 10000 | auto>")
-            return
+        """
+        Set the network interface speed and update it in the database.
 
-        self.log.debug(f"do_speed() -> interface: {interface_name} Speed: {speed}")
-        
-        speed_values = {str(s.value): s for s in Speed}
-        args = args.lower()
+        Args:
+            interface_name (str): The name of the network interface to configure.
+            speed (Speed): The desired speed setting.
 
-        if args == "auto":
-            self.set_speed(interface_name, Speed.MBPS_10, Speed.AUTO_NEGOTIATE)
+        Returns:
+            bool: STATUS_OK if the speed configuration was successful, STATUS_NOK otherwise.
+        """
+
+        self.log.debug(f"update_interface_speed() -> interface: {interface_name} Speed: {speed}")
+
+        if speed == Speed.AUTO_NEGOTIATE:
+            self.set_speed(interface_name, Speed.AUTO_NEGOTIATE, Speed.AUTO_NEGOTIATE)
             self.update_ifSpeed_db(interface_name, Speed.AUTO_NEGOTIATE.value)
-
-        elif args in speed_values:
-            speed = speed_values[args]
-            self.set_speed(self.ifName, speed)
+            0
+        elif speed in {Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000}:
+            self.set_speed(interface_name, speed)
             self.update_ifSpeed_db(interface_name, speed.value)
+        
         else:
-            print("Invalid speed value. Use '10', '100', '1000', '10000', or 'auto'.")
+            print("Invalid speed value. Use Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000, or Speed.AUTO_NEGOTIATE.")
+            return STATUS_NOK
+        
+        return STATUS_OK
             
-    def set_shutdown(self, ifName: str, state: State) -> bool:
+    def update_shutdown(self, ifName: str, state: State) -> bool:
         """
         Set the shutdown status of a network interface.
 
@@ -272,15 +274,23 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         Args:
             ifName (str): The name of the network interface to configure.
-            status (State): The status to set. Valid values are State.UP (to bring the interface up)
-                           or State.DOWN (to shut the interface down).
+            state (State): The status to set. Valid values are State.UP (to bring the interface up)
+                        or State.DOWN (to shut the interface down).
 
         Returns:
-            bool: True if the operation was successful, False otherwise.
-
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        self.log.debug(f"set_shutdown() -> ifName: {ifName} -> State: {state}")
-        return self.set_interface_state(ifName, state)
+        
+        # Determine the value of 'shutdown' based on 'state'
+        shutdown = state == State.UP
+        
+        if self.update_shutdown_status(ifName, shutdown):
+            self.log.error(f"Unable to set interface: {ifName} to {state.value} via db")
+            return STATUS_NOK
+        
+        self.log.debug(f"update_shutdown() -> ifName: {ifName} -> State: {state} via os")
+        return self.set_interface_shutdown(ifName, state)
+
     
     def update_interface_bridge_group(self, ifName:str, br_id:str, stp_protocol:BrProc=BrProc.IEEE_802_1D) -> bool:
         """
