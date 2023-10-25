@@ -174,40 +174,47 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_ip(self, interface_name: str, ipv4_address_cidr: str, negate: bool = False) -> bool:
+    def update_interface_inet(self, interface_name: str, inet_address: str, negate: bool = False) -> bool:
         """
-        Add or remove an IPv4 address to/from a network interface.
-        Update the IPv4 address to the DB.
+        Add or remove an inet address to/from a network interface.
+        Update the inet address to the DB.
 
-        This method either adds or removes an IPv4 address from the specified network interface.
+        This method either adds or removes an inet address from the specified network interface.
 
         Args:
             interface_name (str): The name of the network interface.
-            ipv4_address_cidr (str): The IPv4 address in CIDR notation (e.g., "192.168.1.1/24").
-            negate (bool): If True, the method will remove the specified IPv4 address from the interface. If False, it will add the address.
+            inet_address (str): The IP address in CIDR notation (e.g., "192.168.1.1/24" for IPv4 or "2001:db8::1/64" for IPv6).
+            negate (bool): If True, the method will remove the specified IP address from the interface. If False, it will add the address.
 
         Returns:
             bool: STATUS_OK if the IP address was successfully updated, STATUS_NOK otherwise.
         """
         try:
-            ip_network = ipaddress.IPv4Network(ipv4_address_cidr, strict=False)
-            ipv4_cidr_dot_notation = str(ip_network.network_address)
+            # Determine if it's an IPv4 or IPv6 address
+            is_ipv6 = ":" in inet_address
+
+            if is_ipv6:
+                # For IPv6, use the ipaddress.IPv6Network
+                ip_network = ipaddress.IPv6Network(inet_address, strict=False)
+            else:
+                # For IPv4, use the ipaddress.IPv4Network
+                ip_network = ipaddress.IPv4Network(inet_address, strict=False)
+
+            cidr_dot_notation = str(ip_network.network_address)
 
             if negate:
-                
-                if self.del_inet_address(interface_name, ipv4_cidr_dot_notation):
-                    self.log.debug(f"Unable to remove IP Address: {ipv4_cidr_dot_notation} from interface: {interface_name}")
+                if self.del_inet_address(interface_name, cidr_dot_notation):
+                    self.log.debug(f"Unable to remove IP Address: {cidr_dot_notation} from interface: {interface_name}")
                     return STATUS_NOK
             else:
-                                
-                if self.del_inet_address(interface_name, ipv4_cidr_dot_notation):
-                    self.log.debug(f"Unable to add IP Address: {ipv4_cidr_dot_notation} to interface: {interface_name}")
+                if self.set_inet_address(interface_name, cidr_dot_notation):
+                    self.log.debug(f"Unable to add IP Address: {cidr_dot_notation} to interface: {interface_name}")
                     return STATUS_NOK
 
             return STATUS_OK
-        
+
         except ValueError as e:
-            self.log.debug(f"Invalid IPv4 address in CIDR notation: {ipv4_cidr_dot_notation}, Error: {e}")
+            self.log.debug(f"Invalid IP address in CIDR notation: {inet_address}, Error: {e}")
             return STATUS_NOK
 
     def update_interface_duplex(self, interface_name: str, duplex: Duplex) -> bool:

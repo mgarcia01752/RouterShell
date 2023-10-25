@@ -1604,24 +1604,6 @@ class RouterShellDB:
             self.log.error(f"Error inserting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
 
-    def _sub_option_row_exists(self, interface_fk: int) -> Result:
-        """
-        Check if a row with the given Interface_FK exists in the 'InterfaceSubOptions' table.
-
-        Args:
-            interface_fk (int): The foreign key (Interface_FK) to check.
-
-        Returns:
-            Result: A Result object with the 'row_id' field indicating the found 'ID' or 0 if not found.
-        """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_fk,))
-            row = cursor.fetchone()
-            return Result(status=True, row_id=row[0] if row else 0)
-        except sqlite3.Error:
-            return Result(status=True, row_id=0)
-
     def delete_interface_inet_address(self, interface_name: str, ip_address: str) -> Result:
         """
         Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
@@ -1655,41 +1637,27 @@ class RouterShellDB:
             self.log.error(f"Error deleting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
 
-    '''
-                    INTERFACE-SUB-OPTIONS DATABASE
-    '''
-
-    def _insert_default_row_in_interface_sub_option(self, interface_name: str) -> Result:
+    def _sub_option_row_exists(self, interface_fk: int) -> Result:
         """
-        Insert a default row into the InterfaceSubOptions table if it does not already exist.
+        Check if a row with the given Interface_FK exists in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the network interface.
+            interface_fk (int): The foreign key (Interface_FK) to check.
 
         Returns:
-            Result: An instance of Result if the row is successfully or not inserted.
+            Result: A Result object with the 'row_id' field indicating the found 'ID' or 0 if not found.
         """
         try:
             cursor = self.connection.cursor()
-
-            interface_exists_result = self.interface_exists(interface_name)
-            if not interface_exists_result.status:
-                return Result(status=False, result=f"Interface:{interface_name} does not exists")
-
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_exists_result.row_id,))
-            existing_row = cursor.fetchone()
-
-            if existing_row is not None:
-                return Result(status=False, result="Row already exists")
-
-            cursor.execute("INSERT INTO InterfaceSubOptions (Interface_FK) VALUES (?)", (interface_exists_result.row_id,))
-            row_id = cursor.lastrowid  # Get the inserted row's ID
-            self.connection.commit()
-
-            return Result(status=True, row_id=row_id, result="Row inserted successfully")
-
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_fk,))
+            row = cursor.fetchone()
+            return Result(status=True, row_id=row[0] if row else 0)
         except sqlite3.Error:
-            return Result(status=False, result="Database error")
+            return Result(status=True, row_id=0)
+
+    '''
+                    INTERFACE-SUB-OPTIONS DATABASE
+    '''
 
     def interface_and_sub_option_exist(self, interface_name: str) -> Result:
         """
@@ -1973,3 +1941,35 @@ class RouterShellDB:
             error_message = f"Error deleting data from 'BridgeGroups': {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, result=error_message)
+
+    def _insert_default_row_in_interface_sub_option(self, interface_name: str) -> Result:
+        """
+        Insert a default row into the InterfaceSubOptions table if it does not already exist.
+
+        Args:
+            if_name (str): The name of the network interface.
+
+        Returns:
+            Result: An instance of Result if the row is successfully or not inserted.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            interface_exists_result = self.interface_exists(interface_name)
+            if not interface_exists_result.status:
+                return Result(status=False, result=f"Interface:{interface_name} does not exists")
+
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_exists_result.row_id,))
+            existing_row = cursor.fetchone()
+
+            if existing_row is not None:
+                return Result(status=False, result="Row already exists")
+
+            cursor.execute("INSERT INTO InterfaceSubOptions (Interface_FK) VALUES (?)", (interface_exists_result.row_id,))
+            row_id = cursor.lastrowid  # Get the inserted row's ID
+            self.connection.commit()
+
+            return Result(status=True, row_id=row_id, result="Row inserted successfully")
+
+        except sqlite3.Error:
+            return Result(status=False, result="Database error")
