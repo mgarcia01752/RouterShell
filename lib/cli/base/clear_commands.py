@@ -41,8 +41,6 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         Args:
             args (str): Command arguments in the format "clear <command>".
 
-        Example:
-            clear arp eth0
         """
         self.log.debug(f"Entering clear({args})")
 
@@ -50,7 +48,8 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         parser = argparse.ArgumentParser(
             description="Clear ARP entries on the network device.",
             epilog="Supported subcommand:\n"
-                    "  arp - Clear ARP cache for a specific interface."
+                    "   arp [interface _name]           Clear ARP cache for a specific interface.\n"
+                    "   interface [interface name]      Clear interface.\n"
         )
 
         # Create a subparser for the 'arp' subcommand.

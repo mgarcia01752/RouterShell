@@ -28,6 +28,28 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.setLevel(RSLGS().INTERFACE)
         self.arg = arg
 
+    def clear_interface_arp(self, interface_name: str = None) -> bool:
+        """
+        Clear the ARP cache for a specific network interface using iproute2.
+
+        This method clears the ARP cache for the specified network interface using the iproute2 tool.
+
+        Args:
+            interface_name (str, optional): The name of the network interface to clear the ARP cache for.
+                If not provided, the ARP cache for all interfaces will be cleared. Defaults to None.
+
+        Returns:
+            bool: STATUS_OK if the ARP cache was successfully cleared, STATUS_NOK otherwise.
+        """
+
+        if interface_name:
+            # Clear the ARP cache for a specific interface
+            self.run(['sudo', 'ip', 'neigh', 'flush', 'dev', interface_name], suppress_error=True)
+        else:
+            # Clear the ARP cache for all interfaces
+            self.run(['sudo', 'ip', 'neigh', 'flush', 'all'], suppress_error=True)
+        return STATUS_OK
+
     def get_network_interfaces(self) -> list:
         """
         Get a list of network interface names (excluding bridges) using the 'ip' command with --json option.
