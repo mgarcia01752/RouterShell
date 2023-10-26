@@ -1,7 +1,6 @@
 import ipaddress
 import json
 import logging
-from typing import List
 
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -60,7 +59,7 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return False
 
-    def is_ip_assigned_to_interface(self, ip_address, interface):
+    def is_ip_assigned_to_interface(self, ip_address, interface) -> bool:
         """
         Check if an IP address is assigned to a specific network interface on a Linux system.
 
@@ -145,7 +144,7 @@ class InetServiceLayer(MacServiceLayer):
         # Add your network interface validation logic here
         return True  # Replace with actual validation logic
 
-    def get_interface_ip_addresses(self, interface_name, ip_version=None):
+    def get_interface_ip_addresses(self, interface_name, ip_version=None) -> list:
         """
         Get IP addresses of a network interface using iproute2 --json option.
 
@@ -275,7 +274,7 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return False
 
-    def convert_ip_mask_to_cidr(ip_address:str, prefix_length:IndentationError):
+    def convert_ip_mask_to_cidr(ip_address:str, prefix_length:IndentationError) -> str:
         """
         Convert an IP address and prefix length into a formatted IP address with CIDR notation.
 

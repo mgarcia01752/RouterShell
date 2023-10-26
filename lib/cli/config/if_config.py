@@ -1,7 +1,6 @@
 import argparse
 import cmd2
 import logging
-from lib.common.inet_ultils import IPUtilities as IPUltils
 
 from lib.network_manager.interface import Interface, InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
@@ -27,8 +26,6 @@ class InterfaceConfig(cmd2.Cmd,
                       GlobalUserCommand, 
                       RouterPrompt, 
                       Interface):
-    
-    bridge_name=""
     
     def __init__(self, ifName: str, ifType:str=None):
         super().__init__()
