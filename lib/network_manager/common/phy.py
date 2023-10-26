@@ -1,10 +1,8 @@
 import logging
-from typing import List
 
-from lib.common.common import Common
 from lib.network_manager.common.run_commands import RunCommand
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.constants import *
+from lib.common.constants import STATUS_OK, STATUS_NOK
 
 from enum import Enum, auto
 

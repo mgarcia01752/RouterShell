@@ -8,7 +8,8 @@ from tabulate import tabulate
 
 from lib.common.common import Common
 from lib.network_manager.common.phy import PhyServiceLayer
-from lib.common.constants import *
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class MacServiceLayerFoundError(Exception):
     """
@@ -26,6 +27,7 @@ class MacServiceLayer(PhyServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().MAC)
         
     def set_interface_mac(self, interface_name: str, mac_address: str) -> bool:
         """
