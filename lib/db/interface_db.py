@@ -237,10 +237,10 @@ class InterfaceDatabase:
             bool: STATUS_OK if the update (or deletion) was successful, STATUS_NOK otherwise.
         """  
         if not negate:
-            cls.log.debug(f"update_static_arp(INSERT) Interface: {interface_name} -> Static Arp: {ip_address}")
+            cls.log.debug(f"update_static_arp(INSERT) Interface: {interface_name} -> Arp: -> inet: {ip_address} mac: {mac_address}")
             result = cls.rsdb.update_interface_static_arp(interface_name, ip_address, mac_address, encapsulation)
         else:
-            cls.log.debug(f"update_static_arp(DELETE) Interface: {interface_name} -> Static Arp: {ip_address}")
+            cls.log.debug(f"update_static_arp(DELETE) Interface: {interface_name} -> Arp: -> inet: {ip_address} mac: {mac_address}")
             result = cls.rsdb.delete_interface_static_arp(interface_name, ip_address)
 
         return result.status

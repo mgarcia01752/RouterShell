@@ -216,15 +216,14 @@ class Arp(MacServiceLayer):
                 
         return SysCtl().write_sysctl(proxy_arp_pvlan_file, value)
 
-    def set_os_static_arp(self, inet:str, mac_address:str, ifName:str,
-                       encap:Encapsulate=Encapsulate.ARPA, add_arp_entry:bool=True) -> bool:
+    def set_os_static_arp(self, interface_name:str, inet:str, mac_address:str, encap:Encapsulate=Encapsulate.ARPA, add_arp_entry:bool=True) -> bool:
         """
         Configure or remove a static ARP entry using iproute2.
 
         Args:
+            interface_name (str): The name of the network interface.
             inet (str): The IPv4 address for the static ARP entry.
             mac_address (str): The MAC address for the static ARP entry.
-            ifName (str): The name of the network interface.
             encap (Encapsulate, optional): The ARP encapsulation type (default is ARPA).
             add_arp_entry (bool, optional): True to configure the entry (default), False to remove it.
 
@@ -235,6 +234,7 @@ class Arp(MacServiceLayer):
             - To configure a static ARP entry, set `enable` to True.
             - To remove a static ARP entry, set `enable` to False.
         """
+        self.log.debug(f"set_os_static_arp() interface: {interface_name} -> inet: {inet} -> mac: {mac_address} -> encap: {encap} -> add-arp: {add_arp_entry}")
         arp_entry_action='add'
         
         if not InetServiceLayer().is_valid_ipv4(inet):
@@ -243,14 +243,14 @@ class Arp(MacServiceLayer):
             
         status, mac_address = self.format_mac_address(mac_address)
         
-        if status:
+        if not status:
             self.log.error(f"Invalid Mac Address -> ({mac_address})")
             return STATUS_NOK
         
         if not add_arp_entry:
            arp_entry_action='del' 
         
-        command = ['ip', 'neigh', arp_entry_action, inet, 'lladdr', mac_address, 'dev', ifName]
+        command = ['ip', 'neigh', arp_entry_action, inet, 'lladdr', mac_address, 'dev', interface_name]
         
         self.log.debug(f"Static ARP CMD: {command}")
         
@@ -260,7 +260,7 @@ class Arp(MacServiceLayer):
             self.log.error(f"Unable to set static arp entry {inet} -> {mac_address} : {results.stderr}")
             return STATUS_NOK
         
-        self.log.debug(f"set_static_arp(ifName: {ifName}) -> inet: {inet} -> mac: {mac_address}")
+        self.log.debug(f"set_static_arp(ifName: {interface_name}) -> inet: {inet} -> mac: {mac_address}")
         return STATUS_OK
             
     def get_arp(self, args=None):

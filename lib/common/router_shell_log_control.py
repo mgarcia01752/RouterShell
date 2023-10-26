@@ -13,9 +13,9 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL CRITICAL
     '''
     
-    GLOBAL_DEBUG = False
+    GLOBAL_DEBUG = True
 
-    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
 
     ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
@@ -30,10 +30,10 @@ class RouterShellLoggingGlobalSettings():
     DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    INTERFACE_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    INTERFACE_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
-    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -46,8 +46,8 @@ class RouterShellLoggingGlobalSettings():
     VLAN                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    ARP                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    ARP_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ARP                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    ARP_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
     WIRELESS            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     

@@ -5,7 +5,7 @@ import re
 from typing import Optional
 
 from lib.db.interface_db import InterfaceDatabase
-from lib.network_manager.arp import Arp
+from lib.network_manager.arp import Arp, Encapsulate
 
 from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
 from lib.network_manager.vlan import Vlan
@@ -444,6 +444,33 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         if self.update_db_drop_gratuitous_arp(interface_name, (not negate)):
             self.log.error(f"Unable to update drop-gratuitous-arp: {not negate} on interface: {interface_name} via DB")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def update_interface_static_arp(self, interface_name: str, inet: str, mac_address: str, encap: Encapsulate, negate: bool = False) -> bool:
+        """
+        Enable or disable a static ARP entry for a network interface and update the static ARP configuration in the database.
+
+        This method allows you to enable or disable a static ARP entry on the specified network interface and update the
+        static ARP configuration in the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            inet (str): The IP address associated with the ARP entry.
+            mac_address (str): The MAC address associated with the ARP entry.
+            encap (Encapsulate): The type of encapsulation used for the ARP entry.
+            negate (bool): If True, the static ARP entry will be disabled. If False, the static ARP entry will be enabled.
+
+        Returns:
+            bool: STATUS_OK if the static ARP configuration was successfully updated, STATUS_NOK otherwise.
+        """
+        if Arp().set_os_static_arp(interface_name, inet, mac_address, encap.value, not negate):
+            self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via OS")
+            return STATUS_NOK
+
+        if self.update_db_static_arp(interface_name, inet, mac_address, encap.value, not negate):
+            self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via DB")
             return STATUS_NOK
 
         return STATUS_OK

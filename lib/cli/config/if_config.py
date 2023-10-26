@@ -286,28 +286,9 @@ class InterfaceConfig(cmd2.Cmd,
             mac_addr_arp = args.mac_addr_arp
             encap_arp = Encapsulate.ARPA         
                     
-            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}")
+            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
+            self.update_interface_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
             
-            if negate:
-                
-                Arp().set_os_static_arp(ipv4_addr_arp, mac_addr_arp, 
-                                     self.ifName, encap_arp, 
-                                     add_arp_entry=False)
-                IFCDB().update_db_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp.value, negate=True)
-                IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
-            
-            else:
-                
-                self.log.debug(f"Set static-arp on Interface {self.ifName} -> Add ARP Entry: {True}")
-                
-                Arp().set_os_static_arp(ipv4_addr_arp, mac_addr_arp, 
-                                     self.ifName, encap_arp, 
-                                     add_arp_entry=True)
-                
-                IFCDB().update_db_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, str(encap_arp.value), negate=False)
-                
-                IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
-
         elif args.subcommand == "nat":
             '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
             nat_direction = args.nat_direction_pool
