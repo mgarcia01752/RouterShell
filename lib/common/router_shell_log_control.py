@@ -14,7 +14,7 @@ class RouterShellLoggingGlobalSettings():
     '''
     
     GLOBAL_DEBUG = False
-
+    
     ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -53,7 +53,8 @@ class RouterShellLoggingGlobalSettings():
     ARP_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     WIRELESS            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
+ 
+    NETWORK_MANAGER     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     MAC                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     PHY                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -4,11 +4,11 @@ import signal
 import logging
 import cmd2
 
-from lib.cli.base.clear_commands import ClearMode
+from lib.cli.base.clear_mode import ClearMode
 from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
-from lib.cli.show.show_operation import ShowMode
+from lib.cli.show.show_mode import ShowMode
 from lib.cli.config.config_mode import ConfigureMode
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 
