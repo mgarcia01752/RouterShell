@@ -32,6 +32,45 @@ class DHCPClient(NetworkManager):
         """
         return shutil.which("dhclient") is not None
 
+    def set_dhcp_client_interface_service(self, interface_name, dhcp_version: DHCPVersion, enable_dhcp_client=True) -> bool:
+        """
+        Set the DHCP client service for the specified interface and version.
+
+        Args:
+            interface_name (str): The name of the network interface to configure DHCP on.
+            dhcp_version (DHCPVersion): The DHCP version (DHCP_V4 or DHCP_V6).
+            enable_dhcp_client (bool): If True, enable DHCP; if False, disable DHCP.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        if dhcp_version == DHCPVersion.DHCP_V4:
+            if enable_dhcp_client:
+                result = self.enable_dhcpv4(interface_name)
+                if result != STATUS_OK:
+                    self.log.error(f"Failed to enable DHCPv4 on interface {interface_name}")
+                    return STATUS_NOK
+            else:
+                result = self.disable_dhcpv4(interface_name)
+                if result:
+                    self.log.error(f"Failed to disable DHCPv4 on interface {interface_name}")
+                    return STATUS_NOK
+        
+        elif dhcp_version == DHCPVersion.DHCP_V6:
+            if enable_dhcp_client:
+                result = self.enable_dhcpv6(interface_name)
+                if result:
+                    self.log.error(f"Failed to enable DHCPv6 on interface {interface_name}")
+                    return STATUS_NOK
+            else:
+                result = self.disable_dhcpv6(interface_name)
+                if result:
+                    self.log.error(f"Failed to disable DHCPv6 on interface {interface_name}")
+                    return STATUS_NOK
+
+        return STATUS_OK
+
+
     def enable_dhcpv4(self, interface_name: str) -> bool:
         """
         Enable DHCPv4 on the specified interface.

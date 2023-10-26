@@ -1,6 +1,7 @@
 import argparse
 import cmd2
 import logging
+from lib.network_manager.dhcp_client import DHCPVersion
 
 from lib.network_manager.interface import Interface, InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
@@ -245,6 +246,10 @@ class InterfaceConfig(cmd2.Cmd,
             help="Specify the NAT pool name when configuring NAT."
         )
 
+        subparsers.add_parser("dhcp-client",
+            help="Configure DHCPv4 Client"
+        )
+                
         try:
             if not isinstance(args, list):
                 args = parser.parse_args(args.split())
@@ -320,6 +325,12 @@ class InterfaceConfig(cmd2.Cmd,
                     IFCDB().add_line_to_interface(f"ip {args.subcommand} {nat_direction} pool {pool_name}")                
             else:
                 self.log.error(f"Invalid NAT type: {args.nat_type}, Use '{NATDirection.INSIDE.value}' or '{NATDirection.OUTSIDE.value}'")
+
+        elif args.subcommand == "dhcp-client":
+            '''[no] [ip dhcp-client]'''
+            self.log.debug(f"Enable DHCPv4 Client")
+            if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V4, negate):
+                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
 
     def complete_speed(self, text, line, begidx, endidx):
         completions = ['half', 'full', 'auto']        

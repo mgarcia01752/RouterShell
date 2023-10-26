@@ -8,6 +8,7 @@ from lib.db.interface_db import InterfaceDatabase
 from lib.network_manager.arp import Arp, Encapsulate
 
 from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
+from lib.network_manager.dhcp_client import DHCPClient, DHCPVersion
 from lib.network_manager.vlan import Vlan
 from lib.network_manager.network_manager import InterfaceType, NetworkManager
 from lib.network_manager.nat import Nat, NATDirection
@@ -502,4 +503,34 @@ class Interface(NetworkManager, InterfaceDatabase):
             return STATUS_NOK
 
         return STATUS_OK
+
+    def update_interface_dhcp_client(self, interface_name: str, dhcp_version: DHCPVersion, negate=False) -> bool:
+        """
+        Update the DHCP configuration for a network interface via OS.
+        Update the DHCP configuration for a network interface via DB.
+        
+        Args:
+            interface_name (str): The name of the network interface.
+            dhcp_version (DHCPVersion): The DHCP version (DHCP_V4 or DHCP_V6).
+            negate (bool): If True, disable DHCP; if False, enable DHCP.
+
+        Returns:
+            bool: STATUS_OK for success, STATUS_NOK for failure.
+
+        """
+        if not self.net_mgr_interface_exist(interface_name):
+            self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name}. Interface does not exist.")
+            return STATUS_NOK
+        
+        if self.update_db_dhcp_client(interface_name, dhcp_version):
+            self.log.error(f"Failed to update {dhcp_version.value} client on interface: {interface_name}. Database update error.")
+            return STATUS_NOK
+
+        dhcp_client = DHCPClient()
+        
+        if dhcp_client.set_dhcp_client_interface_service(interface_name, dhcp_version, (not negate)):
+            self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name} OS network update error.")
+            return STATUS_NOK
+
+        return STATUS_OK            
 

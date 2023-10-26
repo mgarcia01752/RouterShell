@@ -1,5 +1,6 @@
 import logging
 import re
+from lib.network_manager.dhcp_client import DHCPVersion
 
 from lib.network_manager.nat import Nat, NATDirection
 from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as RSDB
@@ -333,3 +334,28 @@ class InterfaceDatabase:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
         pass
+
+    def update_db_dhcp_client(cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
+        """
+        Update the DHCP version for a specific network interface in the database.
+
+        Args:
+            interface_name (str): The name of the network interface to update.
+            dhcp_version (DHCPVersion): The updated DHCP version (DHCP_V4 or DHCP_V6).
+
+        Returns:
+            bool: STATUS_OK for success, STATUS_NOK for failure.
+
+        This method attempts to update the DHCP version for a network interface in the database. If the update is successful,
+        it returns True (STATUS_OK). If there's an issue during the update, it returns False (STATUS_NOK) and logs an error
+        message with the reason for the failure.
+
+        Note:
+        - The 'dhcp_version' parameter should be of type DHCPVersion, which is an enumeration containing DHCP versions.
+        - The 'STATUS_OK' and 'STATUS_NOK' constants represent success and failure, respectively.
+        """
+        result = cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_version.value)
+        if result.status:
+            cls.log.error(f"Unable to insert {dhcp_version.value} to interface: {interface_name} - reason: {result.result}")
+            return STATUS_NOK
+        return STATUS_OK

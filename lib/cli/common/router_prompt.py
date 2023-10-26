@@ -19,7 +19,6 @@ class RouterPrompt:
     DEF_START_PROMPT = "Router"
     CONFIG_MODE_PROMPT = 'config'
     PREFIX_SEP = ':'
-    if_name = ""
 
     def __init__(self, exec_mode: ExecMode, sub_cmd_name: str = None):
         '''
@@ -50,12 +49,12 @@ class RouterPrompt:
         # Set the prompt for the first time
         self.set_prompt()
 
-    def set_prompt(self, if_name: str = None) -> str:
+    def set_prompt(self, interface_name: str = None) -> str:
         '''
         Set the router command prompt based on the current configuration mode and optional interface name.
 
         Args:
-            if_name (str, optional): The interface name when in CONFIG_MODE. Defaults to None.
+            interface_name (str, optional): The interface name when in CONFIG_MODE. Defaults to None.
 
         Returns:
             str: The formatted command prompt string.
