@@ -224,7 +224,6 @@ class InetServiceLayer(MacServiceLayer):
         
         return STATUS_OK 
 
-
     def del_inet_address(self, interface: str, ip_address: str) -> bool:
         """
         Remove an IP address from a network interface.

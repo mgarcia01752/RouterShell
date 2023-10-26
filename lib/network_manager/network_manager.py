@@ -37,7 +37,7 @@ class NetworkManager(InetServiceLayer):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
     
-    def is_valid_interface(self, ifName):
+    def net_mgr_interface_exist(self, interface_name) -> bool:
         """
         Check if a network interface with the given name exists on the system.
 
@@ -45,14 +45,14 @@ class NetworkManager(InetServiceLayer):
         the system and checks if the specified interface name exists in the output.
 
         Args:
-            ifName (str): The name of the network interface to check.
+            interface_name (str): The name of the network interface to check.
 
         Returns:
             str: A status indicating whether the interface is valid or not.
-                - 'STATUS_OK': If the interface exists.
-                - 'STATUS_NOK': If the interface does not exist or an error occurred.
+                - 'True': If the interface exists.
+                - 'False': If the interface does not exist or an error occurred.
         """
-        command = ['ip', 'link', 'show', ifName]
+        command = ['ip', 'link', 'show', interface_name]
 
         try:
             # Run the 'ip link' command using self.run()
@@ -60,9 +60,9 @@ class NetworkManager(InetServiceLayer):
 
             # Check the exit code to determine the status
             if result.exit_code == 0:
-                return 'STATUS_OK'
+                return True
             else:
-                return 'STATUS_NOK'
+                return False
         except Exception as e:
             # Handle any errors that occurred during the command execution
             print(f"Error: {e}")
@@ -88,8 +88,7 @@ class NetworkManager(InetServiceLayer):
         self.log.debug(f"flush_interface() -> interface_name: {interface_name}")
         
         try:
-            # Check if the interface exists
-            if self.is_valid_interface(interface_name) == 'STATUS_NOK':
+            if not self.net_mgr_interface_exist(interface_name):
                 raise InterfaceNotFoundError(f"Interface '{interface_name}' not found.")
 
             self.log.debug(f"flush_interface() -> interface_name: {interface_name}")

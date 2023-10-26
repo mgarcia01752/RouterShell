@@ -2,7 +2,7 @@ import ipaddress
 import logging
 
 
-from lib.db.dhcp_db import DHCPDatabase
+from lib.db.dhcpd_db import DHCPDatabase
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServer():

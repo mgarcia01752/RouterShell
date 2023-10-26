@@ -2,13 +2,13 @@ from enum import Enum
 import ipaddress
 import logging
 
-from lib.network_manager.common.inet import InetServiceLayer
 from lib.db.nat_db import NatDB
 from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.network_manager import NetworkManager
 
 class NATDirection(Enum):
     """
@@ -20,7 +20,7 @@ class NATDirection(Enum):
     INSIDE = 'inside'
     OUTSIDE = 'outside'
 
-class Nat(InetServiceLayer):
+class Nat(NetworkManager):
 
     def __init__(self):
         super().__init__()

@@ -6,7 +6,7 @@ import logging
 
 import cmd2
 
-from lib.db.dhcp_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
+from lib.db.dhcpd_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt

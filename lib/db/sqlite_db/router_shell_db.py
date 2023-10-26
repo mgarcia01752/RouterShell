@@ -1251,8 +1251,102 @@ class RouterShellDB:
         return reservations
 
     '''
-                        DHCP-OPTIONS DATABASE
+                        DHCP-CLIENT DATABASE
     '''
+
+    def insert_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
+        """
+        Insert a new DHCP client entry into the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            dhcp_version (str): The DHCP version (DHCP_V4 or DHCP_V6).
+
+        Returns:
+            Result: A Result object with the status of the insertion and the row ID.
+                    status = STATUS_OK for success, STATUS_NOK for failure.
+        """
+        result = self.interface_exists(interface_name)
+        
+        if result.status:
+            err = f"Unable to insert DHCP client to interface: {interface_name} does not exist"
+            self.log.error(err)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)
+        
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO DHCPClient (Interface_FK, DHCPVersion) VALUES (?, ?)", (result.row_id, dhcp_version))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+            return Result(STATUS_OK, row_id=row_id)
+        
+        except Exception as e:
+            self.log.error(f"Failed to add DHCP client: {e}")
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=str(e))
+
+    def update_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
+        """
+        Update the DHCP version for an existing DHCP client entry in the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            dhcp_version (str): The updated DHCP version (DHCP_V4 or DHCP_V6).
+
+        Returns:
+            Result: A Result object with the status of the update and the row ID.
+                    status = STATUS_OK for success, STATUS_NOK for failure.
+        """
+        result = self.interface_exists(interface_name)
+        
+        if result.status:
+            err = f"Unable to update DHCP client to interface: {interface_name} does not exist"
+            self.log.error(err)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)
+        
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+            "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interface_FK = ?", (dhcp_version, result.row_id))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+            return Result(STATUS_OK, row_id=row_id)
+        
+        except Exception as e:
+            self.log.error(f"Failed to update DHCP client: {e}")
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=str(e))
+
+    def remove_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
+        """
+        Remove a DHCP client entry from the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            dhcp_version (str): The DHCP version to be removed (DHCP_V4 or DHCP_V6).
+
+        Returns:
+            Result: A Result object with the status of the removal and the row ID.
+                    status = STATUS_OK for success, STATUS_NOK for failure.
+        """
+        result = self.interface_exists(interface_name)
+        
+        if result.status:
+            err = f"Unable to remove DHCP client from interface: {interface_name} does not exist"
+            self.log.error(err)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)
+        
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "DELETE FROM DHCPClient WHERE Interface_FK = ? AND DHCPVersion = ?", (result.row_id, dhcp_version))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+            return Result(STATUS_OK, row_id=row_id)
+        
+        except Exception as e:
+            self.log.error(f"Failed to remove DHCP client: {e}")
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=str(e))
+
 
     '''
                         INTERFACE DATABASE

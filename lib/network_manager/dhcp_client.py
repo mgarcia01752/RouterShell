@@ -1,7 +1,6 @@
 from enum import Enum
 import logging
-import subprocess
-from lib.network_manager.common.sysctl import SysCtl
+import shutil
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_manager import NetworkManager
@@ -18,24 +17,20 @@ class DHCPClient(NetworkManager):
     This class provides methods to enable and disable DHCP clients for IPv4 and IPv6 on
     specific network interfaces, as well as restarting the DHCP client service.
 
-    Args:
-        None
-
-    Attributes:
-        log (logging.Logger): The logger for this class.
-
-    Methods:
-        enable_dhcpv4(interface_name: str) -> bool: Enable DHCPv4 on the specified interface.
-        enable_dhcpv6(interface_name: str) -> bool: Enable DHCPv6 on the specified interface.
-        disable_dhcpv4(interface_name: str) -> bool: Disable DHCPv4 on the specified interface.
-        disable_dhcpv6(interface_name: str) -> bool: Disable DHCPv6 on the specified interface.
-        restart_dhcp_service() -> bool: Restart the DHCP client service.
-
     """
     def __init__(self):
         super().__init()
         self.log = logging.getLogger(self.__class__.__name())
-        self.log.setLevel(RSLGS().NAT)
+        self.log.setLevel(RSLGS().DHCP_CLIENT)
+
+    def is_dhclient_available(self) -> bool:
+        """
+        Check if dhclient is available on the system.
+
+        Returns:
+            bool: True if dhclient is available, False otherwise.
+        """
+        return shutil.which("dhclient") is not None
 
     def enable_dhcpv4(self, interface_name: str) -> bool:
         """
@@ -122,7 +117,7 @@ class DHCPClient(NetworkManager):
         result = self.run(command)
         
         if result.exit_code:
-            self.log.error("Unable to restart DHCP client service")
+            self.log.error(f"Unable to restart DHCP client service - Reason: {result.stderr}")
             return STATUS_NOK
         
         return STATUS_OK

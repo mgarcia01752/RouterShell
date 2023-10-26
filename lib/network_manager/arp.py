@@ -2,12 +2,12 @@ from enum import Enum
 import logging
 
 from tabulate import tabulate 
-from lib.network_manager.common.mac import MacServiceLayer
 from lib.network_manager.common.inet import InetServiceLayer
 from lib.network_manager.common.sysctl import SysCtl
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.network_manager import NetworkManager
 
 class Encapsulate(Enum):
     ARPA = 'arpa'
@@ -19,7 +19,7 @@ class Encapsulate(Enum):
     SNAP = 'snap'
     """snap Enables encapsulation for FDDI and Token Ring networks."""
     
-class Arp(MacServiceLayer):
+class Arp(NetworkManager):
 
     def __init__(self):
         super().__init__()

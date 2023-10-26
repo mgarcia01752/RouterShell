@@ -5,11 +5,11 @@ from typing import Optional
 
 from tabulate import tabulate
 from lib.db.bridge_db import BridgeDatabase 
-from lib.network_manager.common.mac import MacServiceLayer
 from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.network_manager import NetworkManager
 
 class BridgeProtocol(Enum):
     
@@ -46,7 +46,7 @@ class STP_STATE(Enum):
     STP_DISABLE='0'
     STP_ENABLE='1'
     
-class Bridge(MacServiceLayer):
+class Bridge(NetworkManager):
 
     def __init__(self, arg=None):
         super().__init__()
