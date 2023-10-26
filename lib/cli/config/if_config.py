@@ -263,35 +263,13 @@ class InterfaceConfig(cmd2.Cmd,
 
             self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
-            if negate:
-                self.log.debug(f"Removing IP: {ipv4_address_cidr} to interface: {self.if_name} secondary: {is_secondary}")
-            
+            action_description = "Removing" if negate else "Setting"
+            result = self.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
+
+            if result:
+                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
             else:
-                self.log.debug(f"Setting IP: {ipv4_address_cidr} to interface: {self.if_name} secondary: {is_secondary}")
-
-        if args.subcommand == "address":
-            ipv4_address_cidr = args.ipv4_address_cidr
-            is_secondary = args.secondary
-            is_secondary = True if is_secondary else False
-
-            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
-
-            if negate:
-                self.log.debug(f"Removing IP: {ipv4_address_cidr} from interface: {self.if_name} secondary: {is_secondary}")
-                
-                result = self.update_interface_inet(self.if_name, ipv4_address_cidr, is_secondary, negate=True)
-                if result:
-                    self.log.debug(f"Removed IP: {ipv4_address_cidr} from interface: {self.if_name} secondary: {is_secondary}")
-                else:
-                    self.log.debug(f"Failed to remove IP: {ipv4_address_cidr} from interface: {self.if_name} secondary: {is_secondary}")
-            else:
-                self.log.debug(f"Setting IP: {ipv4_address_cidr} to interface: {self.if_name} secondary: {is_secondary}")
-                
-                result = self.update_interface_inet(self.if_name, ipv4_address_cidr, is_secondary, negate=False)
-                if result:
-                    self.log.debug(f"Set IP: {ipv4_address_cidr} to interface: {self.if_name} secondary: {is_secondary}")
-                else:
-                    self.log.debug(f"Failed to set IP: {ipv4_address_cidr} to interface: {self.if_name} secondary: {is_secondary}")
+                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
 
         elif args.subcommand == "proxy-arp":
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")

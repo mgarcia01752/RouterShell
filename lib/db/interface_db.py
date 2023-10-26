@@ -152,7 +152,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 
-    def update_ip_address(cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
+    def update_inet_address_db(cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
         """
         Update or delete an IP address setting for an interface.
 

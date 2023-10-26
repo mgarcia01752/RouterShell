@@ -176,36 +176,54 @@ class InetServiceLayer(MacServiceLayer):
 
         return addresses
 
-    def set_inet_address(self, interface: str, inet_address_cidr: str, secondary: bool = False) -> bool:
+    def set_inet_address(self, interface_name: str, inet_address_cidr: str, secondary: bool = False) -> bool:
         """
         Set an IP address on an interface.
 
         Args:
-            interface (str): The network interface.
-            inet_address (str): The IP address to set as a string in CIDR notation, including the label.
+            interface_name (str): The network interface.
+            inet_address_cidr (str): The IP address to set as a string in CIDR notation, including the label.
             secondary (bool, optional): Set as a secondary address. Defaults to False.
 
         Returns:
-            bool: True for success, False for failure.
+            bool: True for success, STATUS_NOK for failure.
         """
+        self.log.debug(f"set_inet_address() - Interface: {interface_name} -> inet: {inet_address_cidr} -> secondary: {secondary}")
+
+        if not interface_name:
+            self.log.error("set_inet_address() -> Interface not defined")
+            return STATUS_NOK
+
         try:
-            ip = ipaddress.ip_address(inet_address_cidr)
+            ip = ipaddress.ip_interface(inet_address_cidr)
+            
+            # Check if the IP address is a network or broadcast address
+            if ip.ip == ip.network.network_address or ip.ip == ip.network.broadcast_address:
+                self.log.debug(f"Invalid IP address: {inet_address_cidr}, it's a network or broadcast address")
+                return STATUS_NOK
+            
         except ValueError as e:
             self.log.debug(f"Invalid IP address: {inet_address_cidr}, Error: {e}")
-            return False
+            return STATUS_NOK
 
-        if self.is_ip_assigned_to_interface(inet_address_cidr, interface):
-            self.log.debug(f"IP: {inet_address_cidr} already assigned to Interface: {interface}, must delete first before re-assigning")
-            return False
+        if self.is_ip_assigned_to_interface(inet_address_cidr, interface_name):
+            self.log.debug(f"IP: {inet_address_cidr} already assigned to Interface: {interface_name}, must be deleted before re-assigning")
+            return STATUS_NOK
 
-        cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface]
+        cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface_name]
 
         if secondary:
-            cmd += ["label", f"{interface}:secondary"]
-
+            cmd += ["label", f"{interface_name}:secondary"]
+        
         self.log.debug(f"set_inet_address() -> cmd: {cmd}")
+                
+        result = self.run(cmd)
+        if result.exit_code:
+            self.log.error(f"Unable to add inet: {inet_address_cidr} to interface: {interface_name} -> status: {result.stderr}")
+            return STATUS_NOK
+        
+        return STATUS_OK 
 
-        return not self.run(cmd).exit_code
 
     def del_inet_address(self, interface: str, ip_address: str) -> bool:
         """
