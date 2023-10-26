@@ -5,6 +5,7 @@ import re
 from typing import Optional
 
 from lib.db.interface_db import InterfaceDatabase
+from lib.network_manager.arp import Arp
 
 from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
 from lib.network_manager.vlan import Vlan
@@ -279,7 +280,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         # Determine the value of 'shutdown' based on 'state'
         shutdown = state == State.UP
         
-        if self.update_shutdown_status(interface_name, shutdown):
+        if self.update_shutdown_status_db(interface_name, shutdown):
             self.log.error(f"Unable to set interface: {interface_name} to {state.value} via db")
             return STATUS_NOK
         
@@ -398,3 +399,52 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return STATUS_NOK
             
         return STATUS_OK        
+
+    def update_interface_proxy_arp(self, interface_name: str, negate: bool = False) -> bool:
+        """
+        Enable or disable Proxy ARP on a network interface and update the Proxy ARP configuration in the database.
+
+        This method allows you to enable or disable Proxy ARP on the specified network interface and update the Proxy ARP
+        configuration in the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            negate (bool): If True, Proxy ARP will be disabled on the interface. If False, Proxy ARP will be enabled.
+
+        Returns:
+            bool: STATUS_OK if the Proxy ARP configuration was successfully updated, STATUS_NOK otherwise.
+        """
+        if Arp().set_proxy_arp(interface_name, negate):
+            self.log.error(f"Unable to update proxy-arp: {not negate} on interface: {interface_name} via OS")
+            return STATUS_NOK
+
+        if self.update_proxy_arp_db(interface_name, (not negate)):
+            self.log.error(f"Unable to update proxy-arp: {not negate} on interface: {interface_name} via DB")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def update_interface_drop_gratuitous_arp(self, interface_name: str, negate: bool = False) -> bool:
+        """
+        Enable or disable the dropping of gratuitous ARP packets on a network interface and update the configuration in the database.
+
+        This method allows you to enable or disable the dropping of gratuitous ARP packets on the specified network interface
+        and update the configuration in the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            negate (bool): If True, gratuitous ARP dropping will be disabled on the interface. If False, it will be enabled.
+
+        Returns:
+            bool: STATUS_OK if the gratuitous ARP configuration was successfully updated, STATUS_NOK otherwise.
+        """
+        if Arp().set_drop_gratuitous_arp(interface_name, negate):
+            self.log.error(f"Unable to update drop-gratuitous-arp: {not negate} on interface: {interface_name} via OS")
+            return STATUS_NOK
+
+        if self.update_drop_gratuitous_arp_db(interface_name, (not negate)):
+            self.log.error(f"Unable to update drop-gratuitous-arp: {not negate} on interface: {interface_name} via DB")
+            return STATUS_NOK
+
+        return STATUS_OK
+

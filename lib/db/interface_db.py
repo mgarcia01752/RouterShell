@@ -3,7 +3,6 @@ import re
 
 from lib.network_manager.nat import Nat, NATDirection
 from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as RSDB
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -16,9 +15,6 @@ class InterfaceDatabase:
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
         cls.log.setLevel(RSLGS().INTERFACE_DB)
-        
-        '''CMD2 DEBUG LOGGING'''
-        cls.debug = CGS().DEBUG_INTERFACE_DB
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
@@ -87,7 +83,7 @@ class InterfaceDatabase:
         
         return result.status
  
-    def update_shutdown_status(cls, interface_name: str, status: bool) -> bool:
+    def update_shutdown_status_db(cls, interface_name: str, status: bool) -> bool:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
@@ -198,9 +194,9 @@ class InterfaceDatabase:
         """
         return STATUS_OK
     
-    def update_proxy_arp(cls, interface_name: str, status: bool) -> bool:
+    def update_proxy_arp_db(cls, interface_name: str, status: bool) -> bool:
         """
-        Update the Proxy ARP status for a network interface.
+        Update the Proxy ARP status for a network interface to DB
 
         Args:
             interface_name (str): The name of the network interface.
@@ -209,11 +205,11 @@ class InterfaceDatabase:
         Returns:
             Result: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
-        cls.log.debug(f"update_proxy_arp() -> Interface: {interface_name} -> status:{status}")
+        cls.log.debug(f"update_proxy_arp_db() -> Interface: {interface_name} -> status:{status}")
         result = cls.rsdb.update_interface_proxy_arp(interface_name, status)
         return result.status
 
-    def update_drop_gratuitous_arp(cls, interface_name: str, status: bool) -> bool:
+    def update_drop_gratuitous_arp_db(cls, interface_name: str, status: bool) -> bool:
         """
         Update the Drop Gratuitous ARP status for a network interface.
 
@@ -227,7 +223,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
         return result.status
     
-    def update_static_arp(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
+    def update_static_arp_db(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
         """
         Update a static ARP record in the 'InterfaceStaticArp' table.
 
@@ -249,7 +245,7 @@ class InterfaceDatabase:
 
         return result.status
 
-    def update_nat_direction(cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
+    def update_nat_direction_db(cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
         """
         Update a NAT direction configuration for a specified interface and NAT pool.
 
@@ -299,7 +295,7 @@ class InterfaceDatabase:
             cls.log.error(error_message)
             return STATUS_NOK
 
-    def update_bridge_group(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
+    def update_bridge_group_db(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
         """
         Update the bridge group for an interface.
 
@@ -321,7 +317,7 @@ class InterfaceDatabase:
 
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
 
-    def update_vlan_to_interface_type(cls, vlan_id: int, interface_type_name: str, interface_type: InterfaceType, negate: bool = False) -> bool:
+    def update_vlan_to_interface_type_db(cls, vlan_id: int, interface_type_name: str, interface_type: InterfaceType, negate: bool = False) -> bool:
         """
         Update the VLAN configuration for a specific interface type.
 

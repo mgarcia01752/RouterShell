@@ -273,33 +273,11 @@ class InterfaceConfig(cmd2.Cmd,
 
         elif args.subcommand == "proxy-arp":
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
-            
-            if negate:
-                disable = not negate
-                self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> disable: {negate}")
-                Arp().set_proxy_arp(self.ifName, negate)
-                IFCDB().update_proxy_arp(self.ifName, disable)
-                IFCDB().add_line_to_interface(f"no {args.subcommand}") 
-            else:
-                enable_proxy_arp = not negate
-                self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> enable: {enable_proxy_arp}")
-                Arp().set_proxy_arp(self.ifName, enable_proxy_arp)
-                IFCDB().update_proxy_arp(self.ifName, enable_proxy_arp)
-                IFCDB().add_line_to_interface(f"{args.subcommand}")
+            self.update_interface_proxy_arp(self.ifName, negate)
                 
         elif args.subcommand == "drop-gratuitous-arp":
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
-            
-            if negate:
-                disable = not negate
-                Arp().set_drop_gratuitous_arp(self.ifName, negate)
-                IFCDB().update_drop_gratuitous_arp(self.ifName, disable)
-                IFCDB().add_line_to_interface(f"no {args.subcommand}")
-            else:
-                enable_drop_grat_arp = not negate
-                Arp().set_drop_gratuitous_arp(self.ifName, enable_drop_grat_arp)
-                IFCDB().update_drop_gratuitous_arp(self.ifName, enable_drop_grat_arp)
-                IFCDB().add_line_to_interface(f"{args.subcommand}")
+            self.update_interface_drop_gratuitous_arp(self.ifName, negate)
 
         elif args.subcommand == "static-arp":
             self.log.debug(f"Set static-arp on Interface {self.ifName}")
@@ -315,7 +293,7 @@ class InterfaceConfig(cmd2.Cmd,
                 Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, 
                                      add_arp_entry=False)
-                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp.value, negate=True)
+                IFCDB().update_static_arp_db(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp.value, negate=True)
                 IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
@@ -326,7 +304,7 @@ class InterfaceConfig(cmd2.Cmd,
                                      self.ifName, encap_arp, 
                                      add_arp_entry=True)
                 
-                IFCDB().update_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, str(encap_arp.value), negate=False)
+                IFCDB().update_static_arp_db(self.ifName, ipv4_addr_arp, mac_addr_arp, str(encap_arp.value), negate=False)
                 
                 IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
@@ -344,7 +322,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
 
-                if IFCDB().update_nat_direction(self.ifName, pool_name, NATDirection.INSIDE, negate):
+                if IFCDB().update_nat_direction_db(self.ifName, pool_name, NATDirection.INSIDE, negate):
                     self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
                     return STATUS_NOK
                 else:
@@ -357,7 +335,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.error(f"Unable to set OUTSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
                 
-                if IFCDB().update_nat_direction(self.ifName, pool_name, NATDirection.OUTSIDE, negate):
+                if IFCDB().update_nat_direction_db(self.ifName, pool_name, NATDirection.OUTSIDE, negate):
                     self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
                     return STATUS_NOK
                 else:

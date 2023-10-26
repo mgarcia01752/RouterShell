@@ -178,7 +178,7 @@ class Arp(MacServiceLayer):
             enable (bool): True to enable proxy ARP, False to disable it.
 
         Returns:
-            bool: True for success (STATUS_OK), False for failure (STATUS_NOK).
+            bool: STATUS_OK for success, STATUS_NOK for failure.
         """       
         value = "1" if enable else "0"
         
