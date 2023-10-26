@@ -121,9 +121,9 @@ class InterfaceConfig(cmd2.Cmd,
         parser = argparse.ArgumentParser(
             description="Configure IPv6 settings on the interface",
             epilog="Suboptions:\n"
-                "  address <IPv6 Address>/<CIDR>               Set static IPv6 address.\n"
-                "  dhcp-client                                 Configure DHCP client.\n"
-                "  <suboption> --help                          Get help for specific suboptions."
+                "   address <IPv6 Address>/<CIDR>               Set static IPv6 address.\n"
+                "   dhcp-client                                 Configure DHCP client.\n"
+                "   <suboption> --help                          Get help for specific suboptions."
         )
         subparsers = parser.add_subparsers(dest="subcommand")
 

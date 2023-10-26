@@ -167,8 +167,6 @@ class PhyServiceLayer(RunCommand):
 
         return status == STATUS_OK
 
-
-    
     def set_mtu(self, interface_name: str, mtu_size: int) -> bool:
         """
         Set the Maximum Transmission Unit (MTU) size for a network interface using iproute2.
@@ -187,5 +185,70 @@ class PhyServiceLayer(RunCommand):
         else:
             return STATUS_OK
     
+    def get_duplex(self, interface_name: str) -> Duplex:
+        """
+        Get the current duplex mode of a network interface.
+
+        Args:
+            interface_name (str): The name of the network interface.
+
+        Returns:
+            Duplex: The current duplex mode of the interface.
+        """
+        # Run the ethtool command to get duplex mode
+        result = self.run(['ethtool', '-s', interface_name], capture_output=True, text=True, check=True)
+        output = result.stdout
+
+        if "Duplex: Full" in output:
+            return Duplex.FULL
+        elif "Duplex: Half" in output:
+            return Duplex.HALF
+        else:
+            return Duplex.AUTO
+
+    def get_speed(self, interface_name: str) -> Speed:
+        """
+        Get the current speed setting of a network interface.
+
+        Args:
+            interface_name (str): The name of the network interface.
+
+        Returns:
+            Speed: The current speed setting of the interface.
+        """
+        # Run the ethtool command to get speed
+        result = self.run(['ethtool', interface_name], capture_output=True, text=True, check=True)
+        output = result.stdout
+
+        if "Speed: 1000Mb/s" in output:
+            return Speed.MBPS_1000
+        elif "Speed: 100Mb/s" in output:
+            return Speed.MBPS_100
+        elif "Speed: 10Mb/s" in output:
+            return Speed.MBPS_10
+        else:
+            return Speed.AUTO_NEGOTIATE
+
+    def get_mtu(self, interface_name: str) -> int:
+        """
+        Get the current Maximum Transmission Unit (MTU) size of a network interface.
+
+        Args:
+            interface_name (str): The name of the network interface.
+
+        Returns:
+            int: The current MTU size of the interface.
+        """
+        # Run the ip command to get MTU size
+        result = self.run(['ip', 'link', 'show', 'dev', interface_name], capture_output=True, text=True, check=True)
+        output = result.stdout
+
+        # Parse the MTU value from the output
+        for line in output.splitlines():
+            if 'mtu' in line:
+                mtu = int(line.split('mtu')[1].split(' ')[0])
+                return mtu
+
+        return -1  # Return a default value if MTU is not found
 
         
