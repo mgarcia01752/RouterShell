@@ -47,7 +47,7 @@ class Arp(MacServiceLayer):
         
         return STATUS_OK if result.exit_code else STATUS_NOK
 
-    def set_timeout(self, arp_time_out: int = 300) -> bool:
+    def set_os_timeout(self, arp_time_out: int = 300) -> bool:
         """
         Set the ARP cache timeout using sysctl.
 
@@ -64,7 +64,7 @@ class Arp(MacServiceLayer):
         
         return STATUS_OK
 
-    def set_arp_accept(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_accept(self, ifName: str="all", enable: bool=True) -> bool:
         """
         Enable or disable ARP request acceptance for a specific network interface.
 
@@ -77,7 +77,7 @@ class Arp(MacServiceLayer):
         
         return SysCtl().write_sysctl(arp_accept_file, value)
 
-    def set_arp_announce(self, ifName:str, value:int) -> bool:
+    def set_os_arp_announce(self, ifName:str, value:int) -> bool:
         """
         Set the ARP announce value for a specific network interface.
 
@@ -88,7 +88,7 @@ class Arp(MacServiceLayer):
         arp_announce_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_announce"
         return SysCtl().write_sysctl(arp_announce_file, str(value))
 
-    def set_arp_evict_nocarrier(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_evict_nocarrier(self, ifName: str="all", enable: bool=True) -> bool:
         """
         Enable or disable ARP eviction on no carrier for a specific network interface.
 
@@ -101,7 +101,7 @@ class Arp(MacServiceLayer):
         
         return SysCtl().write_sysctl(arp_evict_file, value)
 
-    def set_arp_filter(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_filter(self, ifName: str="all", enable: bool=True) -> bool:
         """
         Enable or disable ARP filtering for a specific network interface.
 
@@ -114,7 +114,7 @@ class Arp(MacServiceLayer):
         
         return SysCtl.write_sysctl(arp_filter_file, value)
 
-    def set_arp_ignore(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_ignore(self, ifName: str="all", enable: bool=True) -> bool:
         """
         Set the ARP ignore value for a specific network interface.
 
@@ -125,7 +125,7 @@ class Arp(MacServiceLayer):
         arp_ignore_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_ignore"
         return SysCtl().write_sysctl(arp_ignore_file, str(value))
 
-    def set_arp_notify(self, ifName: str = "all", enable: bool = True) -> bool:
+    def set_os_arp_notify(self, ifName: str = "all", enable: bool = True) -> bool:
         """
         Enable or disable ARP notifications for a specific network interface.
 
@@ -141,7 +141,7 @@ class Arp(MacServiceLayer):
         
         return SysCtl().write_sysctl(arp_notify_file, value)
 
-    def set_drop_gratuitous_arp(self, ifName: str = "all", enable: bool = True) -> bool:
+    def set_os_drop_gratuitous_arp(self, ifName: str = "all", enable: bool = True) -> bool:
         """
         Enable or disable the dropping of gratuitous ARP packets for a specific network interface.
 
@@ -169,7 +169,7 @@ class Arp(MacServiceLayer):
             self.log.debug(f"Set gratuitous ARP to {value}")
             return STATUS_OK
 
-    def set_proxy_arp(self, ifName: str = 'all', enable: bool = True) -> bool:
+    def set_os_proxy_arp(self, ifName: str = 'all', enable: bool = True) -> bool:
         """
         Enable or disable proxy ARP for a specific network interface.
 
@@ -197,7 +197,7 @@ class Arp(MacServiceLayer):
             self.log.debug(f"Set proxy ARP to {value}")
             return STATUS_OK
             
-    def set_proxy_arp_pvlan(self, ifName: str, enable: bool) -> bool:
+    def set_os_proxy_arp_pvlan(self, ifName: str, enable: bool) -> bool:
         """
         Enable or disable proxy ARP for Private VLAN (PVLAN) on a specific network interface.
 
@@ -216,7 +216,7 @@ class Arp(MacServiceLayer):
                 
         return SysCtl().write_sysctl(proxy_arp_pvlan_file, value)
 
-    def set_static_arp(self, inet:str, mac_address:str, ifName:str,
+    def set_os_static_arp(self, inet:str, mac_address:str, ifName:str,
                        encap:Encapsulate=Encapsulate.ARPA, add_arp_entry:bool=True) -> bool:
         """
         Configure or remove a static ARP entry using iproute2.

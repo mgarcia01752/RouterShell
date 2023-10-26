@@ -169,7 +169,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Unable to set MAC address to interface: {interface_name} via OS")
             return STATUS_NOK
 
-        if self.update_mac_address_db(interface_name, new_mac if not mac else format_mac):
+        if self.update_db_mac_address(interface_name, new_mac if not mac else format_mac):
             self.log.error(f"Unable to set MAC address to interface: {interface_name} via DB")
             return STATUS_NOK
 
@@ -203,7 +203,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 self.log.debug(f"Unable to add inet Address: {inet_address} to interface: {interface_name} via OS")
                 return STATUS_NOK
         
-        if self.update_inet_address_db(interface_name, inet_address, secondary, negate):
+        if self.update_db_inet_address(interface_name, inet_address, secondary, negate):
             self.log.debug(f"Unable to add inet Address: {inet_address} to interface: {interface_name} via DB")
             return STATUS_NOK
         
@@ -226,7 +226,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Invalid duplex mode ({duplex.value}). Use 'auto', 'half', or 'full'.")
             return STATUS_NOK
         
-        if self.update_duplex_status_db(interface_name, duplex.value):
+        if self.update_db_duplex_status(interface_name, duplex.value):
             self.log.error(f"Unable to update interface: {interface_name} to duplex: {duplex.value}")
             return STATUS_NOK
             
@@ -250,11 +250,11 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         if speed == Speed.AUTO_NEGOTIATE:
             self.set_speed(interface_name, Speed.AUTO_NEGOTIATE, Speed.AUTO_NEGOTIATE)
-            self.update_ifSpeed_db(interface_name, Speed.AUTO_NEGOTIATE.value)
+            self.update_db_ifSpeed(interface_name, Speed.AUTO_NEGOTIATE.value)
             0
         elif speed in {Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000}:
             self.set_speed(interface_name, speed)
-            self.update_ifSpeed_db(interface_name, speed.value)
+            self.update_db_ifSpeed(interface_name, speed.value)
         
         else:
             print("Invalid speed value. Use Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000, or Speed.AUTO_NEGOTIATE.")
@@ -280,7 +280,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         # Determine the value of 'shutdown' based on 'state'
         shutdown = state == State.UP
         
-        if self.update_shutdown_status_db(interface_name, shutdown):
+        if self.update_db_shutdown_status(interface_name, shutdown):
             self.log.error(f"Unable to set interface: {interface_name} to {state.value} via db")
             return STATUS_NOK
         
@@ -414,11 +414,11 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the Proxy ARP configuration was successfully updated, STATUS_NOK otherwise.
         """
-        if Arp().set_proxy_arp(interface_name, negate):
+        if Arp().set_os_proxy_arp(interface_name, negate):
             self.log.error(f"Unable to update proxy-arp: {not negate} on interface: {interface_name} via OS")
             return STATUS_NOK
 
-        if self.update_proxy_arp_db(interface_name, (not negate)):
+        if self.update_db_proxy_arp(interface_name, (not negate)):
             self.log.error(f"Unable to update proxy-arp: {not negate} on interface: {interface_name} via DB")
             return STATUS_NOK
 
@@ -438,11 +438,11 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the gratuitous ARP configuration was successfully updated, STATUS_NOK otherwise.
         """
-        if Arp().set_drop_gratuitous_arp(interface_name, negate):
+        if Arp().set_os_drop_gratuitous_arp(interface_name, negate):
             self.log.error(f"Unable to update drop-gratuitous-arp: {not negate} on interface: {interface_name} via OS")
             return STATUS_NOK
 
-        if self.update_drop_gratuitous_arp_db(interface_name, (not negate)):
+        if self.update_db_drop_gratuitous_arp(interface_name, (not negate)):
             self.log.error(f"Unable to update drop-gratuitous-arp: {not negate} on interface: {interface_name} via DB")
             return STATUS_NOK
 

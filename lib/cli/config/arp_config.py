@@ -76,7 +76,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         if args_parts[0] == 'timeout':
             self.log.debug(f"do_arp(timeout) -> args: {args_parts}")
 
-            if self.set_timeout(args_parts[1]):
+            if self.set_os_timeout(args_parts[1]):
                 self.log.error(f"Failed to set ARP cache timeout to {args_parts[1]} seconds.")
             else:
                 self.log.debug(f"ARP cache timeout set to {args_parts[1]} seconds.")
@@ -101,7 +101,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
 
         :param arp_time_out: The ARP cache timeout value in seconds.
         """
-        if self.set_timeout(arp_time_out):
+        if self.set_os_timeout(arp_time_out):
             self.log.error(f"Failed to set ARP cache timeout set to {arp_time_out} seconds.")
         else:
             self.log.debug(f"ARP cache timeout to {arp_time_out} seconds.")
@@ -113,7 +113,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         :param negate: True to disable proxy ARP, False to enable it.
         :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        if self.set_proxy_arp('all', not negate):
+        if self.set_os_proxy_arp('all', not negate):
             self.log.error(f"Failed ot set ARP proxy set to {not negate}")
             return STATUS_NOK
         else:
@@ -140,7 +140,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         
         inet, mac, ifName, encap = parts
 
-        if Arp().set_static_arp(inet, mac, ifName, encap, not negate):
+        if Arp().set_os_static_arp(inet, mac, ifName, encap, not negate):
             self.log.error(f"Unable to set static-arp: {args}")
             return STATUS_NOK
 
@@ -153,7 +153,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         :param negate: True to disable proxy ARP, False to enable it.
         :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        if self.set_drop_gratuitous_arp('all', not negate):
+        if self.set_os_drop_gratuitous_arp('all', not negate):
             self.log.error(f"Failed ot set Gratuitous ARP set to {not negate}")
             return STATUS_NOK
         else:

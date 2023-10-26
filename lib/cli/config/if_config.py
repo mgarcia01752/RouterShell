@@ -58,7 +58,7 @@ class InterfaceConfig(cmd2.Cmd,
                         return None
                     else:
                         self.log.debug(f"Adding Loopback to DB")
-                        IFCDB().add_interface(ifName, ifType)
+                        IFCDB().add_db_interface(ifName, ifType)
                 else:
                     self.log.debug(f"Not Creating Loopback {ifName}")
         else:
@@ -74,7 +74,7 @@ class InterfaceConfig(cmd2.Cmd,
                 TODO:   Need a way to auto detect or verify the interface type
                         Right now, all interfaces are ethernet, except loopback
             '''
-            if IFCDB().add_interface(ifName, InterfaceType.ETHERNET):
+            if IFCDB().add_db_interface(ifName, InterfaceType.ETHERNET):
                 self.log.debug(f"Unable to add interface: {ifName} to DB")
             
         self.ifName = ifName
@@ -290,21 +290,21 @@ class InterfaceConfig(cmd2.Cmd,
             
             if negate:
                 
-                Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
+                Arp().set_os_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, 
                                      add_arp_entry=False)
-                IFCDB().update_static_arp_db(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp.value, negate=True)
+                IFCDB().update_db_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp.value, negate=True)
                 IFCDB().add_line_to_interface(f"no ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
             
             else:
                 
                 self.log.debug(f"Set static-arp on Interface {self.ifName} -> Add ARP Entry: {True}")
                 
-                Arp().set_static_arp(ipv4_addr_arp, mac_addr_arp, 
+                Arp().set_os_static_arp(ipv4_addr_arp, mac_addr_arp, 
                                      self.ifName, encap_arp, 
                                      add_arp_entry=True)
                 
-                IFCDB().update_static_arp_db(self.ifName, ipv4_addr_arp, mac_addr_arp, str(encap_arp.value), negate=False)
+                IFCDB().update_db_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, str(encap_arp.value), negate=False)
                 
                 IFCDB().add_line_to_interface(f"ip {args.subcommand} {ipv4_addr_arp} {mac_addr_arp}")
 
@@ -322,7 +322,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
 
-                if IFCDB().update_nat_direction_db(self.ifName, pool_name, NATDirection.INSIDE, negate):
+                if IFCDB().update_db_nat_direction(self.ifName, pool_name, NATDirection.INSIDE, negate):
                     self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
                     return STATUS_NOK
                 else:
@@ -335,7 +335,7 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.error(f"Unable to set OUTSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
                     return STATUS_NOK
                 
-                if IFCDB().update_nat_direction_db(self.ifName, pool_name, NATDirection.OUTSIDE, negate):
+                if IFCDB().update_db_nat_direction(self.ifName, pool_name, NATDirection.OUTSIDE, negate):
                     self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
                     return STATUS_NOK
                 else:

@@ -20,7 +20,7 @@ class InterfaceDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()  
             
-    def interface_exists(cls, interface_name: str) -> Result:
+    def db_interface_exists(cls, interface_name: str) -> Result:
         """
         Check if an interface with the given name exists in the database.
 
@@ -47,7 +47,7 @@ class InterfaceDatabase:
         """
         return cls.rsdb.interface_exists(interface_name)
 
-    def add_interface(cls, interface_name: str, interface_type: str, shutdown_status: bool = True) -> bool:
+    def add_db_interface(cls, interface_name: str, interface_type: str, shutdown_status: bool = True) -> bool:
         """
         Add an interface to the database.
 
@@ -69,7 +69,7 @@ class InterfaceDatabase:
         
         return STATUS_OK
 
-    def del_interface(cls, interface_name: str) -> bool:
+    def del_db_interface(cls, interface_name: str) -> bool:
         """
         Delete an interface from the 'Interfaces' table.
 
@@ -83,7 +83,7 @@ class InterfaceDatabase:
         
         return result.status
  
-    def update_shutdown_status_db(cls, interface_name: str, status: bool) -> bool:
+    def update_db_shutdown_status(cls, interface_name: str, status: bool) -> bool:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
@@ -97,7 +97,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_shutdown(interface_name, status)
         return result.status
 
-    def update_duplex_status_db(cls, interface_name: str, duplex: str) -> bool:
+    def update_db_duplex_status(cls, interface_name: str, duplex: str) -> bool:
         """
         Update the duplex status of an interface in the 'Interfaces' table.
 
@@ -110,7 +110,7 @@ class InterfaceDatabase:
         """
         return cls.rsdb.update_interface_duplex(interface_name, duplex).status
     
-    def update_mac_address_db(cls, interface_name: str, mac_address: str) -> bool:
+    def update_db_mac_address(cls, interface_name: str, mac_address: str) -> bool:
         """
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -132,7 +132,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_mac_address(interface_name, mac_address)
         return result.status
 
-    def update_ifSpeed_db(cls, interface_name: str, speed: str) -> bool:
+    def update_db_ifSpeed(cls, interface_name: str, speed: str) -> bool:
         """
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -148,7 +148,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 
-    def update_inet_address_db(cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
+    def update_db_inet_address(cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
         """
         Update or delete an IP address setting for an interface.
 
@@ -194,7 +194,7 @@ class InterfaceDatabase:
         """
         return STATUS_OK
     
-    def update_proxy_arp_db(cls, interface_name: str, status: bool) -> bool:
+    def update_db_proxy_arp(cls, interface_name: str, status: bool) -> bool:
         """
         Update the Proxy ARP status for a network interface to DB
 
@@ -209,7 +209,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_proxy_arp(interface_name, status)
         return result.status
 
-    def update_drop_gratuitous_arp_db(cls, interface_name: str, status: bool) -> bool:
+    def update_db_drop_gratuitous_arp(cls, interface_name: str, status: bool) -> bool:
         """
         Update the Drop Gratuitous ARP status for a network interface.
 
@@ -223,7 +223,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
         return result.status
     
-    def update_static_arp_db(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
+    def update_db_static_arp(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
         """
         Update a static ARP record in the 'InterfaceStaticArp' table.
 
@@ -245,7 +245,7 @@ class InterfaceDatabase:
 
         return result.status
 
-    def update_nat_direction_db(cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
+    def update_db_nat_direction(cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
         """
         Update a NAT direction configuration for a specified interface and NAT pool.
 
@@ -276,7 +276,7 @@ class InterfaceDatabase:
                 cls.log.debug(f"NAT pool '{nat_pool_name}' not found. Update aborted.")
                 return STATUS_NOK
 
-            interface_result = cls.interface_exists(interface_name)
+            interface_result = cls.db_interface_exists(interface_name)
             if not interface_result.status:
                 cls.log.debug(f"Interface '{interface_name}' not found. Update aborted.")
                 return STATUS_NOK
@@ -295,7 +295,7 @@ class InterfaceDatabase:
             cls.log.error(error_message)
             return STATUS_NOK
 
-    def update_bridge_group_db(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
+    def update_db_bridge_group(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
         """
         Update the bridge group for an interface.
 
@@ -317,7 +317,7 @@ class InterfaceDatabase:
 
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
 
-    def update_vlan_to_interface_type_db(cls, vlan_id: int, interface_type_name: str, interface_type: InterfaceType, negate: bool = False) -> bool:
+    def update_db_vlan_to_interface_type(cls, vlan_id: int, interface_type_name: str, interface_type: InterfaceType, negate: bool = False) -> bool:
         """
         Update the VLAN configuration for a specific interface type.
 
