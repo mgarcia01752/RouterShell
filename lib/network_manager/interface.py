@@ -465,11 +465,17 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the static ARP configuration was successfully updated, STATUS_NOK otherwise.
         """
+        status, mac_address = self.format_mac_address(mac_address)
+        
+        if not status:
+            self.log.error(f"Invalid ARP entry mac address: {mac_address}")
+            return STATUS_NOK
+        
         if Arp().set_os_static_arp(interface_name, inet, mac_address, encap.value, not negate):
             self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via OS")
             return STATUS_NOK
 
-        if self.update_db_static_arp(interface_name, inet, mac_address, encap.value, not negate):
+        if self.update_db_static_arp(interface_name, inet, mac_address, encap.value, negate):
             self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via DB")
             return STATUS_NOK
 
