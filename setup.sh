@@ -14,9 +14,10 @@ sudo apt install -y bridge-utils
 sudo apt install -y ethtool
 sudo apt install -y iproute2
 
-# DHCP Servers
+# DHCP ISC Servers/Clents
 sudo apt install -y kea-dhcp4-server
 sudo apt install -y kea-dhcp6-server
+sudo apt install -y isc-dhcp-client
 
 # Wireless
 sudo apt install -y hostapd
