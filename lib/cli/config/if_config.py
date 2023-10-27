@@ -126,10 +126,13 @@ class InterfaceConfig(cmd2.Cmd,
         subparsers = parser.add_subparsers(dest="subcommand")
 
         # Subparser for 'ip address' command
-        address_parser = subparsers.add_parser("address",
+        address_cidr_parser = subparsers.add_parser("address",
             help="Set a static IP address on the interface (e.g., 'ipv6 address fd00:1234:5678:abcd::1/64')."
         )
-        address_parser.add_argument("ipv6_address_mask", help="IPv6 address and mask to configure.")
+        address_cidr_parser.add_argument("ipv6_address_cidr",
+                                help="IPv6 address/subnet to configure.")       
+        address_cidr_parser.add_argument("secondary", nargs="?", const=True, default=False, 
+                                help="Indicate that this is a secondary IP address.")
 
         # Subparser for 'ip dhcp' command
         dhcp_parser = subparsers.add_parser("dhcp-client",
@@ -145,25 +148,24 @@ class InterfaceConfig(cmd2.Cmd,
             return
 
         if args.subcommand == "address":
-            ipv6_address_mask = args.ipv6_address_mask
-            
-            self.log.debug(f"Configuring static IPv6 Address on Interface ({self.ifName}) -> Inet: ({ipv6_address_mask})")
-            
-            if not self.is_valid_ipv6(ipv6_address_mask):
-                raise InvalidInterface(f"Invalid Inet Address ({ipv6_address_mask})")
-            
-            if negate:
-                result = self.del_inet6_address(self.ifName, ipv6_address_mask)
-                if result.exit_code:
-                    self.log.debug(f"Unable to del IPv6 Address: {ipv6_address_mask} from interface: {self.ifName}")  
-            else:    
-                result = self.set_inet6_address(self.ifName, ipv6_address_mask)
-                if result.exit_code:
-                    self.log.debug(f"Unable to add IPv6 Address: {ipv6_address_mask} to interface: {self.ifName}")  
+            ipv6_address_cidr = args.ipv6_address_cidr
+            is_secondary = args.secondary
+            is_secondary = True if is_secondary else False
+
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv6_address_cidr})")
+
+            action_description = "Removing" if negate else "Setting"
+            result = self.update_interface_inet(self.ifName, ipv6_address_cidr, is_secondary, negate)
+
+            if result:
+                self.log.error(f"Failed to {action_description} IP: {ipv6_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+            else:
+                self.log.debug(f"{action_description} IP: {ipv6_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
             
         elif args.subcommand == "dhcp-client":
-            print(f"Configuring DHCPv6 client on Interface {self.ifName}")
-            # Implement the logic to configure DHCP client here.       
+            self.log.debug(f"Enable DHCPv6 Client")
+            if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V6, negate):
+                self.log.fatal(f"Unable to set DHCPv6 client on interface: {self.ifName}")      
 
     def complete_ip(self, text, line, begidx, endidx):
         completions = ['address', 'secondary']
@@ -551,5 +553,3 @@ class InterfaceConfig(cmd2.Cmd,
         elif start_cmd == 'switchport':
             self.log.debug(f"Remove switchport -> ({line})")
             self.do_switchport(parts[1:], negate=True)
-       
-

@@ -19,8 +19,8 @@ class DHCPClient(NetworkManager):
 
     """
     def __init__(self):
-        super().__init()
-        self.log = logging.getLogger(self.__class__.__name())
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT)
 
     def is_dhclient_available(self) -> bool:
@@ -46,32 +46,48 @@ class DHCPClient(NetworkManager):
         """
         if dhcp_version == DHCPVersion.DHCP_V4:
             if enable_dhcp_client:
-                result = self.enable_dhcpv4(interface_name)
-                if result != STATUS_OK:
-                    self.log.error(f"Failed to enable DHCPv4 on interface {interface_name}")
+                result = self._enable_dhcpv4(interface_name)
+                if result:
+                    self.log.error(f"Failed to enable DHCPv4 client on interface {interface_name}")
                     return STATUS_NOK
             else:
-                result = self.disable_dhcpv4(interface_name)
+                result = self._disable_dhcpv4(interface_name)
                 if result:
-                    self.log.error(f"Failed to disable DHCPv4 on interface {interface_name}")
+                    self.log.error(f"Failed to disable DHCPv4 client on interface {interface_name}")
                     return STATUS_NOK
         
         elif dhcp_version == DHCPVersion.DHCP_V6:
             if enable_dhcp_client:
-                result = self.enable_dhcpv6(interface_name)
+                result = self._enable_dhcpv6(interface_name)
                 if result:
-                    self.log.error(f"Failed to enable DHCPv6 on interface {interface_name}")
+                    self.log.error(f"Failed to enable DHCPv6 client on interface {interface_name}")
                     return STATUS_NOK
             else:
-                result = self.disable_dhcpv6(interface_name)
+                result = self._disable_dhcpv6(interface_name)
                 if result:
-                    self.log.error(f"Failed to disable DHCPv6 on interface {interface_name}")
+                    self.log.error(f"Failed to disable DHCPv6 client on interface {interface_name}")
                     return STATUS_NOK
 
         return STATUS_OK
 
+    def restart_dhcp_service(self) -> bool:
+        """
+        Restart the DHCP client service.
 
-    def enable_dhcpv4(self, interface_name: str) -> bool:
+        Returns:
+            bool: STATUS_OK if the DHCP client service restart was successful, STATUS_NOK otherwise.
+        """
+        command = ["systemctl", "restart", "dhclient.service"]
+        
+        result = self.run(command)
+        
+        if result.exit_code:
+            self.log.error(f"Unable to restart DHCP client service - Reason: {result.stderr}")
+            return STATUS_NOK
+        
+        return STATUS_OK
+
+    def _enable_dhcpv4(self, interface_name: str) -> bool:
         """
         Enable DHCPv4 on the specified interface.
 
@@ -89,7 +105,7 @@ class DHCPClient(NetworkManager):
             return STATUS_NOK
         return STATUS_OK
 
-    def enable_dhcpv6(self, interface_name: str) -> bool:
+    def _enable_dhcpv6(self, interface_name: str) -> bool:
         """
         Enable DHCPv6 on the specified interface.
 
@@ -107,7 +123,7 @@ class DHCPClient(NetworkManager):
             return STATUS_NOK
         return STATUS_OK
 
-    def disable_dhcpv4(self, interface_name: str) -> bool:
+    def _disable_dhcpv4(self, interface_name: str) -> bool:
         """
         Disable DHCPv4 on the specified interface.
 
@@ -124,8 +140,7 @@ class DHCPClient(NetworkManager):
             return STATUS_NOK
         return STATUS_OK
 
-
-    def disable_dhcpv6(self, interface_name: str) -> bool:
+    def _disable_dhcpv6(self, interface_name: str) -> bool:
         """
         Disable DHCPv6 on the specified interface.
 
@@ -135,28 +150,10 @@ class DHCPClient(NetworkManager):
         Returns:
             bool: STATUS_OK if DHCPv6 disabling was successful, STATUS_NOK otherwise.
         """
-        command = ["dhclient", "-x", interface_name]
+        command = ["dhclient", "-rq", interface_name]
         result = self.run(command)
         
         if result.exit_code:
             self.log.error(f"Unable to disable DHCPv6 client on interface: {interface_name}")
             return STATUS_NOK
-        return STATUS_OK
-
-
-    def restart_dhcp_service(self) -> bool:
-        """
-        Restart the DHCP client service.
-
-        Returns:
-            bool: STATUS_OK if the DHCP client service restart was successful, STATUS_NOK otherwise.
-        """
-        command = ["systemctl", "restart", "dhclient.service"]
-        
-        result = self.run(command)
-        
-        if result.exit_code:
-            self.log.error(f"Unable to restart DHCP client service - Reason: {result.stderr}")
-            return STATUS_NOK
-        
         return STATUS_OK

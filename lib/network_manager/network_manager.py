@@ -50,9 +50,9 @@ class NetworkManager(InetServiceLayer):
             interface_name (str): The name of the network interface to check.
 
         Returns:
-            str: A status indicating whether the interface is valid or not.
-                - 'True': If the interface exists.
-                - 'False': If the interface does not exist or an error occurred.
+            bool: A status indicating whether the interface is valid or not.
+            - 'True': If the interface exists.
+            - 'False': If the interface does not exist or an error occurred.
         """
         command = ['ip', 'link', 'show', interface_name]
 

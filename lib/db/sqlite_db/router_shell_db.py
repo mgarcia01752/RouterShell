@@ -1268,7 +1268,7 @@ class RouterShellDB:
         """
         result = self.interface_exists(interface_name)
         
-        if result.status:
+        if not result.status:
             err = f"Unable to insert DHCP client to interface: {interface_name} does not exist"
             self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)

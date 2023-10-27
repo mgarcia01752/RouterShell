@@ -223,11 +223,11 @@ class Interface(NetworkManager, InterfaceDatabase):
             
         else:
             if self.set_inet_address(interface_name, inet_address, secondary):
-                self.log.debug(f"Unable to add inet Address: {inet_address} to interface: {interface_name} via OS")
+                self.log.debug(f"Unable to set inet Address: {inet_address} to interface: {interface_name} via OS")
                 return STATUS_NOK
         
         if self.update_db_inet_address(interface_name, inet_address, secondary, negate):
-            self.log.debug(f"Unable to add inet Address: {inet_address} to interface: {interface_name} via DB")
+            self.log.debug(f"Unable to update inet Address: {inet_address} to interface: {interface_name} via DB")
             return STATUS_NOK
         
         return STATUS_OK
@@ -518,6 +518,11 @@ class Interface(NetworkManager, InterfaceDatabase):
             bool: STATUS_OK for success, STATUS_NOK for failure.
 
         """
+        dhcp_client = DHCPClient()
+        if not dhcp_client.is_dhclient_available:
+            self.log.critical(f"DHCP Client Service not available, check system logs")
+            return STATUS_NOK
+        
         if not self.net_mgr_interface_exist(interface_name):
             self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name}. Interface does not exist.")
             return STATUS_NOK
@@ -525,11 +530,9 @@ class Interface(NetworkManager, InterfaceDatabase):
         if self.update_db_dhcp_client(interface_name, dhcp_version):
             self.log.error(f"Failed to update {dhcp_version.value} client on interface: {interface_name}. Database update error.")
             return STATUS_NOK
-
-        dhcp_client = DHCPClient()
         
         if dhcp_client.set_dhcp_client_interface_service(interface_name, dhcp_version, (not negate)):
-            self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name} OS network update error.")
+            self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name} OS update error.")
             return STATUS_NOK
 
         return STATUS_OK            

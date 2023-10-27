@@ -185,7 +185,7 @@ class InetServiceLayer(MacServiceLayer):
             secondary (bool, optional): Set as a secondary address. Defaults to False.
 
         Returns:
-            bool: True for success, STATUS_NOK for failure.
+            bool: STATUS_OK for success, STATUS_NOK for failure.
         """
         self.log.debug(f"set_inet_address() - Interface: {interface_name} -> inet: {inet_address_cidr} -> secondary: {secondary}")
 
@@ -196,17 +196,16 @@ class InetServiceLayer(MacServiceLayer):
         try:
             ip = ipaddress.ip_interface(inet_address_cidr)
             
-            # Check if the IP address is a network or broadcast address
             if ip.ip == ip.network.network_address or ip.ip == ip.network.broadcast_address:
-                self.log.debug(f"Invalid IP address: {inet_address_cidr}, it's a network or broadcast address")
+                self.log.error(f"Invalid IP address: {inet_address_cidr}, it's a network or broadcast address")
                 return STATUS_NOK
             
         except ValueError as e:
-            self.log.debug(f"Invalid IP address: {inet_address_cidr}, Error: {e}")
+            self.log.error(f"Invalid IP address: {inet_address_cidr}, Error: {e}")
             return STATUS_NOK
 
         if self.is_ip_assigned_to_interface(inet_address_cidr, interface_name):
-            self.log.debug(f"IP: {inet_address_cidr} already assigned to Interface: {interface_name}, must be deleted before re-assigning")
+            self.log.error(f"IP: {inet_address_cidr} already assigned to Interface: {interface_name}, must be deleted before re-assigning")
             return STATUS_NOK
 
         cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface_name]
