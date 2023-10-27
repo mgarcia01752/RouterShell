@@ -148,6 +148,23 @@ class Interface(NetworkManager, InterfaceDatabase):
         except Exception as e:
             print(f"Error: {e}")
             return False
+
+    def add_interface_entry(self, interface_name: str, ifType: InterfaceType) -> bool:
+        """
+        Add an interface entry to the database.
+
+        Args:
+            interface_name (str): The name of the interface to be added.
+            ifType (InterfaceType): The type of the interface.
+
+        Returns:
+            bool: STATUS_OK if the interface entry is added successfully, STATUS_NOK if there is an error.
+
+        """
+        if self.add_db_interface(interface_name, ifType):
+            self.log.error(f"Unable to add interface: {interface_name} to DB")
+            return STATUS_NOK
+        return STATUS_OK
         
     def update_interface_mac(self, interface_name: str, mac: Optional[str] = None) -> bool:
         """
@@ -410,19 +427,6 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK        
 
-    def set_nat_domain_status(self, interface_name:str, nat_in_out:NATDirection, negate=False):
-        
-        if nat_in_out is NATDirection.INSIDE:
-            if Nat().create_inside_nat(interface_name):
-                self.log.error(f"Unable to add INSIDE NAT to interface: {interface_name}")
-                return STATUS_NOK
-        else:
-            if Nat().create_outside_nat(interface_name):
-                self.log.error(f"Unable to add INSIDE NAT to interface: {interface_name}")
-                return STATUS_NOK
-            
-        return STATUS_OK        
-
     def update_interface_proxy_arp(self, interface_name: str, negate: bool = False) -> bool:
         """
         Enable or disable Proxy ARP on a network interface and update the Proxy ARP configuration in the database.
@@ -537,3 +541,88 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK            
 
+    def set_nat_domain_status_1(self, interface_name:str, nat_in_out:NATDirection, negate=False):
+        
+        if nat_in_out is NATDirection.INSIDE:
+            if Nat().create_inside_nat(interface_name):
+                self.log.error(f"Unable to add INSIDE NAT to interface: {interface_name}")
+                return STATUS_NOK
+        else:
+            if Nat().create_outside_nat(interface_name):
+                self.log.error(f"Unable to add INSIDE NAT to interface: {interface_name}")
+                return STATUS_NOK
+            
+        return STATUS_OK        
+
+    def set_nat_domain_status_2(self, interface_name:str, nat_pool_name:str, nat_in_out:NATDirection, negate=False):
+        if nat_in_out == NATDirection.INSIDE.value:
+            self.log.debug("Configuring NAT for the inside interface")
+            
+            if Nat().create_inside_nat(nat_pool_name, self.ifName, negate):
+                self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {nat_pool_name}")
+                return STATUS_NOK
+
+            if self.update_db_nat_direction(self.ifName, nat_pool_name, NATDirection.INSIDE, negate):
+                self.log.debug(f"Unable to update NAT Direction: {nat_in_out}")
+                return STATUS_NOK
+        
+        elif nat_in_out == NATDirection.OUTSIDE.value:
+            self.log.debug("Configuring NAT for the outside interface")
+            
+            if Nat().create_outside_nat(nat_pool_name, self.ifName, negate):
+                self.log.error(f"Unable to set OUTSIDE NAT to interface: {self.ifName} to NAT-pool {nat_pool_name}")
+                return STATUS_NOK
+            
+            if self.update_db_nat_direction(self.ifName, nat_pool_name, NATDirection.OUTSIDE, negate):
+                self.log.debug(f"Unable to update NAT Direction: {nat_in_out}")
+                return STATUS_NOK
+        return STATUS_OK
+
+    def set_nat_domain_status(self, interface_name: str, nat_pool_name: str, nat_in_out: NATDirection, negate=False) -> bool:
+        """
+        Configure NAT domain status for an interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+            nat_pool_name (str): The name of the NAT pool.
+            nat_in_out (NATDirection): The direction of NAT (INSIDE or OUTSIDE).
+            negate (bool, optional): Whether to negate the NAT configuration. Default is False.
+
+        Returns:
+            bool: STATUS_OK if NAT configuration is successful, STATUS_NOK if there is an error.
+
+        """
+        if nat_in_out == NATDirection.INSIDE:
+            self.log.debug("Configuring NAT for the inside interface")
+
+            if Nat().create_inside_nat(nat_pool_name, interface_name, negate):
+                self.log.error(f"Unable to set INSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name}")
+                return STATUS_NOK
+
+            if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.INSIDE, negate):
+                self.log.debug(f"Unable to update NAT Direction: {nat_in_out}")
+                return STATUS_NOK
+            
+        elif nat_in_out == NATDirection.OUTSIDE:
+            self.log.debug("Configuring NAT for the outside interface")
+
+            if Nat().create_outside_nat(nat_pool_name, interface_name, negate):
+                self.log.error(f"Unable to set OUTSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name}")
+                return STATUS_NOK
+
+            if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.OUTSIDE, negate):
+                self.log.debug(f"Unable to update NAT Direction: {nat_in_out}")
+                return STATUS_NOK
+
+        return STATUS_OK
+    
+    def _update_interface_db_from_os_settings(self, interface_name:str = None) -> bool:
+        # TODO
+        # if interface_name == None, then update all interfaces found on the system
+        
+        # DB Tables to be updated
+        # Interfaces
+        # InterfaceSubOptions
+        # InterfaceStaticArp
+        # InterfaceIpAddress
+        pass

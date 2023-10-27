@@ -1,22 +1,17 @@
 import argparse
 import cmd2
 import logging
-from lib.network_manager.dhcp_client import DHCPVersion
-
-from lib.network_manager.interface import Interface, InterfaceType
-from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.network_manager.arp import Arp, Encapsulate
 
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from lib.network_manager.bridge import Bridge
-from lib.network_manager.nat import NATDirection, Nat
-
-from lib.db.interface_db import InterfaceDatabase as IFCDB
-
-from lib.common.constants import *
-
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+
+from lib.network_manager.dhcp_client import DHCPVersion
+from lib.network_manager.interface import Interface, InterfaceType
+from lib.network_manager.common.phy import Duplex, Speed, State
+from lib.network_manager.arp import Encapsulate
+from lib.network_manager.bridge import Bridge
+from lib.network_manager.nat import NATDirection
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class InvalidInterface(Exception):
@@ -28,7 +23,7 @@ class InterfaceConfig(cmd2.Cmd,
                       RouterPrompt, 
                       Interface):
     
-    def __init__(self, ifName: str, ifType:str=None):
+    def __init__(self, if_config_interface_name: str, ifType:str=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().IF_CONFIG)
@@ -37,47 +32,47 @@ class InterfaceConfig(cmd2.Cmd,
         GlobalUserCommand.__init__(self)
         Interface.__init__(self)
         
-        self.log.debug(f"InterfaceConfig() -> ({ifName})")
+        self.log.debug(f"InterfaceConfig() -> ({if_config_interface_name})")
         
         if ifType in [member.value for member in InterfaceType]:
             self.PROMPT_CMD_ALIAS = ifType
             self.log.debug(f"Interface Type is {ifType} - Type-> {InterfaceType.LOOPBACK.value}")
             
             '''Concatenate for Vlan + loopback (Assuming at this point)'''
-            ifName = ifType + ifName
+            if_config_interface_name = ifType + if_config_interface_name
             
             if ifType == InterfaceType.LOOPBACK.value:
-                self.log.debug(f"Creating {ifName} if it does not exists....")
+                self.log.debug(f"Creating {if_config_interface_name} if it does not exists....")
                 
-                #Create interface if it does not exists
-                if not self.does_interface_exist(ifName):
-                    self.log.debug(f"Creating Loopback {ifName}")
-                    if self.create_loopback(ifName):
+                if not self.does_interface_exist(if_config_interface_name):
+                    self.log.debug(f"Creating Loopback {if_config_interface_name}")
+                    if self.create_loopback(if_config_interface_name):
                         return None
                     else:
                         self.log.debug(f"Adding Loopback to DB")
-                        IFCDB().add_db_interface(ifName, ifType)
+                        self.add_interface_entry(if_config_interface_name, ifType)
                 else:
-                    self.log.debug(f"Not Creating Loopback {ifName}")
+                    self.log.debug(f"Not Creating Loopback {if_config_interface_name}")
         else:
             self.PROMPT_CMD_ALIAS = InterfaceType.DEFAULT.value
         
-        if not self.does_interface_exist(ifName):
-            print(f"Interface {ifName} does not exists.")
+        if not self.does_interface_exist(if_config_interface_name):
+            print(f"Interface {if_config_interface_name} does not exists.")
             RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
             self.do_end()
+        
         else:
             RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
             '''
                 TODO:   Need a way to auto detect or verify the interface type
                         Right now, all interfaces are ethernet, except loopback
             '''
-            if IFCDB().add_db_interface(ifName, InterfaceType.ETHERNET):
-                self.log.debug(f"Unable to add interface: {ifName} to DB")
+            if self.add_interface_entry(if_config_interface_name, InterfaceType.ETHERNET):
+                self.log.debug(f"Unable to add interface: {if_config_interface_name} to DB")
             
-        self.ifName = ifName
+        self.ifName = if_config_interface_name
         self.prompt = self.set_prompt()
-        self.log.debug(f"InterfaceConfig() - ifType: {ifType} -> ifName: {ifName}")
+        self.log.debug(f"InterfaceConfig() - ifType: {ifType} -> ifName: {if_config_interface_name}")
         
     def do_help(self, args=None):
         print("mac\t\t\t\tmac address")
@@ -127,7 +122,7 @@ class InterfaceConfig(cmd2.Cmd,
 
         # Subparser for 'ip address' command
         address_cidr_parser = subparsers.add_parser("address",
-            help="Set a static IP address on the interface (e.g., 'ipv6 address fd00:1234:5678:abcd::1/64')."
+            help="Set a static IP address on the interface (e.g., 'ipv6 address fd00:1234:5678:abcd::1/64 [secondary]')."
         )
         address_cidr_parser.add_argument("ipv6_address_cidr",
                                 help="IPv6 address/subnet to configure.")       
@@ -195,8 +190,8 @@ class InterfaceConfig(cmd2.Cmd,
             description="Configure IP settings on the interface and NAT.",
             epilog="Available suboptions:\n"
                     "   address <IPv4 Address>/<CIDR> [secondary]               Set IP address/CIDR {optional secondary}.\n"
-                    "   proxy-arp                                               Enable proxy ARP.\n"
                     "   drop-gratuitous-arp                                     Enable drop-gratuitous-ARP.\n"
+                    "   proxy-arp                                               Enable proxy ARP.\n"
                     "   static-arp <inet> <mac> [arpa]                          Add/Del static ARP entry.\n"
                     "   nat [inside|outside] pool <nat-pool-name> acl <acl-id>  Configure NAT for inside or outside interface."
                     "\n"
@@ -276,14 +271,17 @@ class InterfaceConfig(cmd2.Cmd,
                 self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
 
         elif args.subcommand == "proxy-arp":
+            '''[no] [ip proxy-arp]'''
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
             self.update_interface_proxy_arp(self.ifName, negate)
                 
         elif args.subcommand == "drop-gratuitous-arp":
+            '''[no] [ip drop-gratuitous-arp]'''
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
             self.update_interface_drop_gratuitous_arp(self.ifName, negate)
 
         elif args.subcommand == "static-arp":
+            '''[no] [ip static-arp ip-address mac-address arpa]'''
             self.log.debug(f"Set static-arp on Interface {self.ifName}")
             
             ipv4_addr_arp = args.ipv4_addr_arp
@@ -296,37 +294,17 @@ class InterfaceConfig(cmd2.Cmd,
         elif args.subcommand == "nat":
             '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
             nat_direction = args.nat_direction_pool
-            pool_name = args.pool_name
+            nat_pool_name = args.pool_name
                         
-            self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction} -> Pool: {pool_name}")
+            try:
+                nat_direction = NATDirection(nat_direction)  # Attempt to convert the argument to NATDirection
+            except ValueError:
+                print(f"Error: Invalid NAT direction '{nat_direction}'. Use 'inside' or 'outside'.")
 
-            if nat_direction == NATDirection.INSIDE.value:
-                self.log.debug("Configuring NAT for the inside interface")
-                
-                if Nat().create_inside_nat(pool_name, self.ifName, negate):
-                    self.log.error(f"Unable to set INSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
-                    return STATUS_NOK
+            self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction.value} -> Pool: {nat_pool_name}")
 
-                if IFCDB().update_db_nat_direction(self.ifName, pool_name, NATDirection.INSIDE, negate):
-                    self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
-                    return STATUS_NOK
-                else:
-                    IFCDB().add_line_to_interface(f"ip {args.subcommand} {nat_direction} pool {pool_name}")
-                  
-            elif nat_direction == NATDirection.OUTSIDE.value:
-                self.log.debug("Configuring NAT for the outside interface")
-                
-                if Nat().create_outside_nat(pool_name, self.ifName, negate):
-                    self.log.error(f"Unable to set OUTSIDE NAT to interface: {self.ifName} to NAT-pool {pool_name}")
-                    return STATUS_NOK
-                
-                if IFCDB().update_db_nat_direction(self.ifName, pool_name, NATDirection.OUTSIDE, negate):
-                    self.log.debug(f"Unable to update NAT Direction: {nat_direction}")
-                    return STATUS_NOK
-                else:
-                    IFCDB().add_line_to_interface(f"ip {args.subcommand} {nat_direction} pool {pool_name}")                
-            else:
-                self.log.error(f"Invalid NAT type: {args.nat_type}, Use '{NATDirection.INSIDE.value}' or '{NATDirection.OUTSIDE.value}'")
+            if self.set_nat_domain_status(self.ifName, nat_pool_name, nat_direction):
+                self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
 
         elif args.subcommand == "dhcp-client":
             '''[no] [ip dhcp-client]'''

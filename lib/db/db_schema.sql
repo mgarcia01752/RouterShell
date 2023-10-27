@@ -27,18 +27,6 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
-DROP TABLE IF EXISTS InterfaceSubOptions;
-CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
-    ID INTEGER PRIMARY KEY,
-    Interface_FK INT DEFAULT -1,
-    MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
-    Duplex VARCHAR(4),                  -- Duplex [half | full | auto]
-    Speed VARCHAR(5),                   -- Speed [10 | 100 | 1000 | 10000 | auto]
-    ProxyArp BOOLEAN,
-    DropGratuitousArp BOOLEAN,
-    CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
-);
-
 DROP TABLE IF EXISTS InterfaceStaticArp;
 CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
     ID INTEGER PRIMARY KEY,
