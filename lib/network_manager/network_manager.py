@@ -31,9 +31,7 @@ class InterfaceType(Enum):
     UNKNOWN = 'UNKNOWN'
         
 class NetworkManager(InetServiceLayer):
-    """
-    A class for configuring network settings using iproute2.
-    """
+
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)

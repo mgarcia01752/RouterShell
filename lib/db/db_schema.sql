@@ -46,6 +46,12 @@ CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
     CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
 );
 
+DROP TABLE IF EXISTS InterfaceBlackList;
+CREATE TABLE IF NOT EXISTS InterfaceBlackList (
+    ID INTEGER PRIMARY KEY,
+    InterfaceName VARCHAR(50)           -- Interface to be excluded from Routershell configurations
+);
+
 DROP TABLE IF EXISTS BridgeGroups;
 CREATE TABLE IF NOT EXISTS BridgeGroups (
     ID INTEGER PRIMARY KEY,

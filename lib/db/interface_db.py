@@ -275,7 +275,7 @@ class InterfaceDatabase:
 
         """
         try:
-            if not cls.pool_name_exists(nat_pool_name):
+            if not cls.rsdb.global_nat_pool_name_exists(nat_pool_name):
                 cls.log.debug(f"NAT pool '{nat_pool_name}' not found. Update aborted.")
                 return STATUS_NOK
 

@@ -419,7 +419,7 @@ class RouterShellDB:
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name))
+            cursor.execute("SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name,))
             result = cursor.fetchone()
 
             if result and result[0] > 0:
@@ -427,11 +427,11 @@ class RouterShellDB:
                 return Result(True, row_id=result[0])
             else:
                 self.log.debug(f"global_nat_pool_name_exists({pool_name}) NOT Exists")
-                return Result(False, 0)
+                return Result(False, row_id=0)
 
         except sqlite3.Error as e:
             error_message = f"Error checking NAT pool existence: {e}"
-            return Result(False, 0, result=error_message)
+            return Result(False, row_id=0, result=error_message)
 
     def insert_global_nat_pool(self, nat_pool_name: str) -> Result:
         """
@@ -552,7 +552,7 @@ class RouterShellDB:
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name))
+            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
             row = cursor.fetchone()
 
             if row is not None:
@@ -733,13 +733,13 @@ class RouterShellDB:
             self.log.error(f"An error occurred while checking NAT direction existence: {e}")
             return False
 
-    def get_nat_interface_direction_list(self, nat_pool_name: str, interface_name: str, direction: str) -> Result:
+    def get_nat_interface_direction_list(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
         """
         Check if the specified interface is associated with the given NAT pool and direction.
 
         Args:
-            nat_pool_name (str): The name of the NAT pool to check.
             interface_name (str): The name of the interface to check.
+            nat_pool_name (str): The name of the NAT pool to check.
             direction (str): The direction to check (inside or outside).
 
         Returns:
@@ -760,17 +760,62 @@ class RouterShellDB:
                 return Result(status=False, row_id=0)  # NAT pool not found
 
             nat_pool_id = nat_pool_result[0]
-
+            
             cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (interface_name,))
             interface_result = cursor.fetchone()
+            interface_id = interface_result[0]
+            
+            print(f"get_nat_interface_direction_list() - NAT-POOL-ID: {nat_pool_id} - InterfaceID: ({interface_result[0]})")
 
             if interface_result is None:
                 return Result(status=False, row_id=0)  # Interface not found
 
-            interface_id = interface_result[0]
-
             cursor.execute("SELECT ID FROM NatDirections WHERE NAT_FK = ? AND Interface_FK = ? AND Direction = ?",
                            (nat_pool_id, interface_id, direction))
+            nat_direction_result = cursor.fetchone()
+
+            print(f"get_nat_interface_direction_list() - NAT-POOL-ID: {nat_pool_id} - InterfaceID: ({interface_result[0]})")
+
+            if nat_direction_result is not None:
+                return Result(status=True, row_id=nat_direction_result[0])
+            else:
+                self.log.debug(f"get_nat_interface_direction_list() - NAT-DIRECTION: NOT-FOUND")
+                return Result(status=False, row_id=0)  # NAT direction not found
+
+        except sqlite3.Error as e:
+            error_message = f"Error checking NAT interface direction: {e}"
+            self.log.critical(error_message)
+            return Result(status=False, row_id=0, result=error_message)
+
+    def get_nat_interface_direction_list_bak(self, nat_pool_name: str, interface_name: str, direction: str) -> Result:
+        """
+        Check if the specified interface is associated with the given NAT pool and direction.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool to check.
+            interface_name (str): The name of the interface to check.
+            direction (str): The direction to check (inside or outside).
+
+        Returns:
+            Result: A Result object with the following fields:
+                - status (bool): True if the interface is found in the specified NAT pool and direction, False otherwise.
+                - row_id (int): The row ID of the found entry, or 0 if not found.
+
+        Raises:
+            sqlite3.Error: If there is an error with the database query.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Combine the three queries into one
+            cursor.execute("""
+                SELECT ND.ID
+                FROM NatDirections AS ND
+                JOIN Nats AS N ON ND.NAT_FK = N.ID
+                JOIN Interfaces AS I ON ND.Interface_FK = I.ID
+                WHERE N.NatPoolName = ? AND I.IfName = ? AND ND.Direction = ?;
+            """, (nat_pool_name, interface_name, direction))
+
             nat_direction_result = cursor.fetchone()
 
             if nat_direction_result is not None:

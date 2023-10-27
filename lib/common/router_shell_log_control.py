@@ -36,7 +36,7 @@ class RouterShellLoggingGlobalSettings():
     INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     INTERFACE_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     IF_CONFIG_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -205,20 +205,19 @@ class InetServiceLayer(MacServiceLayer):
             return STATUS_NOK
 
         if self.is_ip_assigned_to_interface(inet_address_cidr, interface_name):
-            self.log.error(f"IP: {inet_address_cidr} already assigned to Interface: {interface_name}, must be deleted before re-assigning")
-            return STATUS_NOK
+            self.log.debug(f"Skipping...Inet: {inet_address_cidr} already assigned to Interface: {interface_name}")
+        else:
+            cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface_name]
 
-        cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface_name]
-
-        if secondary:
-            cmd += ["label", f"{interface_name}:secondary"]
-        
-        self.log.debug(f"set_inet_address() -> cmd: {cmd}")
-                
-        result = self.run(cmd)
-        if result.exit_code:
-            self.log.error(f"Unable to add inet: {inet_address_cidr} to interface: {interface_name} -> status: {result.stderr}")
-            return STATUS_NOK
+            if secondary:
+                cmd += ["label", f"{interface_name}:secondary"]
+            
+            self.log.debug(f"set_inet_address() -> cmd: {cmd}")
+                    
+            result = self.run(cmd)
+            if result.exit_code:
+                self.log.error(f"Unable to add inet: {inet_address_cidr} to interface: {interface_name} -> status: {result.stderr}")
+                return STATUS_NOK
         
         return STATUS_OK 
 

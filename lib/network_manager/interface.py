@@ -235,16 +235,16 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         if negate:
             if self.del_inet_address(interface_name, inet_address):
-                self.log.debug(f"Unable to remove inet Address: {inet_address} from interface: {interface_name} via OS")
+                self.log.error(f"Unable to remove inet Address: {inet_address} from interface: {interface_name} via OS")
                 return STATUS_NOK
             
         else:
             if self.set_inet_address(interface_name, inet_address, secondary):
-                self.log.debug(f"Unable to set inet Address: {inet_address} to interface: {interface_name} via OS")
+                self.log.error(f"Unable to set inet Address: {inet_address} to interface: {interface_name} via OS")
                 return STATUS_NOK
         
         if self.update_db_inet_address(interface_name, inet_address, secondary, negate):
-            self.log.debug(f"Unable to update inet Address: {inet_address} to interface: {interface_name} via DB")
+            self.log.error(f"Unable to update inet Address: {inet_address} to interface: {interface_name} via DB")
             return STATUS_NOK
         
         return STATUS_OK
@@ -596,22 +596,22 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.debug("Configuring NAT for the inside interface")
 
             if Nat().create_inside_nat(nat_pool_name, interface_name, negate):
-                self.log.error(f"Unable to set INSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name}")
+                self.log.error(f"Unable to set INSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name} via OS")
                 return STATUS_NOK
 
             if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.INSIDE, negate):
-                self.log.debug(f"Unable to update NAT Direction: {nat_in_out}")
+                self.log.error(f"Unable to update NAT Direction: {nat_in_out} via DB")
                 return STATUS_NOK
             
         elif nat_in_out == NATDirection.OUTSIDE:
             self.log.debug("Configuring NAT for the outside interface")
 
             if Nat().create_outside_nat(nat_pool_name, interface_name, negate):
-                self.log.error(f"Unable to set OUTSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name}")
+                self.log.error(f"Unable to set OUTSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name} via OS")
                 return STATUS_NOK
 
             if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.OUTSIDE, negate):
-                self.log.debug(f"Unable to update NAT Direction: {nat_in_out}")
+                self.log.error(f"Unable to update NAT Direction: {nat_in_out} via DB")
                 return STATUS_NOK
 
         return STATUS_OK

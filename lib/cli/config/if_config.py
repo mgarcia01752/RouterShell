@@ -297,7 +297,7 @@ class InterfaceConfig(cmd2.Cmd,
             nat_pool_name = args.pool_name
                         
             try:
-                nat_direction = NATDirection(nat_direction)  # Attempt to convert the argument to NATDirection
+                nat_direction = NATDirection(nat_direction)
             except ValueError:
                 print(f"Error: Invalid NAT direction '{nat_direction}'. Use 'inside' or 'outside'.")
 

@@ -150,34 +150,35 @@ class Nat(NetworkManager):
         
         return STATUS_OK
 
-    def create_outside_nat(self, nat_pool_name: str, ifName: str, negate: bool = False) -> bool:
+    def create_outside_nat(self, nat_pool_name: str, interface_name: str, negate: bool = False) -> bool:
         """
         Create or destroy outside NAT (Source NAT) rule.
 
         Args:
             nat_pool_name (str): Name of the NAT pool.
-            ifName (str): Name of the external interface.
+            interface_name (str): Name of the external or outside facing interface.
             negate (bool, optional): True to destroy the NAT rule, False to create it. Defaults to False.
 
         Returns:
             bool: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
         """
-        self.log.info(f"create_outside_nat() -> Pool: {nat_pool_name} -> Interface: {ifName} -> negate: {negate}")
+        self.log.info(f"create_outside_nat() -> Pool: {nat_pool_name} -> Interface: {interface_name} -> negate: {negate}")
         
-        create_destroy = '-D' if negate else '-A'
-
         nat_pool = NatDB().pool_name_exists(nat_pool_name)
+        
         if not nat_pool:
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
 
-        if not negate and nat_pool.inside_interfaces:
+        if NatDB().is_interface_direction_in_nat_pool(interface_name, nat_pool_name, NATDirection.INSIDE.value).status:
             self.log.error(f"Cannot create outside NAT rule for NAT pool {nat_pool_name} "
                             "with active inside interfaces. Delete inside interfaces first.")
             return STATUS_NOK
 
         try:
-            command = f'iptables -t nat {create_destroy} POSTROUTING -o {ifName} -j MASQUERADE'
+            create_destroy = '-D' if negate else '-A'
+            
+            command = f'iptables -t nat {create_destroy} POSTROUTING -o {interface_name} -j MASQUERADE'
             result = self.run(command.split())
             if result.exit_code:
                 self.log.error(f"Failed to {'destroy' if negate else 'create'} outside NAT rule: {result.stderr}")
@@ -185,15 +186,15 @@ class Nat(NetworkManager):
                 return STATUS_NOK
 
             if not negate:
-                if NatDB().set_outside_interface(nat_pool_name, ifName):
-                    self.log.error(f"Unable to add outside interface: {ifName} to NAT pool: {nat_pool_name}")
+                if NatDB().add_outside_interface(nat_pool_name, interface_name):
+                    self.log.error(f"Unable to add outside interface: {interface_name} to NAT pool: {nat_pool_name} via DB")
                     return STATUS_NOK
             else:
-                NatDB().delete_outside_interface(ifName)
+                NatDB().delete_outside_interface(interface_name)
 
             return STATUS_OK
         except Exception as e:
-            self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} outside NAT rule: {e}")
+            self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} outside NAT rule: {e} via OS")
             return STATUS_NOK
 
     def create_inside_nat(self, nat_pool_name: str, ifName_inside: str, negate: bool = False) -> bool:
@@ -208,23 +209,19 @@ class Nat(NetworkManager):
         Returns:
             bool: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
         """
-        create_destroy = '-D' if negate else '-A'
-
-        # Check if the NAT pool exists
+ 
         nat_pool = NatDB().pool_name_exists(nat_pool_name)
         if not nat_pool:
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
 
-        # Check if the inside interface is part of the NAT pool
-        if ifName_inside not in NatDB().is_interface_direction_in_nat_pool(nat_pool_name, 
-                                                                           ifName_inside,
-                                                                           NATDirection.INSIDE.value):
+        if ifName_inside not in NatDB().is_interface_direction_in_nat_pool(ifName_inside,
+                                                                           nat_pool_name,
+                                                                           NATDirection.INSIDE.value).status:
             self.log.info(f"Interface {ifName_inside} is not part of {NATDirection.INSIDE.value} NAT pool {nat_pool_name}")
 
-        # Check if an outside interface is defined in the NAT pool
-        outside_nat_ifName = NatDB().is_interface_direction_in_nat_pool(nat_pool_name, 
-                                                                        ifName_inside,
+        outside_nat_ifName = NatDB().is_interface_direction_in_nat_pool(ifName_inside,
+                                                                        nat_pool_name,
                                                                         NATDirection.OUTSIDE.value)
             
         if not outside_nat_ifName.status:
@@ -243,7 +240,10 @@ class Nat(NetworkManager):
             return STATUS_NOK
         
         try:
+            create_destroy = '-D' if negate else '-A'
+            
             command = f'iptables -t nat {create_destroy} PREROUTING -i {ifName_inside} -j DNAT --to-destination {outside_nat_ip_addr[0]}'
+            
             result = self.run(command.split())
             
             if result.exit_code:
@@ -251,9 +251,14 @@ class Nat(NetworkManager):
                 return STATUS_NOK
 
             if negate:
-                NatDB().delete_inside_interface(nat_pool_name, ifName_inside)
+                if NatDB().delete_inside_interface(nat_pool_name, ifName_inside):
+                    self.log.error(f"Unable to destroy NAT pool: {nat_pool_name} from interface: {ifName_inside} inside interface to DB")
+                    return STATUS_NOK
+
             else:
-                NatDB().add_inside_interface(nat_pool_name, ifName_inside)
+                if NatDB().add_inside_interface(nat_pool_name, ifName_inside):
+                    self.log.error(f"Unable to add NAT pool: {nat_pool_name} to interface: {ifName_inside} inside interface to DB")
+                    return STATUS_NOK
 
             return STATUS_OK
         
