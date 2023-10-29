@@ -598,20 +598,12 @@ class Interface(NetworkManager, InterfaceDatabase):
             if Nat().create_inside_nat(nat_pool_name, interface_name, negate):
                 self.log.error(f"Unable to set INSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name} via OS")
                 return STATUS_NOK
-
-            if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.INSIDE, negate):
-                self.log.error(f"Unable to update NAT Direction: {nat_in_out.value.upper} via DB")
-                return STATUS_NOK
             
         elif nat_in_out == NATDirection.OUTSIDE:
             self.log.debug("Configuring NAT for the outside interface")
 
             if Nat().create_outside_nat(nat_pool_name, interface_name, negate):
                 self.log.error(f"Unable to set OUTSIDE NAT to interface: {interface_name} to NAT-pool {nat_pool_name} via OS")
-                return STATUS_NOK
-
-            if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.OUTSIDE, negate):
-                self.log.error(f"Unable to update NAT Direction: {nat_in_out.value.upper} via DB")
                 return STATUS_NOK
 
         return STATUS_OK

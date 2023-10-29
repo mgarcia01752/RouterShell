@@ -784,8 +784,8 @@ class RouterShellDB:
                            (nat_id, interface_id, direction))
             result = cursor.fetchone()
             
-            if result[0] > 0
-
+            return result[0] > 0
+                    
         except sqlite3.Error as e:
             self.log.error(f"An error occurred while checking NAT direction existence: {e}")
             return False
