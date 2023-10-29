@@ -192,3 +192,10 @@ CREATE TABLE IF NOT EXISTS FirewallRules (
     Action VARCHAR(10),                     -- Action (allow, deny)
     CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID)
 );
+
+DROP TABLE IF EXISTS RenameInterface;
+CREATE TABLE IF NOT EXISTS RenameInterface (
+    ID INTEGER PRIMARY KEY,
+    InitialInterface VARCHAR(50) UNIQUE,
+    AliasInterface VARCHAR(50) UNIQUE,
+);

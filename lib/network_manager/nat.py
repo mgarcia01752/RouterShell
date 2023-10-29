@@ -215,9 +215,9 @@ class Nat(NetworkManager):
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
 
-        if ifName_inside not in NatDB().is_interface_direction_in_nat_pool(ifName_inside,
-                                                                           nat_pool_name,
-                                                                           NATDirection.INSIDE.value).status:
+        if not NatDB().is_interface_direction_in_nat_pool(ifName_inside,
+                                                          nat_pool_name,
+                                                          NATDirection.INSIDE.value).status:
             self.log.info(f"Interface {ifName_inside} is not part of {NATDirection.INSIDE.value} NAT pool {nat_pool_name}")
 
         outside_nat_ifName = NatDB().is_interface_direction_in_nat_pool(ifName_inside,
