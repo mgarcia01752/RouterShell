@@ -285,12 +285,18 @@ class InterfaceDatabase:
                 return STATUS_NOK
 
             if negate:
+                cls.log.debug(f"Deleting NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}'")
                 result = cls.rsdb.delete_interface_nat_direction(interface_name, nat_pool_name)
-                cls.log.debug(f"Deleted NAT direction: Interface '{interface_name}' -> NAT Pool '{nat_pool_name}'")
+                if result.status:
+                    cls.log.error(f"Unable to delete NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}' error: {result.result}")
+                    return STATUS_NOK
             else:
-                result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, nat_direction)
-                cls.log.debug(f"Added NAT direction: Interface '{interface_name}' -> NAT Pool '{nat_pool_name}' ({nat_direction})")
-
+                cls.log.debug(f"Inserting NAT direction: {nat_direction.value} -> Interface '{interface_name}' -> NAT Pool '{nat_pool_name}'")
+                result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, nat_direction.value)
+                if result.status:
+                    cls.log.error(f"Unable to Insert NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}' error: {result.result}")
+                    return STATUS_NOK
+            
             return result.status == STATUS_OK
 
         except Exception as e:

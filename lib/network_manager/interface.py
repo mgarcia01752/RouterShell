@@ -600,7 +600,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return STATUS_NOK
 
             if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.INSIDE, negate):
-                self.log.error(f"Unable to update NAT Direction: {nat_in_out} via DB")
+                self.log.error(f"Unable to update NAT Direction: {nat_in_out.value.upper} via DB")
                 return STATUS_NOK
             
         elif nat_in_out == NATDirection.OUTSIDE:
@@ -611,7 +611,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return STATUS_NOK
 
             if self.update_db_nat_direction(interface_name, nat_pool_name, NATDirection.OUTSIDE, negate):
-                self.log.error(f"Unable to update NAT Direction: {nat_in_out} via DB")
+                self.log.error(f"Unable to update NAT Direction: {nat_in_out.value.upper} via DB")
                 return STATUS_NOK
 
         return STATUS_OK

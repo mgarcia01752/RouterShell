@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS Nats (
 DROP TABLE IF EXISTS NatDirections;
 CREATE TABLE IF NOT EXISTS NatDirections (
     ID INTEGER PRIMARY KEY,
-    NAT_FK INT DEFAULT -1,
+    NAT_FK INT ,
     Interface_FK INT UNIQUE,                -- Only 1 direction per interface                                             
     Direction VARCHAR(7),                   -- Direction inside | outside -> NATDirection()
     CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID),

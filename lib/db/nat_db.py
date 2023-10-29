@@ -162,12 +162,10 @@ class NatDB:
         """
         from lib.network_manager.nat import NATDirection
         
+        cls.log.debug(f"add_inside_interface({pool_name}, {interface_name})")
+        
         try:
-            if not cls.rsdb.global_nat_pool_name_exists(pool_name):
-                cls.log.error(f"Global NAT pool '{pool_name}' does not exist.")
-                return False
-
-            pool_id_result = cls.rsdb.get_global_nat_row_id(pool_name)
+            pool_id_result = cls.rsdb.global_nat_pool_name_exists(pool_name)
 
             if not pool_id_result.status:
                 cls.log.error(f"Failed to retrieve NAT pool ID for '{pool_name}': {pool_id_result.result}")
@@ -191,7 +189,7 @@ class NatDB:
                 cls.log.error(f"Inside interface '{interface_name}' is already associated with '{pool_name}'.")
                 return STATUS_NOK
 
-            result = cls.rsdb.insert_interface_nat_direction(interface_name, pool_name, NATDirection.INSIDE)
+            result = cls.rsdb.insert_interface_nat_direction(interface_name, pool_name, NATDirection.INSIDE.value)
 
             if result.status:
                 cls.log.error(f"Failed to add inside interface '{interface_name}' to '{pool_name}': {result.result}")
@@ -219,31 +217,27 @@ class NatDB:
             bool: STATUS_OK if the outside interface is added successfully, STATUS_NOK otherwise.
         """
         from lib.network_manager.nat import NATDirection
+        
+        cls.log.debug(f"add_outside_interface({nat_pool_name}, {interface_name})")
+        
         try:
+            pool_id_result = cls.rsdb.global_nat_pool_name_exists(nat_pool_name)
             
-            if not cls.rsdb.global_nat_pool_name_exists(nat_pool_name).status:
-                cls.log.error(f"Global NAT pool '{nat_pool_name}' does not exist.")
+            if not pool_id_result.status:
+                cls.log.error(f"Failed to retrieve NAT pool ID for '{nat_pool_name}': {pool_id_result.result}")
                 return STATUS_NOK
-
-            if not cls.rsdb.interface_exists(interface_name):
-                cls.log.error(f"Inside interface '{interface_name}' does not exist.")
-                return STATUS_NOK
-
-            if cls.rsdb.inside_interface_exists(nat_pool_name, interface_name).status:
-                cls.log.error(f"Inside interface '{interface_name}' is already associated with '{nat_pool_name}'.")
-                return STATUS_NOK
-
+                        
             result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, NATDirection.OUTSIDE.value)
 
             if result.status:
-                cls.log.error(f"Failed to add outside interface '{interface_name}' to '{nat_pool_name}': {result.result}")
+                cls.log.error(f"Failed to insert outside interface '{interface_name}' to '{nat_pool_name}': {result.result}")
                 return STATUS_NOK
             else:
-                cls.log.debug(f"Added outside interface '{interface_name}' to '{nat_pool_name}'.")
+                cls.log.debug(f"Inserted outside interface '{interface_name}' to '{nat_pool_name}'.")
                 return STATUS_OK
 
         except Exception as e:
-            cls.log.error(f"An error occurred while adding outside interface to '{nat_pool_name}': {e} vai DB")
+            cls.log.error(f"An error occurred while inserting outside interface to '{nat_pool_name}': {e}")
             return STATUS_NOK
                     
     def delete_outside_interface(cls, pool_name: str, interface_name: str) -> str:
