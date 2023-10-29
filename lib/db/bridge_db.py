@@ -71,8 +71,8 @@ class BridgeDatabase():
         rsp = cls.rsdb.insert_bridge(bridge_name, bridge_protocol)
 
         if rsp.status:
-            cls.log.error(f"Unable to add bridge: {bridge_name} Error: {rsp.result}")
-            return Result(STATUS_NOK, rsp.row_id, rsp.result)
+            cls.log.error(f"Unable to add bridge: {bridge_name} Error: {rsp.reason}")
+            return Result(STATUS_NOK, rsp.row_id, rsp.reason)
 
         return Result(STATUS_OK, rsp.row_id, f"Bridge: {bridge_name} added successfully")
 

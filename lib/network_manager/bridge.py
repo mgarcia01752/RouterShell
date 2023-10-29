@@ -107,7 +107,7 @@ class Bridge(NetworkManager):
                 add_result = self.bridgeDB.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
                 if add_result.status:
-                    self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.result}")
+                    self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
                     return STATUS_NOK
                             
                 '''Exit if bridge exist and added to DB '''
@@ -129,7 +129,7 @@ class Bridge(NetworkManager):
             add_result = self.bridgeDB.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
             if add_result.status:
-                self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.result}")
+                self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
                 return STATUS_NOK
 
         self.log.debug(f"Bridge {bridge_name} created.")

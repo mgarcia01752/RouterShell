@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS InterfaceAlias (
 DROP TABLE IF EXISTS Interfaces;
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
-    IfName VARCHAR(100) UNIQUE,
+    InterfaceName VARCHAR(100) UNIQUE,
     InterfaceType VARCHAR(100),         -- Interface Type (ethernet, loopback, wireless wifi, wireless cell)
     ShutdownStatus BOOLEAN              -- True = interface is shutdown
 );
@@ -197,5 +197,5 @@ DROP TABLE IF EXISTS RenameInterface;
 CREATE TABLE IF NOT EXISTS RenameInterface (
     ID INTEGER PRIMARY KEY,
     InitialInterface VARCHAR(50) UNIQUE,
-    AliasInterface VARCHAR(50) UNIQUE,
+    AliasInterface VARCHAR(50) UNIQUE
 );

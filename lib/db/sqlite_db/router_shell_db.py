@@ -1,6 +1,7 @@
 import sqlite3
 import logging
 import os
+from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
@@ -17,32 +18,37 @@ class Result:
     Attributes:
         status (bool): A boolean indicating the operation's success: STATUS_OK (0) for success, STATUS_NOK (1) for failure.
         row_id (int, optional): The row ID associated with the database operation.
-        result (str, optional): An optional result message that provides additional information about the operation.
+        reason (str, optional): An optional result message that provides additional information about the operation.
+        result (str, optional): SQL query result
 
     Example:
     You can use the Result class to handle the outcome of database operations, such as insertions, updates, or deletions.
     For example, after inserting a new record into the database, you can create a Result object to represent the outcome.
 
     Usage:
+    # STATUS_NOK 
+    result = Result(status=STATUS_NOK, row_id=0, result="Record inserted unsuccessfully")
+    if result.status:
+        print(f"{result.reason}}. Row ID: {result.row_id}")
+        
+    # True
     result = Result(status=True, row_id=12, result="Record inserted successfully")
     if result.status:
-        print(f"Operation was successful. Row ID: {result.row_id}")
-    else:
-        print(f"Operation failed. Error: {result.result}")
+        print(f"{result.reason}}. Row ID: {result.row_id}")
 
     Note:
-    - 'status' attribute should be set to STATUS_OK (0) for successful operations and STATUS_NOK (1) for failed ones.
-    - 'status' can be any boolean, refer to method documentation.
-    - 'row_id' represents the unique identifier of the affected row, and it can be 0 or any relevant integer.
-    - 'result' provides additional information about the operation, which is particularly useful for error messages.
+    - 'status' attribute SHOULD be set to STATUS_OK (0) for successful operations and STATUS_NOK (1) for failed ones OR can be any boolean, refer to method documentation.
+    - 'row_id' represents the unique identifier of the affected row, any integer > 0 for STATUS_OK or 0 for STATUS_NOK
+    - 'reason' provides additional information about the operation, which is particularly useful for error messages.
     """
-    def __init__(self, status: bool, row_id: int=None, result: str=None):
+    def __init__(self, status: bool, row_id: int=None, reason: str=None, result=None):
         self.status = status
         self.row_id = row_id
+        self.reason = reason
         self.result = result
     
     def __str__(self):
-        return f"Status: {self.status}, Row ID: {self.row_id}, Result: {self.result}"
+        return f"Status: {self.status}, Row ID: {self.row_id}, Reason: {self.reason}, Result: {self.result}"
 
 class RouterShellDB:
     connection = None
@@ -268,7 +274,7 @@ class RouterShellDB:
             return Result(status=STATUS_OK, row_id=cursor.lastrowid)
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
-            return Result(status=STATUS_NOK, row_id=0, result=str(e))
+            return Result(status=STATUS_NOK, row_id=0, reason=str(e))
 
     def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> bool:
         """
@@ -431,7 +437,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             error_message = f"Error checking NAT pool existence: {e}"
-            return Result(False, row_id=0, result=error_message)
+            return Result(False, row_id=0, reason=error_message)
 
     def insert_global_nat_pool(self, nat_pool_name: str) -> Result:
         """
@@ -457,7 +463,7 @@ class RouterShellDB:
         except sqlite3.Error as e:
             error_message = f"Error inserting global NAT: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, result=error_message)
+            return Result(STATUS_NOK, reason=error_message)
 
     def delete_global_nat_pool_name(self, nat_pool_name: str) -> Result:
         """
@@ -477,14 +483,14 @@ class RouterShellDB:
             self.connection.commit()
 
             if cursor.rowcount > 0:
-                return Result(STATUS_OK, result="Global NAT configuration deleted successfully")
+                return Result(STATUS_OK, reason="Global NAT configuration deleted successfully")
             else:
-                return Result(STATUS_NOK, result="No matching NAT pool found for deletion")
+                return Result(STATUS_NOK, reason="No matching NAT pool found for deletion")
 
         except sqlite3.Error as e:
             error_message = f"Error deleting global NAT configuration: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, result=error_message)
+            return Result(STATUS_NOK, reason=error_message)
 
     def update_nat_interface_direction(self, nat_pool_name: str, interface_name: str, direction: str) -> Result:
         """
@@ -538,7 +544,7 @@ class RouterShellDB:
         except sqlite3.Error as e:
             error_message = f"Error updating global NAT interface FK: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=error_message)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
     def get_global_nat_row_id(self, nat_pool_name: str) -> Result:
         """
@@ -564,12 +570,12 @@ class RouterShellDB:
             else:
                 error_message = f"Global NAT pool '{nat_pool_name}' not found."
                 self.log.error(error_message)
-                return Result(STATUS_NOK, result=error_message)
+                return Result(STATUS_NOK, reason=error_message)
 
         except sqlite3.Error as e:
             error_message = f"Error retrieving global NAT row ID: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, result=error_message)
+            return Result(STATUS_NOK, reason=error_message)
 
     def insert_interface_nat_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
         """
@@ -591,7 +597,7 @@ class RouterShellDB:
             if nat_pool_result.status:
                 nat_pool_error = f"Unable to insert Interface-Nap-Pool, nat-pool-name: ({nat_pool_name}) does not exists"
                 self.log.error(f"{nat_pool_error}")
-                return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=nat_pool_error)
+                return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=nat_pool_error)
 
             nat_pool_id = nat_pool_result.row_id
 
@@ -600,7 +606,7 @@ class RouterShellDB:
             if not interface_result.status:
                 if_pool_error = f"Unable to insert Interface-Nap-Pool, interface: ({interface_name}) does not exists"
                 self.log.error(f"{if_pool_error}")
-                return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=if_pool_error)
+                return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=if_pool_error)
 
             interface_id = interface_result.row_id
 
@@ -618,7 +624,7 @@ class RouterShellDB:
         except sqlite3.Error as e:
             error_message = f"Error inserting NAT direction: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=error_message)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
     def delete_interface_nat_direction(self, interface_name: str, nat_pool_name: str) -> Result:
         """
@@ -648,7 +654,7 @@ class RouterShellDB:
         except sqlite3.Error as e:
             error_message = f"Error deleting NAT directions: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, result=error_message)
+            return Result(STATUS_NOK, reason=error_message)
 
     def get_global_nat_pool_names(self) -> list:
         """
@@ -677,6 +683,7 @@ class RouterShellDB:
 
         Returns:
             Result: A Result object with the status and a boolean value indicating if the inside interface is associated with the NAT pool.
+            status: True if inside interface exist, otherwise False
         """
         
         '''avoid circular imports'''
@@ -685,23 +692,23 @@ class RouterShellDB:
         try:
             if not pool_name or not interface_name:
                 error_message = "Invalid input: Pool name and interface name must be provided."
-                return Result(STATUS_NOK, result=error_message)
+                return Result(STATUS_NOK, reason=error_message)
 
             pool_exists_result = self.global_nat_pool_name_exists(pool_name)
 
             if not pool_exists_result.status:
                 return pool_exists_result
 
-            if not pool_exists_result.result:
-                return Result(False, result=False)
+            if not pool_exists_result.reason:
+                return Result(False, reason=False)
 
             interface_exists_result = self.interface_exists(interface_name)
 
             if not interface_exists_result.status:
                 return interface_exists_result
 
-            if not interface_exists_result.result:
-                return Result(False, result=False)
+            if not interface_exists_result.reason:
+                return Result(False, reason=False)
 
             nat_pool_id_result = self.get_global_nat_row_id(pool_name)
             interface_id_result = self.get_interface_id(interface_name)
@@ -717,34 +724,34 @@ class RouterShellDB:
 
             direction_exists = self._interface_nat_direction_exists(nat_pool_id, interface_id, NATDirection.INSIDE)
 
-            return Result(True, result=direction_exists)
+            return Result(True, reason=direction_exists)
 
         except Exception as e:
             error_message = f"An error occurred while checking inside interface association: {e}"
-            return Result(False, result=error_message)
+            return Result(False, reason=error_message)
 
     def nat_direction_interface_exists(self, pool_name: str, interface_name: str, direction:str) -> Result:
         
         try:
             if not pool_name or not interface_name:
                 error_message = "Invalid input: Pool name and interface name must be provided."
-                return Result(STATUS_NOK, result=error_message)
+                return Result(STATUS_NOK, reason=error_message)
 
             pool_exists_result = self.global_nat_pool_name_exists(pool_name)
 
             if not pool_exists_result.status:
                 return pool_exists_result
 
-            if not pool_exists_result.result:
-                return Result(False, result=False)
+            if not pool_exists_result.reason:
+                return Result(False, reason=False)
 
             interface_exists_result = self.interface_exists(interface_name)
 
             if not interface_exists_result.status:
                 return interface_exists_result
 
-            if not interface_exists_result.result:
-                return Result(False, result=False)
+            if not interface_exists_result.reason:
+                return Result(False, reason=False)
 
             nat_pool_id_result = self.get_global_nat_row_id(pool_name)
             interface_id_result = self.get_interface_id(interface_name)
@@ -760,11 +767,11 @@ class RouterShellDB:
 
             direction_exists = self._interface_nat_direction_exists(nat_pool_id, interface_id, direction)
 
-            return Result(True, result=direction_exists)
+            return Result(True, reason=direction_exists)
 
         except Exception as e:
             error_message = f"An error occurred while checking inside interface association: {e}"
-            return Result(False, result=error_message)
+            return Result(False, reason=error_message)
 
     def _interface_nat_direction_exists(self, nat_id: int, interface_id: int, direction: str) -> Result:
         """
@@ -790,7 +797,7 @@ class RouterShellDB:
             self.log.error(f"An error occurred while checking NAT direction existence: {e}")
             return False
 
-    def get_nat_interface_direction_list(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
+    def get_nat_interface_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
         """
         Check if the specified interface is associated with the given NAT pool and direction.
 
@@ -818,7 +825,7 @@ class RouterShellDB:
 
             nat_pool_id = nat_pool_result[0]
             
-            cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (interface_name,))
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
             interface_result = cursor.fetchone()
             interface_id = interface_result[0]
             
@@ -832,61 +839,46 @@ class RouterShellDB:
             nat_direction_result = cursor.fetchone()
 
             if nat_direction_result is not None:
-                self.log.debug(f"get_nat_interface_direction_list() - interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} result: Found")                
+                self.log.debug(f"get_nat_interface_direction() - interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} -> Result: Found")                
                 return Result(status=True, row_id=nat_direction_result[0])
             else:
-                self.log.debug(f"get_nat_interface_direction_list() - interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} result: Not-Found")
-                return Result(status=False, row_id=0)
+                msg = f"interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} -> Result: Not-Found"
+                self.log.debug(f"get_nat_interface_direction() - {msg}")
+                return Result(status=False, row_id=0, reason=msg)
 
         except sqlite3.Error as e:
             error_message = f"Error checking NAT interface direction: {e}"
             self.log.critical(error_message)
-            return Result(status=False, row_id=0, result=error_message)
+            return Result(status=False, row_id=0, reason=error_message)
 
-    def get_nat_interface_direction_list_bak(self, nat_pool_name: str, interface_name: str, direction: str) -> Result:
-        """
-        Check if the specified interface is associated with the given NAT pool and direction.
-
-        Args:
-            nat_pool_name (str): The name of the NAT pool to check.
-            interface_name (str): The name of the interface to check.
-            direction (str): The direction to check (inside or outside).
-
-        Returns:
-            Result: A Result object with the following fields:
-                - status (bool): True if the interface is found in the specified NAT pool and direction, False otherwise.
-                - row_id (int): The row ID of the found entry, or 0 if not found.
-
-        Raises:
-            sqlite3.Error: If there is an error with the database query.
-        """
+    def get_nat_interface_direction_list(self, nat_pool_name: str, direction: str) -> List[Result]:
         try:
             cursor = self.connection.cursor()
+            results = []
 
-            # Combine the three queries into one
             cursor.execute("""
-                SELECT ND.ID
+                SELECT ND.Interface_FK, I.InterfaceName
                 FROM NatDirections AS ND
-                JOIN Nats AS N ON ND.NAT_FK = N.ID
                 JOIN Interfaces AS I ON ND.Interface_FK = I.ID
-                WHERE N.NatPoolName = ? AND I.IfName = ? AND ND.Direction = ?;
-            """, (nat_pool_name, interface_name, direction))
+                JOIN Nats AS N ON ND.NAT_FK = N.ID
+                WHERE N.NatPoolName = ? AND ND.Direction = ?
+            """, (nat_pool_name, direction))
 
-            nat_direction_result = cursor.fetchone()
+            rows = cursor.fetchall()
+            for row in rows:
+                interface_id, interface_name = row
+                result = Result(status=True, row_id=interface_id, result=interface_name)
+                results.append(result)
 
-            if nat_direction_result is not None:
-                return Result(status=True, row_id=nat_direction_result[0])
-            else:
-                return Result(status=False, row_id=0)  # NAT direction not found
-
+            return results
         except sqlite3.Error as e:
-            error_message = f"Error checking NAT interface direction: {e}"
-            self.log.error(error_message)
-            return Result(status=False, row_id=0, result=error_message)
+            # Handle the database error, possibly log it or raise a custom exception
+            raise e
 
     '''
                         DHCP DATABASE
     '''
+
     def get_dhcp_id(self, dhcp_poolname: str) -> int:
         """
         Retrieve the ID of a DHCP configuration by its pool name.
@@ -1372,7 +1364,7 @@ class RouterShellDB:
         if not result.status:
             err = f"Unable to insert DHCP client to interface: {interface_name} does not exist"
             self.log.error(err)
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
         
         try:
             cursor = self.connection.cursor()
@@ -1384,7 +1376,7 @@ class RouterShellDB:
         
         except Exception as e:
             self.log.error(f"Failed to add DHCP client: {e}")
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=str(e))
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
     def update_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
         """
@@ -1403,7 +1395,7 @@ class RouterShellDB:
         if result.status:
             err = f"Unable to update DHCP client to interface: {interface_name} does not exist"
             self.log.error(err)
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
         
         try:
             cursor = self.connection.cursor()
@@ -1415,7 +1407,7 @@ class RouterShellDB:
         
         except Exception as e:
             self.log.error(f"Failed to update DHCP client: {e}")
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=str(e))
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
     def remove_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
         """
@@ -1434,7 +1426,7 @@ class RouterShellDB:
         if result.status:
             err = f"Unable to remove DHCP client from interface: {interface_name} does not exist"
             self.log.error(err)
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=err)
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
         
         try:
             cursor = self.connection.cursor()
@@ -1446,7 +1438,7 @@ class RouterShellDB:
         
         except Exception as e:
             self.log.error(f"Failed to remove DHCP client: {e}")
-            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, result=str(e))
+            return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
 
     '''
@@ -1468,7 +1460,7 @@ class RouterShellDB:
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT InterfaceType FROM Interfaces WHERE IfName = ?", (if_name,))
+            cursor.execute("SELECT InterfaceType FROM Interfaces WHERE InterfaceName = ?", (if_name,))
             row = cursor.fetchone()
             if row:
                 interface_type = InterfaceType(row[0])
@@ -1492,7 +1484,7 @@ class RouterShellDB:
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (if_name,))
             row = cursor.fetchone()
             if row:
                 return row[0]
@@ -1509,11 +1501,12 @@ class RouterShellDB:
 
         Returns:
             Result: A Result object with the status and row ID of the existing interface.
-                    status True = exists
+            status: True = exists, otherwise False
+            row_id: row-id of interface when status=true
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Interfaces WHERE IfName = ?", (if_name,))
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (if_name,))
             self.connection.commit()
             existing_row = cursor.fetchone()
             
@@ -1545,14 +1538,14 @@ class RouterShellDB:
         if existing_result.status:
             return Result(status=STATUS_NOK, 
                         row_id=existing_result.row_id, 
-                        result=f"Interface: {if_name} already exists")
+                        reason=f"Interface: {if_name} already exists")
 
         try:
             self.log.debug(f"insert_interface() -> Interface: {if_name} -> Interface-Type: {interface_type.value} -> shutdown: {shutdown_status}")
             
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO Interfaces (IfName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
+                "INSERT INTO Interfaces (InterfaceName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
                 (if_name, interface_type.value, shutdown_status)
             )
             
@@ -1564,7 +1557,7 @@ class RouterShellDB:
         
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Interfaces': %s", e)
-            return Result(status=STATUS_NOK, row_id=0, result=f"{e}")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
     def delete_interface(self, if_name: str) -> Result:
         """
@@ -1581,16 +1574,16 @@ class RouterShellDB:
             
             if existing_result.status:
                 cursor = self.connection.cursor()
-                cursor.execute("DELETE FROM Interfaces WHERE IfName = ?", (if_name,))
+                cursor.execute("DELETE FROM Interfaces WHERE InterfaceName = ?", (if_name,))
                 self.connection.commit()
                 self.log.debug(f"Deleted interface '{if_name}' from the 'Interfaces' table.")
-                return Result(status=STATUS_OK, row_id=0, result=f"Interface '{if_name}' deleted successfully.")
+                return Result(status=STATUS_OK, row_id=0, reason=f"Interface '{if_name}' deleted successfully.")
             else:
                 self.log.debug(f"Interface '{if_name}' does not exist.")
-                return Result(status=STATUS_NOK, row_id=0, result=f"Interface '{if_name}' does not exist.")
+                return Result(status=STATUS_NOK, row_id=0, reason=f"Interface '{if_name}' does not exist.")
         except sqlite3.Error as e:
             self.log.error("Error deleting interface: %s", e)
-            return Result(status=STATUS_NOK, row_id=0, result=f"{e}")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
     
     def update_interface_shutdown(self, interface_name: str, shutdown_status: bool) -> Result:
         """
@@ -1608,13 +1601,13 @@ class RouterShellDB:
 
         if not existing_result.status:
             # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:
             cursor = self.connection.cursor()
             
             cursor.execute(
-                "UPDATE Interfaces SET ShutdownStatus = ? WHERE IfName = ?",
+                "UPDATE Interfaces SET ShutdownStatus = ? WHERE InterfaceName = ?",
                 (shutdown_status, interface_name)
             )
             
@@ -1626,7 +1619,7 @@ class RouterShellDB:
         
         except sqlite3.Error as e:
             self.log.error(f"Error updating shutdown status for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=existing_result.row_id, result=f"{e}")
+            return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
 
     def update_interface_duplex(self, interface_name: str, duplex: str) -> Result:
         """
@@ -1644,7 +1637,7 @@ class RouterShellDB:
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         interface_id = existing_result.row_id
         
@@ -1672,7 +1665,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"Error updating duplex setting for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
+            return Result(status=STATUS_NOK, row_id=interface_id, reason=str(e))
 
     def update_interface_mac_address(self, interface_name: str, mac_address: str) -> Result:
         """
@@ -1688,7 +1681,7 @@ class RouterShellDB:
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1714,7 +1707,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"Error updating MAC address setting for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=interface_id, result=str(e))
+            return Result(status=STATUS_NOK, row_id=interface_id, reason=str(e))
 
     def update_interface_speed(self, interface_name: str, speed: str) -> Result:
         """
@@ -1731,7 +1724,7 @@ class RouterShellDB:
 
         if not existing_result.status:
             self.log.error(f"Interface: {interface_name} does not exists.")
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1758,7 +1751,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
     '''
                     INTERFACE-IP-ADDRESS DATABASE
@@ -1780,7 +1773,7 @@ class RouterShellDB:
 
         if not existing_result.status:
             # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1797,7 +1790,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"Error inserting IP address for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
     def delete_interface_inet_address(self, interface_name: str, ip_address: str) -> Result:
         """
@@ -1814,7 +1807,7 @@ class RouterShellDB:
 
         if not existing_result.status:
             # Interface does not exist
-            return Result(status=STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -1830,7 +1823,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"Error deleting IP address for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=interface_id, result=f"{e}")
+            return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
     def _sub_option_row_exists(self, interface_fk: int) -> Result:
         """
@@ -1871,14 +1864,14 @@ class RouterShellDB:
         interface_exists_result = self.interface_exists(interface_name)
 
         if not interface_exists_result.status:
-            return Result(status=False, result=f"Interface: {interface_name} doesn't exist")
+            return Result(status=False, reason=f"Interface: {interface_name} doesn't exist")
 
         sub_option_row_result = self._sub_option_row_exists(interface_exists_result.row_id)
 
         if sub_option_row_result.row_id:
             return Result(status=True, row_id=sub_option_row_result.row_id)
         else:
-            return Result(status=False, result="Interface exists, but no corresponding row in InterfaceSubOptions")
+            return Result(status=False, reason="Interface exists, but no corresponding row in InterfaceSubOptions")
 
     def update_interface_proxy_arp(self, interface_name: str, status: bool) -> Result:
         """
@@ -1898,14 +1891,14 @@ class RouterShellDB:
         if_exists = self.interface_exists(interface_name)
         
         if not if_exists.status:
-            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=if_exists.result)
+            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=if_exists.reason)
         
         if_sub_opt = self.interface_and_sub_option_exist(interface_name)
         
         if not if_sub_opt.status:
             insert_if_sub_option = self._insert_default_row_in_interface_sub_option(interface_name)
             if not insert_if_sub_option.status:
-                return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=insert_if_sub_option.result)
+                return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=insert_if_sub_option.reason)
         
         try:
 
@@ -1921,7 +1914,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {interface_name}: {e}")
-            return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
+            return Result(STATUS_NOK, row_id=if_sub_opt.row_id, reason=str(e))
 
     def update_interface_drop_gratuitous_arp(self, interface_name: str, status: bool) -> Result:
         """
@@ -1942,7 +1935,7 @@ class RouterShellDB:
         if_exists = self.interface_exists(interface_name)
         
         if not if_exists.status:
-            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=if_exists.result)
+            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=if_exists.reason)
         
         # Check if the sub-option row exists
         if_sub_opt = self.interface_and_sub_option_exist(interface_name)
@@ -1964,7 +1957,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {interface_name}: {e}")
-            return Result(STATUS_NOK, row_id=if_sub_opt.row_id, result=str(e))
+            return Result(STATUS_NOK, row_id=if_sub_opt.row_id, reason=str(e))
 
     def update_interface_static_arp(self, interface_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
         """
@@ -1984,7 +1977,7 @@ class RouterShellDB:
             # Check if the interface exists and get its ID
             interface_exists_result = self.interface_exists(interface_name)
             if not interface_exists_result.status:
-                return Result(STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+                return Result(STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
             cursor = self.connection.cursor()
             cursor.execute(
@@ -2014,7 +2007,7 @@ class RouterShellDB:
 
         except sqlite3.Error as e:
             self.log.error(f"Error creating or updating static ARP entry for interface {interface_name}: {e}")
-            return Result(STATUS_NOK, row_id=0, result=str(e))
+            return Result(STATUS_NOK, row_id=0, reason=str(e))
 
     def delete_interface_static_arp(self, interface_name: str, ip_address: str) -> Result:
         """
@@ -2032,7 +2025,7 @@ class RouterShellDB:
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            return Result(STATUS_NOK, row_id=0, result=f"Interface: {interface_name} does not exist")
+            return Result(STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:
             interface_id = existing_result.row_id
@@ -2054,7 +2047,7 @@ class RouterShellDB:
         
         except sqlite3.Error as e:
             self.log.error(f"Error deleting static ARP record for interface {interface_name}: {e}")
-            return Result(STATUS_NOK, row_id=interface_id, result=str(e))
+            return Result(STATUS_NOK, row_id=interface_id, reason=str(e))
 
     def insert_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
         """
@@ -2071,13 +2064,13 @@ class RouterShellDB:
         
         if not interface_result.status:
             self.log.debug(f"insert_interface_bridge_group() -> interface: {interface_name} does not exist, Exiting")
-            return Result(STATUS_NOK, result=f"Interface: {interface_name} does not exist")
+            return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
             self.log.debug(f"insert_interface_bridge_group() -> Bridge group: {bridge_name} does not exist, Exiting")
-            return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")
+            return Result(STATUS_NOK, reason=f"Bridge group: {bridge_name} does not exist")
 
         interface_id = interface_result.row_id
         
@@ -2091,12 +2084,12 @@ class RouterShellDB:
             )
             row_id = cursor.lastrowid
             self.connection.commit()
-            return Result(STATUS_OK, row_id=row_id, result="Interface added to the bridge group successfully")
+            return Result(STATUS_OK, row_id=row_id, reason="Interface added to the bridge group successfully")
         
         except sqlite3.Error as e:
             error_message = f"Error inserting data into 'BridgeGroups': {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, result=error_message)
+            return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=error_message)
 
     def delete_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
         """
@@ -2113,12 +2106,12 @@ class RouterShellDB:
         interface_result = self.interface_exists(interface_name)
         
         if not interface_result.status:
-            return Result(STATUS_NOK, result=f"Interface: {interface_name} does not exist")
+            return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
-            return Result(STATUS_NOK, result=f"Bridge group: {bridge_name} does not exist")
+            return Result(STATUS_NOK, reason=f"Bridge group: {bridge_name} does not exist")
 
         interface_id = interface_result.row_id
         bridge_id = bridge_result.row_id
@@ -2130,12 +2123,12 @@ class RouterShellDB:
                 (interface_id, bridge_id)
             )
             self.connection.commit()
-            return Result(STATUS_OK, result="Interface removed from the bridge group successfully")
+            return Result(STATUS_OK, reason="Interface removed from the bridge group successfully")
         
         except sqlite3.Error as e:
             error_message = f"Error deleting data from 'BridgeGroups': {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, result=error_message)
+            return Result(STATUS_NOK, reason=error_message)
 
     def _insert_default_row_in_interface_sub_option(self, interface_name: str) -> Result:
         """
@@ -2152,19 +2145,19 @@ class RouterShellDB:
 
             interface_exists_result = self.interface_exists(interface_name)
             if not interface_exists_result.status:
-                return Result(status=False, result=f"Interface:{interface_name} does not exists")
+                return Result(status=False, reason=f"Interface:{interface_name} does not exists")
 
             cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_exists_result.row_id,))
             existing_row = cursor.fetchone()
 
             if existing_row is not None:
-                return Result(status=False, result="Row already exists")
+                return Result(status=False, reason="Row already exists")
 
             cursor.execute("INSERT INTO InterfaceSubOptions (Interface_FK) VALUES (?)", (interface_exists_result.row_id,))
             row_id = cursor.lastrowid  # Get the inserted row's ID
             self.connection.commit()
 
-            return Result(status=True, row_id=row_id, result="Row inserted successfully")
+            return Result(status=True, row_id=row_id, reason="Row inserted successfully")
 
         except sqlite3.Error:
-            return Result(status=False, result="Database error")
+            return Result(status=False, reason="Database error")

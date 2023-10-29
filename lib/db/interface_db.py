@@ -65,7 +65,7 @@ class InterfaceDatabase:
         result = cls.rsdb.insert_interface(interface_name, interface_type, shutdown_status)
 
         if result.status:
-            cls.log.debug(f"add_interface() - Unable to add interface to DB -> {result.result}")
+            cls.log.debug(f"add_interface() - Unable to add interface to DB -> {result.reason}")
             return STATUS_NOK
         
         return STATUS_OK
@@ -288,13 +288,13 @@ class InterfaceDatabase:
                 cls.log.debug(f"Deleting NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}'")
                 result = cls.rsdb.delete_interface_nat_direction(interface_name, nat_pool_name)
                 if result.status:
-                    cls.log.error(f"Unable to delete NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}' error: {result.result}")
+                    cls.log.error(f"Unable to delete NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}' error: {result.reason}")
                     return STATUS_NOK
             else:
                 cls.log.debug(f"Inserting NAT direction: {nat_direction.value} -> Interface '{interface_name}' -> NAT Pool '{nat_pool_name}'")
                 result = cls.rsdb.insert_interface_nat_direction(interface_name, nat_pool_name, nat_direction.value)
                 if result.status:
-                    cls.log.error(f"Unable to Insert NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}' error: {result.result}")
+                    cls.log.error(f"Unable to Insert NAT direction: {nat_direction.value} -> interface '{interface_name}' -> NAT Pool '{nat_pool_name}' error: {result.reason}")
                     return STATUS_NOK
             
             return result.status == STATUS_OK
@@ -362,6 +362,6 @@ class InterfaceDatabase:
         """
         result = cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_version.value)
         if result.status:
-            cls.log.error(f"Unable to insert {dhcp_version.value} to interface: {interface_name} - reason: {result.result}")
+            cls.log.error(f"Unable to insert {dhcp_version.value} to interface: {interface_name} - reason: {result.reason}")
             return STATUS_NOK
         return STATUS_OK

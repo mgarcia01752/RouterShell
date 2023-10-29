@@ -123,7 +123,7 @@ class Nat(NetworkManager):
                 raise ValueError("Either nat_outside_ip_address or nat_outside_ifName must be provided")
 
             command = f'iptables -t nat -A POSTROUTING -s {nat_inside_ip_start}-{nat_inside_ip_end} -j SNAT {outside_nat_arg}'
-            self.log.info(f"Adding NAT CMD: {command}")
+            self.log.debug(f"Adding NAT CMD: {command}")
 
             result = self.run([command])
             if result.exit_code:
@@ -162,7 +162,7 @@ class Nat(NetworkManager):
         Returns:
             bool: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
         """
-        self.log.info(f"create_outside_nat() -> Pool: {nat_pool_name} -> Interface: {interface_name} -> negate: {negate}")
+        self.log.debug(f"create_outside_nat() -> Pool: {nat_pool_name} -> Interface: {interface_name} -> negate: {negate}")
         
         nat_pool = NatDB().pool_name_exists(nat_pool_name)
         
@@ -215,34 +215,38 @@ class Nat(NetworkManager):
             self.log.error(f"NAT pool {nat_pool_name} not found.")
             return STATUS_NOK
 
-        if not NatDB().is_interface_direction_in_nat_pool(ifName_inside,
-                                                          nat_pool_name,
-                                                          NATDirection.INSIDE.value).status:
-            self.log.info(f"Interface {ifName_inside} is not part of {NATDirection.INSIDE.value} NAT pool {nat_pool_name}")
-
-        outside_nat_ifName = NatDB().is_interface_direction_in_nat_pool(ifName_inside,
-                                                                        nat_pool_name,
-                                                                        NATDirection.OUTSIDE.value)
-            
-        if not outside_nat_ifName.status:
-            self.log.error(f"Define an outside interface before creating inside NAT rules for poll: {nat_pool}.")
+        if NatDB().is_interface_direction_in_nat_pool(ifName_inside, 
+                                                      nat_pool_name,
+                                                      NATDirection.INSIDE.value).status:
+            '''Not an error, just a check in case we are re-applying'''
+            self.log.debug(f"Interface {ifName_inside} is part of {NATDirection.INSIDE.value} NAT pool {nat_pool_name}")
             return STATUS_NOK
+        
+        outside_nat_interfaces = NatDB().get_interface_direction_in_nat_pool_list(nat_pool_name, NATDirection.OUTSIDE.value)
+        
+        if len(outside_nat_interfaces) != 1:
+            if len(outside_nat_interfaces):
+                self.log.error(f"Define an outside interface before creating inside NAT rules for poll: {nat_pool}.")
+                return STATUS_NOK
+            if len(outside_nat_interfaces) > 1:
+                self.log.critical(f"More than 1 interfaces are defined in: {nat_pool}.  DataBase ERROR")
+                return STATUS_NOK
 
-        if outside_nat_ifName == ifName_inside:
-            self.log.error(f"Outside interface and inside interface cannot be the same in NAT pool {nat_pool_name}.")
-            return STATUS_NOK
+        outside_nat_interface = outside_nat_interfaces[0].result
+        
+        outside_nat_if_ip_addr = self.get_interface_ip_addresses(outside_nat_interface, 'ipv4')
+        
+        self.log.debug(f"NAT-Pool: {nat_pool_name} -> Out-NAT-ifName: {outside_nat_interface} -> Out-NAT-Inet: {outside_nat_if_ip_addr}")
 
-        outside_nat_ip_addr = self.get_interface_ip_addresses(outside_nat_ifName, 'ipv4')
-        self.log.info(f"NAT-Pool: {nat_pool_name} -> Out-NAT-ifName: {outside_nat_ifName} -> Out-NAT-Inet: {outside_nat_ip_addr}")
-
-        if not outside_nat_ip_addr:
-            self.log.error(f"No IPv4 address assigned to outside NAT interface: {outside_nat_ifName}")
+        if not outside_nat_if_ip_addr:
+            self.log.error(f"No IPv4 address assigned to outside NAT interface: {outside_nat_interface}")
             return STATUS_NOK
         
         try:
             create_destroy = '-D' if negate else '-A'
             
-            command = f'iptables -t nat {create_destroy} PREROUTING -i {ifName_inside} -j DNAT --to-destination {outside_nat_ip_addr[0]}'
+            command = f'iptables -t nat {create_destroy} PREROUTING -i {ifName_inside} -j DNAT --to-destination {outside_nat_if_ip_addr[0]}'
+            self.log.debug(f"create_inside_nat() -> cmd: {command}")
             
             result = self.run(command.split())
             
