@@ -131,8 +131,8 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         Returns:
             bool: A boolean value indicating the existence of the specified interface.
-                - True: The interface exists.
-                - False: The interface is not found or an error has occurred.
+            - True: The interface exists.
+            - False: otherwise
         """
 
         command = ['ip', 'link', 'show', interface_name]
@@ -404,25 +404,37 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return Vlan().del_interface_to_vlan(vlan_id)
 
-    def rename_interface(self, current_interface_name:str, new_interface_name:str) -> bool:
+    def rename_interface(self, initial_interface_name:str, alias_interface_name:str) -> bool:
         """
         Rename a network interface
 
         Args:
-            current_interface_name (str): The current name of the network interface.
-            new_interface_name (str): The new name to assign to the network interface.
+            initial_interface_name (str): The current name of the network interface.
+            alias_interface_name (str): The new name to assign to the network interface.
 
         Returns:
             bool: STATUS_OK if the interface was successfully renamed, STATUS_NOK otherwise.
         """
                 
-        self.log.debug(f"rename_interface() -> Curr-if: {current_interface_name} -> new-if: {new_interface_name}")
+        self.log.debug(f"rename_interface() -> Curr-if: {initial_interface_name} -> alias-if: {alias_interface_name}")
+        
+        if not self.does_interface_exist(initial_interface_name):
+            self.log.debug(f"rename_interface() -> initial interface: {initial_interface_name} does not exists")
+            return STATUS_NOK
+        
+        if self.db_lookup_interface_alias_exist(initial_interface_name, alias_interface_name):
+            self.log.debug(f"Alias-Interface already exists: {alias_interface_name} assigned to initial-interface: {initial_interface_name}")
+            return STATUS_OK
         
         '''sudo ip link set <current_interface_name> name <new_interface_name>'''
-        result = self.run(['ip', 'link', 'set', current_interface_name, 'name', new_interface_name])
+        result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
         
         if result.exit_code:
-            self.log.error(f"Unable to rename interface {current_interface_name} to {new_interface_name}")
+            self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name}")
+            return STATUS_NOK
+        
+        if self.update_db_rename_alias(initial_interface_name, alias_interface_name):
+            self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name}")
             return STATUS_NOK
         
         return STATUS_OK        

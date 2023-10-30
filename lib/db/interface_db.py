@@ -21,7 +21,7 @@ class InterfaceDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()  
             
-    def db_interface_exists(cls, interface_name: str) -> Result:
+    def db_lookup_interface_exists(cls, interface_name: str) -> Result:
         """
         Check if an interface with the given name exists in the database.
 
@@ -279,7 +279,7 @@ class InterfaceDatabase:
                 cls.log.debug(f"NAT pool '{nat_pool_name}' not found. Update aborted.")
                 return STATUS_NOK
 
-            interface_result = cls.db_interface_exists(interface_name)
+            interface_result = cls.db_lookup_interface_exists(interface_name)
             if not interface_result.status:
                 cls.log.debug(f"Interface '{interface_name}' not found. Update aborted.")
                 return STATUS_NOK
@@ -365,3 +365,42 @@ class InterfaceDatabase:
             cls.log.error(f"Unable to insert {dhcp_version.value} to interface: {interface_name} - reason: {result.reason}")
             return STATUS_NOK
         return STATUS_OK
+
+    def update_db_rename_alias(cls, initial_interface_name: str, alias_interface_name: str) -> bool:
+        """
+        Update or create an alias for an initial interface and check if they match.
+
+        Args:
+            initial_interface_name (str): The name of the initial interface.
+            alias_interface_name (str): The name of the alias interface.
+
+        Returns:
+            bool: STATUS_OK if the alias was successfully updated or created and the names match, STATUS_NOK otherwise.
+
+        """
+        alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
+
+        if alias_result.status:
+            if alias_result.alias_name == alias_interface_name:
+                return STATUS_OK
+            else:
+                return STATUS_NOK
+        
+        return cls.rsdb.update_interface_alias(initial_interface_name, alias_interface_name)
+
+    def db_lookup_interface_alias_exist(cls, initial_interface_name: str, alias_interface_name: str) -> bool:
+        """
+        Check if an alias exists for the given initial interface and alias name.
+
+        Args:
+            initial_interface_name (str): The name of the initial interface.
+            alias_interface_name (str): The name of the alias interface.
+
+        Returns:
+            bool: True if an alias exists for the initial interface with the provided alias name, False otherwise.
+        """
+
+        alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name, alias_interface_name)
+
+        return alias_result.status and alias_result.alias_name == alias_interface_name
+

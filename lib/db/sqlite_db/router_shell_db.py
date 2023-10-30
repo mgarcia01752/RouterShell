@@ -2161,3 +2161,75 @@ class RouterShellDB:
 
         except sqlite3.Error:
             return Result(status=False, reason="Database error")
+
+    '''
+                        INTERFACE-RENAME-ALIAS
+    '''
+
+    def update_interface_alias(self, initial_interface: str, alias_interface: str) -> Result:
+        """
+            Update or create an alias for an initial interface.
+
+            Args:
+                initial_interface (str): The name of the initial interface.
+                alias_interface (str): The name of the alias interface.
+
+            Returns:
+                Result: A Result object with the following fields:
+                - status (bool): STATUS_OK if the alias was updated or created successfully, STATUS_NOK otherwise.
+                - row_id (int): The row ID of the updated or created alias entry.
+
+            Raises:
+                sqlite3.Error: If there is an error with the database query.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute("""
+                INSERT OR REPLACE INTO RenameInterface (InitialInterface, AliasInterface)
+                VALUES (?, ?)
+            """, (initial_interface, alias_interface))
+
+            self.connection.commit()
+
+            cursor.execute("SELECT ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
+            row_id = cursor.fetchone()[0]
+
+            return Result(status=STATUS_OK, row_id=row_id)
+        
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=e)
+
+    def is_initial_interface_alias_exist(self, initial_interface: str) -> Result:
+        """
+        Check if an alias exists for the given initial interface.
+
+        Args:
+            initial_interface (str): The name of the initial interface to check.
+
+        Returns:
+            Result: A Result object with the following fields:
+            - status (bool): True if an alias exists for the initial interface, False otherwise.
+            - row_id (int, optional): The row ID of the alias entry if an alias exists, or None if no alias exists.
+            - reason (str, optional): A reason for the result, which may include additional information.
+            - result (str, optional): The alias name if an alias exists, or None if no alias exists.
+
+        Raises:
+            sqlite3.Error: If there is an error with the database query.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute("SELECT AliasInterface, ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
+            row = cursor.fetchone()
+
+            if row is not None:
+                alias_name, row_id = row
+                return Result(status=True, alias_name=alias_name, row_id=row_id)
+            else:
+                return Result(status=False, row_id=None, result=alias_name)
+        
+        except sqlite3.Error as e:
+            return Result(status=False, alias_name=None, row_id=None, reason=str(e))
+
+

@@ -33,6 +33,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         ip nat              (Implemented)
         ip route
         ipv6 route
+        rename              (Implemented)
         vlan                (Implemented)
         vlanDB              (Implemented)           
         wireless        
@@ -237,7 +238,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         IpRouteConfig().cmdloop() 
 
     def complete_rename(self, text, line, begidx, endidx):
-        completions = ['if', 'if-alias', 'auto']
+        completions = ['if', 'if-alias']
         completions.extend(Interface().get_network_interfaces())
         return [comp for comp in completions if comp.startswith(text)]
 
@@ -246,7 +247,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         Rename a network interface.
 
         Usage:
-            if <existing interface> if-alias <new interface>
+            if <initial interface> if-alias <new interface>
 
         Args:
             args (str): The input string containing the command.
@@ -263,10 +264,10 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         self.log.debug(f"do_rename() -> arg-parts: {args_parts}")
 
         if args_parts[0] == 'if':
-            self.log.debug(f"do_alias() -> if")
+            self.log.debug(f"do_rename() -> if")
             
             if len(args_parts) == 4:
-                self.log.debug(f"do_alias() -> args-parts: {args_parts}")
+                self.log.debug(f"do_rename() -> args-parts: {args_parts}")
                 Interface().rename_interface(args_parts[1], args_parts[3])
             else:
                 print(f"Invalid command: rename {args}")
