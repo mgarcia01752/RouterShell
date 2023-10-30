@@ -31,7 +31,7 @@ fi
 
 # Prompt the user to choose a DHCP server
 echo "Which DHCP server would you like to install?"
-echo "1. KEA DHCP"
+echo "1. KEA DHCP (RouterShell not implemented yet)"
 echo "2. Dnsmasq"
 read -p "Enter the number (1/2): " dhcp_choice
 
