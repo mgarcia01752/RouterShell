@@ -37,6 +37,34 @@ class InetServiceLayer(MacServiceLayer):
             self.log.error(f"is_valid_ipv4() -> Inet Address: ({inet_address}) is Bad")
             return False
 
+    def get_ip_addr_info(self, interface_name: str = None) -> list:
+        """
+        Get IP address information for network interfaces.
+
+        Args:
+            interface_name (str, optional): If provided, fetch IP information for the specified network interface.
+
+        Returns:
+            list: A list of dictionaries containing IP address information for network interfaces.
+        """
+        cmd = ["ip", "--json", "addr", "show"]
+        if interface_name:
+            cmd.extend(['dev', interface_name])
+
+        ip_addr_raw_json = self.run(cmd)
+        
+        if ip_addr_raw_json.exit_code:
+            self.log.error(f"Error getting ip address info: cmd -> {cmd} error: {ip_addr_raw_json.stderr}")
+            return []
+        
+        try:
+            ip_addr_json_obj = json.loads(ip_addr_raw_json.stdout)
+            return ip_addr_json_obj
+        
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+ 
+
     def is_valid_ipv6(self, inet6_address: str, include_prefix=True) -> bool:
         """
         Check if an IPv6 address is valid.

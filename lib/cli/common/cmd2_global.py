@@ -20,5 +20,7 @@ class Cmd2GlobalSettings():
     
     DEBUG_RUN               = DEBUG_GLOBAL or True
     DEBUG_SYSCTL            = DEBUG_GLOBAL or True
+    
+    DEBUG_SHOW_INTERFACE    = DEBUG_GLOBAL or True
     '''Add Per Class Debug'''
     

@@ -144,7 +144,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             return
         elif args.subcommand == 'interfaces':
             self.log.debug("Show interfaces command")
-            InterfaceShow().show_interfaces()
+            InterfaceShow().show_ip_interface_brief()
             return
         elif args.subcommand == 'ip':
             self.log.debug("Show ip command")
