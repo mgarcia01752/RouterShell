@@ -6,6 +6,7 @@ from typing import Optional
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_manager import NetworkManager
 
 class InvalidDhcpServer(Exception):

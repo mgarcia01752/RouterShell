@@ -5,8 +5,9 @@ import json
 import logging
 
 import cmd2
+from lib.network_manager.dhcp_server import DHCPServer
 
-from lib.network_services.dhcp.dhcp_kea import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
+from lib.network_services.dhcp.dhcp_kea import KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt
@@ -18,7 +19,8 @@ from lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServerConfig(cmd2.Cmd,
                        GlobalUserCommand,
-                       RouterPrompt):
+                       RouterPrompt,
+                       DHCPServer):
     
     GLOBAL_CONFIG_MODE = 'global'
     PROMPT_CMD_ALIAS = 'dhcp'    
@@ -68,7 +70,7 @@ class DHCPServerConfig(cmd2.Cmd,
 
         parser = argparse.ArgumentParser(
             description="Configure a DHCP server subnet",
-            epilog="Use 'subnet <ip-address> <subnet-mask>' to set the subnet."
+            epilog="Use 'subnet <ip-address>/<CIDR>' to set the subnet."
         )
 
         # Define the arguments directly without subcommands

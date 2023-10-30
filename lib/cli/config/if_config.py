@@ -469,7 +469,7 @@ class InterfaceConfig(cmd2.Cmd,
                 args = args.split()
             args = parser.parse_args(args)
         except SystemExit:
-            returnDEBUG
+            return
 
         if args.subcommand == "access-vlan":
             vlan_id = args.vlan_id
