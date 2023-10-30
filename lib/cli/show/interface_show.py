@@ -1,4 +1,3 @@
-import json
 import logging
 
 from tabulate import tabulate
@@ -16,15 +15,24 @@ class InterfaceShow(Interface):
         self.debug = CGS.DEBUG_SHOW_INTERFACE
         self.arg = arg
         
-    def is_secondary_address(self, interface, address):
-        for addr_info in interface["addr_info"]:
-            if addr_info["family"] in ["inet", "inet6"] and addr_info["local"] == address:
-                if "label" in addr_info and "secondary" in addr_info["label"]:
-                    return True
-        return False
-
-
     def show_ip_interface_brief(self):
+        """
+        Display a brief summary of IP interfaces.
+
+        This function retrieves IP interface information using the `get_ip_addr_info` method and
+        displays it in a tabular format. It includes interface name, MAC address, IP addresses
+        (both IPv4 and IPv6), operational state, and protocol.
+
+        If no IP address is assigned to an interface, it is marked as "unassigned."
+
+        The output is printed to the console.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         ip_info_json = self.get_ip_addr_info()
         
         table = []
@@ -50,10 +58,6 @@ class InterfaceShow(Interface):
 
             table.append([interface_name, mac, inet_str, inet6_str, state, protocol])
 
-        headers = ["Interface", "mac", "inet", "inet6", "method", "state", "protocol"]
+        headers = ["Interface", "mac", "inet", "inet6", "state", "protocol"]
         print(tabulate(table, headers, tablefmt="simple"))
-
-
-
-
 

@@ -37,6 +37,23 @@ class InetServiceLayer(MacServiceLayer):
             self.log.error(f"is_valid_ipv4() -> Inet Address: ({inet_address}) is Bad")
             return False
 
+    def is_secondary_address(self, interface, address):
+        """
+        Check if an IP address is a secondary address on the given interface.
+
+        Args:
+            interface (dict): The interface information in JSON format.
+            address (str): The IP address to check.
+
+        Returns:
+            bool: True if the address is a secondary address, False otherwise.
+        """
+        for addr_info in interface["addr_info"]:
+            if addr_info["family"] in ["inet", "inet6"] and addr_info["local"] == address:
+                if "label" in addr_info and "secondary" in addr_info["label"]:
+                    return True
+        return False
+
     def get_ip_addr_info(self, interface_name: str = None) -> list:
         """
         Get IP address information for network interfaces.
