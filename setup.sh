@@ -31,6 +31,7 @@ sudo apt install -y python3
 pip install tabulate
 pip install prettytable
 pip install argcomplete
+pip install cmd2
 
 echo "Setup completed successfully."
 
