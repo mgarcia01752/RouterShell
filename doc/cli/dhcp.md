@@ -101,7 +101,7 @@ dhcp global
 
 [no] dhcp <dhcp-pool-name>
         subnet <ip-subnet>/<mask>
-        pool <ip-address-start> <ip-address-start>
+        pool <ip-address-start> <ip-address-start> <ip-mask>
         reservations [hw-address | duid] <mac-address> ip-address <ip-address> [hostname <string>]
         [option <option-name> <[int | string | ip-address]>]
         commit

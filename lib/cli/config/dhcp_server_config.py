@@ -6,11 +6,12 @@ import logging
 
 import cmd2
 
-from lib.db.dhcpd_db import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
+from lib.network_services.dhcp.dhcp_kea import DhcpVersion, KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt
 
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.common.cmd2_global import Cmd2GlobalSettings as cgs
 
 from lib.common.common import STATUS_NOK, STATUS_OK
@@ -23,13 +24,12 @@ class DHCPServerConfig(cmd2.Cmd,
     PROMPT_CMD_ALIAS = 'dhcp'    
     
     def __init__(self, dhcp_pool_name: str, negate=False):
-        super().__init__()
-        
-        '''CMD2 DEBUG SETTING'''
-        self.debug = cgs.DEBUG_GLOBAL
-        
-        self.log = logging.getLogger(self.__class__.__name__)
+        super().__init__()        
         GlobalUserCommand.__init__(self)
+
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
+        self.debug = cgs.DEBUG_GLOBAL
         
         self.log.debug(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")
         
@@ -194,10 +194,6 @@ class DHCPServerConfig(cmd2.Cmd,
             self.log.debug(f"Adding DHCP option to global configuration: {args}")
             KeaDHCPDB().update_global_config(dhcp_option, dhcp_value)
     
-    def do_tell(self, args):
-        print(f"{DHCPDatabase().get_copy_dhcp_pool()}")
-        print(f"{DHCPDatabase().get_copy_kea_dhcpv4_config()}")
-
     def do_commit(self):
         pass
     

@@ -2,10 +2,10 @@ import ipaddress
 import logging
 
 
-from lib.db.dhcpd_db import DHCPDatabase
+from lib.network_services.dhcp.dhcp_kea import DHCPDatabase
 from lib.common.common import STATUS_NOK, STATUS_OK
 
-class DHCPServer():
+class DHCPServerService():
 
     def __init__(self):
         self.is_running = False

@@ -2,7 +2,7 @@ import cmd2
 import logging
 
 from lib.cli.config.arp_config import ArpConfig
-from lib.cli.config.dhcpd_config import DHCPServerConfig
+from lib.cli.config.dhcp_server_config import DHCPServerConfig
 from lib.cli.config.if_config import InterfaceConfig
 from lib.cli.config.bridge_config import BridgeConfig
 from lib.cli.config.nat_config import NatConfig

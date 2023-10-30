@@ -5,10 +5,6 @@ import logging
 from typing import Dict, Union
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
-from enum import Enum
-class DhcpVersion(Enum):
-    DHCP_V4 = 4
-    DHCP_V6 = 6
 
 class KeaDHCPDBFactory():
     def __init__(self, dhcp_pool_name: str, ip_subnet_mask: str, negate=False):
