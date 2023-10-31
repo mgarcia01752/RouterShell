@@ -52,7 +52,7 @@ class Result:
 
 class RouterShellDB:
     connection = None
-    
+
     ROUTER_SHELL_DB = 'routershell.db'
     ROUTER_SHELL_SQL_STARTUP = '../db_schema.sql'
     ROW_ID_NOT_FOUND = 0
@@ -66,19 +66,24 @@ class RouterShellDB:
         self.log.debug(f"__init__() - DB Connection Status -> {self.connection}")
         self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
         self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
-        
+
         if not self.connection:
-            self.log.debug(f"Connecting to DB {self.ROUTER_SHELL_DB}")
-            self.create_database()
+            if not os.path.exists(self.db_file_path):
+                self.create_database()
+            else:
+                self.log.debug(f"Database file {self.ROUTER_SHELL_DB} exists.")
+                self.open_connection()
         else:
             self.log.debug(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
 
-    def create_database(self):
+    def create_database(self) -> bool:
         """
         Create an SQLite database file and populate it with tables and data from an SQL file.
+
+        Returns:
+            bool: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
         """
-        
-        self.log.debug(f"create_database()")
+        self.log.debug("create_database")
         
         try:
             self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
@@ -89,13 +94,36 @@ class RouterShellDB:
 
             cursor.executescript(sql_script)
 
-            # Commit the changes
             self.connection.commit()
 
             self.log.debug("SQLite database created successfully.")
 
         except sqlite3.Error as e:
-            print("Error:", e)
+            self.log.error("Error:", e)
+            return STATUS_NOK
+
+        return STATUS_OK
+    
+    def open_connection(self) -> bool:
+        """
+        Open a connection to the SQLite database.
+
+        Returns:
+            bool: STATUS_OK if the connection is successful, STATUS_NOK if there is an error.
+        """
+        self.log.debug("open_connection")
+
+        if not self.connection:
+            try:
+                self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
+                self.log.debug(f"Connected to DB {self.ROUTER_SHELL_DB}")
+                return STATUS_OK
+
+            except sqlite3.Error as e:
+                self.log.error("Error:", e)
+                return STATUS_NOK
+
+        return STATUS_OK
 
     def close_connection(self):
         """
@@ -103,6 +131,30 @@ class RouterShellDB:
         """
         if self.connection:
             self.connection.close()
+
+    def reset_database(self) -> bool:
+        """
+        Remove the existing database file and create a new one.
+
+        Returns:
+            bool: STATUS_OK if the reset is successful, STATUS_NOK if there is an error.
+        """
+        self.log.debug("reset_database")
+        
+        if self.connection:
+            self.connection.close()
+        
+        try:
+            if os.path.exists(self.db_file_path):
+                os.remove(self.db_file_path)
+                self.log.debug(f"Removed existing database file: {self.ROUTER_SHELL_DB}")
+        
+        except Exception as e:
+        self.log.error(f"Error while removing the existing database file: {e}")
+        return STATUS_NOK
+    
+    return self.create_database()
+
 
     '''
                         BRIDGE DATABASE
@@ -898,10 +950,9 @@ class RouterShellDB:
         try:
             query = "INSERT INTO DHCPServer (DhcpPoolname) VALUES (?)"
             cursor = self.connection.cursor()
-            
-            self.cursor.execute(query, (dhcp_pool_name,))
-            self.conn.commit()
-            row_id = self.cursor.lastrowid
+            cursor.execute(query, (dhcp_pool_name,))
+            self.connection.commit()
+            row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted '{dhcp_pool_name}' pool successfully.")
         
         except sqlite3.Error as e:
@@ -967,7 +1018,7 @@ class RouterShellDB:
             query = "INSERT INTO DHCPSubnet (DHCPServer_FK, InetSubnet) VALUES (?, ?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (pool_exist_result.row_id, inet_subnet_cidr))
-            self.conn.commit()
+            self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted subnet '{inet_subnet_cidr}' into '{dhcp_pool_name}' pool successfully.")
         
@@ -1036,7 +1087,7 @@ class RouterShellDB:
             query = "INSERT INTO DHCPSubnetPools (DHCPSubnet_FK, InetAddressStart, InetAddressEnd, InetSubnet) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr))
-            self.conn.commit()
+            self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted address range '{inet_address_start}-{inet_address_end}' into subnet '{inet_subnet_cidr}' successfully.")
         
@@ -1075,7 +1126,7 @@ class RouterShellDB:
             query = "INSERT INTO DHCPSubnetReservations (DHCPSubnet_FK, MacAddress, InetAddress) VALUES (?, ?, ?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (subnet_exist_result.row_id, hw_address, inet_address))
-            self.conn.commit()
+            self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted reservation for '{hw_address}' with IP '{inet_address}' into subnet '{inet_subnet_cidr}' successfully.")
         
@@ -1144,7 +1195,7 @@ class RouterShellDB:
             query = "INSERT INTO DHCPOptions (DhcpOption, DhcpValue, DHCPSubnetPools_FK, DHCPSubnetReservations_FK) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_option, option_value, subnet_exist_result.row_id, self.FK_NOT_FOUND))
-            self.conn.commit()
+            self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted DHCP option '{dhcp_option}' with value '{option_value}' into subnet '{inet_subnet_cidr}' successfully.")
         
@@ -1214,7 +1265,7 @@ class RouterShellDB:
             query = "INSERT INTO DHCPOptions (DhcpOption, DhcpValue, DHCPSubnetPools_FK, DHCPSubnetReservations_FK) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_option, option_value, self.FK_NOT_FOUND, reservation_exist_result.row_id))
-            self.conn.commit()
+            self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted DHCP option '{dhcp_option}' with value '{option_value}' for reservation '{hw_address}' in subnet '{inet_subnet_cidr}' successfully.")
         
@@ -1284,7 +1335,7 @@ class RouterShellDB:
             query = "UPDATE DHCPServer SET Interface_FK = ? WHERE DhcpPoolname = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (interface_exist_result.row_id, dhcp_pool_name))
-            self.conn.commit()
+            self.connection.commit()
             
             # Check if any rows were updated
             if cursor.rowcount > 0:
@@ -1328,7 +1379,7 @@ class RouterShellDB:
             query = "DELETE FROM DHCPSubnetPools WHERE ID = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (range_exist_result.row_id,))
-            self.conn.commit()
+            self.connection.commit()
 
             # Check if any rows were deleted
             if cursor.rowcount > 0:
@@ -1364,7 +1415,7 @@ class RouterShellDB:
             query = "DELETE FROM DHCPServer WHERE DhcpPoolname = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
-            self.conn.commit()
+            self.connection.commit()
 
             # Check if any rows were deleted
             if cursor.rowcount > 0:
@@ -1385,7 +1436,7 @@ class RouterShellDB:
             query = "DELETE FROM DHCPOptions WHERE DhcpOption = ? AND DhcpValue = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_option, option_value))
-            self.conn.commit()
+            self.connection.commit()
 
             if cursor.rowcount > 0:
                 return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet reservation option successfully.")
@@ -1458,7 +1509,7 @@ class RouterShellDB:
             query = "DELETE FROM DHCPOptions WHERE DHCPSubnetPools_FK IN (SELECT ID FROM DHCPSubnetPools WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE InetSubnet = ?) AND InetAddressStart IS NULL) AND DhcpOption = ? AND DhcpValue = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (inet_subnet_cidr, dhcp_option, option_value))
-            self.conn.commit()
+            self.connection.commit()
 
             # Check if any rows were deleted
             if cursor.rowcount > 0:

@@ -40,6 +40,18 @@ class DHCPServerDatabase:
         """
         return RSDB().dhcp_pool_subnet_exist(inet_subnet_cidr).status
 
+    def add_dhcp_pool_name_db(self, dhcp_pool_name: str) -> bool:
+        """
+        Add a DHCP pool name to the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to add.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        return RSDB().insert_dhcp_pool_name(dhcp_pool_name).status
+
     def add_dhcp_pool_subnet_db(self, dhcp_pool_name: str, inet_subnet_cidr: str) -> bool:
         """
         Add a DHCP pool subnet to the database.

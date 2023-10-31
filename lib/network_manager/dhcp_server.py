@@ -45,23 +45,44 @@ class DHCPServer(NetworkManager):
             bool: True if the subnet exists, False otherwise.
         """
         return DSD().dhcp_pool_subnet_exist_db(dhcp_pool_subnet_cidr)
-            
-    def add_dhcp_pool_subnet(self, dhcp_pool_name:str, dhcp_pool_subnet_cidr: str) -> bool:
+    
+    def add_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
         """
-        Add a DHCP subnet to the DHCP server.
+        Add a DHCP pool name to the DHCP server if it does not already exist.
 
         Args:
+            dhcp_pool_name (str): The name of the DHCP pool to add.
+
+        Returns:
+            bool: STATUS_OK if the pool name was added successfully or already exists, STATUS_NOK otherwise.
+        """
+        if self.dhcp_pool_name_exists(dhcp_pool_name):
+            self.log.debug(f"DHCP pool-name: {dhcp_pool_name}, already exists")
+            return STATUS_OK
+
+        return DSD().add_dhcp_pool_subnet_db(dhcp_pool_name)
+      
+    def add_dhcp_pool_subnet(self, dhcp_pool_name: str, dhcp_pool_subnet_cidr: str) -> bool:
+        """
+        Add a DHCP subnet to the DHCP server for the specified DHCP pool if it does not already exist.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to add the subnet to.
             dhcp_pool_subnet_cidr (str): The subnet CIDR to add.
 
         Returns:
-            bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise
+            bool: STATUS_OK if the subnet was added successfully or already exists, STATUS_NOK otherwise.
         """
-        if not self.dhcp_pool_name_exists(dhcp_pool_name):
-            self.log.critical(f"Unable to add DHCP subnet to the DHCP server, dhcp-pool-name : {dhcp_pool_name} , does not exist")
+        if self.dhcp_pool_name_exists(dhcp_pool_name):
+            self.log.critical(f"Unable to add DHCP subnet to the DHCP server, dhcp-pool-name : {dhcp_pool_name} , already exists")
             return STATUS_NOK
-        
+
+        if DSD().add_dhcp_pool_name_db(dhcp_pool_name):
+            self.log.error(f"Unable to add DHCP pool-name: {dhcp_pool_name} before adding subnet: {dhcp_pool_subnet_cidr}")
+            return STATUS_NOK
+
         return DSD().add_dhcp_pool_subnet_db(dhcp_pool_name, dhcp_pool_subnet_cidr)
-    
+ 
     def add_dhcp_pool_subnet_inet_range(self, dhcp_pool_name:str, inet_subnet_cidr: str, inet_pool_start: str, inet_pool_end: str, inet_pool_subnet_cidr: str) -> bool:
         """
         Add an IP address range to a DHCP subnet within a DHCP pool.
@@ -143,13 +164,9 @@ class DhcpPoolFactory():
         
         if not self.dhcp_srv_obj.is_valid_inet_subnet(dhcp_pool_inet_subnet_cidr):
             raise ValueError(f"Invalid subnet/CIDR: {dhcp_pool_inet_subnet_cidr}")
-        
-        if self.dhcp_srv_obj.add_dhcp_pool_name(self.dhcp_pool_name):
-            self.log.error(f"Unable to add DHCP-Pool-name: {self.dhcp_pool_name}")
-            return
-        
-        if self.dhcp_srv_obj.add_dhcp_pool_subnet(dhcp_pool_inet_subnet_cidr):
-            self.log.error(f"Unable to add DHCP-Pool-subnet: {dhcp_pool_inet_subnet_cidr}")
+                
+        if self.dhcp_srv_obj.add_dhcp_pool_subnet(self.dhcp_pool_name, dhcp_pool_inet_subnet_cidr):
+            self.log.error(f"Unable to add DHCP-Pool-subnet: {self.dhcp_pool_name} -> {dhcp_pool_inet_subnet_cidr}")
             return
         
         self.factory_status = STATUS_OK
