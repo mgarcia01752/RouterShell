@@ -40,6 +40,19 @@ class DHCPServerDatabase:
         """
         return RSDB().dhcp_pool_subnet_exist(inet_subnet_cidr).status
 
+    def get_dhcp_pool_subnet_name_db(self, dhcp_pool_name: str) -> str:
+        """
+        Retrieve the DHCP pool subnet from the RouterShell database using the provided DHCP pool name.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            str: The DHCP pool subnet information retrieved from the RouterShell database.
+
+        """        
+        RSDB().get_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name).result
+        
     def add_dhcp_pool_name_db(self, dhcp_pool_name: str) -> bool:
         """
         Add a DHCP pool name to the database.
@@ -78,7 +91,10 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return self.insert_dhcp_subnet_inet_address_range(inet_subnet_cidr, inet_address_start, inet_address_end, inet_address_subnet_cidr).status
+        return RSDB().insert_dhcp_subnet_inet_address_range(inet_subnet_cidr, 
+                                                          inet_address_start, 
+                                                          inet_address_end, 
+                                                          inet_address_subnet_cidr).status
 
     def add_dhcp_subnet_reservation_db(self, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> bool:
         """

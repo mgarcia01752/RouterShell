@@ -40,6 +40,8 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, f'{self.PROMPT_CMD_ALIAS}{prompt_ext}')
         self.prompt = self.set_prompt()
+        
+        self.dhcp_pool_factory = DhcpPoolFactory(dhcp_pool_name)
                 
             
     def isGlobalMode(self) -> bool:
@@ -75,7 +77,7 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         inet_subnet_cidr = args.inet_subnet_cidr
         self.log.debug(f"Configuring subnet with INET Subnet: {inet_subnet_cidr}")
-        self.dhcp_pool_factory = DhcpPoolFactory(self.dhcp_pool_name, inet_subnet_cidr)
+        self.dhcp_pool_factory.add_pool_subnet(inet_subnet_cidr)
         
     def do_pool(self, args: str):
         '''

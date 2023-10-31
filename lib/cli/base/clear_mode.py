@@ -52,13 +52,13 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             description="Clear entries on the network device.",
             epilog="Supported subcommands:\n"
                     "   arp [interface_name]           Clear ARP cache for a specific interface.\n"
-                    "   router-db                        Clear RouterShell DB cache.\n"
+                    "   router-db                      Clear RouterShell DB cache.\n"
         )
 
         # Create a subparser for the 'arp' subcommand.
         subparsers = parser.add_subparsers(dest="subcommand", help="Subcommands")
         arp_parser = subparsers.add_parser("arp", help="Clear ARP cache for a specific interface")
-        router_db_parser = subparsers.add_parser("router-db", help="Clear RouterShell DB cache")
+        router_db_parser = subparsers.add_parser("router-db", help="Clear RouterShell Database")
         arp_parser.add_argument("interface", nargs='?', help="Name of the interface")
 
         try:

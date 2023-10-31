@@ -316,6 +316,32 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return False
 
+    def is_ip_range_within_subnet(self, subnet_cidr: str, ip_range_start: str, ip_range_end: str, ip_range_subnet: str) -> bool:
+        """
+        Check if an IP range is within a given subnet.
+
+        Args:
+            subnet_cidr (str): The subnet in CIDR notation (e.g., "192.168.1.0/24" or "2001:db8::/64").
+            ip_range_start (str): The start IP address of the range.
+            ip_range_end (str): The end IP address of the range.
+            ip_range_subnet (str): The subnet mask for the IP range.
+
+        Returns:
+            bool: True if the IP range is within the subnet, False otherwise.
+        """
+        
+        try:
+            network = ipaddress.ip_network(subnet_cidr, strict=False)
+            ip_start = ipaddress.ip_address(ip_range_start)
+            ip_end = ipaddress.ip_address(ip_range_end)
+            subnet_mask = ipaddress.ip_network(ip_range_subnet, strict=False).netmask
+
+            return network.network_address <= ip_start and network.broadcast_address >= ip_end and subnet_mask == network.netmask
+
+        except (ipaddress.AddressValueError, ValueError):
+            return False
+
+
     def convert_ip_mask_to_cidr(ip_address:str, prefix_length:IndentationError) -> str:
         """
         Convert an IP address and prefix length into a formatted IP address with CIDR notation.

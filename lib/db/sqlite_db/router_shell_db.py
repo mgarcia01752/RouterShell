@@ -1016,6 +1016,9 @@ class RouterShellDB(metaclass=Singleton):
         - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
         """
         try:
+            if not inet_subnet_cidr:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Subnet '({None})' not defined")
+            
             # Check if the subnet already exists
             subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
             if subnet_exist_result.status:
@@ -1052,11 +1055,17 @@ class RouterShellDB(metaclass=Singleton):
         - 'row_id' represents the unique identifier of the existing row if the subnet exists, or ROW_ID_NOT_FOUND if it doesn't.
         - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
         """
+        if not inet_subnet_cidr:
+            self.log.error(f"dhcp_pool_subnet_exist() -> inet_subnet_cidr: {inet_subnet_cidr}, not defined")
+            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"inet_subnet_cidr: {inet_subnet_cidr}, not defined")
+            
         try:
             query = "SELECT ID FROM DHCPSubnet WHERE InetSubnet = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (inet_subnet_cidr,))
             row = cursor.fetchone()
+            
+            self.log.debug(f"dhcp_pool_subnet_exist({inet_subnet_cidr}) -> row: ({0})")
             
             if row:
                 return Result(status=True, row_id=row[0], reason=f"Subnet '{inet_subnet_cidr}' exists.")
@@ -1085,25 +1094,22 @@ class RouterShellDB(metaclass=Singleton):
         - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
         """
         try:
-            # Check if the DHCP subnet exists
+            
             subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
             if not subnet_exist_result.status:
+                self.log.debug(f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: {subnet_exist_result.reason}")                
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
 
-            # Check if the address range already exists
-            address_range_exist_result = self.dhcp_subnet_address_range_exist(inet_address_start, inet_address_end)
-            if address_range_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=address_range_exist_result.reason)
-
-            # The subnet exists, and the address range does not exist, proceed to insert the address range
             query = "INSERT INTO DHCPSubnetPools (DHCPSubnet_FK, InetAddressStart, InetAddressEnd, InetSubnet) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr))
             self.connection.commit()
+            
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted address range '{inet_address_start}-{inet_address_end}' into subnet '{inet_subnet_cidr}' successfully.")
         
         except sqlite3.Error as e:
+            self.log.debug(f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}") 
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
     def insert_dhcp_subnet_reservation(self, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> Result:
@@ -1531,6 +1537,35 @@ class RouterShellDB(metaclass=Singleton):
         
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option. Error: {str(e)}")
+
+    def get_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: str):
+        """
+        Retrieve the DHCP pool subnet information associated with a DHCP pool name from the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            Result: A Result object containing the subnet information if found, or an error message if not found.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            query = "SELECT ID, InetSubnet FROM DHCPSubnet " \
+                    "WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?)"
+
+            cursor.execute(query, (dhcp_pool_name,))
+            sql_result = cursor.fetchone()
+
+            if sql_result:
+                subnet_id, inet_subnet = sql_result
+
+                return Result(status=STATUS_OK, row_id=subnet_id, data=inet_subnet)
+            else:
+                return Result(status=STATUS_NOK, reason="Subnet information not found for DHCP pool name: " + dhcp_pool_name)
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP subnet information. Error: {str(e)}")
 
     '''
                         DHCP-CLIENT DATABASE
