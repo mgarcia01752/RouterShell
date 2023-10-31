@@ -100,8 +100,8 @@ dhcp global
     end    
 
 [no] dhcp <dhcp-pool-name>
-        subnet <ip-subnet>/<mask>
-        pool <ip-address-start> <ip-address-start> <ip-mask>
+        subnet <ip-subnet>/<cidr>
+        pool <ip-address-start> <ip-address-start> <cidr>
         reservations [hw-address | duid] <mac-address> ip-address <ip-address> [hostname <string>]
         [option <option-name> <[int | string | ip-address]>]
         commit

@@ -1,10 +1,18 @@
 import copy
+from enum import Enum
 import ipaddress
 import json
 import logging
 from typing import Dict, Union
-from lib.common.constants import STATUS_NOK, STATUS_OK
 
+
+from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
+
+class DhcpVersion(Enum):
+    """An enumeration of DHCP versions: DHCPv4 and DHCPv6."""
+    DHCP_V4 = 'DHCPv4'
+    DHCP_V6 = 'DHCPv6'
 
 class KeaDHCPDBFactory():
     def __init__(self, dhcp_pool_name: str, ip_subnet_mask: str, negate=False):
@@ -86,7 +94,7 @@ class KeaDHCPDB():
         """
         return any(pool["name"] == pool_name for pool in self.dhcp_pool_db.get("DhcpPoolDB", {}).get("pool_names", []))
 
-    def add_pool_name(self, id: int, pool_name: str, dhcp_version: DhcpVersion) -> bool:
+    def add_pool_name(self, id: int, pool_name: str, dhcp_version: DHCPVersion) -> bool:
         """
         Add a pool name to the database.
 

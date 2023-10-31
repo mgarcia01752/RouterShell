@@ -14,5 +14,8 @@ class DHCPServerDatabase:
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()  
+            cls.rsdb = RSDB()
+            
+     
+
             

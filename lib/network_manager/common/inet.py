@@ -81,7 +81,6 @@ class InetServiceLayer(MacServiceLayer):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
  
-
     def is_valid_ipv6(self, inet6_address: str, include_prefix=True) -> bool:
         """
         Check if an IPv6 address is valid.
@@ -296,7 +295,7 @@ class InetServiceLayer(MacServiceLayer):
         self.log.debug(f"Removed IP address {ip_address} from interface {interface}")
         return STATUS_OK
 
-    def is_ip_in_range(ip_and_subnet: str, ip_address_start: str, ip_address_end: str, subnet_of_ip_start_ip_end: str) -> bool:
+    def is_ip_in_range(self, ip_and_subnet: str, ip_address_start: str, ip_address_end: str, subnet_of_ip_start_ip_end: str) -> bool:
         """
         Check if an IP address is within a specified range considering a given subnet.
 
@@ -345,3 +344,32 @@ class InetServiceLayer(MacServiceLayer):
             return f"{formatted_ip}/{formatted_prefix}"
         except (ipaddress.AddressValueError, ValueError):
             return None
+
+    def is_valid_inet_subnet(self, inet_subnet_cidr: str) -> bool:
+        """
+        Check if the given string is a valid IPv4 or IPv6 subnet in CIDR notation.
+
+        Args:
+            inet_subnet_cidr (str): The CIDR notation to check for validity.
+
+        Returns:
+            bool: True if the CIDR notation is a valid IPv4 or IPv6 subnet, False otherwise.
+
+        Note:
+        This function uses the `ipaddress` module to verify the validity of the CIDR notation.
+        If the notation is valid and corresponds to either an IPv4 or IPv6 network, it returns True.
+        If the notation is invalid or not recognized as IPv4 or IPv6, it returns False.
+        """
+        try:
+            network = ipaddress.ip_network(inet_subnet_cidr, strict=False)
+
+            if network.version == 4 or network.version == 6:
+                return True
+            else:
+                return False
+            
+        except (ipaddress.AddressValueError, ValueError):
+            
+            return False
+
+

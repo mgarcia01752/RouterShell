@@ -110,6 +110,8 @@ dhcpv4_option_lookup = {
     213: {"Name": "v4-access-domain", "Type": "fqdn", "Array": False, "Returned if not requested": False}
 }
 
+
+'''https://kea.readthedocs.io/en/latest/arm/dhcp6-srv.html#id2'''
 dhcpv6_option_lookup = {
     7: {"Name": "preference", "Type": "uint8", "Array": False},
     12: {"Name": "unicast", "Type": "ipv6-address", "Array": False},

@@ -875,599 +875,485 @@ class RouterShellDB:
             # Handle the database error, possibly log it or raise a custom exception
             raise e
 
+    '''
+                        DHCP DATABASE
+    '''
+
+    def get_dhcp_pool_name_id(self, dhcp_poolname: str) -> int:
+        """
+        Retrieve the ID of a DHCP configuration by its pool name.
+
+        Args:
+            dhcp_poolname (str): The name of the DHCP pool.
+
+        Returns:
+            int: The ID of the DHCP configuration if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT id FROM DHCP WHERE DhcpPoolname = ?", (dhcp_poolname,))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'DHCP' ID: %s", e)
+        return None
+    
+    def insert_dhcp_server_pool_name(self, dhcp_pool_name:str) -> Result:
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO DHCPools (DhcpPoolname) VALUES (?)",
+                (dhcp_pool_name,)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'DHCPools' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'DHCP': %s", e)        
+    
+    def _insert_dhcp_server_pool_name(self, id: int, interface_fk: int, dhcp_poolname: str):
+        """
+        Insert data into the 'DHCP' table.
+
+        Args:
+            id (int): The unique ID of the DHCP configuration.
+            interface_fk (int): The foreign key referencing an interface.
+            dhcp_poolname (str): The name of the DHCP pool.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO DHCP (id, Interface_FK, DhcpPoolname) VALUES (?, ?, ?)",
+                (id, interface_fk, dhcp_poolname)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'DHCP' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'DHCP': %s", e)
+
+    def get_global_options(self, dhcp_fk: int) -> list:
+        """
+        Retrieve the global options associated with a DHCP configuration by its foreign key.
+
+        Args:
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+
+        Returns:
+            list: A list of global options associated with the DHCP configuration if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        options = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT DhcpOptions, DhcpValue FROM OptionsGlobal WHERE DHCP_FK = ?", (dhcp_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                options = [{"DhcpOptions": row[0], "DhcpValue": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving global options: %s", e)
+        return options
 
     '''
-                        DHCP-SERVER DATABASE
+                    DHCP-SUBNET DATABASE
+    '''
+    def get_subnet_id(self, ip_subnet: str) -> int:
+        """
+        Retrieve the ID of a subnet by its IP subnet.
+
+        Args:
+            ip_subnet (str): The IP subnet.
+
+        Returns:
+            int: The ID of the subnet if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT id FROM Subnet WHERE IpSubnet = ?", (ip_subnet,))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'Subnet' ID: %s", e)
+        return None
+
+    def insert_subnet(self, id: int, dhcp_fk: int, ip_subnet: str):
+        """
+        Insert data into the 'Subnet' table.
+
+        Args:
+            id (int): The unique ID of the subnet.
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+            ip_subnet (str): The IP subnet.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO Subnet (id, DHCP_FK, IpSubnet) VALUES (?, ?, ?)",
+                (id, dhcp_fk, ip_subnet)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'Subnet' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'Subnet': %s", e)
+
+    '''
+                    DHCP-POOLS DATABASE
+    '''
+    
+    def insert_pools(self, id: int, subnet_fk: int, ip_address_start: str, ip_address_end: str, ip_subnet: str):
+        """
+        Insert data into the 'Pools' table.
+
+        Args:
+            id (int): The unique ID of the pool.
+            subnet_fk (int): The foreign key referencing a subnet.
+            ip_address_start (str): The start IP address of the pool.
+            ip_address_end (str): The end IP address of the pool.
+            ip_subnet (str): The IP subnet of the pool.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO Pools (id, Subnet_FK, IpAddressStart, IpAddressEnd, IpSubnet) VALUES (?, ?, ?, ?, ?)",
+                (id, subnet_fk, ip_address_start, ip_address_end, ip_subnet)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'Pools' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'Pools': %s", e)
+
+    def insert_options_pools(self, id: int, pools_fk: int, dhcp_options: str, dhcp_value: str):
+        """
+        Insert data into the 'OptionsPools' table.
+
+        Args:
+            id (int): The unique ID of the pool options.
+            pools_fk (int): The foreign key referencing a pool.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO OptionsPools (id, Pools_FK, DhcpOptions, DhcpValue) VALUES (?, ?, ?, ?)",
+                (id, pools_fk, dhcp_options, dhcp_value)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'OptionsPools' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'OptionsPools': %s", e)
+
+    def insert_options_global(self, id: int, dhcp_fk: int, dhcp_options: str, dhcp_value: str):
+        """
+        Insert data into the 'OptionsGlobal' table.
+
+        Args:
+            id (int): The unique ID of the global options.
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO OptionsGlobal (id, DHCP_FK, DhcpOptions, DhcpValue) VALUES (?, ?, ?, ?)",
+                (id, dhcp_fk, dhcp_options, dhcp_value)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'OptionsGlobal' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'OptionsGlobal': %s", e)
+
+    def get_pools_id(self, ip_address_start: str, ip_address_end: str) -> int:
+        """
+        Retrieve the ID of a pool by its start and end IP addresses.
+
+        Args:
+            ip_address_start (str): The start IP address of the pool.
+            ip_address_end (str): The end IP address of the pool.
+
+        Returns:
+            int: The ID of the pool if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT id FROM Pools WHERE IpAddressStart = ? AND IpAddressEnd = ?", (ip_address_start, ip_address_end))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'Pools' ID: %s", e)
+        return None
+
+    def get_options_pools_id(self, dhcp_options: str, dhcp_value: str) -> int:
+        """
+        Retrieve the ID of pool options by DHCP options and value.
+
+        Args:
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Returns:
+            int: The ID of the pool options if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT id FROM OptionsPools WHERE DhcpOptions = ? AND DhcpValue = ?", (dhcp_options, dhcp_value))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'OptionsPools' ID: %s", e)
+        return None
+
+    def get_options_global_id(self, dhcp_options: str, dhcp_value: str) -> int:
+        """
+        Retrieve the ID of global options by DHCP options and value.
+
+        Args:
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Returns:
+            int: The ID of the global options if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT id FROM OptionsGlobal WHERE DhcpOptions = ? AND DhcpValue = ?", (dhcp_options, dhcp_value))
+            row = cursor.fetchone()
+            if row:
+                return row[0]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving 'OptionsGlobal' ID: %s", e)
+        return None
+
+    def get_pool_options(self, pools_fk: int) -> list:
+        """
+        Retrieve the options associated with a pool by its foreign key.
+
+        Args:
+            pools_fk (int): The foreign key referencing a pool.
+
+        Returns:
+            list: A list of options associated with the pool if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        options = []
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT DhcpOptions, DhcpValue FROM OptionsPools WHERE Pools_FK = ?", (pools_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                options = [{"DhcpOptions": row[0], "DhcpValue": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            self.log.error("Error retrieving pool options: %s", e)
+        return options
+
+    '''
+                    DHCP-RESERVATIONS DATABASE
     '''
 
-    def insert_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
+    def get_options_reservations(self, pool_reservations_fk: int) -> list:
         """
-        Inserts a DHCP pool name into the DHCPServer table.
+        Retrieve the options associated with a pool reservations entry by its foreign key.
 
         Args:
-            dhcp_pool_name (str): The name of the DHCP pool to insert.
+            pool_reservations_fk (int): The foreign key referencing a pool reservations entry.
 
         Returns:
-            Result: A Result object representing the outcome of the operation.
-            
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or 0 if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
+            list: A list of options associated with the pool reservations entry if found, or an empty list if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
         """
+        options = []
         try:
-            query = "INSERT INTO DHCPServer (DhcpPoolname) VALUES (?)"
             cursor = self.connection.cursor()
-            
-            self.cursor.execute(query, (dhcp_pool_name,))
-            self.conn.commit()
-            row_id = self.cursor.lastrowid
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted '{dhcp_pool_name}' pool successfully.")
-        
+            cursor.execute("SELECT DhcpOptions, DhcpValue FROM OptionsReservations WHERE PoolReservations_FK = ?", (pool_reservations_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                options = [{"DhcpOptions": row[0], "DhcpValue": row[1]} for row in rows]
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert '{dhcp_pool_name}' pool. Error: {str(e)}")
+            self.log.error("Error retrieving pool reservations options: %s", e)
+        return options
 
-    def dhcp_pool_name_exist(self, dhcp_pool_name: str) -> Result:
+    def insert_reservations(self, id: int, subnet_fk: int, mac_address: str, ip_address: str):
         """
-        Checks if a DHCP pool name exists in the DHCPServer table.
+        Insert data into the 'Reservations' table.
 
         Args:
-            dhcp_pool_name (str): The DHCP pool name to check.
+            id (int): The unique ID of the reservation.
+            subnet_fk (int): The foreign key referencing a subnet.
+            mac_address (str): The MAC address of the reservation.
+            ip_address (str): The IP address of the reservation.
 
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-            
-        Note:
-        - 'status' attribute in the returned Result object will be True if the pool name exists, and False if it doesn't.
-        - 'row_id' represents the unique identifier of the existing row if the pool name exists, or ROW_ID_NOT_FOUND if it doesn't.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
         """
         try:
-            query = "SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?"
             cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_pool_name,))
+            cursor.execute(
+                "INSERT INTO Reservations (id, Subnet_FK, MacAddress, IPAddress) VALUES (?, ?, ?, ?)",
+                (id, subnet_fk, mac_address, ip_address)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'Reservations' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'Reservations': %s", e)
+
+    def insert_options_reservations(self, id: int, pool_reservations_fk: int, dhcp_options: str, dhcp_value: str):
+        """
+        Insert data into the 'OptionsReservations' table.
+
+        Args:
+            id (int): The unique ID of the reservation options.
+            pool_reservations_fk (int): The foreign key referencing a pool reservations entry.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO OptionsReservations (id, PoolReservations_FK, DhcpOptions, DhcpValue) VALUES (?, ?, ?, ?)",
+                (id, pool_reservations_fk, dhcp_options, dhcp_value)
+            )
+            self.connection.commit()
+            self.log.debug("Data inserted into the 'OptionsReservations' table successfully.")
+        except sqlite3.Error as e:
+            self.log.error("Error inserting data into 'OptionsReservations': %s", e)
+
+    def get_reservations_id(self, mac_address: str, ip_address: str) -> int:
+        """
+        Retrieve the ID of a reservation by MAC address and IP address.
+
+        Args:
+            mac_address (str): The MAC address of the reservation.
+            ip_address (str): The IP address of the reservation.
+
+        Returns:
+            int: The ID of the reservation if found, or None if not found.
+
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT id FROM Reservations WHERE MacAddress = ? AND IPAddress = ?", (mac_address, ip_address))
             row = cursor.fetchone()
-            
             if row:
-                return Result(status=True, row_id=row[0], reason=f"Pool name '{dhcp_pool_name}' exists.")
-            else:
-                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Pool name '{dhcp_pool_name}' does not exist.")
-        
+                return row[0]
         except sqlite3.Error as e:
-            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking pool name existence: {str(e)}")
+            self.log.error("Error retrieving 'Reservations' ID: %s", e)
+        return None
 
-    def insert_dhcp_pool_subnet(self, dhcp_pool_name: str, inet_subnet_cidr: str) -> Result:
+    def get_options_reservations_id(self, dhcp_options: str, dhcp_value: str) -> int:
         """
-        Inserts a DHCP subnet associated with a DHCP pool name into the DHCPSubnet table if it does not exist.
+        Retrieve the ID of reservation options by DHCP options and value.
 
         Args:
-            dhcp_pool_name (str): The name of the DHCP pool to associate the subnet with.
-            inet_subnet_cidr (str): The subnet in CIDR notation to insert.
+            dhcp_options (str): The DHCP options.
+            dhcp_value (str): The value of the DHCP options.
 
         Returns:
-            Result: A Result object representing the outcome of the operation.
+            int: The ID of the reservation options if found, or None if not found.
 
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
         """
         try:
-            # Check if the subnet already exists
-            subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
-            if subnet_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Subnet '{inet_subnet_cidr}' already exists.")
-            
-            # The subnet does not exist, proceed to check the DHCP pool name
-            pool_exist_result = self.dhcp_pool_name_exist(dhcp_pool_name)
-            if not pool_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=pool_exist_result.reason)
-
-            # The pool name exists, proceed to insert the DHCP subnet
-            query = "INSERT INTO DHCPSubnet (DHCPServer_FK, InetSubnet) VALUES (?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (pool_exist_result.row_id, inet_subnet_cidr))
-            self.conn.commit()
-            row_id = cursor.lastrowid
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted subnet '{inet_subnet_cidr}' into '{dhcp_pool_name}' pool successfully.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert subnet into '{dhcp_pool_name}' pool. Error: {str(e)}")
-
-    def dhcp_pool_subnet_exist(self, inet_subnet_cidr: str) -> Result:
-        """
-        Checks if a DHCP subnet with a specific CIDR notation exists in the DHCPSubnet table.
-
-        Args:
-            inet_subnet_cidr (str): The CIDR notation of the DHCP subnet to check.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be True if the subnet exists, and False if it doesn't.
-        - 'row_id' represents the unique identifier of the existing row if the subnet exists, or ROW_ID_NOT_FOUND if it doesn't.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
-        """
-        try:
-            query = "SELECT ID FROM DHCPSubnet WHERE InetSubnet = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (inet_subnet_cidr,))
+            cursor.execute("SELECT id FROM OptionsReservations WHERE DhcpOptions = ? AND DhcpValue = ?", (dhcp_options, dhcp_value))
             row = cursor.fetchone()
-            
             if row:
-                return Result(status=True, row_id=row[0], reason=f"Subnet '{inet_subnet_cidr}' exists.")
-            else:
-                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Subnet '{inet_subnet_cidr}' does not exist.")
-        
+                return row[0]
         except sqlite3.Error as e:
-            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking subnet existence: {str(e)}")
+            self.log.error("Error retrieving 'OptionsReservations' ID: %s", e)
+        return None
 
-    def insert_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> Result:
+    def get_dhcp_subnets(self, dhcp_fk: int) -> list:
         """
-        Inserts an address range associated with a DHCP subnet specified by its CIDR notation.
+        Retrieve the subnets associated with a DHCP configuration by its foreign key.
 
         Args:
-            inet_subnet_cidr (str): The CIDR notation of the DHCP subnet to associate the address range with.
-            inet_address_start (str): The starting IP address of the range.
-            inet_address_end (str): The ending IP address of the range.
-            inet_address_subnet_cidr (str): The CIDR notation of the subnet for the address range.
+            dhcp_fk (int): The foreign key referencing DHCP configuration.
 
         Returns:
-            Result: A Result object representing the outcome of the operation.
+            list: A list of subnets associated with the DHCP configuration if found, or an empty list if not found.
 
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
         """
+        subnets = []
         try:
-            # Check if the DHCP subnet exists
-            subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
-            if not subnet_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
-
-            # Check if the address range already exists
-            address_range_exist_result = self.dhcp_subnet_address_range_exist(inet_address_start, inet_address_end)
-            if address_range_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=address_range_exist_result.reason)
-
-            # The subnet exists, and the address range does not exist, proceed to insert the address range
-            query = "INSERT INTO DHCPSubnetPools (DHCPSubnet_FK, InetAddressStart, InetAddressEnd, InetSubnet) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr))
-            self.conn.commit()
-            row_id = cursor.lastrowid
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted address range '{inet_address_start}-{inet_address_end}' into subnet '{inet_subnet_cidr}' successfully.")
-        
+            cursor.execute("SELECT IpSubnet FROM Subnet WHERE DHCP_FK = ?", (dhcp_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                subnets = [row[0] for row in rows]
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
+            self.log.error("Error retrieving DHCP subnets: %s", e)
+        return subnets
 
-    def insert_dhcp_subnet_reservation(self, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> Result:
+    def get_pool_reservations(self, subnet_fk: int) -> list:
         """
-        Inserts a DHCP reservation for a specific subnet.
+        Retrieve the pool reservations associated with a subnet by its foreign key.
 
         Args:
-            inet_subnet_cidr (str): The CIDR notation of the DHCP subnet for the reservation.
-            hw_address (str): The hardware address (MAC address) for the reservation.
-            inet_address (str): The reserved IP address.
+            subnet_fk (int): The foreign key referencing a subnet.
 
         Returns:
-            Result: A Result object representing the outcome of the operation.
+            list: A list of pool reservations associated with the subnet if found, or an empty list if not found.
 
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
+        Raises:
+            sqlite3.Error: If there's an error during the database operation.
         """
+        reservations = []
         try:
-            # Check if the DHCP subnet exists
-            subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
-            if not subnet_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
-
-            # Check if the reservation already exists
-            reservation_exist_result = self.dhcp_subnet_reservation_exist(hw_address, inet_address)
-            if reservation_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=reservation_exist_result.reason)
-
-            # The subnet exists, and the reservation does not exist, proceed to insert the reservation
-            query = "INSERT INTO DHCPSubnetReservations (DHCPSubnet_FK, MacAddress, InetAddress) VALUES (?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (subnet_exist_result.row_id, hw_address, inet_address))
-            self.conn.commit()
-            row_id = cursor.lastrowid
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted reservation for '{hw_address}' with IP '{inet_address}' into subnet '{inet_subnet_cidr}' successfully.")
-        
+            cursor.execute("SELECT MacAddress, IPAddress FROM Reservations WHERE Subnet_FK = ?", (subnet_fk,))
+            rows = cursor.fetchall()
+            if rows:
+                reservations = [{"MacAddress": row[0], "IPAddress": row[1]} for row in rows]
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert reservation into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
-
-    def dhcp_subnet_reservation_exist(self, hw_address: str, inet_address: str) -> Result:
-        """
-        Checks if a DHCP reservation with a specific MAC address and IP address exists in the DHCPSubnetReservations table.
-
-        Args:
-            hw_address (str): The MAC address of the reservation.
-            inet_address (str): The reserved IP address.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be True if the reservation exists, and False if it doesn't.
-        - 'row_id' represents the unique identifier of the existing row if the reservation exists, or ROW_ID_NOT_FOUND if it doesn't.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
-        """
-        try:
-            query = "SELECT ID FROM DHCPSubnetReservations WHERE MacAddress = ? AND InetAddress = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (hw_address, inet_address))
-            row = cursor.fetchone()
-            
-            if row:
-                return Result(status=True, row_id=row[0], reason=f"Reservation for MAC '{hw_address}' with IP '{inet_address}' exists.")
-            else:
-                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Reservation for MAC '{hw_address}' with IP '{inet_address}' does not exist.")
-        
-        except sqlite3.Error as e:
-            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking reservation existence: {str(e)}")
-
-    def insert_dhcp_subnet_option(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> Result:
-        """
-        Inserts DHCP options associated with a specific DHCP subnet specified by its CIDR notation.
-
-        Args:
-            inet_subnet_cidr (str): The CIDR notation of the DHCP subnet for the options.
-            dhcp_option (str): The DHCP option name.
-            option_value (str): The value of the DHCP option.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
-        """
-        try:
-            # Check if the DHCP subnet exists
-            subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
-            if not subnet_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
-
-            # Check if the option already exists
-            option_exist_result = self.dhcp_subnet_option_exist(subnet_exist_result.row_id, dhcp_option, option_value)
-            if option_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
-
-            # The subnet exists, and the option does not exist, proceed to insert the option
-            query = "INSERT INTO DHCPOptions (DhcpOption, DhcpValue, DHCPSubnetPools_FK, DHCPSubnetReservations_FK) VALUES (?, ?, ?, ?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_option, option_value, subnet_exist_result.row_id, self.FK_NOT_FOUND))
-            self.conn.commit()
-            row_id = cursor.lastrowid
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted DHCP option '{dhcp_option}' with value '{option_value}' into subnet '{inet_subnet_cidr}' successfully.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert DHCP option into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
-
-    def dhcp_subnet_option_exist(self, subnet_id: int, dhcp_option: str, option_value: str) -> Result:
-        """
-        Checks if a DHCP option with a specific name and value exists for a specific DHCP subnet.
-
-        Args:
-            subnet_id (int): The unique identifier of the DHCP subnet.
-            dhcp_option (str): The DHCP option name.
-            option_value (str): The value of the DHCP option.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be True if the option exists, and False if it doesn't.
-        - 'row_id' represents the unique identifier of the existing row if the option exists, or ROW_ID_NOT_FOUND if it doesn't.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
-        """
-        try:
-            query = "SELECT ID FROM DHCPOptions WHERE DHCPSubnetPools_FK = ? AND DhcpOption = ? AND DhcpValue = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (subnet_id, dhcp_option, option_value))
-            row = cursor.fetchone()
-            
-            if row:
-                return Result(status=True, row_id=row[0], reason=f"DHCP option '{dhcp_option}' with value '{option_value}' exists for subnet ID {subnet_id}.")
-            else:
-                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"DHCP option '{dhcp_option}' with value '{option_value}' does not exist for subnet ID {subnet_id}.")
-        except sqlite3.Error as e:
-            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking DHCP option existence: {str(e)}")
-
-    def insert_dhcp_subnet_reservation_option(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
-        """
-        Inserts DHCP options associated with a specific DHCP reservation for a specified DHCP subnet.
-
-        Args:
-            inet_subnet_cidr (str): The CIDR notation of the DHCP subnet for the reservation.
-            hw_address (str): The hardware address (MAC address) for the reservation.
-            dhcp_option (str): The DHCP option name.
-            option_value (str): The value of the DHCP option.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
-        """
-        try:
-            # Check if the DHCP reservation exists
-            reservation_exist_result = self.dhcp_subnet_reservation_exist(inet_subnet_cidr, hw_address)
-            if not reservation_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=reservation_exist_result.reason)
-
-            # Check if the option already exists
-            option_exist_result = self.dhcp_reservation_option_exist(reservation_exist_result.row_id, dhcp_option, option_value)
-            if option_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
-
-            # The reservation exists, and the option does not exist, proceed to insert the option
-            query = "INSERT INTO DHCPOptions (DhcpOption, DhcpValue, DHCPSubnetPools_FK, DHCPSubnetReservations_FK) VALUES (?, ?, ?, ?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_option, option_value, self.FK_NOT_FOUND, reservation_exist_result.row_id))
-            self.conn.commit()
-            row_id = cursor.lastrowid
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted DHCP option '{dhcp_option}' with value '{option_value}' for reservation '{hw_address}' in subnet '{inet_subnet_cidr}' successfully.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert DHCP option for reservation '{hw_address}' in subnet '{inet_subnet_cidr}'. Error: {str(e)}")
-
-    def dhcp_reservation_option_exist(self, reservation_id: int, dhcp_option: str, option_value: str) -> Result:
-        """
-        Checks if a DHCP option with a specific name and value exists for a specific DHCP reservation.
-
-        Args:
-            reservation_id (int): The unique identifier of the DHCP reservation.
-            dhcp_option (str): The DHCP option name.
-            option_value (str): The value of the DHCP option.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be True if the option exists, and False if it doesn't.
-        - 'row_id' represents the unique identifier of the existing row if the option exists, or ROW_ID_NOT_FOUND if it doesn't.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
-        """
-        try:
-            query = "SELECT ID FROM DHCPOptions WHERE DHCPSubnetReservations_FK = ? AND DhcpOption = ? AND DhcpValue = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (reservation_id, dhcp_option, option_value))
-            row = cursor.fetchone()
-            
-            if row:
-                return Result(status=True, row_id=row[0], reason=f"DHCP option '{dhcp_option}' with value '{option_value}' exists for reservation ID {reservation_id}.")
-            else:
-                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"DHCP option '{dhcp_option}' with value '{option_value}' does not exist for reservation ID {reservation_id}.")
-        
-        except sqlite3.Error as e:
-            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking DHCP option existence: {str(e)}")
-
-    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str) -> Result:
-        """
-        Updates the interface associated with a specific DHCP pool name in the DHCPServer table.
-
-        Args:
-            dhcp_pool_name (str): The name of the DHCP pool to update.
-            interface_name (str): The new interface name to associate with the DHCP pool.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful updates, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the updated row if the update is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
-        """
-        try:
-            # Check if the DHCP pool name exists
-            pool_exist_result = self.dhcp_pool_name_exist(dhcp_pool_name)
-
-            if not pool_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=pool_exist_result.reason)
-
-            # Check if the interface name exists in the Interfaces table
-            interface_exist_result = self.interface_name_exist(interface_name)
-            if not interface_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=interface_exist_result.reason)
-
-            # The DHCP pool name exists, and the interface exists, proceed to update the interface
-            query = "UPDATE DHCPServer SET Interface_FK = ? WHERE DhcpPoolname = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (interface_exist_result.row_id, dhcp_pool_name))
-            self.conn.commit()
-            
-            # Check if any rows were updated
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Updated interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'. Error: {str(e)}")
-
-    def delete_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> Result:
-        """
-        Deletes a range of IP addresses associated with a specific DHCP subnet.
-
-        Args:
-            inet_subnet_cidr (str): The CIDR notation of the DHCP subnet for the IP address range.
-            inet_address_start (str): The starting IP address of the range to delete.
-            inet_address_end (str): The ending IP address of the range to delete.
-            inet_address_subnet_cidr (str): The subnet CIDR notation to verify the range.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful deletions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the deleted row if the deletion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
-        """
-        try:
-            # Check if the DHCP subnet exists
-            subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
-            if not subnet_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
-
-            # Check if the specified IP address range exists within the subnet
-            range_exist_result = self.dhcp_subnet_range_exist(subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr)
-            if not range_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=range_exist_result.reason)
-
-            # The subnet exists, and the specified IP address range exists, proceed to delete the range
-            query = "DELETE FROM DHCPSubnetPools WHERE ID = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (range_exist_result.row_id,))
-            self.conn.commit()
-
-            # Check if any rows were deleted
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}'.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}'. Error: {str(e)}")
-
-    def delete_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
-        """
-        Deletes a DHCP pool name from the DHCPServer table.
-
-        Args:
-            dhcp_pool_name (str): The name of the DHCP pool to delete.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful deletions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the deleted row if the deletion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
-        """
-        try:
-            # Check if the DHCP pool name exists
-            pool_exist_result = self.dhcp_pool_name_exist(dhcp_pool_name)
-            if not pool_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=pool_exist_result.reason)
-
-            # The pool name exists, proceed to delete it
-            query = "DELETE FROM DHCPServer WHERE DhcpPoolname = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_pool_name,))
-            self.conn.commit()
-
-            # Check if any rows were deleted
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP pool name '{dhcp_pool_name}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP pool name '{dhcp_pool_name}'.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP pool name '{dhcp_pool_name}'. Error: {str(e)}")
-
-    def delete_dhcp_subnet_reservation_option(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
-        try:
-            
-            option_exist_result = self.dhcp_subnet_reservation_option_exist(inet_subnet_cidr, hw_address, dhcp_option, option_value)
-            if not option_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
-
-            query = "DELETE FROM DHCPOptions WHERE DhcpOption = ? AND DhcpValue = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_option, option_value))
-            self.conn.commit()
-
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet reservation option successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet reservation option.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet reservation option. Error: {str(e)}")
-
-    def dhcp_subnet_reservation_option_exist(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
-        """
-        Checks if a DHCP subnet reservation option exists in the DHCPOptions table.
-
-        Args:
-            inet_subnet_cidr (str): The subnet in CIDR notation.
-            hw_address (str): The MAC address of the reservation.
-            dhcp_option (str): The DHCP option to check.
-            option_value (str): The value of the DHCP option to check.
-
-        Returns:
-            Result: A Result object indicating the existence of the reservation option.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK if the option exists, and STATUS_NOK if it does not.
-        - 'row_id' is set to the unique identifier of the reservation option if it exists, or ROW_ID_NOT_FOUND if it does not.
-        - 'reason' in the Result object provides additional information about the existence check.
-        """
-        try:
-            query = "SELECT DHCPOptions.ID FROM DHCPOptions " \
-                    "JOIN DHCPSubnetPools ON DHCPOptions.DHCPSubnetPools_FK = DHCPSubnetPools.ID " \
-                    "JOIN DHCPSubnetReservations ON DHCPSubnetPools.DHCPSubnet_FK = DHCPSubnetReservations.DHCPSubnet_FK " \
-                    "JOIN DHCPSubnet ON DHCPSubnetReservations.DHCPSubnet_FK = DHCPSubnet.ID " \
-                    "WHERE DHCPSubnet.InetSubnet = ? AND DHCPSubnetReservations.MacAddress = ? AND DHCPOptions.DhcpOption = ? AND DHCPOptions.DhcpValue = ?"
-
-            cursor = self.connection.cursor()
-            cursor.execute(query, (inet_subnet_cidr, hw_address, dhcp_option, option_value))
-            row = cursor.fetchone()
-
-            if row:
-                return Result(status=STATUS_OK, row_id=row[0], reason="DHCP subnet reservation option exists.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="DHCP subnet reservation option does not exist.")
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error checking DHCP subnet reservation option existence: {str(e)}")
-
-    def delete_dhcp_subnet_option(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> Result:
-        """
-        Deletes a DHCP subnet option from the DHCPOptions table.
-
-        Args:
-            inet_subnet_cidr (str): The subnet in CIDR notation.
-            dhcp_option (str): The DHCP option to delete.
-            option_value (str): The value of the DHCP option to delete.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-
-        Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful deletions, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the deleted row if the deletion is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
-        """
-        try:
-            # Check if the DHCP subnet option exists
-            option_exist_result = self.dhcp_subnet_option_exist(inet_subnet_cidr, dhcp_option, option_value)
-            if not option_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
-
-            # The subnet option exists, proceed to delete it
-            query = "DELETE FROM DHCPOptions WHERE DHCPSubnetPools_FK IN (SELECT ID FROM DHCPSubnetPools WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE InetSubnet = ?) AND InetAddressStart IS NULL) AND DhcpOption = ? AND DhcpValue = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (inet_subnet_cidr, dhcp_option, option_value))
-            self.conn.commit()
-
-            # Check if any rows were deleted
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet option successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option.")
-        
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option. Error: {str(e)}")
+            self.log.error("Error retrieving pool reservations: %s", e)
+        return reservations
 
     '''
                         DHCP-CLIENT DATABASE

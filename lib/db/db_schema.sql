@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     Speed VARCHAR(5) DEFAULT 'auto',    -- Speed [10 | 100 | 1000 | 10000 | auto]
     ProxyArp BOOLEAN,
     DropGratuitousArp BOOLEAN,
-    CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS InterfaceStaticArp;
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
     IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)              
     MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
     Encapsulation VARCHAR(10),          -- arpa | TBD
-    CONSTRAINT FK_InterfaceStaticArp_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_InterfaceStaticArp_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS InterfaceIpAddress;
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
     Interface_FK INT DEFAULT -1,
     IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)
     SecondaryIp BOOLEAN,                -- True = Secondary
-    CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS InterfaceBlackList;
@@ -57,8 +57,8 @@ CREATE TABLE IF NOT EXISTS BridgeGroups (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT UNIQUE,
     BridgeGroups_FK INT DEFAULT -1,
-    CONSTRAINT FK_BridgeGroups_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID),
-    CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (BridgeGroups_FK) REFERENCES Bridges(ID)
+    CONSTRAINT FK_BridgeGroups_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE,
+    CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (BridgeGroups_FK) REFERENCES Bridges(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS Bridges;
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS Bridges (
     Protocol VARCHAR(15),                -- Bridge Protocol
     StpStatus BOOLEAN,                   -- STB STATUS ENABLE = 1 , DISABLE = 0
     ShutdownStatus BOOLEAN DEFAULT TRUE,
-    CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID)
+    CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS Vlans;
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS Vlans (
     VlanInterfaces_FK INT DEFAULT -1,
     VlanName VARCHAR(20) UNIQUE,
     VlanDescription VARCHAR(50),
-    CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanInterfaces_FK) REFERENCES VlanInterfaces(ID)
+    CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanInterfaces_FK) REFERENCES VlanInterfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS VlanInterfaces;
@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS VlanInterfaces (
     VlanName VARCHAR(20),
     Interface_FK INT DEFAULT -1,
     Bridge_FK INT DEFAULT -1,
-    CONSTRAINT FK_VLANs_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID),
-    CONSTRAINT FK_VLANs_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID)
+    CONSTRAINT FK_VLANs_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE,
+    CONSTRAINT FK_VLANs_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS Nats;
@@ -104,8 +104,8 @@ CREATE TABLE IF NOT EXISTS NatDirections (
     NAT_FK INT ,
     Interface_FK INT UNIQUE,                -- Only 1 direction per interface                                             
     Direction VARCHAR(7),                   -- Direction inside | outside -> NATDirection()
-    CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID),
-    CONSTRAINT FK_NatDirections_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_NatDirections_Nats FOREIGN KEY (NAT_FK) REFERENCES Nats(ID) ON DELETE CASCADE,
+    CONSTRAINT FK_NatDirections_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS DHCPClient;
@@ -113,55 +113,53 @@ CREATE TABLE IF NOT EXISTS DHCPClient (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT DEFAULT -1,
     DHCPVersion VARCHAR(6),                 -- DHCPVersion:dhcpv4 | dhcpv6
-    CONSTRAINT FK_DHCPClient_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_DHCPClient_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS DHCPServer;
 CREATE TABLE IF NOT EXISTS DHCPServer (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INT DEFAULT -1,
+    Interface_FK INT,
     DhcpPoolname VARCHAR(50) UNIQUE,
-    CONSTRAINT FK_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID)
+    CONSTRAINT FK_DHCP_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS Subnet;
-CREATE TABLE IF NOT EXISTS Subnet (
+DROP TABLE IF EXISTS DHCPSubnet;
+CREATE TABLE IF NOT EXISTS DHCPSubnet (
     ID INTEGER PRIMARY KEY,
-    DHCPServer_FK INT DEFAULT -1,
-    IpSubnet VARCHAR(45),
-    CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCPServer_FK) REFERENCES DHCPServer(ID)
+    DHCPServer_FK INT,
+    InetSubnet VARCHAR(45),
+    CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCPServer_FK) REFERENCES DHCPServer(ID) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS Pools;
-CREATE TABLE IF NOT EXISTS Pools (
+DROP TABLE IF EXISTS DHCPSubnetPools;
+CREATE TABLE IF NOT EXISTS DHCPSubnetPools (
     ID INTEGER PRIMARY KEY,
-    Subnet_FK INT DEFAULT -1,
-    IpAddressStart VARCHAR(45),
-    IpAddressEnd VARCHAR(45),
-    IpSubnet VARCHAR(45),
-    CONSTRAINT FK_Pools_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(ID)
+    DHCPSubnet_FK INT,
+    InetAddressStart VARCHAR(45),
+    InetAddressEnd VARCHAR(45),
+    InetSubnet VARCHAR(45),
+    CONSTRAINT FK_DHCPSubnetPools_DHCPSubnet FOREIGN KEY (DHCPSubnet_FK) REFERENCES DHCPSubnet(ID) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS Reservations;
-CREATE TABLE IF NOT EXISTS Reservations (
+DROP TABLE IF EXISTS DHCPSubnetReservations;
+CREATE TABLE IF NOT EXISTS DHCPSubnetReservations (
     ID INTEGER PRIMARY KEY,
-    Subnet_FK INT DEFAULT -1,
+    DHCPSubnet_FK INT,
     MacAddress VARCHAR(12),
-    IPAddress VARCHAR(45),
-    CONSTRAINT FK_Reservations_Subnet FOREIGN KEY (Subnet_FK) REFERENCES Subnet(ID)
+    InetAddress VARCHAR(45),
+    CONSTRAINT FK_DHCPSubnetReservations_DHCPSubnet FOREIGN KEY (DHCPSubnet_FK) REFERENCES DHCPSubnet(ID) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS Options;
-CREATE TABLE IF NOT EXISTS Options (
+DROP TABLE IF EXISTS DHCPOptions;
+CREATE TABLE IF NOT EXISTS DHCPOptions (
     ID INTEGER PRIMARY KEY,
-    DhcpOptions VARCHAR(20),
+    DhcpOption VARCHAR(20),
     DhcpValue VARCHAR(50),
-    Pools_FK INT DEFAULT -1,
-    DHCPServer_FK INT DEFAULT -1,
-    Reservations_FK INT,
-    CONSTRAINT FK_Options_Pools FOREIGN KEY (Pools_FK) REFERENCES Pools(ID),
-    CONSTRAINT FK_Options_DHCPServer FOREIGN KEY (DHCPServer_FK) REFERENCES DHCPServer(ID),
-    CONSTRAINT FK_Options_Reservations FOREIGN KEY (Reservations_FK) REFERENCES Reservations(ID)
+    DHCPSubnetPools_FK INT,
+    DHCPSubnetReservations_FK INT,
+    CONSTRAINT FK_DHCPOptions_DHCPSubnetPools FOREIGN KEY (DHCPSubnetPools_FK) REFERENCES DHCPSubnetPools(ID) ON DELETE CASCADE,
+    CONSTRAINT FK_DHCPOptions_DHCPSubnetReservations FOREIGN KEY (DHCPSubnetReservations_FK) REFERENCES DHCPSubnetReservations(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS FirewallPolicies;
@@ -176,7 +174,7 @@ CREATE TABLE IF NOT EXISTS FWDirectionInterfaces (
     FirewallPolicy_FK INT,                  -- Foreign key to link with FirewallPolicies
     Interface_FK INT,
     Direction VARCHAR(8),                   -- Direction (inbound or outbound)
-    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID)
+    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS FirewallRules;
@@ -190,7 +188,7 @@ CREATE TABLE IF NOT EXISTS FirewallRules (
     DestinationPort INT,                    -- Destination port (optional)
     Protocol VARCHAR(10),                   -- Protocol (e.g., TCP, UDP, ICMP, any)
     Action VARCHAR(10),                     -- Action (allow, deny)
-    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID)
+    CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS RenameInterface;
