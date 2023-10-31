@@ -6,6 +6,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_manager import NetworkManager
+from lib.network_services.dhcp.dnsmasq_config_gen import DnsmasqConfigurator
 
 class InvalidDhcpServer(Exception):
     def __init__(self, message):
@@ -117,7 +118,6 @@ class DHCPServer(NetworkManager, DHCPServerDatabase):
         """
         return STATUS_OK
 
-    
 class DhcpPoolFactory():
     def __init__(self, dhcp_pool_name: str, dhcp_pool_inet_subnet_cidr: str):
         """
@@ -167,9 +167,9 @@ class DhcpPoolFactory():
         if self.status():
             return STATUS_NOK
 
-        return self.dhcp_srv_obj.add_dhcp_pool_subnet_inet_range(self.dhcp_pool_name, 
-                                                      self.dhcp_pool_inet_subnet_cidr, 
-                                                      inet_start, inet_end, inet_subnet_cidr)
+        return self.dhcp_srv_obj.add_dhcp_pool_subnet_inet_range(self.dhcp_pool_name,
+                                                                 self.dhcp_pool_inet_subnet_cidr,
+                                                                 inet_start, inet_end, inet_subnet_cidr)
     
     def add_reservation(self, hw_address: str, inet_address: str) -> bool:
         """
