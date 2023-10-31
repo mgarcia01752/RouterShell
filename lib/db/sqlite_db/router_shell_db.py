@@ -150,10 +150,10 @@ class RouterShellDB:
                 self.log.debug(f"Removed existing database file: {self.ROUTER_SHELL_DB}")
         
         except Exception as e:
-        self.log.error(f"Error while removing the existing database file: {e}")
-        return STATUS_NOK
+            self.log.error(f"Error while removing the existing database file: {e}")
+            return STATUS_NOK
     
-    return self.create_database()
+        return self.create_database()
 
 
     '''
