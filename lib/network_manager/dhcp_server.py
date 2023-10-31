@@ -56,6 +56,10 @@ class DHCPServer(NetworkManager):
         Returns:
             bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise
         """
+        if not self.dhcp_pool_name_exists(dhcp_pool_name):
+            self.log.critical(f"Unable to add DHCP subnet to the DHCP server, dhcp-pool-name : {dhcp_pool_name} , does not exist")
+            return STATUS_NOK
+        
         return DSD().add_dhcp_pool_subnet_db(dhcp_pool_name, dhcp_pool_subnet_cidr)
     
     def add_dhcp_pool_subnet_inet_range(self, dhcp_pool_name:str, inet_subnet_cidr: str, inet_pool_start: str, inet_pool_end: str, inet_pool_subnet_cidr: str) -> bool:
@@ -73,7 +77,7 @@ class DHCPServer(NetworkManager):
             bool: STATUS_OK if the range was added successfully, STATUS_NOK otherwise
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
-            self.log.critical("Unable to add subnet pool inet range, dhcp-pool-name : {} , does not exist")
+            self.log.critical(f"Unable to add subnet pool inet range, dhcp-pool-name : {dhcp_pool_name} , does not exist")
             return STATUS_NOK
             
         return DSD().add_dhcp_subnet_inet_address_range_db(inet_subnet_cidr, inet_pool_start, inet_pool_end, inet_pool_subnet_cidr)
@@ -92,7 +96,7 @@ class DHCPServer(NetworkManager):
             bool: STATUS_OK if the reservation was added successfully, STATUS_NOK otherwise
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
-            self.log.critical("Unable to add a reservation to a DHCP pool, dhcp-pool-name : {} , does not exist")
+            self.log.critical(f"Unable to add a reservation to a DHCP pool, dhcp-pool-name : {dhcp_pool_name} , does not exist")
             return STATUS_NOK
         
         return DSD().add_dhcp_subnet_reservation_db(inet_subnet_cidr, hw_address, inet_address)
@@ -111,7 +115,7 @@ class DHCPServer(NetworkManager):
             bool: STATUS_OK if the option was added successfully, STATUS_NOK otherwise
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
-            self.log.critical("Unable to add DHCP option to a DHCP pool, dhcp-pool-name : {} , does not exist")
+            self.log.critical(f"Unable to add DHCP option to a DHCP pool, dhcp-pool-name : {dhcp_pool_name} , does not exist")
             return STATUS_NOK
 
         return DSD().add_dhcp_subnet_option_db(inet_subnet_cidr, dhcp_option, value)
