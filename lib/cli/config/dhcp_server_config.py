@@ -14,7 +14,7 @@ from lib.cli.common.cmd2_global import Cmd2GlobalSettings as cgs
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 
-class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, DHCPServer):
+class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     
     GLOBAL_CONFIG_MODE = 'global'
     PROMPT_CMD_ALIAS = 'dhcp'    
@@ -25,7 +25,6 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, DHCPServer):
         
         super().__init__()        
         GlobalUserCommand.__init__(self)
-        DHCPServer.__init__(self)
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_SERVER_CONFIG)
@@ -76,7 +75,7 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, DHCPServer):
 
         inet_subnet_cidr = args.inet_subnet_cidr
         self.log.debug(f"Configuring subnet with INET Subnet: {inet_subnet_cidr}")
-        self.dhcp_pool_factory = DhcpPoolFactory(self.add_dhcp_pool_name, inet_subnet_cidr)
+        self.dhcp_pool_factory = DhcpPoolFactory(self.dhcp_pool_name, inet_subnet_cidr)
         
     def do_pool(self, args: str):
         '''

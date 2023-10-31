@@ -7,9 +7,6 @@ class DHCPServerDatabase:
     """
     A class for interacting with the DHCP server database.
     """
-
-    rsdb = RSDB()
-
     def __init__(self):
         """
         Initialize the DHCPServerDatabase class.
@@ -18,10 +15,6 @@ class DHCPServerDatabase:
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_SERVER_DB)
-
-        if not self.rsdb:
-            self.log.debug("Connecting to RouterShell Database")
-            self.rsdb = RSDB()
 
     def dhcp_pool_name_exists_db(self, dhcp_pool_name: str) -> bool:
         """
@@ -33,7 +26,19 @@ class DHCPServerDatabase:
         Returns:
             bool: True if the DHCP pool name exists, False otherwise.
         """
-        return self.rsdb.dhcp_pool_name_exist(dhcp_pool_name).status
+        return RSDB().dhcp_pool_name_exist(dhcp_pool_name).status
+    
+    def dhcp_pool_subnet_exist_db(self, inet_subnet_cidr: str) -> bool:
+        """
+        Check if a DHCP pool subnet with the given subnet CIDR exists in the database.
+
+        Args:
+            inet_subnet_cidr (str): The subnet CIDR to check for existence.
+
+        Returns:
+            bool: True if the DHCP pool subnet exists, False otherwise.
+        """
+        return RSDB().dhcp_pool_subnet_exist(inet_subnet_cidr).status
 
     def add_dhcp_pool_subnet_db(self, dhcp_pool_name: str, inet_subnet_cidr: str) -> bool:
         """
@@ -46,7 +51,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return self.rsdb.insert_dhcp_pool_subnet(dhcp_pool_name, inet_subnet_cidr).status
+        return RSDB().insert_dhcp_pool_subnet(dhcp_pool_name, inet_subnet_cidr).status
 
     def add_dhcp_subnet_inet_address_range_db(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> bool:
         """
@@ -75,7 +80,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return self.rsdb.insert_dhcp_subnet_reservation(inet_subnet_cidr, hw_address, inet_address).status
+        return RSDB().insert_dhcp_subnet_reservation(inet_subnet_cidr, hw_address, inet_address).status
 
     def add_dhcp_subnet_option_db(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> bool:
         """
@@ -89,7 +94,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return self.rsdb.insert_dhcp_subnet_option(inet_subnet_cidr, dhcp_option, option_value).status
+        return RSDB().insert_dhcp_subnet_option(inet_subnet_cidr, dhcp_option, option_value).status
 
     def add_dhcp_subnet_reservation_option_db(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> bool:
         """
@@ -104,7 +109,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return self.rsdb.insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
+        return RSDB().insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
 
     def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str) -> bool:
         """
@@ -117,4 +122,4 @@ class DHCPServerDatabase:
         Returns:
             bool:  if the operation was successful, STATUS_NOK otherwise.
         """
-        return self.rsdb.update_dhcp_pool_name_interface(dhcp_pool_name, interface_name).status
+        return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name).status
