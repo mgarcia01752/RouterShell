@@ -32,9 +32,7 @@ class RouterCLI(cmd2.Cmd,
         GlobalUserCommand.__init__(self)
         GlobalPrivCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.USER_MODE)
-        
-        RSDB()
-                
+                       
         self.log = logging.getLogger(self.__class__.__name__)
         
         self.set_prompt()

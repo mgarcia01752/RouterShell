@@ -4,6 +4,7 @@ import os
 from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.singleton import Singleton
 from lib.network_manager.network_manager import InterfaceType
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
@@ -50,8 +51,11 @@ class Result:
     def __str__(self):
         return f"Status: {self.status}, Row ID: {self.row_id}, Reason: {self.reason}, Result: {self.result}"
 
-class RouterShellDB:
+class RouterShellDB(metaclass=Singleton):
+    
     connection = None
+    
+    connection_created = False
 
     ROUTER_SHELL_DB = 'routershell.db'
     ROUTER_SHELL_SQL_STARTUP = '../db_schema.sql'
@@ -59,22 +63,28 @@ class RouterShellDB:
     FK_NOT_FOUND = -1
 
     def __init__(self):
+        """
+        Initialize the RouterShellDB instance.
+        """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_SHELL_DB)
-        self.debug = CGS().DEBUG_ROUTER_SHELL_DB
-                
-        self.log.debug(f"__init__() - DB Connection Status -> {self.connection}")
         self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
         self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
 
-        if not self.connection:
+        self.log.debug(f"__init__() -> db-connection: {self.connection} -> db-connection-created: {self.connection_created}")
+        
+        if not self.connection_created:
+
             if not os.path.exists(self.db_file_path):
+                self.log.debug(f"Creating DB file: {self.db_file_path}, does not exist.")
                 self.create_database()
             else:
-                self.log.debug(f"Database file {self.ROUTER_SHELL_DB} exists.")
+                self.log.debug(f"Database file {self.db_file_path} exists.")
                 self.open_connection()
+                
+            self.connection_created = True
         else:
-            self.log.debug(f"Already Connected to DB {self.ROUTER_SHELL_DB}")
+            self.log.debug(f"Already Connected to DB {self.db_file_path}")
 
     def create_database(self) -> bool:
         """
@@ -83,10 +93,11 @@ class RouterShellDB:
         Returns:
             bool: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
         """
-        self.log.debug("create_database")
+        self.log.debug("create_database()")
         
         try:
             self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
+            
             cursor = self.connection.cursor()
 
             with open(self.sql_file_path, 'r') as sql_file:
@@ -99,7 +110,7 @@ class RouterShellDB:
             self.log.debug("SQLite database created successfully.")
 
         except sqlite3.Error as e:
-            self.log.error("Error:", e)
+            self.log.error(f"Error: {e}")
             return STATUS_NOK
 
         return STATUS_OK
@@ -111,16 +122,17 @@ class RouterShellDB:
         Returns:
             bool: STATUS_OK if the connection is successful, STATUS_NOK if there is an error.
         """
-        self.log.debug("open_connection")
+        self.log.debug("open_connection()")
 
         if not self.connection:
             try:
                 self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
+                
                 self.log.debug(f"Connected to DB {self.ROUTER_SHELL_DB}")
                 return STATUS_OK
 
             except sqlite3.Error as e:
-                self.log.error("Error:", e)
+                self.log.error(f"Error: {e}")
                 return STATUS_NOK
 
         return STATUS_OK
