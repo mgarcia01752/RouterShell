@@ -111,7 +111,7 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, DHCPServer):
         # Access the parsed arguments directly
         inet_start = args.inet_start
         inet_end = args.inet_end
-        inet_subnet_cidr = args.subnet_mask
+        inet_subnet_cidr = args.inet_subnet_cidr
 
         # Handle the 'pools' command logic here
         self.log.debug(f"Configuring IP pool with start IP: {inet_start}, end IP: {inet_end}, and subnet mask: {inet_subnet_cidr}")

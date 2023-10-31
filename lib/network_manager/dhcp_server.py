@@ -31,7 +31,7 @@ class DHCPServer(NetworkManager, DHCPServerDatabase):
         Returns:
             bool: True if the pool exists, False otherwise.
         """
-        return True
+        return self.dhcp_pool_name_exists(dhcp_pool_name)
     
     def dhcp_pool_subnet_exists(self, dhcp_pool_name: str, dhcp_pool_subnet_cidr: str) -> bool:
         """
@@ -44,7 +44,7 @@ class DHCPServer(NetworkManager, DHCPServerDatabase):
         Returns:
             bool: True if the subnet exists, False otherwise.
         """
-        return True
+        return self.dhcp_pool_subnet_exists(dhcp_pool_name, dhcp_pool_subnet_cidr)
         
     def add_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
         """
@@ -56,6 +56,7 @@ class DHCPServer(NetworkManager, DHCPServerDatabase):
         Returns:
             bool: STATUS_OK if the pool was added successfully, STATUS_NOK otherwise
         """
+        
         return STATUS_OK
     
     def add_dhcp_pool_subnet(self, dhcp_pool_subnet_cidr: str) -> bool:
