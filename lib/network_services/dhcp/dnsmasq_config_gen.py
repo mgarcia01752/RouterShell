@@ -68,7 +68,9 @@ class DnsmasqConfigurator:
 
     def set_uid_and_gid(self, user=None, group=None):
         if user or group:
-            user_group_setting = 'user=' + (user if user else '') + (',' if user and group else '') + (group if group else '')
+            user_group_setting = 'user=' + \
+                (user if user else '') + \
+                (',' if user and group else '') + (group if group else '')
             self.config.append(user_group_setting)
 
     def set_listen_interfaces(self, interfaces):
@@ -108,16 +110,20 @@ class DnsmasqConfigurator:
         self.config.append(f'domain={domain},{start_ip},{end_ip}')
 
     def enable_dhcp_server(self, range_start, range_end, lease_time):
-        self.config.append(f'dhcp-range={range_start},{range_end},{lease_time}')
+        self.config.append(
+            f'dhcp-range={range_start},{range_end},{lease_time}')
 
     def enable_dhcp_server_with_netmask(self, range_start, range_end, netmask, lease_time):
-        self.config.append(f'dhcp-range={range_start},{range_end},{netmask},{lease_time}')
+        self.config.append(
+            f'dhcp-range={range_start},{range_end},{netmask},{lease_time}')
 
     def enable_dhcp_server_with_tag(self, tag, range_start, range_end, lease_time):
-        self.config.append(f'dhcp-range=set:{tag},{range_start},{range_end},{lease_time}')
+        self.config.append(
+            f'dhcp-range=set:{tag},{range_start},{range_end},{lease_time}')
 
     def enable_dhcp_server_for_tag(self, tag, range_start, range_end, lease_time):
-        self.config.append(f'dhcp-range=set:tag,{range_start},{range_end},{lease_time}')
+        self.config.append(
+            f'dhcp-range=set:tag,{range_start},{range_end},{lease_time}')
 
     def enable_tftp_server(self, root_directory):
         self.config.append(f'tftp-root={root_directory}')
