@@ -14,13 +14,13 @@ class DHCPServerService(DNSMasqService):
         self.log.setLevel(RSLGS().DHCP_SERVER_SERVICE)
     
     def start(self):
-        return STATUS_OK
+        return self.start_dnsmasq()
     
     def restart(self):
-        return STATUS_OK
+        return self.restart_dnsmasq()
     
     def stop(self):
-        return STATUS_OK
+        return self.stop_dnsmasq()
     
     
     
