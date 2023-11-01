@@ -3,8 +3,12 @@ import logging
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 
-class DNSMasqConfigurator:
-    
+class DNSmasqConfigurator:
+    '''
+        For the latest DNSmasq configuration:
+        https://thekelleys.org.uk/dnsmasq/docs/dnsmasq.conf.example
+        
+    '''
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DNSMASQ_CONFIG)        
