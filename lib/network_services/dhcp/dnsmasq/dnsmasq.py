@@ -3,7 +3,7 @@ import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunResult
 from lib.network_manager.network_manager import NetworkManager
-from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSmasqConfigurator
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
 
@@ -45,43 +45,81 @@ class DNSMasqExitCode(Enum):
         else:
             raise ValueError("Invalid DNSMasq exit code")
 
-class DNSMasqService(NetworkManager, DNSmasqConfigurator):
-      
+class DNSMasqService(NetworkManager, DNSMasqConfigurator):
+    """
+    Class for controlling the DNSMasq service.
+
+    Args:
+        dhcp_pool_name (str): Name of the DHCP pool.
+        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
+        negate (bool): Whether to negate the configuration (default: False).
+
+    Attributes:
+        dhcp_pool_name (str): Name of the DHCP pool.
+        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
+        negate (bool): Whether to negate the configuration.
+
+    Example:
+        service = DNSMasqService("home", "192.168.1.0/24")
+    """
+
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
-        super().__init__()      
+        super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DNSMASQ_SERVICE)
         
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_subnet = dhcp_pool_subnet
         self.negate = negate
-        
+
     def start_dnsmasq(self) -> bool:
+        """
+        Start the DNSMasq service.
+
+        Returns:
+            bool: True if the service started successfully, False otherwise.
+        """
         cmd = ['systemctl', 'start', 'dnsmasq']
         cmd_result = self.run(cmd)
         
         if cmd_result.exit_code:
+            self.log.error(f"Failed to start DNSMasq. Exit code: {cmd_result.exit_code}")
             return STATUS_NOK
         
         return STATUS_OK
 
     def restart_dnsmasq(self) -> bool:
+        """
+        Restart the DNSMasq service.
+
+        Returns:
+            bool: True if the service restarted successfully, False otherwise.
+        """
         cmd = ['systemctl', 'restart', 'dnsmasq']
         cmd_result = self.run(cmd)
         
         if cmd_result.exit_code:
+            self.log.error(f"Failed to restart DNSMasq. Exit code: {cmd_result.exit_code}")
             return STATUS_NOK
         
         return STATUS_OK
 
     def stop_dnsmasq(self) -> bool:
+        """
+        Stop the DNSMasq service.
+
+        Returns:
+            bool: True if the service stopped successfully, False otherwise.
+        """
         cmd = ['systemctl', 'stop', 'dnsmasq']
         cmd_result = self.run(cmd)
         
         if cmd_result.exit_code:
+            self.log.error(f"Failed to stop DNSMasq. Exit code: {cmd_result.exit_code}")
             return STATUS_NOK
         
         return STATUS_OK
+
         
     
     def add_inet_pool(self, inet_start:str, inet_end:str, inet_subnet:str, lease_time_seconds:int=86400) -> bool:

@@ -6,7 +6,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.network_manager import NetworkManager
-from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSmasqConfigurator
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 
 class InvalidDhcpServer(Exception):
     def __init__(self, message):
