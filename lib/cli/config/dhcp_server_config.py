@@ -4,7 +4,7 @@ import logging
 import cmd2
 from lib.network_manager.dhcp_server import DHCPServer, DhcpPoolFactory
 
-from lib.network_services.dhcp.dhcp_kea import KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
+from lib.network_services.dhcp.kea.dhcp_kea import KeaDHCPDBFactory, KeaDHCPDB, DhcpOptionsLUT
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt

@@ -13,4 +13,8 @@ class DHCPServerAbstract(ABC):
     @abstractmethod
     def start(self) -> bool:
         pass
+
+    @abstractmethod
+    def stop(self) -> bool:
+        pass
     

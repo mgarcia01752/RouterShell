@@ -2,7 +2,7 @@ import ipaddress
 import logging
 
 
-from lib.network_services.dhcp.dhcp_kea import DHCPDatabase
+from lib.network_services.dhcp.kea.dhcp_kea import DHCPDatabase
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServerService():

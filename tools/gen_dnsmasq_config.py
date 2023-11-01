@@ -1,6 +1,6 @@
 
 
-from lib.network_services.dhcp.dnsmasq_config_gen import DnsmasqConfigurator
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DnsmasqConfigurator
 
 
 configurator = DnsmasqConfigurator()
