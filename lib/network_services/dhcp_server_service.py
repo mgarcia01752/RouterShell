@@ -6,7 +6,6 @@ from lib.network_services.dhcp.dnsmasq.dnsmasq import DNSMasqService
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 
-
 class DHCPServerService(DNSMasqService):
 
     def __init__(self):

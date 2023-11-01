@@ -16,14 +16,16 @@ class DNSMasqService(NetworkManager, DNSMasqConfigurator):
         self.dhcp_pool_subnet = dhcp_pool_subnet
         self.negate = negate
         
-    def start_dnsmasq(self) -> RunResult:
+    def start_dnsmasq(self) -> bool:
         start_command = ['systemctl', 'start', 'dnsmasq']
         return self.run(start_command)
 
-    def restart_dnsmasq(self) -> RunResult:
+    def restart_dnsmasq(self) -> bool:
         restart_command = ['systemctl', 'restart', 'dnsmasq']
         return self.run(restart_command)
 
-    def stop_dnsmasq(self) -> RunResult:
+    def stop_dnsmasq(self) -> bool:
         stop_command = ['systemctl', 'stop', 'dnsmasq']
         return self.run(stop_command)
+    
+    
