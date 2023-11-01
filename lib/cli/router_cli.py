@@ -176,7 +176,7 @@ class RouterCLI(cmd2.Cmd,
             return
 
     def complete_clear(  self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
-        configure_commands = ['arp']
+        configure_commands = ['arp', 'router-db']
         return [cmd for cmd in configure_commands if cmd.startswith(text)]
 
     def do_clear(self, args: str) -> None:

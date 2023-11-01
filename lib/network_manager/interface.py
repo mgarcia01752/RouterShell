@@ -430,11 +430,11 @@ class Interface(NetworkManager, InterfaceDatabase):
         result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
         
         if result.exit_code:
-            self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name}")
+            self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name} to OS")
             return STATUS_NOK
         
         if self.update_db_rename_alias(initial_interface_name, alias_interface_name):
-            self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name}")
+            self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
             return STATUS_NOK
         
         return STATUS_OK        

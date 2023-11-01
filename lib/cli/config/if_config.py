@@ -7,6 +7,7 @@ from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 
 from lib.network_manager.dhcp_client import DHCPVersion
+from lib.network_manager.dhcp_server import DHCPServer
 from lib.network_manager.interface import Interface, InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.arp import Encapsulate
@@ -178,7 +179,8 @@ class InterfaceConfig(cmd2.Cmd,
 
         Available suboptions:
         - `address <IP Address>/<CIDR> [secondary]`     : Set a static IP address.
-        - `dhcp-client`                                 : Enable DHCP Client.
+        - `dhcp-client`                                 : Enable DHCP client.
+        - `dhcp-server pool <dhcp-pool-name>`           : Set DHCP server parameters.
         - `drop-gratuitous-arp`                         : Enable drop gratuitous ARP.
         - `proxy-arp`                                   : Enable proxy ARP.
         - `static-arp <inet> <mac> [arpa]`              : Add/Del static ARP entry.
@@ -246,6 +248,18 @@ class InterfaceConfig(cmd2.Cmd,
         subparsers.add_parser("dhcp-client",
             help="Configure DHCPv4 Client"
         )
+        
+        dhcp_server_parser = subparsers.add_parser("dhcp-server",
+            help="Configure DHCPv4 Server"
+        )
+        dhcp_server_parser.add_argument("dhcp_server_pool_name",
+            choices=['pool'],
+            help="Specify the DHCP pool-name defined in the global configuration"
+        )        
+        dhcp_server_parser.add_argument("pool_name",
+            nargs='?',
+            help=f"Specify the DHCP pool name when assigning to {self.ifName}"
+        )        
                 
         try:
             if not isinstance(args, list):
@@ -311,6 +325,12 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.debug(f"Enable DHCPv4 Client")
             if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V4, negate):
                 self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
+
+        elif args.subcommand == "dhcp-server":
+            pool_name = args.pool_name
+            '''[no] [ip dhcp-server] pool <dhcp-pool-name>'''
+            self.log.debug(f"Enable DHCPv4 Server")
+            DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName)
 
     def complete_speed(self, text, line, begidx, endidx):
         completions = ['half', 'full', 'auto']        

@@ -400,7 +400,7 @@ class InterfaceDatabase:
             bool: True if an alias exists for the initial interface with the provided alias name, False otherwise.
         """
 
-        alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name, alias_interface_name)
+        alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
 
         return alias_result.status and alias_result.alias_name == alias_interface_name
 

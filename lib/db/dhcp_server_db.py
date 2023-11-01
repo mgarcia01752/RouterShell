@@ -148,6 +148,6 @@ class DHCPServerDatabase:
             interface_name (str): The new interface name.
 
         Returns:
-            bool:  if the operation was successful, STATUS_NOK otherwise.
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name).status

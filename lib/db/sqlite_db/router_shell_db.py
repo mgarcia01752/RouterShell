@@ -1345,7 +1345,7 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=pool_exist_result.reason)
 
             # Check if the interface name exists in the Interfaces table
-            interface_exist_result = self.interface_name_exist(interface_name)
+            interface_exist_result = self.interface_exists(interface_name)
             if not interface_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=interface_exist_result.reason)
 
@@ -1566,7 +1566,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP subnet information. Error: {str(e)}")
-
+ 
     '''
                         DHCP-CLIENT DATABASE
     '''
@@ -2449,11 +2449,11 @@ class RouterShellDB(metaclass=Singleton):
 
             if row is not None:
                 alias_name, row_id = row
-                return Result(status=True, alias_name=alias_name, row_id=row_id)
+                return Result(status=True, row_id=row_id, result=alias_name)
             else:
-                return Result(status=False, row_id=None, result=alias_name)
+                return Result(status=False, row_id=None, result=None)
         
         except sqlite3.Error as e:
-            return Result(status=False, alias_name=None, row_id=None, reason=str(e))
+            return Result(status=False, row_id=None, reason=str(e))
 
 

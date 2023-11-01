@@ -15,56 +15,57 @@ class RouterShellLoggingGlobalSettings():
     
     GLOBAL_DEBUG = False
     
-    ROUTER_SHELL_DB     = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    ROUTER_SHELL_DB             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
-    ROUTERCLI           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ROUTERCLI                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
-    CONFIGURE_MODE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    CLEAR_MODE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    SHOW_MODE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    CONFIGURE_MODE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    CLEAR_MODE                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    SHOW_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    BRIDGE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_DB           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_DB                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_CONFIG               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
       
-    DHCPD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    DHCP_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCPD                       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    DHCP_CLIENT         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    DHCP_CLIENT_DB      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_CLIENT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_CLIENT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    DHCP_SERVER         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    DHCP_SERVER_DB      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    DHCP_POOL_FACTORY   = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    DHCP_SERVER_CONFIG  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_SERVER                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_SERVER_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_POOL_FACTORY           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_SERVER_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    DHCP_SERVER_SERVICE     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    DHCP_SERVER_SERVICE_DB  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO 
+    DHCP_SERVER_SERVICE         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_SERVER_SERVICE_DB      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO 
     
-    INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    INTERFACE_DB        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    IF_CONFIG           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    IF_SHOW             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IF_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IF_SHOW                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    ROUTE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    IP_ROUTE_CONFIG     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ROUTE                       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    IP_ROUTE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    NAT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NAT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NAT_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT_DB                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    VLAN                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    VLAN_CONFIG         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    VLAN                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    VLAN_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    ARP                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    ARP_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ARP                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ARP_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    WIRELESS            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WIRELESS                    = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
  
-    NETWORK_MANAGER     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
-    INET                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    MAC                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    PHY                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    RUN                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    SYSCTL              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
+    INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    MAC                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    PHY                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    RUN                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    SYSCTL                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    

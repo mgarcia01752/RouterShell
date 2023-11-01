@@ -128,7 +128,9 @@ class DHCPServer(NetworkManager):
                                                            inet_pool_end, 
                                                            inet_pool_subnet_cidr)
     
-    def add_dhcp_pool_reservation(self, dhcp_pool_name: str, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> bool:
+    def add_dhcp_pool_reservation(self, dhcp_pool_name: str, 
+                                  inet_subnet_cidr: str, 
+                                  hw_address: str, inet_address: str) -> bool:
         """
         Add a reservation to a DHCP pool.
 
@@ -166,7 +168,28 @@ class DHCPServer(NetworkManager):
 
         return DSD().add_dhcp_subnet_option_db(inet_subnet_cidr, dhcp_option, value)
 
+    def add_dhcp_pool_to_interface(self, dhcp_pool_name: str, interface_name: str) -> bool:
+        """
+        Adds a DHCP pool to an interface.
+
+        This method updates the DHCP pool name associated with a given interface.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to add to the interface.
+            interface_name (str): The name of the interface to associate with the DHCP pool.
+
+        Returns:
+            bool: True if the DHCP pool was successfully added to the interface, False otherwise.
+
+        """
+        
+        # TODO Check interface IP address(es) are within the DHCP-pool-subnet range
+        # TODO Allow only 1 IPv4 and 1 IPv6 DHCP subnet to support DUAL-STACK
+        
+        return DSD().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name)
+
 class DhcpPoolFactory():
+    ''''''
     def __init__(self, dhcp_pool_name: str):
         """
         Initialize the DhcpPoolFactory instance.
@@ -195,8 +218,7 @@ class DhcpPoolFactory():
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_inet_subnet_cidr = self.dhcp_srv_obj.get_dhcp_pool_subnet(dhcp_pool_name)
         self.log.debug(f"Create DhcpPoolFactory({dhcp_pool_name} , {self.dhcp_pool_inet_subnet_cidr}) ")
-
-                   
+         
     def status(self) -> bool:
         """
         Get the status of the DhcpPoolFactory.
