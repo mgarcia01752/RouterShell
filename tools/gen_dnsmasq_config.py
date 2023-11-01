@@ -1,9 +1,9 @@
 
 
-from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DnsmasqConfigurator
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 
 
-configurator = DnsmasqConfigurator()
+configurator = DNSMasqConfigurator()
 
 configurator.add_listen_port(53)
 configurator.enable_domain_filtering()

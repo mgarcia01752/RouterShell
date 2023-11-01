@@ -2,12 +2,12 @@ import logging
 
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_services.dhcp.dnsmasq.dnsmasq import DnsmasqFactory
+from lib.network_services.dhcp.dnsmasq.dnsmasq import DNSMasqService
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 
-class DHCPServerService(DnsmasqFactory):
+class DHCPServerService(DNSMasqService):
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
