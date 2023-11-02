@@ -1566,6 +1566,104 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP subnet information. Error: {str(e)}")
+
+    '''
+                        DHCP-SERVER CONFIGURATION BUILDING
+    '''
+ 
+    def get_global_options(self) -> List[Result]:
+        return []
+
+    def get_dhcp_pool_inet_range(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve the IP address range associated with a DHCP pool name from the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing an IP address range, or an empty list if none are found.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            query = "SELECT InetAddressStart, InetAddressEnd , InetSubnet FROM DHCPSubnetPools " \
+                    "WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?))"
+
+            cursor.execute(query, (dhcp_pool_name,))
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for start, end in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, data={'start': start, 'end': end}))
+
+            return results
+
+        except sqlite3.Error as e:
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve IP address ranges. Error: {str(e)}")]
+
+    def get_dhcp_pool_reservation(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve DHCP reservations associated with a DHCP pool name from the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a DHCP reservation, or an empty list if none are found.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            query = "SELECT MacAddress, InetAddress FROM DHCPSubnetReservations " \
+                    "WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?))"
+
+            cursor.execute(query, (dhcp_pool_name,))
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for mac, inet_address in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, data={'mac_address': mac, 'ip_address': inet_address}))
+
+            return results
+
+        except sqlite3.Error as e:
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP reservations. Error: {str(e)}")]
+
+    def get_dhcp_pool_options(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve DHCP options associated with a DHCP pool name from the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a DHCP option, or an empty list if none are found.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            query = "SELECT DhcpOption, DhcpValue FROM DHCPOptions " \
+                    "WHERE DHCPSubnetPools_FK IN ("\
+                        "SELECT ID FROM DHCPSubnetPools WHERE DHCPSubnet_FK = ("\
+                            "SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = ("\
+                                "SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?) AND InetAddressStart IS NULL))"
+
+            cursor.execute(query, (dhcp_pool_name,))
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for option, value in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, data={'option': option, 'value': value}))
+
+            return results
+
+        except sqlite3.Error as e:
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP options. Error: {str(e)}")]
+
  
     '''
                         DHCP-CLIENT DATABASE

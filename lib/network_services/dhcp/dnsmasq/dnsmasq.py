@@ -83,7 +83,7 @@ class DNSMasqService(NetworkManager, DNSMasqConfigurator):
         cmd_result = self.run(cmd)
         
         if cmd_result.exit_code:
-            self.log.error(f"Failed to start DNSMasq. Exit code: {cmd_result.exit_code}")
+            self.log.error(f"Failed to start DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
             return STATUS_NOK
         
         return STATUS_OK
@@ -99,7 +99,7 @@ class DNSMasqService(NetworkManager, DNSMasqConfigurator):
         cmd_result = self.run(cmd)
         
         if cmd_result.exit_code:
-            self.log.error(f"Failed to restart DNSMasq. Exit code: {cmd_result.exit_code}")
+            self.log.error(f"Failed to restart DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
             return STATUS_NOK
         
         return STATUS_OK
@@ -115,16 +115,26 @@ class DNSMasqService(NetworkManager, DNSMasqConfigurator):
         cmd_result = self.run(cmd)
         
         if cmd_result.exit_code:
-            self.log.error(f"Failed to stop DNSMasq. Exit code: {cmd_result.exit_code}")
+            self.log.error(f"Failed to stop DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
             return STATUS_NOK
         
         return STATUS_OK
-
+    
+    def _add_interface(self, interface_name:str) -> bool:
         
+        return STATUS_OK
     
     def add_inet_pool(self, inet_start:str, inet_end:str, inet_subnet:str, lease_time_seconds:int=86400) -> bool:
         return STATUS_OK
     
-    def add_reservation(self, hw_address:str, inet_address:str=None) -> bool:
+    def add_reservation(self, hw_address:str, inet_address:str=None, lease_time_seconds:int=68400) -> bool:
         return STATUS_OK
+    
+    def add_mac_exclusion(self, hw_address:str) -> bool:
+        return STATUS_OK
+    
+    def commit(self) -> bool:
+        return STATUS_OK
+    
+    
     

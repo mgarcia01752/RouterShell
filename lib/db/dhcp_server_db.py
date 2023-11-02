@@ -1,4 +1,6 @@
 import logging
+from typing import List
+
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -151,3 +153,21 @@ class DHCPServerDatabase:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name).status
+
+
+    '''
+                                DHCP-DNSMasq - Configuration Building
+    '''
+
+    def get_global_options(self) -> List[List]:
+        return []
+
+    def get_dhcp_pool_inet_range(dhcp_pool_name:str) -> List[List]:
+        return []
+    
+    def get_dhcp_pool_reservation(dhcp_pool_name:str) -> List[List]:
+        return []
+    
+    def get_dhcp_pool_options(dhcp_pool_name:str) -> List[List]:
+        return []
+    
