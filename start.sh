@@ -12,4 +12,5 @@ mkdir -m 775 -p /tmp/log
 # Set the owner and group to the current userq  
 sudo chown "$current_user":"$current_user" /tmp/log
 
-src/main.py
+# src/main.py
+src/test.py

@@ -13,7 +13,7 @@ class DNSMasqExitCode(Enum):
     Enum class representing DNSMasq exit codes.
 
     EXIT CODES:
-    0 - Dnsmasq successfully forked into the background, or terminated normally if backgrounding is not enabled.
+    0 - Dnsmasq successfully forked into the background, or terminated normally if back-ground is not enabled.
     1 - A problem with configuration was detected.
     2 - A problem with network access occurred (address in use, attempt to use privileged ports without permission).
     3 - A problem occurred with a filesystem operation (missing file/directory, permissions).
@@ -177,8 +177,9 @@ class DNSMasqInterfaceService(DNSMasqService):
         """
 
         # Get the interface names for the DHCP pool
-        interface_names = self.dhcp_srv_db.get_dhcp_pool_interfaces_db(self.dhcp_pool_name)
-
+        interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
+        print(interface_names)
+        '''
         # Set the listen interfaces in DNSMasq
         self.dns_masq_config.set_listen_interfaces(interface_names)
 
@@ -207,7 +208,7 @@ class DNSMasqInterfaceService(DNSMasqService):
             option_code = DHCPOptionLookup.get_dhcpv4_option_code(option['Name'])
             if option_code is not None:
                 self.dns_masq_config.add_dhcp_option(option_code, option['Value'])
-
+        '''
         # Configuration built successfully
         return True
 

@@ -174,6 +174,9 @@ class DHCPServerDatabase:
             or an empty list if none are found.
         """
         sql_result = RSDB().get_dhcp_pool_interfaces(dhcp_pool_name)
+        
+        print(f"get_dhcp_poll_interfaces_db() SQL-Result: {sql_result[0]}")
+        
         results = []
 
         for result in sql_result:

@@ -1588,8 +1588,8 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            query = "SELECT ID, InterfaceName FROM DHCPSubnetInterfaces " \
-                    "WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?))"
+            query = "SELECT ID, InterfaceName FROM Interfaces WHERE ID = ("\
+                            "SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?)"
 
             cursor.execute(query, (dhcp_pool_name,))
             sql_results = cursor.fetchall()
