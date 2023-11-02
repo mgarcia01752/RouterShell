@@ -18,7 +18,8 @@ from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
 from lib.common.constants import *
-from lib.network_hardware.interface import NetworkHardware
+from lib.hardware.network_hardware import NetworkHardware
+
 
 class InvalidShowMode(Exception):
     def __init__(self, message):
