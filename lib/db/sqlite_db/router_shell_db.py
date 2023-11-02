@@ -9,6 +9,7 @@ from lib.network_manager.network_manager import InterfaceType
 
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+
 class Result:
     """
     Represents the result of an operation in the database.
@@ -1587,7 +1588,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            query = "SELECT InetAddressStart, InetAddressEnd , InetSubnet FROM DHCPSubnetPools " \
+            query = "SELECT ID, InetAddressStart, InetAddressEnd , InetSubnet FROM DHCPSubnetPools " \
                     "WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?))"
 
             cursor.execute(query, (dhcp_pool_name,))
@@ -1595,8 +1596,9 @@ class RouterShellDB(metaclass=Singleton):
 
             results = []
 
-            for start, end in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, data={'start': start, 'end': end}))
+            for id, inet_start, inet_end, inet_subnet in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=id, 
+                                      result={'InetAddressStart': inet_start, 'InetAddressEnd': inet_end, 'InetSubnet': inet_subnet}))
 
             return results
 
@@ -1616,7 +1618,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            query = "SELECT MacAddress, InetAddress FROM DHCPSubnetReservations " \
+            query = "SELECT ID, MacAddress, InetAddress FROM DHCPSubnetReservations " \
                     "WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?))"
 
             cursor.execute(query, (dhcp_pool_name,))
@@ -1624,8 +1626,8 @@ class RouterShellDB(metaclass=Singleton):
 
             results = []
 
-            for mac, inet_address in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, data={'mac_address': mac, 'ip_address': inet_address}))
+            for id , mac, inet_address in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=id, result={'MacAddress': mac, 'InetAddress': inet_address}))
 
             return results
 
@@ -1645,7 +1647,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            query = "SELECT DhcpOption, DhcpValue FROM DHCPOptions " \
+            query = "SELECT ID, DhcpOption, DhcpValue FROM DHCPOptions " \
                     "WHERE DHCPSubnetPools_FK IN ("\
                         "SELECT ID FROM DHCPSubnetPools WHERE DHCPSubnet_FK = ("\
                             "SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = ("\
@@ -1656,8 +1658,8 @@ class RouterShellDB(metaclass=Singleton):
 
             results = []
 
-            for option, value in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, data={'option': option, 'value': value}))
+            for id, option, value in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=id, result={'DhcpOption': option, 'DhcpValue': value}))
 
             return results
 
