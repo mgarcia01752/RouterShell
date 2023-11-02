@@ -42,6 +42,8 @@ class RouterShellLoggingGlobalSettings():
     DHCP_SERVER_SERVICE_DB      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     DNSMASQ_SERVICE             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DNSMASQ_GLOBAL_SERVICE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

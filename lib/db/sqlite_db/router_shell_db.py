@@ -1575,6 +1575,36 @@ class RouterShellDB(metaclass=Singleton):
     def get_global_options(self) -> List[Result]:
         return []
 
+    def get_dhcp_pool_interfaces(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve the interfaces associated with a DHCP pool name from the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing an interface, or an empty list if none are found.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            query = "SELECT ID, InterfaceName FROM DHCPSubnetInterfaces " \
+                    "WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = (SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?))"
+
+            cursor.execute(query, (dhcp_pool_name,))
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for id, interface_name in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=id, result={'interface_name': interface_name}))
+
+            return results
+
+        except sqlite3.Error as e:
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP pool interfaces. Error: {str(e)}")]
+
+
     def get_dhcp_pool_inet_range(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve the IP address range associated with a DHCP pool name from the database.
@@ -1598,7 +1628,7 @@ class RouterShellDB(metaclass=Singleton):
 
             for id, inet_start, inet_end, inet_subnet in sql_results:
                 results.append(Result(status=STATUS_OK, row_id=id, 
-                                      result={'InetAddressStart': inet_start, 'InetAddressEnd': inet_end, 'InetSubnet': inet_subnet}))
+                                      result={'inet_start': inet_start, 'inet_end': inet_end, 'inet_subnet': inet_subnet}))
 
             return results
 
@@ -1659,7 +1689,7 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             for id, option, value in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, result={'DhcpOption': option, 'DhcpValue': value}))
+                results.append(Result(status=STATUS_OK, row_id=id, result={'option': option, 'value': value}))
 
             return results
 

@@ -1,6 +1,7 @@
 from enum import Enum
 import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.common.run_commands import RunResult
 from lib.network_manager.network_manager import NetworkManager
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
@@ -45,33 +46,18 @@ class DNSMasqExitCode(Enum):
         else:
             raise ValueError("Invalid DNSMasq exit code")
 
-class DNSMasqService(NetworkManager, DNSMasqConfigurator):
+class DNSMasqService(NetworkManager):
     """
-    Class for controlling the DNSMasq service.
+    Class for controlling the DNSMasq demon service.
 
-    Args:
-        dhcp_pool_name (str): Name of the DHCP pool.
-        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
-        negate (bool): Whether to negate the configuration (default: False).
-
-    Attributes:
-        dhcp_pool_name (str): Name of the DHCP pool.
-        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
-        negate (bool): Whether to negate the configuration.
-
-    Example:
-        service = DNSMasqService("home", "192.168.1.0/24")
     """
 
-    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+    def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DNSMASQ_SERVICE)
         
-        self.dhcp_pool_name = dhcp_pool_name
-        self.dhcp_pool_subnet = dhcp_pool_subnet
-        self.negate = negate
-
+        
     def start_dnsmasq(self) -> bool:
         """
         Start the DNSMasq service.
@@ -120,21 +106,105 @@ class DNSMasqService(NetworkManager, DNSMasqConfigurator):
         
         return STATUS_OK
     
-    def _add_interface(self, interface_name:str) -> bool:
+    
+    
+class DNSMasqInterfaceService(DNSMasqService):
+    """
+    Class for controlling the DNSMasq Interface Service.
+
+    Args:
+        dhcp_pool_name (str): Name of the DHCP pool.
+        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
+        negate (bool): Whether to negate the configuration (default: False).
+
+    Attributes:
+        dhcp_pool_name (str): Name of the DHCP pool.
+        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
+        negate (bool): Whether to negate the configuration.
+
+    Example:
+        service = DNSMasqService("home", "192.168.1.0/24")
+    """
+
+    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)
         
+        self.dns_masq_config = DNSMasqConfigurator()
+        
+        self.dhcp_pool_name = dhcp_pool_name
+        self.dhcp_pool_subnet = dhcp_pool_subnet
+        self.negate = negate
+        self.dhcp_srv_db = DHCPServerDatabase()
+
+    
+    def build_interface_configuration(self) -> bool:
+        '''
+        Build the interface configuration for DNSMasq.
+
+        This method configures DNSMasq for the specified DHCP pool by setting the listen interfaces, DHCP pool ranges,
+        and DHCP host reservations.
+
+        Returns:
+            bool: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
+        '''
+
+        # Get the interface names for the DHCP pool
+        interface_names = self.dhcp_srv_db.get_dhcp_pool_interfaces_db(self.dhcp_pool_name)
+        
+        # Set the listen interfaces in DNSMasq
+        self.dns_masq_config.set_listen_interfaces(interface_names)
+        
+        # Get the DHCP pool ranges
+        dhcp_pool_range = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
+        
+        # Enable DHCP server with netmask in DNSMasq
+        for range_start, range_end, netmask in dhcp_pool_range:
+            self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask)
+        
+        # Get the DHCP host reservations
+        dhcp_hosts = self.dhcp_srv_db.get_dhcp_pool_reservation_db(self.dhcp_pool_name)
+        
+        # Add DHCP host reservations to DNSMasq
+        for host in dhcp_hosts:
+            if len(host) == 3:
+                ethernet_address, ip_address, lease_time = host
+                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
+            else:
+                ethernet_address, ip_address = host
+                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)
+
+        # Configuration built successfully
+        return STATUS_OK
+
+    
+    def deploy_configuration(self) -> bool:
         return STATUS_OK
     
-    def add_inet_pool(self, inet_start:str, inet_end:str, inet_subnet:str, lease_time_seconds:int=86400) -> bool:
+    def delete_configuration(self) -> bool:
         return STATUS_OK
     
-    def add_reservation(self, hw_address:str, inet_address:str=None, lease_time_seconds:int=68400) -> bool:
-        return STATUS_OK
-    
-    def add_mac_exclusion(self, hw_address:str) -> bool:
-        return STATUS_OK
-    
-    def commit(self) -> bool:
-        return STATUS_OK
-    
-    
-    
+
+class DNSMasqGlobalService(DNSMasqService):
+    """
+    Class for controlling the DNSMasq Interface Service.
+
+    Args:
+        dhcp_pool_name (str): Name of the DHCP pool.
+        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
+        negate (bool): Whether to negate the configuration (default: False).
+
+    Attributes:
+        dhcp_pool_name (str): Name of the DHCP pool.
+        dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
+        negate (bool): Whether to negate the configuration.
+
+    Example:
+        service = DNSMasqService("home", "192.168.1.0/24")
+    """
+
+    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)    

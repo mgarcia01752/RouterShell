@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict, List
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
@@ -162,12 +162,104 @@ class DHCPServerDatabase:
     def get_global_options(self) -> List[List]:
         return []
 
-    def get_dhcp_pool_inet_range(dhcp_pool_name:str) -> List[List]:
-        return []
-    
-    def get_dhcp_pool_reservation(dhcp_pool_name:str) -> List[List]:
-        return []
-    
-    def get_dhcp_pool_options(dhcp_pool_name:str) -> List[List]:
-        return []
+    def get_dhcp_poll_interfaces_db(self, dhcp_pool_name: str) -> List[Dict]:
+        """
+        Retrieve the interfaces associated with a DHCP pool name from the database.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool.
+
+        Returns:
+            List[Dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
+            or an empty list if none are found.
+        """
+        sql_result = RSDB().get_dhcp_pool_interfaces(dhcp_pool_name)
+        results = []
+
+        for result in sql_result:
+            if result.status == STATUS_OK:
+                result_data = result.result
+                entry = {
+                    'interface_name': result_data['interface_name'],
+                }
+                results.append(entry)
+
+        return results
+
+    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> List[Dict]:
+
+        sql_result = RSDB().get_dhcp_pool_inet_range(dhcp_pool_name)
+
+        results = []
+
+        for result in sql_result:
+            if result.status == STATUS_OK:
+
+                result_data = result.result
+                entry = {
+                    'inet_start': result_data['inet_start'],
+                    'inet_end': result_data['inet_end'],
+                    'inet_subnet': result_data['inet_subnet'],
+                }
+                results.append(entry)
+
+        return results
+
+    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> List[Dict]:
+
+        sql_result = RSDB().get_dhcp_pool_inet_range(dhcp_pool_name)
+
+        results = []
+
+        for result in sql_result:
+            if result.status == STATUS_OK:
+                # Extract relevant data and create a dictionary
+                result_data = result.result
+                entry = {
+                    'inet_start': result_data['inet_start'],
+                    'inet_end': result_data['inet_end'],
+                    'inet_subnet': result_data['inet_subnet'],
+                }
+                results.append(entry)
+
+        return results
+
+    def get_dhcp_pool_reservation_db(self, dhcp_pool_name: str) -> List[Dict]:
+
+        sql_result = RSDB().get_dhcp_pool_reservation(dhcp_pool_name)
+
+        results = []
+
+        # Process the sql_result and format it into a list of dictionaries
+        for result in sql_result:
+            if result.status == STATUS_OK:
+                # Extract relevant data and create a dictionary
+                result_data = result.result
+                entry = {
+                    'mac_address': result_data['mac_address'],
+                    'ip_address': result_data['ip_address'],
+                }
+                results.append(entry)
+
+        return results
+
+    def get_dhcp_pool_options_db(self, dhcp_pool_name: str) -> List[Dict]:
+        # Call the get_dhcp_pool_options function to retrieve data from the database
+        sql_result = self.get_dhcp_pool_options(dhcp_pool_name)
+
+        results = []
+
+        # Process the sql_result and format it into a list of dictionaries
+        for result in sql_result:
+            if result.status == STATUS_OK:
+                # Extract relevant data and create a dictionary
+                result_data = result.result
+                entry = {
+                    'option': result_data['option'],
+                    'value': result_data['value'],
+                }
+                results.append(entry)
+
+        return results
+
     
