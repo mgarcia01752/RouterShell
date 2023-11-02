@@ -179,35 +179,45 @@ class DNSMasqInterfaceService(DNSMasqService):
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
         print(interface_names)
-        '''
-        # Set the listen interfaces in DNSMasq
-        self.dns_masq_config.set_listen_interfaces(interface_names)
 
+ 
         # Get the DHCP pool ranges
         dhcp_pool_ranges = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
-
-        # Enable DHCP server with netmask in DNSMasq
-        for range_start, range_end, netmask in dhcp_pool_ranges:
-            self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask)
+        print(dhcp_pool_ranges)
 
         # Get the DHCP host reservations
         dhcp_hosts = self.dhcp_srv_db.get_dhcp_pool_reservation_db(self.dhcp_pool_name)
+        print(dhcp_hosts)
+        
 
-        # Add DHCP host reservations to DNSMasq
-        for host in dhcp_hosts:
-            if len(host) == 3:
-                ethernet_address, ip_address, lease_time = host
-                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
-            else:
-                ethernet_address, ip_address = host
-                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)
 
+
+        # Set the listen interfaces in DNSMasq
+        self.dns_masq_config.set_listen_interfaces(interface_names)
+       
+        # Enable DHCP server with netmask in DNSMasq
+        for range_start, range_end, netmask in dhcp_pool_ranges:
+            self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, 86400)
+ 
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)
         for option in dhcp_pool_options:
             option_code = DHCPOptionLookup.get_dhcpv4_option_code(option['Name'])
             if option_code is not None:
                 self.dns_masq_config.add_dhcp_option(option_code, option['Value'])
+        
+        '''                
+         # Add DHCP host reservations to DNSMasq
+        for host in dhcp_hosts:
+            if len(host) == 3:
+                print(host)
+                ethernet_address, ip_address, lease_time = host
+                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
+            else:
+                print(host)
+                ethernet_address, ip_address = host
+                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)               
+                
         '''
         # Configuration built successfully
         return True

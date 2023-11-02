@@ -1656,7 +1656,7 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             for id , mac, inet_address in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, result={'MacAddress': mac, 'InetAddress': inet_address}))
+                results.append(Result(status=STATUS_OK, row_id=id, result={'mac_address': mac, 'inet_address': inet_address}))
 
             return results
 

@@ -174,9 +174,7 @@ class DHCPServerDatabase:
             or an empty list if none are found.
         """
         sql_result = RSDB().get_dhcp_pool_interfaces(dhcp_pool_name)
-        
-        print(f"get_dhcp_poll_interfaces_db() SQL-Result: {sql_result[0]}")
-        
+                
         results = []
 
         for result in sql_result:
@@ -190,33 +188,24 @@ class DHCPServerDatabase:
         return results
 
     def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> List[Dict]:
+        """
+        Retrieve the DHCP pool's internet range information from the database.
 
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to query.
+
+        Returns:
+            List[Dict]: A list of dictionaries containing internet range information.
+                Each dictionary has the following keys:
+                - 'inet_start' (str): The start of the internet range.
+                - 'inet_end' (str): The end of the internet range.
+                - 'inet_subnet' (str): The subnet of the internet range.
+        """
         sql_result = RSDB().get_dhcp_pool_inet_range(dhcp_pool_name)
-
         results = []
 
         for result in sql_result:
             if result.status == STATUS_OK:
-
-                result_data = result.result
-                entry = {
-                    'inet_start': result_data['inet_start'],
-                    'inet_end': result_data['inet_end'],
-                    'inet_subnet': result_data['inet_subnet'],
-                }
-                results.append(entry)
-
-        return results
-
-    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> List[Dict]:
-
-        sql_result = RSDB().get_dhcp_pool_inet_range(dhcp_pool_name)
-
-        results = []
-
-        for result in sql_result:
-            if result.status == STATUS_OK:
-                # Extract relevant data and create a dictionary
                 result_data = result.result
                 entry = {
                     'inet_start': result_data['inet_start'],
@@ -228,34 +217,50 @@ class DHCPServerDatabase:
         return results
 
     def get_dhcp_pool_reservation_db(self, dhcp_pool_name: str) -> List[Dict]:
+        """
+        Retrieve the DHCP pool's reservation information from the database.
 
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to query.
+
+        Returns:
+            List[Dict]: A list of dictionaries containing reservation information.
+                Each dictionary has the following keys:
+                - 'mac_address' (str): The MAC address of the reserved device.
+                - 'inet_address' (str): The internet address reserved for the device.
+        """
         sql_result = RSDB().get_dhcp_pool_reservation(dhcp_pool_name)
-
         results = []
 
-        # Process the sql_result and format it into a list of dictionaries
         for result in sql_result:
             if result.status == STATUS_OK:
-                # Extract relevant data and create a dictionary
                 result_data = result.result
                 entry = {
                     'mac_address': result_data['mac_address'],
-                    'ip_address': result_data['ip_address'],
+                    'inet_address': result_data['inet_address'],
                 }
                 results.append(entry)
 
         return results
 
     def get_dhcp_pool_options_db(self, dhcp_pool_name: str) -> List[Dict]:
-        # Call the get_dhcp_pool_options function to retrieve data from the database
-        sql_result = self.get_dhcp_pool_options(dhcp_pool_name)
+        """
+        Retrieve the DHCP pool's options information from the database.
 
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to query.
+
+        Returns:
+            List[Dict]: A list of dictionaries containing DHCP options information.
+                Each dictionary has the following keys:
+                - 'option' (str): The DHCP option.
+                - 'value' (str): The value associated with the option.
+        """
+        sql_result = RSDB().get_dhcp_pool_options(dhcp_pool_name)
         results = []
 
-        # Process the sql_result and format it into a list of dictionaries
         for result in sql_result:
             if result.status == STATUS_OK:
-                # Extract relevant data and create a dictionary
                 result_data = result.result
                 entry = {
                     'option': result_data['option'],
