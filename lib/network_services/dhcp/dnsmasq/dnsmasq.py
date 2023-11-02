@@ -4,6 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.common.run_commands import RunResult
 from lib.network_manager.network_manager import NetworkManager
+from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
@@ -46,6 +47,11 @@ class DNSMasqExitCode(Enum):
         else:
             raise ValueError("Invalid DNSMasq exit code")
 
+class Action(Enum):
+    START = 'start'
+    RESTART = 'restart'
+    STOP = 'stop'
+
 class DNSMasqService(NetworkManager):
     """
     Class for controlling the DNSMasq demon service.
@@ -57,6 +63,27 @@ class DNSMasqService(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DNSMASQ_SERVICE)
         
+    def control_service(self, action: Action) -> bool:
+        """
+        Control the DNSMasq service.
+
+        Args:
+            action (Action): The action to perform (Action.START, Action.RESTART, or Action.STOP).
+
+        Returns:
+            bool: True if the service was controlled successfully, False otherwise.
+        """
+        if action not in Action:
+            raise ValueError("Invalid action")
+
+        cmd = ['systemctl', action.value, 'dnsmasq']
+        cmd_result = self.run(cmd)
+        
+        if cmd_result.exit_code:
+            self.log.error(f"Failed to {action.value} DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
+            return STATUS_NOK
+        
+        return STATUS_OK
         
     def start_dnsmasq(self) -> bool:
         """
@@ -140,32 +167,32 @@ class DNSMasqInterfaceService(DNSMasqService):
 
     
     def build_interface_configuration(self) -> bool:
-        '''
+        """
         Build the interface configuration for DNSMasq.
 
-        This method configures DNSMasq for the specified DHCP pool by setting the listen interfaces, DHCP pool ranges,
-        and DHCP host reservations.
+        This method configures DNSMasq for the specified DHCP pool by setting the listen interfaces,
+        DHCP pool ranges, and DHCP host reservations.
 
         Returns:
-            bool: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
-        '''
+            bool: True if the configuration was successfully built, False otherwise.
+        """
 
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_pool_interfaces_db(self.dhcp_pool_name)
-        
+
         # Set the listen interfaces in DNSMasq
         self.dns_masq_config.set_listen_interfaces(interface_names)
-        
+
         # Get the DHCP pool ranges
-        dhcp_pool_range = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
-        
+        dhcp_pool_ranges = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
+
         # Enable DHCP server with netmask in DNSMasq
-        for range_start, range_end, netmask in dhcp_pool_range:
+        for range_start, range_end, netmask in dhcp_pool_ranges:
             self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask)
-        
+
         # Get the DHCP host reservations
         dhcp_hosts = self.dhcp_srv_db.get_dhcp_pool_reservation_db(self.dhcp_pool_name)
-        
+
         # Add DHCP host reservations to DNSMasq
         for host in dhcp_hosts:
             if len(host) == 3:
@@ -175,8 +202,16 @@ class DNSMasqInterfaceService(DNSMasqService):
                 ethernet_address, ip_address = host
                 self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)
 
+        # Get DHCP pool options and add them to DNSMasq
+        dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)
+        for option in dhcp_pool_options:
+            option_code = DHCPOptionLookup.get_dhcpv4_option_code(option['Name'])
+            if option_code is not None:
+                self.dns_masq_config.add_dhcp_option(option_code, option['Value'])
+
         # Configuration built successfully
-        return STATUS_OK
+        return True
+
 
     
     def deploy_configuration(self) -> bool:
