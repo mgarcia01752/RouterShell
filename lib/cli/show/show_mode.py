@@ -18,7 +18,7 @@ from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
 from lib.common.constants import *
-from lib.hardware.network_hardware import NetworkHardware
+from lib.hardware.hardware_detection import HardwareDetection
 
 
 class InvalidShowMode(Exception):
@@ -163,22 +163,11 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug(f"Show hardware-{hardware_type}")
 
             if hardware_type == 'cpu':
-                pass
+                print(HardwareDetection().hardware_cpu())
+                return
+                
             elif hardware_type == 'network':
-                
-                net_hw = NetworkHardware().hardware_network()
-
-                headers = ['Logical Name', 'Bus Info', 'Serial', 'Capacity', 'Type']
-                table_data = [[
-                    interface['Logical Name'],
-                    interface['Bus Info'],
-                    interface['Serial'],
-                    interface['Capacity'],
-                    interface['Type']
-                ] for interface in net_hw]
-
-                print(tabulate(table_data, headers, tablefmt='simple'))
-                
+                print(HardwareDetection().hardware_network())
                 return
                         
         elif args.subcommand == 'ip':
