@@ -1604,7 +1604,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP pool interfaces. Error: {str(e)}")]
 
-
     def get_dhcp_pool_inet_range(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve the IP address range associated with a DHCP pool name from the database.

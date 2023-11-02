@@ -59,6 +59,8 @@ class RouterShellLoggingGlobalSettings():
     NAT_DB                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     NAT_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
+    HARDWARE_NETWORK            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
     VLAN                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     

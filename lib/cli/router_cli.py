@@ -104,6 +104,7 @@ class RouterCLI(cmd2.Cmd,
             list[str]: List of completions that start with the provided text.
         """
         show_commands = ['arp', 'bridge', 'interfaces', 'route']
+        show_commands.extend(['hardware'])
         show_commands.extend(['nat', 'nat-db', 'vlan', 'vlan-db'])
         return [cmd for cmd in show_commands if cmd.startswith(text)]
     
@@ -114,12 +115,13 @@ class RouterCLI(cmd2.Cmd,
         Args:
             arg (str): Command arguments.
             
-            show arp        (Implemented)
-            show bridge     (Implemented)
-            show interface  (Implemented)
-            show vlan       (Implemented)
-            show vlan-db    (Implemented)
-            show route      (Implemented)
+            show arp                        (Implemented)
+            show bridge                     (Implemented)
+            show interface                  (Implemented)
+            show hardware [cpu | *network]  (Implemented)
+            show vlan                       (Implemented)
+            show vlan-db                    (Implemented)
+            show route                      (Implemented)
             show ip route
             show ip6 route
             show ip interface

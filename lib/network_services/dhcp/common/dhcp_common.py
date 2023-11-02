@@ -7,8 +7,10 @@ class DHCPVersion(Enum):
 class DHCPOptionLookup:
     
     def __init__(self):
-
-    '''https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#id2'''    
+        pass
+        
+    '''https://kea.readthedocs.io/en/latest/arm/dhcp4-srv.html#id2'''
+        
     dhcpv4_option_lookup = {
         2: {"Name": "time-offset", "Type": "int32", "Array": False, "Returned if not requested": False},
         3: {"Name": "routers", "Type": "ipv4-address", "Array": True, "Returned if not requested": True},

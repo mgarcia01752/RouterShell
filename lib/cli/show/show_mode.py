@@ -3,6 +3,8 @@ import cmd2
 import logging
 import argparse
 
+from tabulate import tabulate
+
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
@@ -16,6 +18,7 @@ from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
 from lib.common.constants import *
+from lib.network_hardware.interface import NetworkHardware
 
 class InvalidShowMode(Exception):
     def __init__(self, message):
@@ -50,19 +53,19 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         Args:
             arg (str): Command arguments.
             
-            show arp                (Implemented)
-            show bridge             (Implemented)
-            show interface          (Implemented)
+            show arp                        (Implemented)
+            show bridge                     (Implemented)
+            show interface                  (Implemented)
+            show hardware [cpu | network]
             show nat
             show nat-db
-            show vlan               (Implemented)
+            show vlan                       (Implemented)
             show vlan database
-            show route              (Implemented)
+            show route                      (Implemented)
             show ip route
             show ip6 route
             show ip interface
-            show if-db              (Implemented)
-            
+            show if-db                      (Implemented)
             show wireless
             
         """  
@@ -94,7 +97,15 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         show_interfaces_parser = show_parser.add_parser("interfaces",
             help="Display information about network interfaces."
         )
-
+        
+        show_hardware_parser = show_parser.add_parser("hardware",
+            help="Display information about network interfaces."
+        )
+        
+        show_hardware_parser.add_argument("hardware_type", choices=['cpu', 'network'],
+            help="Specify hardware type"
+        )
+        
         show_ip_parser = show_parser.add_parser("ip",
             help="Display IP-related information."
         )
@@ -110,7 +121,6 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         show_nat_db = show_parser.add_parser("nat-db",
                                             help="Display the NAT pool database."
         )
-        # show_parser.add_argument("arp", help="show arp")
 
         show_vlan_parser = show_parser.add_parser("vlan",
             help="Display information about VLANs."
@@ -131,7 +141,6 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         try:
             args = parser.parse_args(args.split())
         except SystemExit:
-            # In this case, just return without taking any action.
             return
 
         if args.subcommand == 'arp':
@@ -146,6 +155,31 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug("Show interfaces command")
             InterfaceShow().show_ip_interface_brief()
             return
+            
+        elif args.subcommand == 'hardware':
+
+            hardware_type = args.hardware_type
+            self.log.debug(f"Show hardware-{hardware_type}")
+
+            if hardware_type == 'cpu':
+                pass
+            elif hardware_type == 'network':
+                
+                net_hw = NetworkHardware().hardware_network()
+
+                headers = ['Logical Name', 'Bus Info', 'Serial', 'Capacity', 'Type']
+                table_data = [[
+                    interface['Logical Name'],
+                    interface['Bus Info'],
+                    interface['Serial'],
+                    interface['Capacity'],
+                    interface['Type']
+                ] for interface in net_hw]
+
+                print(tabulate(table_data, headers, tablefmt='simple'))
+                
+                return
+                        
         elif args.subcommand == 'ip':
             self.log.debug("Show ip command")
             return

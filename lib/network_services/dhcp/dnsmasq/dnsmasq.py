@@ -2,7 +2,6 @@ from enum import Enum
 import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase
-from lib.network_manager.common.run_commands import RunResult
 from lib.network_manager.network_manager import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
