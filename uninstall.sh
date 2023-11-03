@@ -17,8 +17,8 @@ for package in $packages_to_uninstall; do
 done
 
 # Uninstall pip
-echo "Uninstalling pip..."
-pip uninstall pip -y
+echo "Uninstalling pip3..."
+pip uninstall pip3 -y
 
 # Remove the added PATH from .bashrc
 sed -i '/export PATH=\$HOME\/.local\/bin:\$PATH/d' ~/.bashrc
