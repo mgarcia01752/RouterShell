@@ -21,7 +21,7 @@ class Result:
         status (bool): A boolean indicating the operation's success: STATUS_OK (0) for success, STATUS_NOK (1) for failure.
         row_id (int, optional): The row ID associated with the database operation.
         reason (str, optional): An optional result message that provides additional information about the operation.
-        result (str, optional): SQL query result
+        result (str, optional): SQL query result Dict{key:value}
 
     Example:
     You can use the Result class to handle the outcome of database operations, such as insertions, updates, or deletions.
@@ -51,6 +51,23 @@ class Result:
     
     def __str__(self):
         return f"Status: {self.status}, Row ID: {self.row_id}, Reason: {self.reason}, Result: {self.result}"
+
+    def sql_result_to_value_list(results:list) -> List[List]:
+        """
+        Extract values from a list of Result objects into a list of lists for Result objects with a 'result' attribute containing a dictionary.
+
+        Args:
+            results (List[Result]): A list of Result objects.
+
+        Returns:
+            List[List]: A list of lists containing values from Result objects with a 'result' attribute containing a dictionary.
+        """
+        value_lists = []
+        for result in results:
+            if result.result and isinstance(result.result, dict):
+                value_list = list(result.result.values())
+                value_lists.append(value_list)
+        return value_lists
 
 class RouterShellDB(metaclass=Singleton):
     
@@ -291,7 +308,8 @@ class RouterShellDB(metaclass=Singleton):
                         VLAN DATABASE
     '''
     
-    def vlan_id_exists(self, vlan_id: int) -> bool:
+
+    def vlan_id_exists(self, vlan_id: int) -> Result:
         """
         Check if a VLAN with the given ID exists in the database.
 
@@ -299,16 +317,21 @@ class RouterShellDB(metaclass=Singleton):
             vlan_id (int): The unique ID of the VLAN to check.
 
         Returns:
-            bool: True if the VLAN with the given ID exists, False otherwise.
+            Result: A Result object indicating the operation's success or failure.
         """
         try:
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM Vlans WHERE ID = ?", (vlan_id,))
             result = cursor.fetchone()
-            return result is not None
+            
+            if result is not None:
+                return Result(status=True, row_id=result[0])
+            else:
+                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"VLAN with ID {vlan_id} not found")
+
         except sqlite3.Error as e:
             self.log.error("Error checking VLAN existence: %s", e)
-            return False
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
     def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
@@ -341,7 +364,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error inserting data into 'Vlans': %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=str(e))
 
-    def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> bool:
+    def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> Result:
         """
         Update the Vlan-Name of a VLAN in the database.
 
@@ -350,7 +373,7 @@ class RouterShellDB(metaclass=Singleton):
             vlan_name (str): The new VLAN name for the VLAN.
 
         Returns:
-            bool: STATUS_OK if the update is successful, STATUS_NOK if it fails.
+            Result: A Result object indicating the operation's success or failure and the affected row_id.
         """
         try:
             cursor = self.connection.cursor()
@@ -359,13 +382,14 @@ class RouterShellDB(metaclass=Singleton):
                 (vlan_name, vlan_id)
             )
             self.connection.commit()
+            row_id = cursor.lastrowid  # Retrieve the row_id of the affected row
             self.log.debug(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
-            return STATUS_OK
+            return Result(success=STATUS_OK, row_id=row_id, result=f"VLAN Name updated successfully: {vlan_name}")
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN name: %s", e)
-            return STATUS_NOK
+            return Result(success=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
-    def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> bool:
+    def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> Result:
         """
         Update the description of a VLAN in the database.
 
@@ -374,7 +398,7 @@ class RouterShellDB(metaclass=Singleton):
             vlan_description (str): The new description for the VLAN.
 
         Returns:
-            bool: STATUS_OK if the update is successful, STATUS_NOK if it fails.
+            Result: A Result object indicating the operation's success or failure and the affected row.
         """
         try:
             cursor = self.connection.cursor()
@@ -383,13 +407,16 @@ class RouterShellDB(metaclass=Singleton):
                 (vlan_description, vlan_id)
             )
             self.connection.commit()
+            cursor.execute("SELECT * FROM Vlans WHERE ID = ?", (vlan_id,))
+            updated_row = cursor.fetchone()
+
             self.log.debug(f"Description of VLAN {vlan_id} updated successfully.")
-            return STATUS_OK
+            return Result(success=STATUS_OK, row_id=updated_row, result=f"Description of VLAN {vlan_id} updated successfully")
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN description: %s", e)
-            return STATUS_NOK
+            return Result(success=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
-    def insert_vlan_interface(self, id: int, vlan_name: str, interface_fk: int, bridge_fk: int):
+    def insert_vlan_interface(self, id: int, vlan_name: str, interface_fk: int, bridge_fk: int) -> Result:
         """
         Insert data into the 'VlanInterfaces' table.
 
@@ -399,8 +426,8 @@ class RouterShellDB(metaclass=Singleton):
             interface_fk (int): The foreign key referencing an interface.
             bridge_fk (int): The foreign key referencing a bridge.
 
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
+        Returns:
+            Result: A Result object indicating the operation's success or failure and the affected row.
         """
         try:
             cursor = self.connection.cursor()
@@ -409,9 +436,15 @@ class RouterShellDB(metaclass=Singleton):
                 (id, vlan_name, interface_fk, bridge_fk)
             )
             self.connection.commit()
+            
+            cursor.execute("SELECT * FROM VlanInterfaces WHERE ID = ?", (id,))
+            updated_row = cursor.fetchone()
+
             self.log.debug("Data inserted into the 'VlanInterfaces' table successfully.")
+            return Result(success=STATUS_OK, row_id=updated_row, result=f"Data inserted into 'VlanInterfaces' table successfully")
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'VlanInterfaces': %s", e)
+            return Result(success=STATUS_NOK, row_id=id, reason=str(e))
 
     def show_vlans(self):
         try:

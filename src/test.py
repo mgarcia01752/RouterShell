@@ -8,3 +8,5 @@ subnet = '172.16.1.0/24'
 dmis = DNSMasqInterfaceService(pool, subnet)
 
 dmis.build_interface_configuration()
+
+dmis.deploy_configuration()

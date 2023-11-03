@@ -1,5 +1,7 @@
 from enum import Enum
 import logging
+import os
+from shutil import copy
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_manager import NetworkManager
@@ -178,9 +180,8 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
-        print(interface_names)
+        print(f"{interface_names} -> {interface_names[0].values}")
 
- 
         # Get the DHCP pool ranges
         dhcp_pool_ranges = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
         print(dhcp_pool_ranges)
@@ -188,17 +189,15 @@ class DNSMasqInterfaceService(DNSMasqService):
         # Get the DHCP host reservations
         dhcp_hosts = self.dhcp_srv_db.get_dhcp_pool_reservation_db(self.dhcp_pool_name)
         print(dhcp_hosts)
-        
-
-
 
         # Set the listen interfaces in DNSMasq
-        self.dns_masq_config.set_listen_interfaces(interface_names)
-       
-        # Enable DHCP server with netmask in DNSMasq
-        for range_start, range_end, netmask in dhcp_pool_ranges:
+        for interface_name in interface_names:
+            self.dns_masq_config.set_listen_interfaces(list(interface_name.values()))
+
+        for entry in dhcp_pool_ranges:
+            range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
             self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, 86400)
- 
+
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)
         for option in dhcp_pool_options:
@@ -206,29 +205,48 @@ class DNSMasqInterfaceService(DNSMasqService):
             if option_code is not None:
                 self.dns_masq_config.add_dhcp_option(option_code, option['Value'])
         
-        '''                
-         # Add DHCP host reservations to DNSMasq
+        # Add DHCP host reservations to DNSMasq
         for host in dhcp_hosts:
             if len(host) == 3:
                 print(host)
-                ethernet_address, ip_address, lease_time = host
+                ethernet_address, ip_address, lease_time = host.values()
                 self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
             else:
                 print(host)
-                ethernet_address, ip_address = host
+                ethernet_address, ip_address = host.values()
                 self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)               
-                
-        '''
-        # Configuration built successfully
-        return True
-
-
+        
+        print(self.dns_masq_config.generate_configuration())
+        
+        return STATUS_OK
     
     def deploy_configuration(self) -> bool:
+        # Generate the DNSMasq configuration
+        config_text = self.dns_masq_config.generate_configuration()
+
+        # Ensure a valid DHCP pool name is available
+        if not self.dhcp_pool_name:
+            return STATUS_NOK
+
+        # Define the filename based on the DHCP pool name
+        filename = f"{self.dhcp_pool_name}_dnsmasq.conf"
+
+        # Define the destination directory as the typical DNSMasq directory
+        destination_dir = "/etc/dnsmasq.d"
+
+        # Define the full path of the destination file
+        destination_file = os.path.join(destination_dir, filename)
+
+        # If the file already exists, remove it
+        if os.path.exists(destination_file):
+            os.remove(destination_file)
+
+        # Write the configuration to the file
+        with open(destination_file, "w") as file:
+            file.write(config_text)
+
         return STATUS_OK
-    
-    def delete_configuration(self) -> bool:
-        return STATUS_OK
+
     
 
 class DNSMasqGlobalService(DNSMasqService):

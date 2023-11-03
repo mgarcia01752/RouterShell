@@ -55,7 +55,7 @@ class VLANDatabase():
             Result: 
 
         """
-        return cls.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description)
+        return cls.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description).status
 
     def vlan_exists(cls, vlan_id: int) -> bool:
         """
@@ -68,7 +68,7 @@ class VLANDatabase():
         Returns:
             bool: True if a VLAN with the given ID exists, False otherwise.
         """
-        return cls.rsdb.vlan_id_exists(vlan_id)
+        return cls.rsdb.vlan_id_exists(vlan_id).status
 
     def get_vlan_name(cls, vlan_id: int) -> Result:
         """
@@ -103,7 +103,7 @@ class VLANDatabase():
             bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
         """
         
-        if cls.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name) == STATUS_OK:
+        if cls.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name).status == STATUS_OK:
             cls.log.info(f"update_vlan_name_via_vlanID() -> Vlan-Name: {vlan_name} updated successfully.")
             return Result(STATUS_OK, vlan_name)
         else:
