@@ -12,7 +12,7 @@ if [ "$EUID" -ne 0 ]; then
     pip3_packages=("tabulate" "prettytable" "argcomplete" "cmd2")
     for package in "${pip3_packages[@]}"; do
         if pip3 show "$package" &>/dev/null; then
-            echo "$package is already installed."
+            echo
         else
             pip3 install "$package"
             echo "$package installed successfully."
@@ -35,4 +35,4 @@ mkdir -m 775 -p /tmp/log
 # Set the owner and group to the current user
 sudo chown "$current_user":"$current_user" /tmp/log
 
-# Run your Python scripts here (e.g., src/main.py, src/test.py)
+src/main.py
