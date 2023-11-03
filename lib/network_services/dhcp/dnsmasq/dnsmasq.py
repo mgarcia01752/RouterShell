@@ -153,6 +153,7 @@ class DNSMasqInterfaceService(DNSMasqService):
 
     DNSMASQ_FILENAME_SUFFIX = '_dnsmasq.conf'
     DNSMASQ_CONFIG_DIR = '/etc/dnsmasq.d'
+    DEFAULT_LEASE_TIME = 86400
 
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
@@ -179,15 +180,15 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
-        print(f"{interface_names} -> {interface_names[0].values}")
+        self.log.debug(f"{interface_names} -> {interface_names[0].values}")
 
         # Get the DHCP pool ranges
         dhcp_pool_ranges = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
-        print(dhcp_pool_ranges)
+        self.log.debug(dhcp_pool_ranges)
 
         # Get the DHCP host reservations
         dhcp_hosts = self.dhcp_srv_db.get_dhcp_pool_reservation_db(self.dhcp_pool_name)
-        print(dhcp_hosts)
+        self.log.debug(dhcp_hosts)
 
         # Set the listen interfaces in DNSMasq
         for interface_name in interface_names:
@@ -195,7 +196,7 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         for entry in dhcp_pool_ranges:
             range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
-            self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, 86400)
+            self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
 
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)
@@ -215,7 +216,7 @@ class DNSMasqInterfaceService(DNSMasqService):
                 ethernet_address, ip_address = host.values()
                 self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)               
         
-        print(self.dns_masq_config.generate_configuration())
+        self.log.debug(self.dns_masq_config.generate_configuration())
         
         return STATUS_OK
     
@@ -272,7 +273,6 @@ class DNSMasqInterfaceService(DNSMasqService):
                 return STATUS_NOK
 
         return STATUS_OK
-
 
 class DNSMasqGlobalService(DNSMasqService):
     """
