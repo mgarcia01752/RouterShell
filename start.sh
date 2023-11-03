@@ -9,7 +9,15 @@ if [ "$EUID" -ne 0 ]; then
     fi
 
     # Install Python packages if not running as root
-    pip3 install tabulate prettytable argcomplete cmd2
+    pip3_packages=("tabulate" "prettytable" "argcomplete" "cmd2")
+    for package in "${pip3_packages[@]}"; do
+        if pip3 show "$package" &>/dev/null; then
+            echo "$package is already installed."
+        else
+            pip3 install "$package"
+            echo "$package installed successfully."
+        fi
+    done
 else
     echo "Please do not run this script as root. Run it as a regular user."
     exit 1
@@ -24,8 +32,7 @@ current_user="$(whoami)"
 # Create the directory
 mkdir -m 775 -p /tmp/log
 
-# Set the owner and group to the current userq  
+# Set the owner and group to the current user
 sudo chown "$current_user":"$current_user" /tmp/log
 
-src/main.py
-# src/test.py
+# Run your Python scripts here (e.g., src/main.py, src/test.py)
