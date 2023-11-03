@@ -74,9 +74,7 @@ If you have any questions or need further assistance, please feel free to reach 
 
 ## Running RouterShell (Temporary until install script is ready)
 
-```bash
-./install.sh
-```
+[README INSTALLATION](install/README.md)
 
 ## Run RouterShell
 
