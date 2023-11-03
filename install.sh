@@ -36,7 +36,7 @@ fi
 # Detect the Linux distribution
 if [[ -f /etc/os-release ]]; then
     source /etc/os-release
-    case "$ID" in
+    case "$ID_LIKE" in
         ubuntu|debian)
             package_manager="apt"
             ;;
