@@ -33,8 +33,7 @@ fi
 case "$package_manager" in
     apt|yum|zypper)
         $package_manager update
-        $package_manager install -y net-tools traceroute bridge-utils ethtool iproute2 hostapd iw openssl python3 dnsmasq
-        pip3 install tabulate prettytable argcomplete cmd2
+        $package_manager install -y net-tools traceroute bridge-utils ethtool iproute2 hostapd iw openssl python3 pip dnsmasq
         ;;
     *)
         echo "Unsupported package manager for additional setup steps."
@@ -42,7 +41,20 @@ case "$package_manager" in
         ;;
 esac
 
-echo "Setup completed successfully."
+# Check if the script is run as root
+if [ "$EUID" -ne 0 ]; then
+    # Check if pip3 is installed
+    if ! command -v pip3 &>/dev/null; then
+        echo "pip3 is not installed. Please install it before running this script."
+        exit 1
+    fi
+
+    # Install Python packages if not running as root
+    pip3 install tabulate prettytable argcomplete cmd2
+else
+    echo "Please do not run this script as root. Run it as a regular user."
+    exit 1
+fi
 
 # Get the absolute path to the project's root directory
 ROUTERSHELL_PROJECT_ROOT="${PWD}"
