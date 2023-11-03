@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 import logging
 import os
 from shutil import copy
@@ -51,6 +51,10 @@ class Action(Enum):
     START = 'start'
     RESTART = 'restart'
     STOP = 'stop'
+
+class DNSMasqDeploy(Enum):
+    GLOBAL = auto()
+    INTERFACE = auto()
 
 class DNSMasqService(NetworkManager):
     """
@@ -152,8 +156,10 @@ class DNSMasqInterfaceService(DNSMasqService):
     """
 
     DNSMASQ_FILENAME_SUFFIX = '_dnsmasq.conf'
+    DNSMASQ_GLOBAL_FILENAME = 'dnsmasq.conf'
     DNSMASQ_CONFIG_DIR = '/etc/dnsmasq.d'
     DEFAULT_LEASE_TIME = 86400
+    DEFAULT_DNS_LISTEN_PORT=5353
 
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
@@ -164,9 +170,14 @@ class DNSMasqInterfaceService(DNSMasqService):
         self.dhcp_pool_subnet = dhcp_pool_subnet
         self.negate = negate
                 
-        self.dns_masq_config = DNSMasqConfigurator()
+        self.d_masq_if_config = DNSMasqConfigurator()
+        self.d_masq_global_config = DNSMasqConfigurator()
         self.dhcp_srv_db = DHCPServerDatabase()
 
+    def build_global_configuration(self) -> bool:
+        self.d_masq_global_config.add_listen_port(self.DEFAULT_DNS_LISTEN_PORT)
+        return STATUS_OK
+    
     def build_interface_configuration(self) -> bool:
         """
         Build the interface configuration for DNSMasq.
@@ -192,66 +203,74 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         # Set the listen interfaces in DNSMasq
         for interface_name in interface_names:
-            self.dns_masq_config.set_listen_interfaces(list(interface_name.values()))
+            self.d_masq_if_config.set_listen_interfaces(list(interface_name.values()))
 
         for entry in dhcp_pool_ranges:
             range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
-            self.dns_masq_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
+            self.d_masq_if_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
 
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)
         for option in dhcp_pool_options:
             option_code = DHCPOptionLookup.get_dhcpv4_option_code(option['Name'])
             if option_code is not None:
-                self.dns_masq_config.add_dhcp_option(option_code, option['Value'])
+                self.d_masq_if_config.add_dhcp_option(option_code, option['Value'])
         
         # Add DHCP host reservations to DNSMasq
         for host in dhcp_hosts:
             if len(host) == 3:
                 print(host)
                 ethernet_address, ip_address, lease_time = host.values()
-                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
+                self.d_masq_if_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
             else:
                 print(host)
                 ethernet_address, ip_address = host.values()
-                self.dns_masq_config.add_dhcp_host(ethernet_address, ip_address)               
+                self.d_masq_if_config.add_dhcp_host(ethernet_address, ip_address)               
         
-        self.log.debug(self.dns_masq_config.generate_configuration())
+        self.log.debug(self.d_masq_if_config.generate_configuration())
         
         return STATUS_OK
     
-    def deploy_configuration(self) -> bool:
+    def deploy_configuration(self, deploy_type: DNSMasqDeploy) -> bool:
         """
         Deploy the DNSMasq configuration.
 
+        Args:
+            deploy_type (DNSMasqDeploy): The type of DNSMasq configuration to deploy (DNSMasqDeploy.GLOBAL or DNSMasqDeploy.INTERFACE).
+
         Returns:
-            bool: STATUS_OK if the configuration was successfully deployed, STATUS_NOK otherwise.
+            bool: True if the configuration was successfully deployed, False otherwise.
         """
-        # Generate the DNSMasq configuration
-        config_text = self.dns_masq_config.generate_configuration()
+        if deploy_type == DNSMasqDeploy.GLOBAL:
+            configurator = self.d_masq_global_config
+        elif deploy_type == DNSMasqDeploy.INTERFACE:
+            configurator = self.d_masq_if_config
+        else:
+            raise ValueError("Invalid deployment type")
 
-        # Ensure a valid DHCP pool name is available
-        if not self.dhcp_pool_name:
-            return STATUS_NOK
+        # Generate the DNSMasq INTERFACE/GLOBAL configuration
+        config_text = configurator.generate_configuration()
 
-        # Define the filename based on the DHCP pool name
-        filename = f"{self.dhcp_pool_name}{self.DNSMASQ_FILENAME_SUFFIX}"
+        if deploy_type == DNSMasqDeploy.GLOBAL:
+            filename = f"{self.DNSMASQ_GLOBAL_FILENAME}"
+        elif deploy_type == DNSMasqDeploy.INTERFACE:
+            if not self.dhcp_pool_name:
+                self.log.error("Unable to create DNSMasq Configuration, DHCP-pool undefined")
+                return STATUS_NOK
+            filename = f"{self.dhcp_pool_name}{self.DNSMASQ_FILENAME_SUFFIX}"
+        else:
+            raise ValueError("Invalid deployment type")
 
-        # Define the destination directory as the typical DNSMasq directory
-        destination_dir = self.DNSMASQ_CONFIG_DIR
+        destination_file = os.path.join(self.DNSMASQ_CONFIG_DIR, filename)
 
-        # Define the full path of the destination file
-        destination_file = os.path.join(destination_dir, filename)
-
-        # If the file already exists, remove it
         if os.path.exists(destination_file):
             os.remove(destination_file)
 
-        # Write the configuration to the file
         with open(destination_file, "w") as file:
             file.write(config_text)
 
         return STATUS_OK
+
 
     def clear_configurations(self) -> bool:
         """
