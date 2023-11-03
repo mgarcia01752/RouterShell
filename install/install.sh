@@ -53,7 +53,7 @@ fi
 case "$package_manager" in
     apt|yum|zypper)
         $package_manager update
-        $package_manager install -y net-tools traceroute bridge-utils ethtool iproute2 hostapd iw openssl python3 pip dnsmasq
+        $package_manager install -y lshw net-tools traceroute bridge-utils ethtool iproute2 hostapd iw openssl python3 pip dnsmasq
         ;;
     *)
         echo "Unsupported package manager for additional setup steps."
