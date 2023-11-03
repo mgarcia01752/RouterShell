@@ -12,4 +12,11 @@ mkdir -m 775 -p /tmp/log
 # Set the owner and group to the current user
 sudo chown "$current_user":"$current_user" /tmp/log
 
-src/main.py
+# Check if there are any arguments
+if [ "$#" -eq 0 ]; then
+    # No arguments provided, run main.py
+    python3 src/main.py
+else
+    # Arguments provided, run test.py
+    python3 src/test.py "$@"
+fi
