@@ -46,6 +46,9 @@ if [[ -f /etc/os-release ]]; then
         opensuse)
             package_manager="zypper"
             ;;
+        raspbian) # Adding Raspberry Pi as a supported distribution
+            package_manager="apt"
+            ;;
         *)
             echo "Unsupported Linux distribution."
             exit 1
