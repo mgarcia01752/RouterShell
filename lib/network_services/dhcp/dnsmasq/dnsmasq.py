@@ -9,7 +9,6 @@ from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
-
 class DNSMasqExitCode(Enum):
     """
     Enum class representing DNSMasq exit codes.
@@ -133,9 +132,7 @@ class DNSMasqService(NetworkManager):
             return STATUS_NOK
         
         return STATUS_OK
-    
-    
-    
+
 class DNSMasqInterfaceService(DNSMasqService):
     """
     Class for controlling the DNSMasq Interface Service.
@@ -154,19 +151,21 @@ class DNSMasqInterfaceService(DNSMasqService):
         service = DNSMasqService("home", "192.168.1.0/24")
     """
 
+    DNSMASQ_FILENAME_SUFFIX = '_dnsmasq.conf'
+    DNSMASQ_CONFIG_DIR = '/etc/dnsmasq.d'
+
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)
-        
-        self.dns_masq_config = DNSMasqConfigurator()
-        
+
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_subnet = dhcp_pool_subnet
         self.negate = negate
+                
+        self.dns_masq_config = DNSMasqConfigurator()
         self.dhcp_srv_db = DHCPServerDatabase()
 
-    
     def build_interface_configuration(self) -> bool:
         """
         Build the interface configuration for DNSMasq.
@@ -221,6 +220,12 @@ class DNSMasqInterfaceService(DNSMasqService):
         return STATUS_OK
     
     def deploy_configuration(self) -> bool:
+        """
+        Deploy the DNSMasq configuration.
+
+        Returns:
+            bool: STATUS_OK if the configuration was successfully deployed, STATUS_NOK otherwise.
+        """
         # Generate the DNSMasq configuration
         config_text = self.dns_masq_config.generate_configuration()
 
@@ -229,10 +234,10 @@ class DNSMasqInterfaceService(DNSMasqService):
             return STATUS_NOK
 
         # Define the filename based on the DHCP pool name
-        filename = f"{self.dhcp_pool_name}_dnsmasq.conf"
+        filename = f"{self.dhcp_pool_name}{self.DNSMASQ_FILENAME_SUFFIX}"
 
         # Define the destination directory as the typical DNSMasq directory
-        destination_dir = "/etc/dnsmasq.d"
+        destination_dir = self.DNSMASQ_CONFIG_DIR
 
         # Define the full path of the destination file
         destination_file = os.path.join(destination_dir, filename)
@@ -247,7 +252,27 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         return STATUS_OK
 
-    
+    def clear_configurations(self) -> bool:
+        """
+        Clear DNSMasq configurations for the DHCP pool.
+
+        Returns:
+            bool: STATUS_OK if configurations were successfully cleared, STATUS_NOK otherwise.
+        """
+        config_dir = self.DNSMASQ_CONFIG_DIR
+        
+        if os.path.exists(config_dir) and os.is_dir(config_dir):
+            try:
+                for filename in os.listdir(config_dir):
+                    if filename.endswith(self.DNSMASQ_FILENAME_SUFFIX):
+                        file_path = os.path.join(config_dir, filename)
+                        os.remove(file_path)
+            except Exception as e:
+                print(f"Error while clearing configurations: {str(e)}")
+                return STATUS_NOK
+
+        return STATUS_OK
+
 
 class DNSMasqGlobalService(DNSMasqService):
     """
