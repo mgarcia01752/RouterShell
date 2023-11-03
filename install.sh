@@ -72,8 +72,6 @@ esac
 # Change directory permissions to make /etc/dnsmasq.d/ writable
 sudo chmod o+w /etc/dnsmasq.d/
 
-echo "Setup completed successfully."
-
 # Get the absolute path to the project's root directory
 ROUTERSHELL_PROJECT_ROOT="${PWD}"
 
