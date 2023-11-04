@@ -191,7 +191,7 @@ class DHCPServer(NetworkManager):
         # Get inet-subnet-cidr from dhcp-pool-name == interface-inet-address -> subnet-range
         dhcp_pool_subnet = DSD().get_dhcp_pool_subnet_name_db(dhcp_pool_name)
         
-        self.log.info(f"add_dhcp_pool_to_interface() {dhcp_pool_name} -> {dhcp_pool_subnet}")
+        self.log.debug(f"add_dhcp_pool_to_interface() {dhcp_pool_name} -> {dhcp_pool_subnet}")
         
         DSD().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name)
 

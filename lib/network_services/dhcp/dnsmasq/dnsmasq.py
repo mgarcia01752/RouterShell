@@ -216,7 +216,7 @@ class DNSMasqInterfaceService(DNSMasqService):
         self.log.debug(f"DHCP-Pool-options: {dhcp_pool_options}")
         for option in dhcp_pool_options:
             
-            self.log.info(f"DHCP-Pool-option: {option} -> OPTION: {option['option']}")
+            self.log.debug(f"DHCP-Pool-option: {option} -> OPTION: {option['option']}")
             
             option_code = DHCPOptionLookup().get_dhcpv4_option_code(option['option'])
             
