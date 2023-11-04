@@ -50,11 +50,14 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            str: The DHCP pool subnet information retrieved from the RouterShell database.
-
+            str or None: The DHCP pool subnet information retrieved from the RouterShell database, or None if no match is found.
         """        
-        RSDB().get_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name).result
-        
+        result = RSDB().get_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name)
+        if not result.status:
+            return result.result['InetSubnet']
+        else:
+            return None
+
     def add_dhcp_pool_name_db(self, dhcp_pool_name: str) -> bool:
         """
         Add a DHCP pool name to the database.

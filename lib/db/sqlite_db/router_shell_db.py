@@ -1572,7 +1572,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option. Error: {str(e)}")
 
-    def get_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: str):
+    def get_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
         """
         Retrieve the DHCP pool subnet information associated with a DHCP pool name from the database.
 
@@ -1594,7 +1594,7 @@ class RouterShellDB(metaclass=Singleton):
             if sql_result:
                 subnet_id, inet_subnet = sql_result
 
-                return Result(status=STATUS_OK, row_id=subnet_id, data=inet_subnet)
+                return Result(status=STATUS_OK, row_id=subnet_id, result={'InetSubnet': inet_subnet})
             else:
                 return Result(status=STATUS_NOK, reason="Subnet information not found for DHCP pool name: " + dhcp_pool_name)
 

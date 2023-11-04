@@ -1,4 +1,4 @@
-import enum
+from enum import Enum
 import ipaddress
 import json
 import logging
@@ -8,7 +8,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunResult
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-class InetVersion(enum):
+class InetVersion(Enum):
     IPv4 = 4
     IPv6 = 6
     UNKNOWN = 0

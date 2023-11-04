@@ -178,7 +178,7 @@ class DHCPOptionLookup:
         144: {"Name": "v6-dnr", "Type": "record (uint16, uint16, fqdn, binary)", "Array": False},
     }
 
-    def lookup_dhcpv4_option(self, option_code):
+    def lookup_dhcpv4_option(self, option_code:str):
         """
         Lookup a DHCPv4 option by its option code.
 

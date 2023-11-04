@@ -8,6 +8,7 @@ from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.common.inet import InetServiceLayer, InetVersion
 from lib.network_manager.network_manager import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
+from lib.network_services.dhcp.dnsmasq.dnsmasq import Action, DNSMasqDeploy, DNSMasqInterfaceService
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 
 class InvalidDhcpServer(Exception):
@@ -186,9 +187,29 @@ class DHCPServer(NetworkManager):
         """
         
         # TODO Check interface IP address(es) are within the DHCP-pool-subnet range
-        # TODO Allow only 1 IPv4 and 1 IPv6 DHCP subnet to support DUAL-STACK
+
+        # Get inet-subnet-cidr from dhcp-pool-name == interface-inet-address -> subnet-range
+        dhcp_pool_subnet = DSD().get_dhcp_pool_subnet_name_db(dhcp_pool_name)
         
-        return DSD().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name)
+        self.log.info(f"add_dhcp_pool_to_interface() {dhcp_pool_name} -> {dhcp_pool_subnet}")
+        
+        DSD().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name)
+
+        DMIS = DNSMasqInterfaceService(dhcp_pool_name, dhcp_pool_subnet)
+        
+        if DMIS.build_interface_configuration():
+            self.log.error(f"Unable to build DNSMasq Configuration")
+            return STATUS_NOK
+        
+        if DMIS.deploy_configuration(DNSMasqDeploy.INTERFACE):
+            self.log.error(f"Unable to set DNSMasq interface configuration")
+            return STATUS_NOK
+        
+        if DMIS.control_service(Action.RESTART):
+            self.log.error(f"Unable to restart DNSMasq")
+            return STATUS_NOK    
+        
+        return STATUS_OK
 
 class DhcpPoolFactory():
     ''''''

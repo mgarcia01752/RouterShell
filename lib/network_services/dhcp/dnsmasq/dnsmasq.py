@@ -55,6 +55,11 @@ class Action(Enum):
 class DNSMasqDeploy(Enum):
     GLOBAL = auto()
     INTERFACE = auto()
+    
+class DNSMasqRunStatus(Enum):
+    RUNNING = auto()
+    STOPPED = auto()
+    UNKNOWN = auto()
 
 class DNSMasqService(NetworkManager):
     """
@@ -75,7 +80,7 @@ class DNSMasqService(NetworkManager):
             action (Action): The action to perform (Action.START, Action.RESTART, or Action.STOP).
 
         Returns:
-            bool: True if the service was controlled successfully, False otherwise.
+            bool: STATUS_OK if the service was controlled successfully, STATUS_NOK otherwise.
         """
         if action not in Action:
             raise ValueError("Invalid action")
@@ -170,9 +175,9 @@ class DNSMasqInterfaceService(DNSMasqService):
         self.d_masq_if_config = DNSMasqConfigurator()
         self.d_masq_global_config = DNSMasqConfigurator()
         self.dhcp_srv_db = DHCPServerDatabase()
-        self.build_global_configuration()
+        self._build_global_configuration()
 
-    def build_global_configuration(self) -> bool:
+    def _build_global_configuration(self) -> bool:
         self.d_masq_global_config.add_listen_port(self.DEFAULT_DNS_LISTEN_PORT)
         return STATUS_OK
     
@@ -184,9 +189,8 @@ class DNSMasqInterfaceService(DNSMasqService):
         DHCP pool ranges, and DHCP host reservations.
 
         Returns:
-            bool: True if the configuration was successfully built, False otherwise.
+            bool: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
         """
-        self.log.debug("=----------------------------------------------------------=")
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
         self.log.debug(f"Number of interfaces: {len(interface_names)} -> {interface_names[0]}")
@@ -240,7 +244,7 @@ class DNSMasqInterfaceService(DNSMasqService):
             deploy_type (DNSMasqDeploy): The type of DNSMasq configuration to deploy (DNSMasqDeploy.GLOBAL or DNSMasqDeploy.INTERFACE).
 
         Returns:
-            bool: True if the configuration was successfully deployed, False otherwise.
+            bool: STATUS_OK if the configuration was successfully deployed, STATUS_NOK otherwise.
         """
         if deploy_type == DNSMasqDeploy.GLOBAL:
             configurator = self.d_masq_global_config
@@ -272,7 +276,6 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         return STATUS_OK
 
-
     def clear_configurations(self) -> bool:
         """
         Clear DNSMasq configurations for the DHCP pool.
@@ -293,6 +296,25 @@ class DNSMasqInterfaceService(DNSMasqService):
                 return STATUS_NOK
 
         return STATUS_OK
+
+    def check_dnsmasq_status(self) -> DNSMasqRunStatus:
+        """
+        Check the status of DNSMasq using 'systemctl status dnsmasq' command.
+
+        Returns:
+            DNSMasqRunStatus: An enum representing the DNSMasq status - STOPPED, RUNNING, or UNKNOWN.
+        """
+        try:
+            result = self.run(['systemctl', 'status', 'dnsmasq'])
+
+            if result.exit_code:
+                return DNSMasqRunStatus.STOPPED
+            else:
+                return DNSMasqRunStatus.RUNNING
+        
+        except Exception as e:
+            self.log.error(f"Error: {str(e)}")
+            return DNSMasqRunStatus.UNKNOWN
 
 class DNSMasqGlobalService(DNSMasqService):
     """
