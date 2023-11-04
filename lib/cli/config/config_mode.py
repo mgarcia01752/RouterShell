@@ -315,7 +315,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         # Parse the arguments
         parsed_args = parser.parse_args(args.split())
-        self.log.info(f"do_wireless() -> args: {parsed_args}")
+        self.log.info(f"do_wireless() -> args-parsed: {parsed_args}")
         
         if parsed_args.wireless_type == "wifi":
             self.log.info(f"do_wireless() -> wireless-type: wifi -> wireless-wifi-policy: {parsed_args.wireless_policy_name}")
