@@ -198,3 +198,12 @@ CREATE TABLE IF NOT EXISTS RenameInterface (
     AliasInterface VARCHAR(50) UNIQUE
 );
 
+DROP TABLE IF EXISTS WirelessWifiPolicy;
+CREATE TABLE IF NOT EXISTS WirelessWifiPolicy (
+    ID INTEGER PRIMARY KEY,
+    Ssid VARCHAR(32),
+    WpaPassPhrase VARCHAR(63),
+    WpaVersion INTEGER,             -- WPA = 1, WPA2 = 2, WPA3 = 3
+    
+
+);

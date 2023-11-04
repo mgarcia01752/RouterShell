@@ -67,9 +67,11 @@ class RouterShellLoggingGlobalSettings():
     ARP                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ARP_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    WIRELESS                    = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    WIRELESS_DB                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    WIRELESS_POLICY             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WIRELESS_WIFI               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WIRELESS_WIFI_DB            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WIRELESS_WIFI_POLICY        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
+    WIRELESS_CELL               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
  
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
