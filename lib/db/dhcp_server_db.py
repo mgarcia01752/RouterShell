@@ -258,8 +258,9 @@ class DHCPServerDatabase:
         """
         sql_result = RSDB().get_dhcp_pool_options(dhcp_pool_name)
         results = []
-
+        
         for result in sql_result:
+            self.log.debug(f"get_dhcp_pool_options_db({dhcp_pool_name}) -> SQL-RESULT: {result.result}")
             if result.status == STATUS_OK:
                 result_data = result.result
                 entry = {

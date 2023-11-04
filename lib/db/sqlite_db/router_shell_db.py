@@ -474,7 +474,7 @@ class RouterShellDB(metaclass=Singleton):
             return vlan_data
 
         except sqlite3.Error as e:
-            print("Error:", e)
+            self.log.error("Error:", e)
             return []
 
     def get_vlan_interfaces_id(self, vlan_name: str) -> int:
@@ -1622,8 +1622,8 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
 
             query = "SELECT ID, InterfaceName FROM Interfaces WHERE ID = ("\
-                            "SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?)"
-
+                            "SELECT Interface_FK FROM DHCPServer WHERE DhcpPoolname = ?)"
+            self.log.debug(f"{query}")
             cursor.execute(query, (dhcp_pool_name,))
             sql_results = cursor.fetchall()
 
@@ -1705,15 +1705,35 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             List[Result]: A list of Result objects, each representing a DHCP option, or an empty list if none are found.
+
         """
         try:
+            self.log.debug(f"get_dhcp_pool_options({dhcp_pool_name})")
+            
             cursor = self.connection.cursor()
 
-            query = "SELECT ID, DhcpOption, DhcpValue FROM DHCPOptions " \
-                    "WHERE DHCPSubnetPools_FK IN ("\
-                        "SELECT ID FROM DHCPSubnetPools WHERE DHCPSubnet_FK = ("\
-                            "SELECT ID FROM DHCPSubnet WHERE DHCPServer_FK = ("\
-                                "SELECT ID FROM DHCPServer WHERE DhcpPoolname = ?) AND InetAddressStart IS NULL))"
+            query = """
+                SELECT DISTINCT
+                    DHCPO.ID,
+                    DHCPO.DhcpOption,
+                    DHCPO.DhcpValue
+                FROM
+                    DHCPOptions DHCPO
+                WHERE
+                    DHCPO.DHCPSubnetPools_FK IN (
+                        SELECT DISTINCT DSP.DHCPSubnet_FK
+                        FROM DHCPSubnetPools DSP
+                        WHERE DSP.DHCPSubnet_FK IN (
+                            SELECT DISTINCT DSN.ID
+                            FROM DHCPSubnet DSN
+                            WHERE DSN.DHCPServer_FK IN (
+                                SELECT DISTINCT DSRV.ID
+                                FROM DHCPServer DSRV
+                                WHERE DSRV.DhcpPoolname = ?
+                            )
+                        )
+                    );
+            """
 
             cursor.execute(query, (dhcp_pool_name,))
             sql_results = cursor.fetchall()
@@ -1721,6 +1741,7 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             for id, option, value in sql_results:
+                self.log.debug(f"OPTION: {option} -> VALUE: {value}")
                 results.append(Result(status=STATUS_OK, row_id=id, result={'option': option, 'value': value}))
 
             return results

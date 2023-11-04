@@ -127,8 +127,8 @@ CREATE TABLE IF NOT EXISTS DHCPServer (
 DROP TABLE IF EXISTS DHCPSubnet;
 CREATE TABLE IF NOT EXISTS DHCPSubnet (
     ID INTEGER PRIMARY KEY,
-    DHCPServer_FK INT UNIQUE,               -- Only one Subnet per pool-name
-    InetSubnet VARCHAR(45) UNIQUE,          -- Only one Subnet per pool-name
+    DHCPServer_FK INT ,              
+    InetSubnet VARCHAR(45) UNIQUE,
     CONSTRAINT FK_Subnet_DHCP FOREIGN KEY (DHCPServer_FK) REFERENCES DHCPServer(ID) ON DELETE CASCADE
 );
 

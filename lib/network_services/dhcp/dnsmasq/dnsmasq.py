@@ -150,16 +150,13 @@ class DNSMasqInterfaceService(DNSMasqService):
         dhcp_pool_name (str): Name of the DHCP pool.
         dhcp_pool_subnet (str): Subnet configuration for the DHCP pool.
         negate (bool): Whether to negate the configuration.
-
-    Example:
-        service = DNSMasqService("home", "192.168.1.0/24")
     """
 
     DNSMASQ_FILENAME_SUFFIX = '_dnsmasq.conf'
     DNSMASQ_GLOBAL_FILENAME = 'dnsmasq.conf'
     DNSMASQ_CONFIG_DIR = '/etc/dnsmasq.d'
     DEFAULT_LEASE_TIME = 86400
-    DEFAULT_DNS_LISTEN_PORT=5353
+    DEFAULT_DNS_LISTEN_PORT=5353 # '''Setting DNS to 5353 prevents conflict if there is already DNS running'''
 
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
@@ -173,6 +170,7 @@ class DNSMasqInterfaceService(DNSMasqService):
         self.d_masq_if_config = DNSMasqConfigurator()
         self.d_masq_global_config = DNSMasqConfigurator()
         self.dhcp_srv_db = DHCPServerDatabase()
+        self.build_global_configuration()
 
     def build_global_configuration(self) -> bool:
         self.d_masq_global_config.add_listen_port(self.DEFAULT_DNS_LISTEN_PORT)
@@ -188,10 +186,10 @@ class DNSMasqInterfaceService(DNSMasqService):
         Returns:
             bool: True if the configuration was successfully built, False otherwise.
         """
-
+        self.log.debug("=----------------------------------------------------------=")
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
-        self.log.debug(f"{interface_names} -> {interface_names[0].values}")
+        self.log.debug(f"Number of interfaces: {len(interface_names)} -> {interface_names[0]}")
 
         # Get the DHCP pool ranges
         dhcp_pool_ranges = self.dhcp_srv_db.get_dhcp_pool_inet_range_db(self.dhcp_pool_name)
@@ -211,19 +209,22 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)
+        self.log.debug(f"DHCP-Pool-options: {dhcp_pool_options}")
         for option in dhcp_pool_options:
-            option_code = DHCPOptionLookup.get_dhcpv4_option_code(option['Name'])
+            
+            self.log.info(f"DHCP-Pool-option: {option} -> OPTION: {option['option']}")
+            
+            option_code = DHCPOptionLookup().get_dhcpv4_option_code(option['option'])
+            
             if option_code is not None:
-                self.d_masq_if_config.add_dhcp_option(option_code, option['Value'])
+                self.d_masq_if_config.add_dhcp_option(option_code, option['value'])
         
         # Add DHCP host reservations to DNSMasq
         for host in dhcp_hosts:
             if len(host) == 3:
-                print(host)
                 ethernet_address, ip_address, lease_time = host.values()
                 self.d_masq_if_config.add_dhcp_host(ethernet_address, ip_address, lease_time)
             else:
-                print(host)
                 ethernet_address, ip_address = host.values()
                 self.d_masq_if_config.add_dhcp_host(ethernet_address, ip_address)               
         
@@ -288,7 +289,7 @@ class DNSMasqInterfaceService(DNSMasqService):
                         file_path = os.path.join(config_dir, filename)
                         os.remove(file_path)
             except Exception as e:
-                print(f"Error while clearing configurations: {str(e)}")
+                self.log.debug(f"Error while clearing configurations: {str(e)}")
                 return STATUS_NOK
 
         return STATUS_OK
