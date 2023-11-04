@@ -15,8 +15,24 @@ class WPAkeyManagement(Enum):
     WPA_PSK = 'WPA-PSK'
     WPA_EPA = 'WPA-EPA'
     WPA_EPA_SHA265 = 'WPA-EPA-SHA265'
-    WPA_EPA_TLA = 'WPA-EPA-TLS'            
+    WPA_EPA_TLA = 'WPA-EPA-TLS'   
+    
+class Pairwise(Enum):
+    CCMP = 'CCMP'
+    TKIP = 'TKIP'
 
+class HardwareMode(Enum):
+    A = 'a'
+    B = 'b'
+    G = 'g'
+    AD = 'ad'
+    AX = 'ax'
+    ANY = 'any'
+
+class AuthAlgorithms(Enum):
+    OSA = 'OSA'
+    SKA = 'SKA'
+             
 class Wifi(NetworkManager):
     """Command set for managing wireless networks using the 'iw' command."""
 
@@ -105,5 +121,112 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
- 
+    def set_wpa_pairwise(self, wifi_interface_name: str, wpa_pairwise: Pairwise) -> bool:
+        """
+        Set the WPA pairwise cipher for a Wi-Fi interface using the iw command.
+
+        Args:
+            wifi_interface_name (str): The name of the Wi-Fi interface.
+            wpa_pairwise (str): The WPA pairwise cipher to set (CCMP, TKIP, etc.).
+
+        Returns:
+            bool: STATUS_OK if the WPA pairwise cipher was successfully set, STATUS_NOK otherwise.
+        """
+        # Use 'iw' command to set the WPA pairwise cipher.
+        cmd = ['iw', 'dev', wifi_interface_name, 'set', 'wpa_pairwise', wpa_pairwise.value]
+        output = self.run(cmd)
+
+        if output.exit_code:
+            self.log.error(f"Failed to set WPA pairwise cipher for {wifi_interface_name}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def set_rsn_pairwise(self, wifi_interface_name: str, rsn_pairwise: Pairwise) -> bool:
+        """
+        Set the RSN pairwise cipher for a Wi-Fi interface using the iw command.
+
+        Args:
+            wifi_interface_name (str): The name of the Wi-Fi interface.
+            rsn_pairwise (str): The RSN pairwise cipher to set (CCMP, TKIP, etc.).
+
+        Returns:
+            bool: STATUS_OK if the RSN pairwise cipher was successfully set, STATUS_NOK otherwise.
+        """
+        # Use 'iw' command to set the RSN pairwise cipher.
+        cmd = ['iw', 'dev', wifi_interface_name, 'set', 'rsn_pairwise', rsn_pairwise.value]
+        output = self.run(cmd)
+
+        if output.exit_code:
+            self.log.error(f"Failed to set RSN pairwise cipher for {wifi_interface_name}")
+            return STATUS_NOK
+
+        return STATUS_OK
     
+    def set_wifi_mode(self, wifi_interface_name: str, mode: HardwareMode) -> bool:
+        """
+        Set the Wi-Fi mode for a Wi-Fi interface using the iw command.
+
+        Args:
+            wifi_interface_name (str): The name of the Wi-Fi interface.
+            mode (str): The Wi-Fi mode to set (a, b, g, ad, ax, any).
+
+        Returns:
+            bool: STATUS_OK if the Wi-Fi mode was successfully set, STATUS_NOK otherwise.
+        """
+        # Use 'iw' command to set the Wi-Fi mode.
+        cmd = ['iw', 'dev', wifi_interface_name, 'set', 'mode', mode.value]
+        output = self.run(cmd)
+
+        if output.exit_code:
+            self.log.error(f"Failed to set Wi-Fi mode for {wifi_interface_name}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def set_wifi_channel(self, wifi_interface_name: str, channel: int) -> bool:
+        """
+        Set the Wi-Fi channel for a Wi-Fi interface using the iw command.
+
+        Args:
+            wifi_interface_name (str): The name of the Wi-Fi interface.
+            channel (int): The Wi-Fi channel to set (1, 2, 3, 4, 5, 6, 8, 7, 8, 9, 10, 11).
+
+        Returns:
+            bool: STATUS_OK if the Wi-Fi channel was successfully set, STATUS_NOK otherwise.
+        """
+        if channel < 1 or channel > 11:
+            self.log.error("Invalid Wi-Fi channel. The channel must be in the range 1 to 11.")
+            return STATUS_NOK
+
+        # Use 'iw' command to set the Wi-Fi channel.
+        cmd = ['iw', 'dev', wifi_interface_name, 'set', 'channel', str(channel)]
+        output = self.run(cmd)
+
+        if output.exit_code:
+            self.log.error(f"Failed to set Wi-Fi channel for {wifi_interface_name}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def set_auth_algs(self, wifi_interface_name: str, auth_alg: AuthAlgorithms) -> bool:
+        """
+        Set the authentication algorithms for a Wi-Fi interface using the iw command.
+
+        Args:
+            wifi_interface_name (str): The name of the Wi-Fi interface.
+            auth_alg (AuthAlgorithms): The authentication algorithm to set (AuthAlgorithms.OSA or AuthAlgorithms.SKA).
+
+        Returns:
+            bool: STATUS_OK if the authentication algorithm was successfully set, STATUS_NOK otherwise.
+        """
+        # Use 'iw' command to set the authentication algorithm.
+        cmd = ['iw', 'dev', wifi_interface_name, 'set', 'auth-algs', auth_alg.value]
+        output = self.run(cmd)
+
+        if output.exit_code:
+            self.log.error(f"Failed to set authentication algorithm for {wifi_interface_name}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
