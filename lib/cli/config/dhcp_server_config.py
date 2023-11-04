@@ -2,6 +2,7 @@ import argparse
 import logging
 
 import cmd2
+
 from lib.network_manager.dhcp_server import DHCPServer, DhcpPoolFactory
 
 from lib.cli.base.exec_priv_mode import ExecMode
@@ -12,6 +13,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.cli.common.cmd2_global import Cmd2GlobalSettings as cgs
 
 from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 
 class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     
@@ -174,10 +176,15 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         if len(args_parts) == 2:
             dhcp_option, dhcp_value = args_parts
-            if not DhcpOptionsLUT().dhcp_option_exists(dhcp_option):
-                print(f"Invalid DHCP option: {dhcp_option}")
-                return STATUS_NOK
-
+            if self.dhcp_pool_factory.get_subnet_inet_version() == DHCPVersion.DHCP_V4:
+                if not DHCPOptionLookup.dhcpv4_option_lookup(dhcp_option):
+                    return STATUS_NOK
+            else:
+                if not DHCPOptionLookup.dhcpv6_option_lookup(dhcp_option):
+                    return STATUS_NOK
+                             
+        print(f"Invalid DHCP option: {dhcp_option}")   
+        
         if self.isGlobalMode():
             self.log.debug(f"Adding DHCP option to global configuration: {args}")
 

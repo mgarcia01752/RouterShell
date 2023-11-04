@@ -1,3 +1,4 @@
+import enum
 import ipaddress
 import json
 import logging
@@ -6,6 +7,11 @@ from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunResult
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+
+class InetVersion(enum):
+    IPv4 = 4
+    IPv6 = 6
+    UNKNOWN = 0
 
 class InetServiceLayer(MacServiceLayer):
     """
@@ -341,7 +347,6 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return False
 
-
     def convert_ip_mask_to_cidr(ip_address:str, prefix_length:IndentationError) -> str:
         """
         Convert an IP address and prefix length into a formatted IP address with CIDR notation.
@@ -398,4 +403,27 @@ class InetServiceLayer(MacServiceLayer):
             
             return False
 
+    def get_inet_subnet_inet_version(self, inet_subnet_cidr: str) -> InetVersion:
+        """
+        Determine the IP version (IPv4 or IPv6) based on the CIDR notation of an IP subnet.
 
+        Args:
+            inet_subnet_cidr (str): The CIDR notation for the IP subnet (e.g., "192.168.0.0/24" for IPv4 or "2001:db8::/32" for IPv6).
+
+        Returns:
+            InetVersion: An InetVersion enum representing the IP version (IPv4, IPv6, or UNKNOWN).
+
+        Raises:
+            ValueError: If the input is not a valid CIDR notation.
+
+        """
+        try:
+            network = ipaddress.IPv4Network(inet_subnet_cidr, strict=False)
+            return InetVersion.IPv4
+
+        except ValueError:
+            try:
+                network = ipaddress.IPv6Network(inet_subnet_cidr, strict=False)
+                return InetVersion.IPv6
+            except ValueError:
+                return InetVersion.UNKNOWN

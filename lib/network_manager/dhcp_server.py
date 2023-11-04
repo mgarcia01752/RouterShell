@@ -5,7 +5,9 @@ from typing import Optional
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
+from lib.network_manager.common.inet import InetServiceLayer, InetVersion
 from lib.network_manager.network_manager import NetworkManager
+from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 
 class InvalidDhcpServer(Exception):
@@ -304,3 +306,21 @@ class DhcpPoolFactory():
         return self.dhcp_srv_obj.add_dhcp_pool_option(self.dhcp_pool_name,
                                                       self.dhcp_pool_inet_subnet_cidr,
                                                       dhcp_option, value)
+
+    def get_subnet_inet_version(self) -> DHCPVersion:
+        """
+        Determine the DHCP version (DHCPv4 or DHCPv6) based on the subnet's CIDR notation.
+
+        Returns:
+            DHCPVersion: An enum representing the DHCP version (DHCPv4, DHCPv6, or UNKNOWN).
+
+        """
+        if not self.dhcp_pool_inet_subnet_cidr:
+            return DHCPVersion.UNKNOWN
+
+        inet_version = InetServiceLayer().get_inet_subnet_inet_version(self.dhcp_pool_inet_subnet_cidr)
+
+        if inet_version == InetVersion.IPv4:
+            return DHCPVersion.DHCP_V4
+        else:
+            return DHCPVersion.DHCP_V6
