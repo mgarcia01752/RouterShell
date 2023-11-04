@@ -1,4 +1,3 @@
-import subprocess
 from enum import Enum
 import logging
 from lib.network_manager.network_manager import NetworkManager
