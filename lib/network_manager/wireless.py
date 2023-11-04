@@ -2,8 +2,8 @@ import logging
 
 from lib.network_manager.network_manager import NetworkManager
 
-class WirelessShow(NetworkManager):
-    """Command set for showing NetworkManager-Show-Commands"""
+class Wireless(NetworkManager):
+    """Command set for showing Wireless-Commands"""
 
     def __init__(self, command, arg=None):
         super().__init__()

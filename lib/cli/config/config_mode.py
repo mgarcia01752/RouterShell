@@ -271,6 +271,13 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
                 Interface().rename_interface(args_parts[1], args_parts[3])
             else:
                 print(f"Invalid command: rename {args}")
+
+    def do_wireless(self, arg:str, negate:bool = False) -> None:
+        return
+        
+        
+    
+    
             
     def complete_no(self, text, line, begidx, endidx):
         completions = ['arp', 'bridge', 'ip', 'ipv6']
