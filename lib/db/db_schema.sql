@@ -197,3 +197,4 @@ CREATE TABLE IF NOT EXISTS RenameInterface (
     InitialInterface VARCHAR(50) UNIQUE,
     AliasInterface VARCHAR(50) UNIQUE
 );
+

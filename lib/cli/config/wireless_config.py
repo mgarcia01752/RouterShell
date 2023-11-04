@@ -12,26 +12,28 @@ class InvalidWirelessConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class WirelessConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wireless):
+class WirelessPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wireless):
 
     PROMPT_CMD_ALIAS = "wl"
 
-    def __init__(self, arg=None, negate=False):
+    def __init__(self, args=None, negate=False):
+        
         super().__init__()
         GlobalUserCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
         Wireless.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
 
-        self.log.debug(f"__init__ > arg -> {arg} -> negate={negate}")
+        self.log.debug(f"__init__ > arg -> {args} -> negate={negate}")
 
-        self.arg = arg
+        self.args = args
+        self.negate = negate
         self.prompt = self.set_prompt()
 
-        if arg and not negate:
-            self.run_command(arg)
-        elif arg and negate:
-            self.run_command(f'no {arg}')
+        if args and not negate:
+            self.run_command(args)
+        elif args and negate:
+            self.run_command(f'no {args}')
 
     def run_command(self, cli: str, negate=False):
         self.log.debug(f"run_command() -> cli: {cli} -> negate: {negate}")
@@ -80,7 +82,6 @@ class WirelessConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wireless):
 
         return
 
-    
     def do_wpa(self, args, negate=False):
         self.log.debug(f"do_wpa() - args: {args}")
 

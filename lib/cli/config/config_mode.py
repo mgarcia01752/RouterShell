@@ -1,3 +1,4 @@
+import argparse
 import cmd2
 import logging
 
@@ -10,6 +11,7 @@ from lib.cli.config.vlan_config import VlanConfig
 from lib.cli.config.ip_route_config import IpRouteConfig
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
+from lib.cli.config.wireless_config import WirelessPolicyConfig
 from lib.network_manager.interface import Interface
 from lib.network_manager.bridge import Bridge
 from lib.cli.common.router_prompt import RouterPrompt
@@ -25,18 +27,18 @@ class InvalidConfigureMode(Exception):
 class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     """Command set for ConfigureMode-Commands"""  
     """
-        arp                 (Implemented)
-        bridge              (Implemented)
+        arp                     (Implemented)
+        bridge                  (Implemented)
         dhcp
-        interface <ifName>  (Implemented)
-        interface <vlan-id> (Implemented)
-        ip nat              (Implemented)
+        interface <ifName>      (Implemented)
+        interface <vlan-id>     (Implemented)
+        ip nat                  (Implemented)
         ip route
         ipv6 route
-        rename              (Implemented)
-        vlan                (Implemented)
-        vlanDB              (Implemented)           
-        wireless        
+        rename                  (Implemented)
+        vlan                    (Implemented)
+        vlanDB                  (Implemented)           
+        wireless [cell | wifi]         
     """ 
 
     def __init__(self, usr_exec_mode: ExecMode, arg=None):
@@ -213,18 +215,33 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         completions.extend( ['nat', 'pool', 'inside', 'outside'])
         return [comp for comp in completions if comp.startswith(text)]
 
-    def do_ip(self, args=None, negate=False) -> None:
+    def do_ip(self, args=None, negate=False):
         self.log.debug(f"do_ip() -> command: ({args})")
-          
-        args_parts = args.strip().split()
-        
-        if args_parts[0] == "route":
-            self.log.debug(f"do_ip(route) -> command: ({args})")  
-            IpRouteConfig(args)
-        
-        elif args_parts[0] == "nat":
-            self.log.debug(f"do_ip(nat) -> command: ({args})")  
-            NatConfig(args)
+
+        parser = argparse.ArgumentParser(
+            description="Configure IP settings",
+            epilog="Usage:\n"
+            "   [no] nat <nat-policy-name>\n"
+            "   [no] route <src-inet-subnet> <src-inet-mast> <gw-inet-address>\n"
+            "\n"
+            "   <suboption> --help                           Get help for specific suboptions."
+        )
+
+        parser.add_argument("ip_command", choices=["nat", "route"], 
+                            help="Choose between 'nat' or 'route'")
+
+        parser.add_argument("nat_args", nargs="*", 
+                            help="Additional arguments for NAT configuration")
+        parser.add_argument("route_args", nargs="*", 
+                            help="Additional arguments for IP routing configuration")
+
+        parsed_args = parser.parse_args(args.split())
+
+        if parsed_args.ip_command == "route":
+            IpRouteConfig(args.route_args)
+
+        elif parsed_args.ip_command == "nat":
+            NatConfig(args.nat_args)
         
         else:
             print(f"Invalid command: {args}")
@@ -272,9 +289,40 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             else:
                 print(f"Invalid command: rename {args}")
 
-    def do_wireless(self, arg:str, negate:bool = False) -> None:
-        return
+    def do_wireless(self, args, negate=False):
+        self.log.debug(f"do_wireless() -> command: ({args}) -> negate: {negate}")
         
+        parser = argparse.ArgumentParser(
+            description="Configure Wireless Policy",
+            epilog="Usage:\n"
+            "   [cell | wifi] <wireless-policy-name>\n"
+            "\n"
+            "   <suboption> --help                           Get help for specific suboptions."
+        )
+        
+        subparsers = parser.add_subparsers(dest="wireless_type")
+
+        # Subparser for configuring wireless policies for Wi-Fi
+        wifi_parser = subparsers.add_parser("wifi", help="Configure Wi-Fi wireless policies")
+        wifi_parser.add_argument("wireless_policy_name", help="Name of the Wi-Fi wireless policy")
+        
+        # Subparser for configuring wireless policies for Cellular
+        cell_parser = subparsers.add_parser("cell", help="Configure Cellular wireless policies")
+        cell_parser.add_argument("wireless_policy_name", help="Name of the Cellular wireless policy")
+
+        # Parse the arguments
+        parsed_args = parser.parse_args(args)
+
+        # Implement the logic to handle the parsed arguments, calling the appropriate method based on wireless_type
+        if parsed_args.wireless_type == "wifi":
+            # Handle Wi-Fi policy configuration
+            pass
+        elif parsed_args.wireless_type == "cell":
+            # Handle Cellular policy configuration
+            pass
+
+        return
+
         
     
     

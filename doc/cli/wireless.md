@@ -150,3 +150,34 @@ interface <wireless-interface-alias>
 end
 
 ```
+
+```config
+enable
+configure terminal
+
+wireless cell <wireless-policy-name>
+end
+
+wireless wifi <wireless-policy-name>
+    ssid ""
+    wpa-passphrase ""
+    [no] auth-algs [OSA | SKA]
+    [no] wpa [WPA | WPA2 | WPA3 | Mixed-Mode]
+    [no] wpa-key-mgmt [WPA-PSK | WPA-EPA | WPA-EPA-SHA256 | WPA-EPA-TLS]
+    [no] wpa-pairwise [CCMP | TKIP]
+    [no] rsn-pairwise [CCMP | TKIP]
+    [no] mode [ a | b | g | ad | ax | any]
+    [no] channel [1 | 2 | 3 | 4 | 5 | 6 | 8 | 7 | 8 | 9 | 10 | 11]
+    [no] macaddr-acl [0 | 1 | 2]
+    [no] hostapd-conf-overwrite <hostapd-option> <value>
+end
+
+rename if <os-announced-interface> if-alias <wireless-interface-alias>
+
+interface <wireless-interface-alias>
+    ip address <ip-address> <subnet-mask>
+    wireless-policy <wireless-policy-name>
+    no shutdown
+end
+
+```
