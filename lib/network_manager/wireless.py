@@ -51,8 +51,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: True if the Wi-Fi interface exists, False otherwise.
         """
-
-        # Use 'iw' command to show the list of Wi-Fi interfaces.
         output = self.run(['iw', 'dev', wifi_interface_name , 'info'])
         
         if output.exit_code:
@@ -71,7 +69,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: STATUS_OK if the SSID was successfully set, STATUS_NOK otherwise.
         """
-        # Use 'iw' command to set the SSID.
         output = self.run(['iw', 'dev', wifi_interface_name, 'set', 'ssid', ssid])
         
         if output.exit_code:
@@ -111,7 +108,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: STATUS_OK if the key management method was successfully set, STATUS_NOK otherwise.
         """
-        # Use 'iw' command to set the key management method.
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'key_mgmt', wpa_key_mgmt.value]
         output = self.run(cmd)
 
@@ -132,7 +128,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: STATUS_OK if the WPA pairwise cipher was successfully set, STATUS_NOK otherwise.
         """
-        # Use 'iw' command to set the WPA pairwise cipher.
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'wpa_pairwise', wpa_pairwise.value]
         output = self.run(cmd)
 
@@ -153,7 +148,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: STATUS_OK if the RSN pairwise cipher was successfully set, STATUS_NOK otherwise.
         """
-        # Use 'iw' command to set the RSN pairwise cipher.
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'rsn_pairwise', rsn_pairwise.value]
         output = self.run(cmd)
 
@@ -174,7 +168,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: STATUS_OK if the Wi-Fi mode was successfully set, STATUS_NOK otherwise.
         """
-        # Use 'iw' command to set the Wi-Fi mode.
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'mode', mode.value]
         output = self.run(cmd)
 
@@ -199,7 +192,6 @@ class Wifi(NetworkManager):
             self.log.error("Invalid Wi-Fi channel. The channel must be in the range 1 to 11.")
             return STATUS_NOK
 
-        # Use 'iw' command to set the Wi-Fi channel.
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'channel', str(channel)]
         output = self.run(cmd)
 
@@ -220,7 +212,6 @@ class Wifi(NetworkManager):
         Returns:
             bool: STATUS_OK if the authentication algorithm was successfully set, STATUS_NOK otherwise.
         """
-        # Use 'iw' command to set the authentication algorithm.
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'auth-algs', auth_alg.value]
         output = self.run(cmd)
 
@@ -229,4 +220,3 @@ class Wifi(NetworkManager):
             return STATUS_NOK
 
         return STATUS_OK
-
