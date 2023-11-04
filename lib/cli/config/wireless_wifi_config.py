@@ -4,23 +4,24 @@ import logging
 
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
+from lib.network_manager.network_manager import InterfaceType
 from lib.network_manager.wireless import Wireless
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
-class InvalidWirelessConfig(Exception):
+class InvalidWirelessWifiConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class WirelessPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wireless):
+class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wireless):
 
-    PROMPT_CMD_ALIAS = "wl"
+    PROMPT_CMD_ALIAS = InterfaceType.WIRELESS_WIFI.value
 
     def __init__(self, args=None, negate=False):
         
         super().__init__()
         GlobalUserCommand.__init__(self)
-        RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
+        RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
         Wireless.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
 

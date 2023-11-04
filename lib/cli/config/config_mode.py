@@ -11,7 +11,8 @@ from lib.cli.config.vlan_config import VlanConfig
 from lib.cli.config.ip_route_config import IpRouteConfig
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
-from lib.cli.config.wireless_config import WirelessPolicyConfig
+from lib.cli.config.wireless_cell_config import WirelessCellPolicyConfig
+from lib.cli.config.wireless_wifi_config import WirelessWifiPolicyConfig
 from lib.network_manager.interface import Interface
 from lib.network_manager.bridge import Bridge
 from lib.cli.common.router_prompt import RouterPrompt
@@ -289,8 +290,12 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             else:
                 print(f"Invalid command: rename {args}")
 
+    def complete_wireless(self, text, line, begidx, endidx):
+        completions = ['cell', 'wifi']
+        return [comp for comp in completions if comp.startswith(text)]
+    
     def do_wireless(self, args, negate=False):
-        self.log.debug(f"do_wireless() -> command: ({args}) -> negate: {negate}")
+        self.log.info(f"do_wireless() -> command: ({args}) -> negate: {negate}")
         
         parser = argparse.ArgumentParser(
             description="Configure Wireless Policy",
@@ -302,31 +307,27 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         subparsers = parser.add_subparsers(dest="wireless_type")
 
-        # Subparser for configuring wireless policies for Wi-Fi
         wifi_parser = subparsers.add_parser("wifi", help="Configure Wi-Fi wireless policies")
         wifi_parser.add_argument("wireless_policy_name", help="Name of the Wi-Fi wireless policy")
         
-        # Subparser for configuring wireless policies for Cellular
         cell_parser = subparsers.add_parser("cell", help="Configure Cellular wireless policies")
         cell_parser.add_argument("wireless_policy_name", help="Name of the Cellular wireless policy")
 
         # Parse the arguments
-        parsed_args = parser.parse_args(args)
-
-        # Implement the logic to handle the parsed arguments, calling the appropriate method based on wireless_type
-        if parsed_args.wireless_type == "wifi":
-            # Handle Wi-Fi policy configuration
-            pass
-        elif parsed_args.wireless_type == "cell":
-            # Handle Cellular policy configuration
-            pass
-
-        return
-
+        parsed_args = parser.parse_args(args.split())
+        self.log.info(f"do_wireless() -> args: {parsed_args}")
         
-    
-    
-            
+        if parsed_args.wireless_type == "wifi":
+            self.log.info(f"do_wireless() -> wireless-type: wifi -> wireless-wifi-policy: {parsed_args.wireless_policy_name}")
+            WirelessWifiPolicyConfig(parsed_args.wireless_policy_name)
+
+        elif parsed_args.wireless_type == "cell":
+            self.log.info(f"do_wireless() -> wireless-type: cell -> wireless-cell-policy: {parsed_args.wireless_policy_name}")
+            WirelessCellPolicyConfig(parsed_args.wireless_policy_name)
+
+        else:
+            print(f"Invalid wireless type: {parsed_args.wireless_type}")
+                        
     def complete_no(self, text, line, begidx, endidx):
         completions = ['arp', 'bridge', 'ip', 'ipv6']
         return [comp for comp in completions if comp.startswith(text)]
