@@ -104,7 +104,7 @@ class Wifi(NetworkManager):
     """Command set for managing wireless networks using the 'iw' command."""
 
     def __init__(self):
-        super().__init()
+        super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WIRELESS_WIFI)
 

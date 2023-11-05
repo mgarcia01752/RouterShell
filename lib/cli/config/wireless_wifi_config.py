@@ -36,28 +36,109 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
         elif args and negate:
             self.run_command(f'no {args}')
 
+    def run_command(self, cli: str, negate=False):
+        self.log.debug(f"run_command() -> cli: {cli} -> negate: {negate}")
+
+        if not isinstance(cli, list):
+            cli = cli.strip().split()
+            self.log.debug(f"convert cli to a list: {cli}")
+
+        self.command = cli[0]
+
+        cli = ' '.join([item for item in cli[1:]])
+
+        do_method_name = f"do_{self.command}"
+
+        self.log.debug(f"run_command({self.command}) -> {do_method_name}() -> Args: {cli}, negate={negate}")
+
+        if hasattr(self, do_method_name) and callable(getattr(self, do_method_name)):
+            getattr(self, do_method_name)(cli, negate)
+        else:
+            print(f"Command '{self.command}' not recognized.")
+
     def do_ssid(self, args, negate=False):
         self.log.debug(f"do_ssid() - args: {args}")
 
         parser = argparse.ArgumentParser(
-            description="Configure Service Set Identifier (SSID)",
+            description="Configure Service Set Identifier (SSID) , passphrase and optional mode: WPA2 (Default)",
             epilog="Usage:\n"
-            "   ssid <ssid>\n"
+            "   ssid <ssid> passphrase <passphrase> [mode [WPA | WPA2 | WPA3]]\n"
             "\n"
             "   <suboption> --help                           Get help for specific suboptions."
         )
 
+    def do_ssid(self, args, negate=False):
+        """
+        Configure the Service Set Identifier (SSID), passphrase, and optional security mode.
+
+        Usage:
+            ssid <ssid> passphrase <passphrase> [mode [WPA | WPA2 | WPA3]]
+
+        Args:
+            args (str): The input arguments containing SSID, passphrase, and optional mode.
+            negate (bool): True if the command is a negation (e.g., 'no ssid ...'), False otherwise.
+
+        Arguments:
+            ssid (str): The SSID of the Wi-Fi network.
+            passphrase (str, optional): The passphrase for the SSID (up to 64 characters).
+            mode (str, optional): The security mode (WPA, WPA2, or WPA3).
+
+        """
+        self.log.debug(f"do_ssid() - args: {args}")
+
+        parser = argparse.ArgumentParser(
+            description="Configure Service Set Identifier (SSID), passphrase, and optional security mode.",
+            epilog="Usage:\n"
+                   "   ssid <ssid> passphrase <passphrase> [mode [WPA | WPA2 | WPA3]]\n"
+                   "\n"
+                   "   <suboption> --help                           Get help for specific suboptions."
+        )
+
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        ssid_parser = subparsers.add_parser("configure", help="Configure the SSID")
-        ssid_parser.add_argument("ssid_name", help="The name of the SSID")
+        ssid_parser = subparsers.add_parser("ssid",
+            help="Configure the SSID"
+        )
+        
+        ssid_parser.add_argument("ssid_name", help="SSID of the Wi-Fi network")
+        
+        ssid_parser.add_argument("passphrase", help="Passphrase (up to 64 characters)",
+            nargs='?',
+            choices=["passphrase"]
+        )
+        
+        ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)",
+            nargs='?',
+            choices=["passphrase"]
+        )
+                
+        ssid_parser.add_argument("mode", help="mode <WPA | WPA2 | WPA3>",
+            nargs='?',
+            choices=['mode']
+        )
+                
+        ssid_parser.add_argument("mode_type", help="Security mode (WPA, WPA2, WPA3)",
+            nargs='?',
+            choices=['WPA', 'WPA2', 'WPA3']
+        )
+        
+        try:
+            if not isinstance(args, list):
+                args = parser.parse_args(args.split())
+            else:
+                args = parser.parse_args(args)       
+        except SystemExit:
+            return        
+        
+        if args.subcommand == "ssid":
+            ssid_name = args.ssid_name
+            passphrase = args.passphrase
+            pass_phrase = args.pass_phrase
+            mode = args.mode
+            mode_type = args.mode_type
+            
+            self.log.info(f"SSID Name: {ssid_name}, Passphrase: {passphrase}, Pass Phrase: {pass_phrase}, Mode: {mode}, Mode Type: {mode_type}") 
 
-        display_parser = subparsers.add_parser("display", help="Display the current SSID")
-
-        parsed_args = parser.parse_args(args)
-
-
-        return
 
     def do_wpa(self, args, negate=False):
         self.log.debug(f"do_wpa() - args: {args}")
