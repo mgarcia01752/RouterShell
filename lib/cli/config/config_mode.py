@@ -319,11 +319,11 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         if parsed_args.wireless_type == "wifi":
             self.log.info(f"do_wireless() -> wireless-type: wifi -> wireless-wifi-policy: {parsed_args.wireless_policy_name}")
-            WirelessWifiPolicyConfig(parsed_args.wireless_policy_name)
+            WirelessWifiPolicyConfig(parsed_args.wireless_policy_name).cmdloop()
 
         elif parsed_args.wireless_type == "cell":
             self.log.info(f"do_wireless() -> wireless-type: cell -> wireless-cell-policy: {parsed_args.wireless_policy_name}")
-            WirelessCellPolicyConfig(parsed_args.wireless_policy_name)
+            WirelessCellPolicyConfig(parsed_args.wireless_policy_name).cmdloop()
 
         else:
             print(f"Invalid wireless type: {parsed_args.wireless_type}")
