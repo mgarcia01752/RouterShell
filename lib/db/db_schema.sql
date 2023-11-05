@@ -198,12 +198,20 @@ CREATE TABLE IF NOT EXISTS RenameInterface (
     AliasInterface VARCHAR(50) UNIQUE
 );
 
+DROP TABLE IF EXISTS WirelessWifiPolicyInterface;
+CREATE TABLE IF NOT EXISTS WirelessWifiPolicyInterface (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INTEGER ,               
+    WirelessWifiPolicy_FK INTEGER, 
+    CONSTRAINT FK_WirelessWifiPolicyInterface_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
+);
+
 DROP TABLE IF EXISTS WirelessWifiPolicy;
 CREATE TABLE IF NOT EXISTS WirelessWifiPolicy (
     ID INTEGER PRIMARY KEY,
-    Interface_FK INTEGER UNIQUE DEFAULT NULL,               -- Only 1 interface per Wireless-Policy
-    WifiPolicyName VARCHAR(50),                             -- MANY:1 interface  
-    CONSTRAINT FK_WirelessWifiPolicy_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
+    WirelessWifiPolicyInterface_FK INTEGER,
+    WifiPolicyName VARCHAR(50),                               
+    CONSTRAINT FK_WirelessWifiPolicy_WirelessWifiPolicyInterface FOREIGN KEY (WirelessWifiPolicyInterface_FK) REFERENCES WirelessWifiPolicyInterface(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS WirelessWifiSecurityPolicy;
