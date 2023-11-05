@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class HostapdIEEE802Config(Enum):
     IEEE80211AC = "ieee80211ac"
     IEEE80211AX = "ieee80211ax"
@@ -32,7 +31,6 @@ class HostapdConfigGenerator:
         else:
             print("Invalid WMM value. Use 1 for enabled or 0 for disabled.")
 
-            
     def add_ieee802(self, option: HostapdIEEE802Config, value: int):
         """
         Set the IEEE802 configuration option to the specified value.

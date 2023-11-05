@@ -5,7 +5,7 @@ import logging
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.network_manager import InterfaceType
-from lib.network_manager.wireless import Wifi
+from lib.network_manager.wireless_wifi import Wifi
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 

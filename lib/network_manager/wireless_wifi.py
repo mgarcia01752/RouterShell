@@ -1,7 +1,7 @@
 from enum import Enum
 import logging
+from lib.network_manager.hostapd_config_gen import HostapdIEEE802Config
 
-from lib.network_manager.hostadp-config-gen import HostapdIEEE802Config
 from lib.network_manager.network_manager import NetworkManager
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_OK, STATUS_NOK
@@ -33,7 +33,73 @@ class HardwareMode(Enum):
 class AuthAlgorithms(Enum):
     OSA = 'OSA'
     SKA = 'SKA'
-             
+
+class WifiPolicy():
+    """
+    Represents a Wi-Fi policy for network management.
+
+    This class allows you to define and manage Wi-Fi policies based on specific criteria.
+
+    Args:
+        wifi_policy_name (str): The name of the Wi-Fi policy.
+        negate (bool): If True, the policy will be negated.
+
+    Attributes:
+        wifi_policy_name (str): The name of the Wi-Fi policy.
+        negate (bool): Indicates whether the policy is negated.
+        wifi_policy_status (bool): The status of the Wi-Fi policy (STATUS_OK or STATUS_NOK).
+
+    """
+
+    def __init__(self, wifi_policy_name: str, negate=False):
+        """
+        Initializes a new Wi-Fi policy with the given parameters.
+
+        Args:
+            wifi_policy_name (str): The name of the Wi-Fi policy.
+            negate (bool, optional): If True, the policy will be negated (default is False).
+
+        """
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().WIRELESS_WIFI_POLICY)
+        self.log.debug(f"WifiPolicy() -> Wifi-Policy: {wifi_policy_name} -> Negate: {negate}")
+
+        self.wifi = Wifi()
+
+        if not self.wifi.wifi_policy_name_exist(wifi_policy_name):
+            self.log.debug(f"Wifi-Policy: {wifi_policy_name} does not exist.")
+            self.wifi_policy_status = STATUS_NOK
+            return
+
+        self.wifi_policy_name = wifi_policy_name
+        self.negate = negate
+        self.wifi_policy_status = STATUS_OK
+
+    def status(self) -> bool:
+        """
+        Get the status of the Wi-Fi policy.
+
+        Returns:
+            bool: The status of the Wi-Fi policy (STATUS_OK or STATUS_NOK).
+
+        """
+        return self.wifi_policy_status
+
+    def _set_status(self, status: bool) -> bool:
+        """
+        Set the status of the Wi-Fi policy.
+
+        Args:
+            status (bool): The status to set (STATUS_OK or STATUS_NOK).
+
+        Returns:
+            bool: STATUS_OK if the status is successfully set.
+
+        """
+        self.wifi_policy_status = status
+        return STATUS_OK
+
+           
 class Wifi(NetworkManager):
     """Command set for managing wireless networks using the 'iw' command."""
 
@@ -41,6 +107,9 @@ class Wifi(NetworkManager):
         super().__init()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WIRELESS_WIFI)
+
+    def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
+        return True
 
     def wifi_interface_exist(self, wifi_interface_name: str) -> bool:
         """
