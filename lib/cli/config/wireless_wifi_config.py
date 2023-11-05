@@ -6,7 +6,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.network_manager import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import Wifi
+from lib.network_manager.wireless_wifi import WPAVersion, Wifi
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -84,19 +84,11 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
         )
 
         subparsers = parser.add_subparsers(dest="subcommand")
-
-        ssid_parser = subparsers.add_parser("ssid",
-            help="Configure the SSID"
-        )
-
+        ssid_parser = subparsers.add_parser("ssid", help="Configure the SSID")
         ssid_parser.add_argument("ssid_name", help="SSID of the Wi-Fi network")
-
         ssid_parser.add_argument("passphrase", help="passphrase", nargs='?', choices=["passphrase"])
-
         ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)")
-
         ssid_parser.add_argument("mode", help="mode", nargs='?', choices=['mode'])
-        
         ssid_parser.add_argument("mode_type", help="Security mode (WPA, WPA2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
 
         try:
@@ -111,8 +103,11 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
             ssid_name = args.ssid_name
             pass_phrase = args.pass_phrase
             mode_type = args.mode_type
+            if not mode_type:
+                mode_type = WPAVersion.WPA2
 
-            self.log.info(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
+            self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
+            self.
 
 
     def do_wpa(self, args, negate=False):
