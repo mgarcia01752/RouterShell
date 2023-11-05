@@ -2639,4 +2639,29 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=None, reason=str(e))
 
+    '''
+                        WIRELESS-POLICY-WIFI
+    '''
 
+    def wifi_policy_exist(self, wireless_wifi_policy:str) -> Result:
+        return Result(status=True)
+    
+    def insert_wifi_policy(self, wireless_wifi_policy:str) -> Result:
+        return Result(status=True)
+    
+    def delete_wifi_policy(self, wireless_wifi_policy:str) -> Result:
+        return Result(status=True)
+    
+    def insert_wifi_ssid(self, wireless_wifi_policy:str, ssid:str) -> Result:
+        return Result(status=True)
+    
+    def update_wifi_ssid(self, wireless_wifi_policy:str, ssid:str) -> Result:
+        return Result(status=True)
+    
+    def insert_wifi_wpa_passphrase(self, wireless_wifi_policy:str, ssid:str) -> Result:
+        return Result(status=True)
+    
+
+    '''
+                        WIRELESS-INTERFACE-CELL
+    '''

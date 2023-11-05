@@ -201,9 +201,26 @@ CREATE TABLE IF NOT EXISTS RenameInterface (
 DROP TABLE IF EXISTS WirelessWifiPolicy;
 CREATE TABLE IF NOT EXISTS WirelessWifiPolicy (
     ID INTEGER PRIMARY KEY,
+    Interface_FK INTEGER UNIQUE DEFAULT NULL,               -- Only 1 interface per Wireless-Policy
+    WifiPolicyName VARCHAR(50),                             -- MANY:1 interface  
+    CONSTRAINT FK_WirelessWifiPolicy_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS WirelessWifiSecurityPolicy;
+CREATE TABLE IF NOT EXISTS WirelessWifiSecurityPolicy (
+    ID INTEGER PRIMARY KEY,
+    WirelessWifiPolicy_FK INTEGER,
     Ssid VARCHAR(32),
     WpaPassPhrase VARCHAR(63),
-    WpaVersion INTEGER,             -- WPA = 1, WPA2 = 2, WPA3 = 3
-    
+    WpaVersion INTEGER,                                     -- WPA = 1, WPA2 = 2, WPA3 = 3
+    CONSTRAINT FK_WirelessWifiSecurityPolicy_WirelessWifiPolicy FOREIGN KEY (WirelessWifiPolicy_FK) REFERENCES WirelessWifiPolicy(ID) ON DELETE CASCADE
+);
 
+DROP TABLE IF EXISTS WirelessWifiHostapdOptions;
+CREATE TABLE IF NOT EXISTS WirelessWifiHostapdOptions (
+    ID INTEGER PRIMARY KEY,
+    WirelessWifiPolicy_FK INTEGER,
+    OptionName VARCHAR(255),
+    OptionValue VARCHAR(255),
+    CONSTRAINT FK_WirelessWifiHostapdOptions_Interfaces FOREIGN KEY (WirelessWifiPolicy_FK) REFERENCES WirelessWifiPolicy(ID) ON DELETE CASCADE
 );

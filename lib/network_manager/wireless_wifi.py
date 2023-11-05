@@ -292,6 +292,4 @@ class Wifi(NetworkManager):
         return STATUS_OK
 
     def set_ieee80211(self, ieee802_support:HostapdIEEE802Config, negate=False) -> bool:
-        '''
-        
-        '''
+        return STATUS_OK
