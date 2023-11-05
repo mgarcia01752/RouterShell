@@ -109,7 +109,7 @@ class Wifi(NetworkManager):
         self.log.setLevel(RSLGS().WIRELESS_WIFI)
 
     def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
-        return True
+        return True 
 
     def wifi_interface_exist(self, wifi_interface_name: str) -> bool:
         """
