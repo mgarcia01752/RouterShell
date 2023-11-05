@@ -1,5 +1,7 @@
 from enum import Enum
 import logging
+
+from lib.network_manager.hostadp-config-gen import HostapdIEEE802Config
 from lib.network_manager.network_manager import NetworkManager
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_OK, STATUS_NOK
@@ -219,3 +221,8 @@ class Wifi(NetworkManager):
             return STATUS_NOK
 
         return STATUS_OK
+
+    def set_ieee80211(self, ieee802_support:HostapdIEEE802Config, negate=False) -> bool:
+        '''
+        
+        '''

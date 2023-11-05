@@ -49,17 +49,13 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        # Subparser for configuring SSID
         ssid_parser = subparsers.add_parser("configure", help="Configure the SSID")
         ssid_parser.add_argument("ssid_name", help="The name of the SSID")
 
-        # Subparser for displaying the current SSID
         display_parser = subparsers.add_parser("display", help="Display the current SSID")
 
-        # Parse the arguments
         parsed_args = parser.parse_args(args)
 
-        # Implement the logic to handle the parsed arguments, e.g., set or display the SSID based on subcommand
 
         return
 
@@ -79,23 +75,22 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        # Subparser for configuring WPA passphrase
-        passphrase_parser = subparsers.add_parser("passphrase", help="Configure the WPA passphrase")
-        passphrase_parser.add_argument("wpa_passphrase", help="The WPA passphrase")
+        passphrase_parser = subparsers.add_parser("passphrase", 
+                                                  help="Configure the WPA passphrase")
+        passphrase_parser.add_argument("wpa_passphrase", 
+                                       help="The WPA passphrase")
 
-        # Subparser for configuring WPA mode
         mode_parser = subparsers.add_parser("mode", help="Configure the WPA mode")
-        mode_parser.add_argument("wpa_mode", choices=["WPA", "WPA2", "WPA3", "MIX-MODE"], help="The WPA mode")
+        mode_parser.add_argument("wpa_mode", choices=["WPA", "WPA2", "WPA3", "MIX-MODE"], 
+                                 help="The WPA mode")
 
-        # Subparser for configuring WPA key management
         key_mgmt_parser = subparsers.add_parser("key-mgmt", help="Configure WPA key management")
-        key_mgmt_parser.add_argument("wpa_key_mgmt", choices=["WPA-PSK", "WPA-EPA", "WPA-EPA-SHA256", "WPA-EPA-TLS"], help="The WPA key management")
+        key_mgmt_parser.add_argument("wpa_key_mgmt", choices=["WPA-PSK", "WPA-EPA", "WPA-EPA-SHA256", "WPA-EPA-TLS"], 
+                                     help="The WPA key management")
 
-        # Subparser for configuring WPA pairwise
         pairwise_parser = subparsers.add_parser("pairwise", help="Configure WPA pairwise")
         pairwise_parser.add_argument("wpa_pairwise", choices=["CCMP", "TKIP"], help="The WPA pairwise encryption method")
 
-        # Parse the arguments
         parsed_args = parser.parse_args(args)
 
         # Implement the logic to handle the parsed arguments, e.g., set WPA settings based on subcommand
@@ -115,17 +110,13 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        # Subparser for configuring hardware mode
         mode_parser = subparsers.add_parser("configure", help="Configure the hardware mode")
         mode_parser.add_argument("mode_option", choices=["a", "b", "g", "ad", "ax", "any"], help="The hardware mode")
 
-        # Subparser for displaying the current hardware mode
         display_parser = subparsers.add_parser("display", help="Display the current hardware mode")
 
-        # Parse the arguments
-        parsed_args = parser.parse_args(args)
+        parsed_args = parser.parse_args(display_parser)
 
-        # Implement the logic to handle the parsed arguments, e.g., set or display the hardware mode based on subcommand
 
         return
 
@@ -142,16 +133,30 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        # Subparser for configuring the channel
         channel_parser = subparsers.add_parser("configure", help="Configure the channel")
         channel_parser.add_argument("channel_number", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"], help="The channel number")
 
-        # Subparser for displaying the current channel
         display_parser = subparsers.add_parser("display", help="Display the current channel")
 
-        # Parse the arguments
         parsed_args = parser.parse_args(args)
 
-        # Implement the logic to handle the parsed arguments, e.g., set or display the channel based on subcommand
-
         return
+    
+
+    def do_ieee80211(self, args: str, negate: bool = False):
+        parser = argparse.ArgumentParser(
+            description="Configure IEEE802.11 Support",
+            epilog="Usage:\n"
+                   "[no] ieee80211 [d | h | ac | ax | be | x | n | w]\n"
+        )
+
+        subparsers = parser.add_subparsers(dest="subcommand")
+        ieee80211_parser = subparsers.add_parser("ieee80211", 
+                                                 choices=["d", "h", "ac", "ax", "be", "x", "w", 'n'],
+                                                 help="Configure IEEE802.11 support")
+        
+        parsed_args = parser.parse_args(args)
+                
+        return
+
+
