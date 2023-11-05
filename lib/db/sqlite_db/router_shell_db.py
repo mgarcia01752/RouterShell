@@ -7,7 +7,6 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.singleton import Singleton
 from lib.network_manager.network_manager import InterfaceType
 
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class Result:
@@ -66,7 +65,7 @@ class RouterShellDB(metaclass=Singleton):
     connection_created = False
 
     ROUTER_SHELL_DB = 'routershell.db'
-    ROUTER_SHELL_SQL_STARTUP = '../db_schema.sql'
+    ROUTER_SHELL_SQL_STARTUP = 'db_schema.sql'
     ROW_ID_NOT_FOUND = 0
     FK_NOT_FOUND = -1
 
