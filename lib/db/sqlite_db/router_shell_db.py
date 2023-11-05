@@ -2729,7 +2729,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-
     def insert_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Insert a new wireless Wi-Fi SSID into the database for a specific policy.
@@ -2763,7 +2762,6 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert SSID '{ssid}' for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-
     
     def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
@@ -2802,7 +2800,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update SSID for policy '{wireless_wifi_policy}' to '{ssid}'. Error: {str(e)}", result=None)
 
-
     def delete_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Delete a row from the 'WirelessWifiSecurityPolicy' table for a specific wireless Wi-Fi policy and SSID.
@@ -2839,7 +2836,6 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete row for SSID '{ssid}' from policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-
 
     def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
         """
@@ -2880,7 +2876,6 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
-
     
     def update_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
         """
@@ -2927,7 +2922,6 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
-
 
     def get_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
         """
@@ -3012,7 +3006,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-
     def update_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
         """
         Update the value of a Hostapd option for a specific wireless Wi-Fi policy.
@@ -3057,7 +3050,6 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Hostapd option value for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-
 
     def delete_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
         """
@@ -3147,7 +3139,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
-
     
     def get_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> List[Result]:
         """
@@ -3281,7 +3272,3 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve associated network interfaces for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
-    
-    '''
-                        WIRELESS-INTERFACE-CELL
-    '''
