@@ -8,22 +8,106 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.common.constants import STATUS_OK, STATUS_NOK
 
 class WPAVersion(Enum):
+    """
+    Enum representing different versions of WPA (Wi-Fi Protected Access).
+
+    Attributes:
+        WPA1 (int): WPA version 1.
+        WPA2 (int): WPA version 2.
+        WPA3 (int): WPA version 3.
+        UNKNOWN (int): An unknown or undefined version of WPA.
+    """
     WPA1 = 1
     WPA2 = 2
     WPA3 = 3
     UNKNOWN = -1
     
 class WPAkeyManagement(Enum):
+    """
+    Enum representing key management algorithms for Wi-Fi networks.
+
+    Attributes:
+        WPA_PSK (str): Wi-Fi Protected Access - Pre-Shared Key (WPA-PSK).
+        WPA_EAP (str): Wi-Fi Protected Access - Extensible Authentication Protocol (WPA-EAP).
+        WPA_EAP_SHA256 (str): WPA-EAP using SHA256-based encryption.
+        WPA_EAP_TLS (str): WPA-EAP using Transport Layer Security (TLS).
+    """
     WPA_PSK = 'WPA-PSK'
-    WPA_EPA = 'WPA-EPA'
-    WPA_EPA_SHA265 = 'WPA-EPA-SHA265'
-    WPA_EPA_TLA = 'WPA-EPA-TLS'   
+    WPA_EAP = 'WPA-EAP'
+    WPA_EAP_SHA256 = 'WPA-EAP-SHA256'
+    WPA_EAP_TLS = 'WPA-EAP-TLS'
+
+class KeyManagementRule:
+    '''
+    Rules defined in hostapd.config as of 231105
+
+    This section defines a set of accepted key management algorithms for wireless networks.
+    The key management algorithms determine how encryption keys are negotiated and managed
+    for securing Wi-Fi communication. The entries are separated by spaces.
+
+    - WPA-PSK: WPA-Personal / WPA2-Personal
+    - WPA-PSK-SHA256: WPA2-Personal using SHA256 for stronger security
+    - WPA-EAP: WPA-Enterprise / WPA2-Enterprise
+    - WPA-EAP-SHA256: WPA2-Enterprise using SHA256 for stronger security
+    - SAE: Simultaneous Authentication of Equals (WPA3-Personal)
+    - WPA-EAP-SUITE-B-192: WPA3-Enterprise with 192-bit security (CNSA suite)
+    - FT-PSK: Fast Transition with passphrase/PSK
+    - FT-EAP: Fast Transition with EAP
+    - FT-EAP-SHA384: Fast Transition with EAP using SHA384 for stronger security
+    - FT-SAE: Fast Transition with SAE
+    - FILS-SHA256: Fast Initial Link Setup with SHA256
+    - FILS-SHA384: Fast Initial Link Setup with SHA384
+    - FT-FILS-SHA256: Fast Transition and Fast Initial Link Setup with SHA256
+    - FT-FILS-SHA384: Fast Transition and Fast Initial Link Setup with SHA384
+    - OWE: Opportunistic Wireless Encryption (a.k.a. Enhanced Open)
+    - DPP: Device Provisioning Protocol
+    - OSEN: Hotspot 2.0 online signup with encryption
+
+    These rules define the key management algorithms that can be used to secure Wi-Fi networks.
+    Please configure your network's key management algorithms based on your security requirements.
+
+    (dot11RSNAConfigAuthenticationSuitesTable)
+    '''
+
+    def __init__(self):
+        self.allowed_combinations = {
+            ('WPA_PSK', 'WPA_EAP'): lambda wpa_key_mgmt: 'WPA-Personal' in wpa_key_mgmt and 'WPA-Enterprise' in wpa_key_mgmt,
+            ('WPA_PSK', 'WPA_EAP_SHA256'): lambda wpa_key_mgmt: 'WPA-Personal' in wpa_key_mgmt and 'WPA-Enterprise-SHA256' in wpa_key_mgmt,
+            ('WPA_EAP', 'WPA_EAP_SHA256'): lambda wpa_key_mgmt: 'WPA-Enterprise' in wpa_key_mgmt and 'WPA-Enterprise-SHA256' in wpa_key_mgmt,
+        }
+
+    def validate_key_management(self, wpa_key_mgmt):
+        provided_algorithms = set(wpa_key_mgmt.split())
+
+        for allowed_combination, validation_rule in self.allowed_combinations.items():
+            if all(mode in provided_algorithms for mode in allowed_combination) and not validation_rule(wpa_key_mgmt):
+                return False
+
+        return True
     
 class Pairwise(Enum):
+    """
+    Enum representing pairwise cipher suites for Wi-Fi security.
+
+    Attributes:
+        CCMP (str): Cipher-based encryption for enhanced security (e.g., WPA2).
+        TKIP (str): Temporal Key Integrity Protocol, an older encryption method (e.g., WPA).
+    """
     CCMP = 'CCMP'
     TKIP = 'TKIP'
 
 class HardwareMode(Enum):
+    """
+    Enum representing hardware modes for Wi-Fi devices.
+
+    Attributes:
+        A (str): Wi-Fi mode 'a' (5 GHz band).
+        B (str): Wi-Fi mode 'b' (2.4 GHz band).
+        G (str): Wi-Fi mode 'g' (2.4 GHz band).
+        AD (str): Wi-Fi mode 'ad' (60 GHz band).
+        AX (str): Wi-Fi mode 'ax' (6 GHz band and beyond).
+        ANY (str): Represents any hardware mode.
+    """
     A = 'a'
     B = 'b'
     G = 'g'
@@ -32,6 +116,13 @@ class HardwareMode(Enum):
     ANY = 'any'
 
 class AuthAlgorithms(Enum):
+    """
+    Enum representing authentication algorithms for Wi-Fi networks.
+
+    Attributes:
+        OSA (str): Open System Authentication (OSA).
+        SKA (str): Shared Key Authentication (SKA).
+    """
     OSA = 'OSA'
     SKA = 'SKA'
 
