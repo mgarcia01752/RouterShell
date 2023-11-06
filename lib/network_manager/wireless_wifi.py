@@ -12,7 +12,13 @@ class WPAVersion(Enum):
     WPA2 = 2
     WPA3 = 3
     UNKNOWN = -1
-    
+
+    def get_wpa_version(mode_name):
+        for member in WPAVersion:
+            if member.name == mode_name:
+                return member.value
+        return WPAVersion.UNKNOWN.value
+
 class WPAkeyManagement(Enum):
     WPA_PSK = 'WPA-PSK'
     WPA_EPA = 'WPA-EPA'
@@ -93,7 +99,7 @@ class WifiPolicy(WifiDB):
         - It returns STATUS_OK if the addition is successful, and STATUS_NOK if there is an error or the addition fails.
 
         """
-        return self.add_wifi_security_access_group(ssid, pass_phrase, mode.value)
+        return self.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
 
         
     def status(self) -> bool:

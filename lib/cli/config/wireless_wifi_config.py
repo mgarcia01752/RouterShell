@@ -103,10 +103,13 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             ssid_name = args.ssid_name
             pass_phrase = args.pass_phrase
             mode_type = args.mode_type
+            
             if not mode_type:
                 mode_type = WPAVersion.WPA2
-
-            self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
+            else:
+                mode_type = WPAVersion[mode_type]
+            
+            self.log.info(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
             
             if self.add_security_access_group(ssid_name, pass_phrase, mode_type):
                 self.log.error(f"Unable to add Security Access Group SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type} to DB")
