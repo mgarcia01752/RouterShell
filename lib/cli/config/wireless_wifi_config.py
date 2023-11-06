@@ -6,7 +6,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.network_manager import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import HardwareMode, WPAVersion, WifiPolicy
+from lib.network_manager.wireless_wifi import HardwareMode, WPAVersion, WifiChannel, WifiPolicy
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -187,13 +187,18 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         subparsers = parser.add_subparsers(dest="subcommand")
 
         channel_parser = subparsers.add_parser("configure", help="Configure the channel")
-        channel_parser.add_argument("channel_number", choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"], help="The channel number")
+        channel_parser.add_argument("channel_number", choices=WifiChannel.display_list(), help="The channel number")
 
-        display_parser = subparsers.add_parser("display", help="Display the current channel")
+        try:
+            if not isinstance(args, list):
+                args = parser.parse_args(args.split())
+            else:
+                args = parser.parse_args(args)
+        except SystemExit:
+            return
 
-        parsed_args = parser.parse_args(args)
-
-        return
+        if args.subcommand == "channel":
+            self.add_channel(WifiChannel[args.channel_number])
     
 
     def do_ieee80211(self, args: str, negate: bool = False):

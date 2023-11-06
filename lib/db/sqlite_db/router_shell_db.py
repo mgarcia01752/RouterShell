@@ -3311,3 +3311,159 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve associated network interfaces for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
+
+    def update_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
+        """
+        Update the Wi-Fi channel associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to update.
+            channel (str): The new Wi-Fi channel to set for the policy.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful updates and False for failed ones.
+            - `row_id` contains the row ID of the updated policy if the update is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method updates the Wi-Fi channel for the specified wireless Wi-Fi policy.
+        - If the update is successful, `status` is set to True, `row_id` contains the updated policy's ID, and `reason` indicates success.
+        - If the update STATUS_NOK, `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to update the Wi-Fi channel.
+            query = "UPDATE WirelessWifiPolicy SET Channel = ? WHERE WifiPolicyName = ?"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (channel, wireless_wifi_policy))
+            self.connection.commit()
+
+            # Check if any rows were affected by the update
+            if cursor.rowcount > 0:
+                return Result(status=STATUS_OK, row_id=policy_exist_result.row_id, reason=f"Updated Wi-Fi channel for policy '{wireless_wifi_policy}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}'")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi channel for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+        
+    def insert_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
+        """
+        Insert a Wi-Fi channel into the database associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the channel with.
+            channel (str): The Wi-Fi channel to insert.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful insertions and False for failed ones.
+            - `row_id` contains the row ID of the inserted channel if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts a new Wi-Fi channel associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted channel's ID, and `reason` indicates success.
+        - If the insertion STATUS_NOK, `status` is set to STATUS_NOK, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to insert the Wi-Fi channel.
+            query = "INSERT INTO WirelessWifiPolicy (WifiPolicyName, Channel) VALUES (?, ?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy, channel))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Wi-Fi channel '{channel}' for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi channel for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
+    def insert_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
+        """
+        Insert a Wi-Fi hardware mode into the database associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the hardware mode with.
+            hw_mode (str): The Wi-Fi hardware mode to insert.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful insertions and False for failed ones.
+            - `row_id` contains the row ID of the inserted hardware mode if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts a new Wi-Fi hardware mode associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted hardware mode's ID, and `reason` indicates success.
+        - If the insertion fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to insert the Wi-Fi hardware mode.
+            query = "INSERT INTO WirelessWifiPolicy (WifiPolicyName, HardwareMode) VALUES (?, ?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy, hw_mode))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Wi-Fi hardware mode '{hw_mode}' for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi hardware mode for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
+    def update_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
+        """
+        Update the Wi-Fi hardware mode associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to update.
+            hw_mode (str): The new Wi-Fi hardware mode to set for the policy.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful updates and False for failed ones.
+            - `row_id` contains the row ID of the updated policy if the update is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method updates the Wi-Fi hardware mode for the specified wireless Wi-Fi policy.
+        - If the update is successful, `status` is set to True, `row_id` contains the updated policy's ID, and `reason` indicates success.
+        - If the update fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to update the Wi-Fi hardware mode.
+            query = "UPDATE WirelessWifiPolicy SET HardwareMode = ? WHERE WifiPolicyName = ?"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (hw_mode, wireless_wifi_policy))
+            self.connection.commit()
+
+            # Check if any rows were affected by the update
+            if cursor.rowcount > 0:
+                return Result(status=STATUS_OK, row_id=policy_exist_result.row_id, reason=f"Updated Wi-Fi hardware mode for policy '{wireless_wifi_policy}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}'")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi hardware mode for policy '{wireless_wifi
+
+        

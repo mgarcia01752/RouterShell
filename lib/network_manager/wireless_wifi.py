@@ -154,6 +154,55 @@ class AuthAlgorithms(Enum):
     OSA = 'OSA'
     SKA = 'SKA'
 
+    @classmethod
+    def display_list(cls):
+        """
+        Returns a list of available authentication algorithms.
+        """
+        return [algorithm.value for algorithm in cls]
+
+class WifiChannel(Enum):
+    """
+    Enum representing Wi-Fi channels.
+
+    Attributes:
+        CHANNEL_1 (int): Wi-Fi channel 1.
+        CHANNEL_2 (int): Wi-Fi channel 2.
+        CHANNEL_3 (int): Wi-Fi channel 3.
+        CHANNEL_4 (int): Wi-Fi channel 4.
+        CHANNEL_5 (int): Wi-Fi channel 5.
+        CHANNEL_6 (int): Wi-Fi channel 6.
+        CHANNEL_7 (int): Wi-Fi channel 7.
+        CHANNEL_8 (int): Wi-Fi channel 8.
+        CHANNEL_9 (int): Wi-Fi channel 9.
+        CHANNEL_10 (int): Wi-Fi channel 10.
+        CHANNEL_11 (int): Wi-Fi channel 11.
+        CHANNEL_12 (int): Wi-Fi channel 12.
+        CHANNEL_13 (int): Wi-Fi channel 13.
+        CHANNEL_14 (int): Wi-Fi channel 14.
+    """
+    CHANNEL_1 = 1
+    CHANNEL_2 = 2
+    CHANNEL_3 = 3
+    CHANNEL_4 = 4
+    CHANNEL_5 = 5
+    CHANNEL_6 = 6
+    CHANNEL_7 = 7
+    CHANNEL_8 = 8
+    CHANNEL_9 = 9
+    CHANNEL_10 = 10
+    CHANNEL_11 = 11
+    CHANNEL_12 = 12
+    CHANNEL_13 = 13
+    CHANNEL_14 = 14
+
+    @classmethod
+    def display_list(cls):
+        """
+        Returns a list of available Wi-Fi channels.
+        """
+        return [channel.value for channel in cls]
+
 class WifiPolicy(WifiDB):
     """
     Represents a Wi-Fi policy for network management.
@@ -232,6 +281,9 @@ class WifiPolicy(WifiDB):
         - It returns STATUS_OK if the association is successful, and STATUS_NOK if it fails.
         """
         return self.add_wifi_hardware_mode(self.wifi_policy_name, hardware_mode.value)
+    
+    def add_channel(self, wifi_channel: WifiChannel=WifiChannel.CHANNEL_6) -> bool:
+        return self.add_wifi_channel()
         
     def status(self) -> bool:
         """

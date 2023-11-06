@@ -4,6 +4,7 @@ from typing import List
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.wireless_wifi import HardwareMode
 
 class WifiDB:
     
@@ -70,5 +71,33 @@ class WifiDB:
     def add_wifi_key_management(cls, wifi_policy_name:str, key_management:str) -> bool:
         return STATUS_OK
     
-    def add_wifi_hardware_mode(cls, wifi_policy_name:str, mode:str) -> bool:
-        return RSDB()
+    def add_hardware_mode(self, hardware_mode: HardwareMode) -> bool:
+        """
+        Add a hardware mode to a wireless Wi-Fi policy.
+
+        Args:
+        - hardware_mode (HardwareMode): The hardware mode to add.
+
+        Returns:
+        bool: STATUS_OK if the addition is successful, STATUS_NOK if it fails.
+
+        Note:
+        - This method associates a hardware mode with the specified wireless Wi-Fi policy.
+        """
+        return RSDB().insert_wifi_hardware_mode(self.wifi_policy_name, hardware_mode.value).status
+
+    def add_wifi_channel(self, wifi_policy_name: str, channel: str) -> bool:
+        """
+        Add a Wi-Fi channel to a wireless Wi-Fi policy.
+
+        Args:
+        - wifi_policy_name (str): The name of the wireless Wi-Fi policy.
+        - channel (str): The Wi-Fi channel to add.
+
+        Returns:
+        bool: STATUS_OK if the addition is successful, STATUS_NOK if it fails.
+
+        Note:
+        - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
+        """
+        return RSDB().insert_wifi_channel(wifi_policy_name, channel).status
