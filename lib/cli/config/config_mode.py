@@ -295,7 +295,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         return [comp for comp in completions if comp.startswith(text)]
     
     def do_wireless(self, args, negate=False):
-        self.log.info(f"do_wireless() -> command: ({args}) -> negate: {negate}")
+        self.log.debug(f"do_wireless() -> command: ({args}) -> negate: {negate}")
         
         parser = argparse.ArgumentParser(
             description="Configure Wireless Policy",
@@ -315,14 +315,14 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         # Parse the arguments
         parsed_args = parser.parse_args(args.split())
-        self.log.info(f"do_wireless() -> args-parsed: {parsed_args}")
+        self.log.debug(f"do_wireless() -> args-parsed: {parsed_args}")
         
         if parsed_args.wireless_type == "wifi":
-            self.log.info(f"do_wireless() -> wireless-type: wifi -> wireless-wifi-policy: {parsed_args.wireless_policy_name}")
+            self.log.debug(f"do_wireless() -> wireless-type: wifi -> wireless-wifi-policy: {parsed_args.wireless_policy_name}")
             WirelessWifiPolicyConfig(parsed_args.wireless_policy_name).cmdloop()
 
         elif parsed_args.wireless_type == "cell":
-            self.log.info(f"do_wireless() -> wireless-type: cell -> wireless-cell-policy: {parsed_args.wireless_policy_name}")
+            self.log.debug(f"do_wireless() -> wireless-type: cell -> wireless-cell-policy: {parsed_args.wireless_policy_name}")
             WirelessCellPolicyConfig(parsed_args.wireless_policy_name).cmdloop()
 
         else:

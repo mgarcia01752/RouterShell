@@ -64,5 +64,5 @@ class WifiDB:
         - It returns True if the insertion is successful, and False if there is an error or the insertion fails.
 
         """
-        cls.log.info(f"{wifi_policy_name}, {ssid}, {pass_phrase}, {mode}")
+        cls.log.debug(f"{wifi_policy_name}, {ssid}, {pass_phrase}, {mode}")
         return RSDB().insert_wifi_access_security_group(wifi_policy_name, ssid, pass_phrase, mode).status

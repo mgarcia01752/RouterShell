@@ -26,7 +26,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WL_WIFI_POLICY_CONFIG)
-        self.log.info(f"__init__ > arg -> {wifi_policy_name} -> negate={negate}")
+        self.log.debug(f"__init__ > arg -> {wifi_policy_name} -> negate={negate}")
 
         WifiPolicy.__init__(self, wifi_policy_name)        
 
@@ -109,7 +109,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             else:
                 mode_type = WPAVersion[mode_type]
             
-            self.log.info(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
+            self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
             
             if self.add_security_access_group(ssid_name, pass_phrase, mode_type):
                 self.log.error(f"Unable to add Security Access Group SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type} to DB")

@@ -12,13 +12,7 @@ class WPAVersion(Enum):
     WPA2 = 2
     WPA3 = 3
     UNKNOWN = -1
-
-    def get_wpa_version(mode_name):
-        for member in WPAVersion:
-            if member.name == mode_name:
-                return member.value
-        return WPAVersion.UNKNOWN.value
-
+    
 class WPAkeyManagement(Enum):
     WPA_PSK = 'WPA-PSK'
     WPA_EPA = 'WPA-EPA'
