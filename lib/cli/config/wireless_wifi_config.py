@@ -6,7 +6,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.network_manager import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import WPAVersion, WifiPolicy
+from lib.network_manager.wireless_wifi import HardwareMode, WPAVersion, WifiPolicy
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -78,7 +78,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         parser = argparse.ArgumentParser(
             description="Configure Service Set Identifier (SSID), passphrase, and optional security mode.",
             epilog="Usage:\n"
-                   "   ssid <ssid> passphrase <passphrase> [mode [WPA | WPA2 | WPA3]]\n"
+                   "   ssid <ssid> passphrase <passphrase> [mode [WPA | \{WPA2\} | WPA3]]\n"
                    "\n"
                    "   <suboption> --help                           Get help for specific suboptions."
         )
@@ -88,8 +88,8 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         ssid_parser.add_argument("ssid_name", help="SSID of the Wi-Fi network")
         ssid_parser.add_argument("passphrase", help="passphrase", nargs='?', choices=["passphrase"])
         ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)")
-        ssid_parser.add_argument("mode", help="mode", nargs='?', choices=['mode'])
-        ssid_parser.add_argument("mode_type", help="Security mode (WPA, WPA2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
+        ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['wpa-mode'])
+        ssid_parser.add_argument("wpa_mode_type", help=f"Security mode ({WPAVersion.display_list()})", nargs='?', choices=WPAVersion.display_list())
 
         try:
             if not isinstance(args, list):
@@ -104,15 +104,15 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             pass_phrase = args.pass_phrase
             mode_type = args.mode_type
             
-            if not mode_type:
-                mode_type = WPAVersion.WPA2
+            if not wpa_mode_type:
+                wpa_mode_type = WPAVersion.WPA2
             else:
-                mode_type = WPAVersion[mode_type]
+                wpa_mode_type = WPAVersion[wpa_mode_type]
             
-            self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
+            self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, WPA-Mode: {wpa_mode_type}")
             
-            if self.add_security_access_group(ssid_name, pass_phrase, mode_type):
-                self.log.error(f"Unable to add Security Access Group SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type} to DB")
+            if self.add_security_access_group(ssid_name, pass_phrase, wpa_mode_type):
+                self.log.error(f"Unable to add Security Access Group SSID Name: {ssid_name}, Passphrase: {pass_phrase}, WPA-Mode: {wpa_mode_type} to DB")
                 
     def do_wpa(self, args, negate=False):
         self.log.debug(f"do_wpa() - args: {args}")
@@ -128,16 +128,8 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        passphrase_parser = subparsers.add_parser("passphrase", 
-                                                  help="Configure the WPA passphrase")
-        passphrase_parser.add_argument("wpa_passphrase", 
-                                       help="The WPA passphrase")
-
-        mode_parser = subparsers.add_parser("mode", help="Configure the WPA mode")
-        mode_parser.add_argument("wpa_mode", choices=["WPA", "WPA2", "WPA3", "MIX-MODE"], 
-                                 help="The WPA mode")
-
         key_mgmt_parser = subparsers.add_parser("key-mgmt", help="Configure WPA key management")
+        # TODO Get list from ENUM
         key_mgmt_parser.add_argument("wpa_key_mgmt", choices=["WPA-PSK", "WPA-EPA", "WPA-EPA-SHA256", "WPA-EPA-TLS"], 
                                      help="The WPA key management")
 
@@ -165,13 +157,21 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        mode_parser = subparsers.add_parser("configure", help="Configure the hardware mode")
-        mode_parser.add_argument("mode_option", choices=["a", "b", "g", "ad", "ax", "any"], help="The hardware mode")
+        mode_parser = subparsers.add_parser("mode", help="Configure the hardware mode")
+        mode_parser.add_argument("mode_option", choices=HardwareMode.display_list(), help="The hardware mode")
 
-        display_parser = subparsers.add_parser("display", help="Display the current hardware mode")
+        try:
+            if not isinstance(args, list):
+                args = parser.parse_args(args.split())
+            else:
+                args = parser.parse_args(args)
+        except SystemExit:
+            return
 
-        parsed_args = parser.parse_args(display_parser)
-
+        if args.subcommand == "mode":
+            mode_option = args.mode_option
+            if self.add_hardware_mode(HardwareMode[mode_option]):
+                self.log.error(f"Unable to add hardware-mode: {mode_option} to wifi-policy: {self.wifi_policy_name}")
 
     def do_channel(self, args, negate=False):
         self.log.debug(f"do_channel() - args: {args}")

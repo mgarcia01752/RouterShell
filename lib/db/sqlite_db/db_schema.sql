@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
     InterfaceName VARCHAR(100) UNIQUE,
     InterfaceType VARCHAR(100),         -- Interface Type (ethernet, loopback, wireless wifi, wireless cell)
-    ShutdownStatus BOOLEAN              -- True = interface is shutdown
+    ShutdownStatus BOOLEAN DEFAULT TRUE             -- True = interface is shutdown
 );
 
 DROP TABLE IF EXISTS InterfaceSubOptions;
@@ -30,9 +30,9 @@ DROP TABLE IF EXISTS InterfaceStaticArp;
 CREATE TABLE IF NOT EXISTS InterfaceStaticArp (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT DEFAULT -1,
-    IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)              
-    MacAddress VARCHAR(17),             -- MAC address format: xx:xx:xx:xx:xx:xx
-    Encapsulation VARCHAR(10),          -- arpa | TBD
+    IpAddress VARCHAR(45),                              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)              
+    MacAddress VARCHAR(17),                             -- MAC address format: xx:xx:xx:xx:xx:xx
+    Encapsulation VARCHAR(10) DEFAULT 'arpa',           -- arpa | TBD
     CONSTRAINT FK_InterfaceStaticArp_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS InterfaceIpAddress (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT DEFAULT -1,
     IpAddress VARCHAR(45),              -- IPv4 | IPv6 Address/Mask Prefix (adjust length as needed)
-    SecondaryIp BOOLEAN,                -- True = Secondary
+    SecondaryIp BOOLEAN DEFAULT False,  -- True = Secondary
     CONSTRAINT FK_InterfaceIpAddress_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
@@ -217,9 +217,9 @@ DROP TABLE IF EXISTS WirelessWifiSecurityPolicy;
 CREATE TABLE IF NOT EXISTS WirelessWifiSecurityPolicy (
     ID INTEGER PRIMARY KEY,
     WirelessWifiPolicy_FK INTEGER,
-    Ssid VARCHAR(32),
+    Ssid VARCHAR(32) DEFAULT 'Guest-WiFi',
     HardwareMode VARCHAR(5) DEFAULT 'any',                              -- 
-    WpaPassPhrase VARCHAR(63) DEFAULT 'pass-phrase',
+    WpaPassPhrase VARCHAR(63) DEFAULT 'password',
     WpaVersion INTEGER DEFAULT 2,                                       -- WPA = 1, WPA2 = 2, WPA3 = 3
     WpaKeyManagment VARCHAR(20) DEFAULT 'WPA-Personal',
     WpaPairwise VARCHAR(20) DEFAULT 'TKIP CCMP',

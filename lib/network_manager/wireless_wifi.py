@@ -21,6 +21,13 @@ class WPAVersion(Enum):
     WPA2 = 2
     WPA3 = 3
     UNKNOWN = -1
+
+    @classmethod
+    def display_list(cls):
+        """
+        Returns a list of known WPA versions.
+        """
+        return [version.value for version in cls if version != cls.UNKNOWN]
     
 class WPAkeyManagement(Enum):
     """
@@ -36,6 +43,13 @@ class WPAkeyManagement(Enum):
     WPA_EAP = 'WPA-EAP'
     WPA_EAP_SHA256 = 'WPA-EAP-SHA256'
     WPA_EAP_TLS = 'WPA-EAP-TLS'
+    
+    @classmethod
+    def display_list(cls):
+        """
+        Returns a list of available key management algorithms.
+        """
+        return [algorithm.value for algorithm in cls]
 
 class KeyManagementRule:
     '''
@@ -95,7 +109,14 @@ class Pairwise(Enum):
     """
     CCMP = 'CCMP'
     TKIP = 'TKIP'
-
+    
+    @classmethod
+    def display_list(cls):
+        """
+        Returns a list of available pairwise cipher suites for Wi-Fi security.
+        """
+        return [cipher_suite.value for cipher_suite in cls]
+    
 class HardwareMode(Enum):
     """
     Enum representing hardware modes for Wi-Fi devices.
@@ -114,6 +135,13 @@ class HardwareMode(Enum):
     AD = 'ad'
     AX = 'ax'
     ANY = 'any'
+    
+    @classmethod
+    def display_list(cls):
+        """
+        Returns a list of available hardware modes for Wi-Fi devices (values only).
+        """
+        return [mode.value for mode in cls]
 
 class AuthAlgorithms(Enum):
     """
@@ -167,7 +195,7 @@ class WifiPolicy(WifiDB):
         self.wifi_policy_name = wifi_policy_name
         self.negate = negate
 
-    def add_security_access_group(self, ssid: str, pass_phrase: str, mode: WPAVersion) -> bool:
+    def add_security_access_group(self, ssid: str, pass_phrase: str, mode: WPAVersion=WPAVersion.WPA2) -> bool:
         """
         Add a security access group with the specified SSID, passphrase, and security mode.
 
