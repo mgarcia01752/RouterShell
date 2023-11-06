@@ -2762,6 +2762,46 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert SSID '{ssid}' for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
+
+    def insert_wifi_access_security_group(self, wireless_wifi_policy: str, ssid: str, pass_phrase: str, mode: str) -> Result:
+        """
+        Insert a new Wi-Fi access security group into the database associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the security group with.
+            ssid (str): The SSID (Service Set Identifier) for the security group.
+            pass_phrase (str): The WPA passphrase for the security group.
+            mode (str): The security mode (e.g., WPA, WPA2, WPA3) for the security group.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful insertions and False for failed ones.
+            - `row_id` contains the row ID of the inserted security group if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts a new Wi-Fi access security group associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted security group's ID, and `reason` indicates success.
+        - If the insertion fails, `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to insert the Wi-Fi access security group.
+            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK, Ssid, WpaPassPhrase, WpaVersion) VALUES (?, ?, ?, ?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (policy_exist_result.row_id, ssid, pass_phrase, mode))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Wi-Fi access security group for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi access security group for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
     
     def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """

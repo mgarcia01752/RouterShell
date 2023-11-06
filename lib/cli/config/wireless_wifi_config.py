@@ -34,7 +34,6 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         self.negate = negate
         self.prompt = self.set_prompt()
 
-  
     def run_command(self, cli: str, negate=False):
         self.log.debug(f"run_command() -> cli: {cli} -> negate: {negate}")
 
@@ -108,16 +107,16 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
                 mode_type = WPAVersion.WPA2
 
             self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
-
-
+            
+            if self.add_security_access_group(ssid_name, pass_phrase, mode_type):
+                self.log.error(f"Unable to add Security Access Group SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type} to DB")
+                
     def do_wpa(self, args, negate=False):
         self.log.debug(f"do_wpa() - args: {args}")
 
         parser = argparse.ArgumentParser(
             description="Configure Wireless Protected Access (WPA)",
             epilog="Usage:\n"
-            "   wpa passphrase <wpa-passphrase>\n"
-            "   wpa mode [WPA | WPA2 | WPA3 | MIX-MODE]\n"
             "   wpa key-mgmt [WPA-PSK | WPA-EPA | WPA-EPA-SHA256 | WPA-EPA-TLS]\n"
             "   wpa pairwise [CCMP | TKIP]\n"
             "\n"

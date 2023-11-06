@@ -76,6 +76,26 @@ class WifiPolicy(WifiDB):
         self.wifi_policy_name = wifi_policy_name
         self.negate = negate
 
+    def add_security_access_group(self, ssid: str, pass_phrase: str, mode: WPAVersion) -> bool:
+        """
+        Add a security access group with the specified SSID, passphrase, and security mode.
+
+        Args:
+        ssid (str): The SSID (Service Set Identifier) for the security access group.
+        pass_phrase (str): The security passphrase or key for the security access group.
+        mode (WPAVersion): The security mode for the security access group (e.g., WPA, WPA2, WPA3).
+
+        Returns:
+        bool: STATUS_OK if the security access group is added successfully, STATUS_NOK if the addition fails.
+
+        Note:
+        - This method adds a security access group with the provided SSID, passphrase, and security mode to the database.
+        - It returns STATUS_OK if the addition is successful, and STATUS_NOK if there is an error or the addition fails.
+
+        """
+        return self.add_wifi_security_access_group(ssid, pass_phrase, mode.value)
+
+        
     def status(self) -> bool:
         """
         Get the status of the Wi-Fi policy.
@@ -100,7 +120,6 @@ class WifiPolicy(WifiDB):
         self.wifi_policy_status = status
         return STATUS_OK
 
-           
 class Wifi(NetworkManager):
     """Command set for managing wireless networks using the 'iw' command."""
 
