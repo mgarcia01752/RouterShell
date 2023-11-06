@@ -1,6 +1,5 @@
 from enum import Enum
 import logging
-from lib.db.wifi_db import WifiDB
 from lib.network_manager.hostapd_config_gen import HostapdIEEE802Config
 
 from lib.network_manager.network_manager import NetworkManager
@@ -35,7 +34,7 @@ class AuthAlgorithms(Enum):
     OSA = 'OSA'
     SKA = 'SKA'
 
-class WifiPolicy(WifiDB):
+class WifiPolicy():
     """
     Represents a Wi-Fi policy for network management.
 
@@ -62,19 +61,19 @@ class WifiPolicy(WifiDB):
 
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI_POLICY)
+        self.log.setLevel(RSLGS().WIRELESS_WIFI_POLICY)
         self.log.debug(f"WifiPolicy() -> Wifi-Policy: {wifi_policy_name} -> Negate: {negate}")
 
-        if not self.wifi_policy_exist(wifi_policy_name):
+        self.wifi = Wifi()
+
+        if not self.wifi.wifi_policy_name_exist(wifi_policy_name):
             self.log.debug(f"Wifi-Policy: {wifi_policy_name} does not exist.")
-            if self.add_wifi_policy(wifi_policy_name):
-                self.log.debug(f"Error Adding wifi-policy: {wifi_policy_name} to DB")
-                self._set_status(STATUS_NOK)
-            else:
-                self._set_status(STATUS_OK)
+            self.wifi_policy_status = STATUS_NOK
+            return
 
         self.wifi_policy_name = wifi_policy_name
         self.negate = negate
+        self.wifi_policy_status = STATUS_OK
 
     def status(self) -> bool:
         """

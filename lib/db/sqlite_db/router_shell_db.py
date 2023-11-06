@@ -2641,10 +2641,10 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: An instance of the Result class representing the outcome of the operation.
-                - `status` is set to True if the policy exists, or False if it doesn't.
-                - `row_id` is the row ID of the policy if it exists, or 0 if it doesn't.
-                - `reason` contains an optional result message providing additional information about the operation.
-                - `result` contains the SQL query result, which includes the policy ID.
+            - `status` is set to True if the policy exists, or False if it doesn't.
+            - `row_id` is the row ID of the policy if it exists, or 0 if it doesn't.
+            - `reason` contains an optional result message providing additional information about the operation.
+            - `result` contains the SQL query result, which includes the policy ID.
         """
         try:
             # Define the SQL query to check for the existence of the policy.
@@ -2671,9 +2671,9 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
-                - `row_id` contains the row ID of the inserted policy if the insertion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
+            - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
+            - `row_id` contains the row ID of the inserted policy if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
 
         Note:
         - The method inserts a new wireless Wi-Fi policy with the provided name into the database.

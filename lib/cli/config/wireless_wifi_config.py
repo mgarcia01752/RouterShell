@@ -6,7 +6,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.network_manager import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import WPAVersion, Wifi
+from lib.network_manager.wireless_wifi import WPAVersion, WifiPolicy
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -14,22 +14,23 @@ class InvalidWirelessWifiConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
+class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPolicy):
 
     PROMPT_CMD_ALIAS = InterfaceType.WIRELESS_WIFI.value
 
-    def __init__(self, args=None, negate=False):
+    def __init__(self, wifi_policy_name, negate=False):
         
         super().__init__()
         GlobalUserCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
-        Wifi.__init__(self)
+
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIRELESS_WIFI_POLICY)
+        self.log.setLevel(RSLGS().WL_WIFI_POLICY_CONFIG)
+        self.log.info(f"__init__ > arg -> {wifi_policy_name} -> negate={negate}")
 
-        self.log.debug(f"__init__ > arg -> {args} -> negate={negate}")
+        WifiPolicy.__init__(self, wifi_policy_name)        
 
-        self.args = args
+        self.wifi_policy_name = wifi_policy_name
         self.negate = negate
         self.prompt = self.set_prompt()
 
@@ -107,7 +108,6 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Wifi):
                 mode_type = WPAVersion.WPA2
 
             self.log.debug(f"SSID Name: {ssid_name}, Passphrase: {pass_phrase}, Mode: {mode_type}")
-            self.
 
 
     def do_wpa(self, args, negate=False):
