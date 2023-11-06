@@ -144,11 +144,13 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         pairwise_parser = subparsers.add_parser("pairwise", help="Configure WPA pairwise")
         pairwise_parser.add_argument("wpa_pairwise", choices=["CCMP", "TKIP"], help="The WPA pairwise encryption method")
 
-        parsed_args = parser.parse_args(args)
-
-        # Implement the logic to handle the parsed arguments, e.g., set WPA settings based on subcommand
-
-        return
+        try:
+            if not isinstance(args, list):
+                args = parser.parse_args(args.split())
+            else:
+                args = parser.parse_args(args)
+        except SystemExit:
+            return
 
     def do_mode(self, args, negate=False):
         self.log.debug(f"do_mode() - args: {args}")
@@ -170,8 +172,6 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         parsed_args = parser.parse_args(display_parser)
 
-
-        return
 
     def do_channel(self, args, negate=False):
         self.log.debug(f"do_channel() - args: {args}")

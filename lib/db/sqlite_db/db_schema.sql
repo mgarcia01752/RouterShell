@@ -218,8 +218,11 @@ CREATE TABLE IF NOT EXISTS WirelessWifiSecurityPolicy (
     ID INTEGER PRIMARY KEY,
     WirelessWifiPolicy_FK INTEGER,
     Ssid VARCHAR(32),
+    HardwareMode VARCHAR(5) DEFAULT 'any',                              -- 
     WpaPassPhrase VARCHAR(63) DEFAULT 'pass-phrase',
-    WpaVersion INTEGER DEFAULT 2,                              -- WPA = 1, WPA2 = 2, WPA3 = 3
+    WpaVersion INTEGER DEFAULT 2,                                       -- WPA = 1, WPA2 = 2, WPA3 = 3
+    WpaKeyManagment VARCHAR(20) DEFAULT 'WPA-Personal',
+    WpaPairwise VARCHAR(20) DEFAULT 'TKIP CCMP',
     CONSTRAINT FK_WirelessWifiSecurityPolicy_WirelessWifiPolicy FOREIGN KEY (WirelessWifiPolicy_FK) REFERENCES WirelessWifiPolicy(ID) ON DELETE CASCADE
 );
 

@@ -66,3 +66,9 @@ class WifiDB:
         """
         cls.log.debug(f"{wifi_policy_name}, {ssid}, {pass_phrase}, {mode}")
         return RSDB().insert_wifi_access_security_group(wifi_policy_name, ssid, pass_phrase, mode).status
+    
+    def add_wifi_key_management(cls, wifi_policy_name:str, key_management:str) -> bool:
+        return STATUS_OK
+    
+    def add_wifi_hardware_mode(cls, wifi_policy_name:str, mode:str) -> bool:
+        return RSDB()

@@ -186,6 +186,24 @@ class WifiPolicy(WifiDB):
         """
         return self.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
 
+    def add_key_management(self, key_managment:WPAkeyManagement) -> bool:
+        return STATUS_OK
+    
+    def add_hardware_mode(self, hardware_mode:HardwareMode) -> bool:
+        """
+        Add a hardware mode to a wireless Wi-Fi policy.
+
+        Args:
+            hardware_mode (HardwareMode): The hardware mode to add to the policy.
+
+        Returns:
+            bool: STATUS_OK if the hardware mode was successfully added, STATUS_NOK if it fails.
+
+        Note:
+        - This method associates a hardware mode with the specified wireless Wi-Fi policy.
+        - It returns STATUS_OK if the association is successful, and STATUS_NOK if it fails.
+        """
+        return self.add_wifi_hardware_mode(self.wifi_policy_name, hardware_mode.value)
         
     def status(self) -> bool:
         """

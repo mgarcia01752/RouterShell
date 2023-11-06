@@ -2802,7 +2802,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi access security group for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
-    
     def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Update an existing wireless Wi-Fi SSID in the database for a specific policy.
