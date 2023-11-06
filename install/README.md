@@ -1,4 +1,3 @@
-Certainly, here's a sample README file outlining installation steps for your RouterShell project:
 
 ```markdown
 # RouterShell Installation Guide
