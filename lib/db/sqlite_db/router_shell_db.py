@@ -40,8 +40,9 @@ class Result:
     
     def __str__(self):
         return f"Status: {self.status}, Row ID: {self.row_id}, Reason: {self.reason}, Result: {self.result}"
-
-    def sql_result_to_value_list(results:list) -> List[List]:
+    
+    @staticmethod
+    def sql_result_to_value_list(results: List['Result']) -> List[List]:
         """
         Extract values from a list of Result objects into a list of lists for Result objects with a 'result' attribute containing a dictionary.
 
@@ -466,7 +467,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error:", e)
             return []
 
-    def get_vlan_interfaces_id(self, vlan_name: str) -> int:
+    def select_vlan_interfaces_id(self, vlan_name: str) -> int:
         """
         Retrieve the ID of VLAN interfaces by the VLAN name.
 
@@ -603,7 +604,7 @@ class RouterShellDB(metaclass=Singleton):
             - The 'row_id' of the newly inserted entry in the 'NatDirections' table.
         """
         try:
-            nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
+            nat_pool_result = self.select_global_nat_row_id(nat_pool_name)
 
             if not nat_pool_result.status:
                 return nat_pool_result
@@ -633,7 +634,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def get_global_nat_row_id(self, nat_pool_name: str) -> Result:
+    def select_global_nat_row_id(self, nat_pool_name: str) -> Result:
         """
         Retrieve the row ID of a global NAT configuration in the 'Nats' table based on its name.
 
@@ -679,7 +680,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             self.log.debug(f"insert_interface_nat_direction(Parameters: {interface_name} -> {nat_pool_name} -> {direction})")
             
-            nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
+            nat_pool_result = self.select_global_nat_row_id(nat_pool_name)
 
             if nat_pool_result.status:
                 nat_pool_error = f"Unable to insert Interface-Nap-Pool, nat-pool-name: ({nat_pool_name}) does not exists"
@@ -725,7 +726,7 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status of the deletion.
         """
         try:
-            nat_pool_result = self.get_global_nat_row_id(nat_pool_name)
+            nat_pool_result = self.select_global_nat_row_id(nat_pool_name)
 
             if not nat_pool_result.status:
                 return nat_pool_result
@@ -743,7 +744,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, reason=error_message)
 
-    def get_global_nat_pool_names(self) -> list:
+    def select_global_nat_pool_names(self) -> list:
         """
         Retrieve a list of global NAT pool names from the NAT database.
 
@@ -797,8 +798,8 @@ class RouterShellDB(metaclass=Singleton):
             if not interface_exists_result.reason:
                 return Result(False, reason=False)
 
-            nat_pool_id_result = self.get_global_nat_row_id(pool_name)
-            interface_id_result = self.get_interface_id(interface_name)
+            nat_pool_id_result = self.select_global_nat_row_id(pool_name)
+            interface_id_result = self.select_interface_id(interface_name)
 
             if not nat_pool_id_result.status:
                 return nat_pool_id_result
@@ -840,8 +841,8 @@ class RouterShellDB(metaclass=Singleton):
             if not interface_exists_result.reason:
                 return Result(False, reason=False)
 
-            nat_pool_id_result = self.get_global_nat_row_id(pool_name)
-            interface_id_result = self.get_interface_id(interface_name)
+            nat_pool_id_result = self.select_global_nat_row_id(pool_name)
+            interface_id_result = self.select_interface_id(interface_name)
 
             if not nat_pool_id_result.status:
                 return nat_pool_id_result
@@ -884,7 +885,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"An error occurred while checking NAT direction existence: {e}")
             return False
 
-    def get_nat_interface_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
+    def select_nat_interface_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
         """
         Check if the specified interface is associated with the given NAT pool and direction.
 
@@ -938,7 +939,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.critical(error_message)
             return Result(status=False, row_id=0, reason=error_message)
 
-    def get_nat_interface_direction_list(self, nat_pool_name: str, direction: str) -> List[Result]:
+    def select_nat_interface_direction_list(self, nat_pool_name: str, direction: str) -> List[Result]:
         try:
             cursor = self.connection.cursor()
             results = []
@@ -1561,7 +1562,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option. Error: {str(e)}")
 
-    def get_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
+    def select_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
         """
         Retrieve the DHCP pool subnet information associated with a DHCP pool name from the database.
 
@@ -1594,10 +1595,10 @@ class RouterShellDB(metaclass=Singleton):
                         DHCP-SERVER CONFIGURATION BUILDING
     '''
  
-    def get_global_options(self) -> List[Result]:
+    def select_global_options(self) -> List[Result]:
         return []
 
-    def get_dhcp_pool_interfaces(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_interfaces(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve the interfaces associated with a DHCP pool name from the database.
 
@@ -1626,7 +1627,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP pool interfaces. Error: {str(e)}")]
 
-    def get_dhcp_pool_inet_range(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_inet_range(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve the IP address range associated with a DHCP pool name from the database.
 
@@ -1841,7 +1842,7 @@ class RouterShellDB(metaclass=Singleton):
                         INTERFACE DATABASE
     '''
 
-    def get_interface_type(self, if_name: str) -> InterfaceType:
+    def select_interface_type(self, if_name: str) -> InterfaceType:
         """
         Retrieve the type of an interface by its name.
 
@@ -1865,7 +1866,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error retrieving 'Interfaces' type: %s", e)
         return None
 
-    def get_interface_id(self, if_name: str) -> int:
+    def select_interface_id(self, if_name: str) -> int:
         """
         Retrieve the ID of an interface by its name.
 
@@ -2802,6 +2803,42 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi access security group for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
+    def insert_wifi_access_security_group_default(self, wireless_wifi_policy: str) -> Result:
+        """
+        Insert the default Wi-Fi access security group settings into the database for a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate with the default access security group settings.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to True for successful insertions and False for failed ones.
+                - `row_id` contains the row ID of the inserted settings if the insertion is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts default Wi-Fi access security group settings associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted settings' ID, and `reason` indicates success.
+        - If the insertion fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to insert the default Wi-Fi access security group settings.
+            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK) VALUES (?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (policy_exist_result.row_id,))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted default Wi-Fi access security group settings for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
     def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Update an existing wireless Wi-Fi SSID in the database for a specific policy.
@@ -2962,7 +2999,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
 
-    def get_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
+    def select_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
         """
         Retrieve a list of security policies associated with a specific wireless Wi-Fi policy.
 
@@ -2971,24 +3008,22 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             List[Result]: A list of Result objects representing the outcome of the operation for each security policy.
-                - Each Result object has:
-                    - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
-                    - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
-                    - `reason` provides an optional result message with additional information about the operation.
-                    - `result` contains the security policy information, e.g., SSID, WPA passphrase, and WPA version.
+            - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
+            - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+            - `result` contains the security policy information, e.g., SSID, WPA passphrase, and WPA version.
 
         Note:
         - The method retrieves a list of security policies associated with the specified wireless Wi-Fi policy.
         - For each security policy retrieved successfully, a Result object is created with `status` set to True, `row_id` containing the policy ID, and `result` providing security policy details.
         - If a security policy retrieval fails (e.g., due to a database error or no matching policy found), a Result object is created with `status` set to False and `row_id` set to 0, and `reason` explains the reason for the failure.
-
         """
         results = []
 
         try:
             # Define the SQL query to retrieve security policies for the specified policy.
             query = """
-                        SELECT Ssid, WpaPassPhrase, WpaVersion, ID
+                        SELECT Ssid, WpaPassPhrase, WpaVersion, WpaKeyManagment, WpaPairwise, ID
                         FROM WirelessWifiSecurityPolicy
                         WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
                     """
@@ -2997,8 +3032,14 @@ class RouterShellDB(metaclass=Singleton):
             rows = cursor.fetchall()
 
             for row in rows:
-                ssid, passphrase, wpa_version, id = row
-                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved security policy for policy '{wireless_wifi_policy}'", result={"SSID": ssid, "WPA Passphrase": passphrase, "WPA Version": wpa_version}))
+                ssid, passphrase, wpa_version, key_management, pairwise, id = row
+                results.append(Result(status=STATUS_OK, row_id=id, 
+                                      reason=f"Retrieved security policy for policy '{wireless_wifi_policy}'", 
+                                      result={"Ssid": ssid, 
+                                              "WpaPassPhrase": passphrase, 
+                                              "WpaVersion": wpa_version, 
+                                              "WpaKeyManagment": key_management, 
+                                              "WpaPairwise": pairwise}))
 
             return results
 
@@ -3135,7 +3176,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def get_all_wifi_hostapd_options(self, wireless_wifi_policy: str) -> List[Result]:
+    def select_all_wifi_hostapd_options(self, wireless_wifi_policy: str) -> List[Result]:
         """
         Retrieve a list of all Hostapd options associated with a specific wireless Wi-Fi policy.
 
@@ -3179,7 +3220,7 @@ class RouterShellDB(metaclass=Singleton):
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
     
-    def get_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> List[Result]:
+    def select_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> List[Result]:
         """
         Retrieve a list of Hostapd options associated with a specific wireless Wi-Fi policy and matching option.
 
@@ -3266,7 +3307,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to associate wireless Wi-Fi policy '{wireless_wifi_policy}' with network interface '{wifi_interface}'. Error: {str(e)}")
 
-    def get_wifi_policy_interfaces(self, wireless_wifi_policy: str) -> List[Result]:
+    def select_wifi_policy_interfaces(self, wireless_wifi_policy: str) -> List[Result]:
         """
         Retrieve a list of network interfaces associated with a specific wireless Wi-Fi policy.
 
@@ -3461,9 +3502,9 @@ class RouterShellDB(metaclass=Singleton):
             if cursor.rowcount > 0:
                 return Result(status=STATUS_OK, row_id=policy_exist_result.row_id, reason=f"Updated Wi-Fi hardware mode for policy '{wireless_wifi_policy}' successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}'")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}' - query: {query}")
 
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi hardware mode for policy '{wireless_wifi
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi hardware mode for policy {wireless_wifi_policy} - query: {query}")
 
         

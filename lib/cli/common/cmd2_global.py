@@ -14,6 +14,8 @@ class Cmd2GlobalSettings():
     DEBUG_IF_CONFIG         = DEBUG_GLOBAL or True
     DEBUG_INTERFACE_DB      = DEBUG_GLOBAL or True
     
+    DEBUG_WIFI_CONFIG       = DEBUG_GLOBAL or True
+    
     DEBUG_NAT               = DEBUG_GLOBAL or True
     DEBUG_NAT_CONFIG        = DEBUG_GLOBAL or True
     DEBUG_NAT_DB            = DEBUG_GLOBAL or True
@@ -22,5 +24,6 @@ class Cmd2GlobalSettings():
     DEBUG_SYSCTL            = DEBUG_GLOBAL or True
     
     DEBUG_SHOW_INTERFACE    = DEBUG_GLOBAL or True
+    
     '''Add Per Class Debug'''
     

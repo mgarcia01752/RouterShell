@@ -203,7 +203,7 @@ class WifiChannel(Enum):
         """
         return [channel.value for channel in cls]
 
-class WifiPolicy(WifiDB):
+class WifiPolicy():
     """
     Represents a Wi-Fi policy for network management.
 
@@ -232,13 +232,16 @@ class WifiPolicy(WifiDB):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WL_WIFI_POLICY)
         self.log.debug(f"WifiPolicy() -> Wifi-Policy: {wifi_policy_name} -> Negate: {negate}")
+        
+        self.wifi_db = WifiDB()
 
-        if not self.wifi_policy_exist(wifi_policy_name):
+        if not self.wifi_db.wifi_policy_exist(wifi_policy_name):
             self.log.debug(f"Wifi-Policy: {wifi_policy_name} does not exist.")
-            if self.add_wifi_policy(wifi_policy_name):
+            if self.wifi_db.add_wifi_policy(wifi_policy_name):
                 self.log.debug(f"Error Adding wifi-policy: {wifi_policy_name} to DB")
                 self._set_status(STATUS_NOK)
             else:
+                
                 self._set_status(STATUS_OK)
 
         self.wifi_policy_name = wifi_policy_name
@@ -261,7 +264,7 @@ class WifiPolicy(WifiDB):
         - It returns STATUS_OK if the addition is successful, and STATUS_NOK if there is an error or the addition fails.
 
         """
-        return self.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
+        return self.wifi_db.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
 
     def add_key_management(self, key_managment:WPAkeyManagement) -> bool:
         return STATUS_OK
@@ -280,10 +283,22 @@ class WifiPolicy(WifiDB):
         - This method associates a hardware mode with the specified wireless Wi-Fi policy.
         - It returns STATUS_OK if the association is successful, and STATUS_NOK if it fails.
         """
-        return self.add_wifi_hardware_mode(self.wifi_policy_name, hardware_mode.value)
+        return self.wifi_db.add_wifi_hardware_mode(self.wifi_policy_name, hardware_mode.value)
     
     def add_channel(self, wifi_channel: WifiChannel=WifiChannel.CHANNEL_6) -> bool:
-        return self.add_wifi_channel()
+        """
+        Add a Wi-Fi channel to a wireless Wi-Fi policy.
+
+        Args:
+        - wifi_channel (WifiChannel): The Wi-Fi channel to add. Default is CHANNEL_6.
+
+        Returns:
+        bool: True if the addition is successful, False if it fails.
+
+        Note:
+        - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
+        """        
+        return self.wifi_db.add_wifi_channel(self.wifi_policy_name, str(wifi_channel.value))
         
     def status(self) -> bool:
         """

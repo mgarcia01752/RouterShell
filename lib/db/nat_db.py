@@ -120,7 +120,7 @@ class NatDB:
             list: A list of NAT pool names.
         """
         try:
-            pool_names = cls.rsdb.get_global_nat_pool_names()
+            pool_names = cls.rsdb.select_global_nat_pool_names()
 
             cls.log.debug("Retrieved global NAT pool names: %s", pool_names)
             return pool_names
@@ -148,7 +148,7 @@ class NatDB:
 
         """
         cls.log.debug(f"is_interface_direction_in_nat_pool({interface_name} -> {nat_pool_name} -> {direction})")
-        return cls.rsdb.get_nat_interface_direction(interface_name, nat_pool_name, direction)
+        return cls.rsdb.select_nat_interface_direction(interface_name, nat_pool_name, direction)
 
     def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: str, direction: str) -> List[Result]:
         """
@@ -168,7 +168,7 @@ class NatDB:
 
         """
         cls.log.debug(f"get_interface_direction_in_nat_pool_list({nat_pool_name} -> {direction})")
-        return cls.rsdb.get_nat_interface_direction_list(nat_pool_name, direction)
+        return cls.rsdb.select_nat_interface_direction_list(nat_pool_name, direction)
 
     def add_inside_interface(cls, nat_pool_name: str, interface_name: str) -> bool:
         """

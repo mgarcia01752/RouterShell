@@ -52,7 +52,7 @@ class DHCPServerDatabase:
         Returns:
             str or None: The DHCP pool subnet information retrieved from the RouterShell database, or None if no match is found.
         """        
-        result = RSDB().get_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name)
+        result = RSDB().select_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name)
         if not result.status:
             return result.result['InetSubnet']
         else:
@@ -176,7 +176,7 @@ class DHCPServerDatabase:
             List[Dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
             or an empty list if none are found.
         """
-        sql_result = RSDB().get_dhcp_pool_interfaces(dhcp_pool_name)
+        sql_result = RSDB().select_dhcp_pool_interfaces(dhcp_pool_name)
                 
         results = []
 
@@ -204,7 +204,7 @@ class DHCPServerDatabase:
                 - 'inet_end' (str): The end of the internet range.
                 - 'inet_subnet' (str): The subnet of the internet range.
         """
-        sql_result = RSDB().get_dhcp_pool_inet_range(dhcp_pool_name)
+        sql_result = RSDB().select_dhcp_pool_inet_range(dhcp_pool_name)
         results = []
 
         for result in sql_result:

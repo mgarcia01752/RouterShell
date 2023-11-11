@@ -3,10 +3,12 @@ import argparse
 import logging
 
 from lib.cli.base.global_operation import GlobalUserCommand
+from lib.cli.common.cmd2_global import Cmd2GlobalSettings
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.network_manager import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import HardwareMode, WPAVersion, WifiChannel, WifiPolicy
+
+from lib.network_manager.wireless_wifi import HardwareMode, Pairwise, WPAVersion, WPAkeyManagement, WifiChannel, WifiPolicy
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -27,6 +29,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WL_WIFI_POLICY_CONFIG)
         self.log.debug(f"__init__ > arg -> {wifi_policy_name} -> negate={negate}")
+        self.debug = Cmd2GlobalSettings().DEBUG_WIFI_CONFIG
 
         WifiPolicy.__init__(self, wifi_policy_name)        
 
@@ -86,10 +89,10 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         subparsers = parser.add_subparsers(dest="subcommand")
         ssid_parser = subparsers.add_parser("ssid", help="Configure the SSID")
         ssid_parser.add_argument("ssid_name", help="SSID of the Wi-Fi network")
-        ssid_parser.add_argument("passphrase", help="passphrase", nargs='?', choices=["passphrase"])
+        ssid_parser.add_argument("passphrase", help="pass-phrase", nargs='?', choices=["pass-phrase"])
         ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)")
         ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['wpa-mode'])
-        ssid_parser.add_argument("wpa_mode_type", help=f"Security mode ({WPAVersion.display_list()})", nargs='?', choices=WPAVersion.display_list())
+        ssid_parser.add_argument("wpa_mode_type", help=f"Security mode (WPA, WP2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
 
         try:
             if not isinstance(args, list):
@@ -102,7 +105,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         if args.subcommand == "ssid":
             ssid_name = args.ssid_name
             pass_phrase = args.pass_phrase
-            mode_type = args.mode_type
+            wpa_mode_type = args.wpa_mode_type
             
             if not wpa_mode_type:
                 wpa_mode_type = WPAVersion.WPA2
@@ -129,12 +132,12 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         subparsers = parser.add_subparsers(dest="subcommand")
 
         key_mgmt_parser = subparsers.add_parser("key-mgmt", help="Configure WPA key management")
-        # TODO Get list from ENUM
-        key_mgmt_parser.add_argument("wpa_key_mgmt", choices=["WPA-PSK", "WPA-EPA", "WPA-EPA-SHA256", "WPA-EPA-TLS"], 
+
+        key_mgmt_parser.add_argument("wpa_key_mgmt", choices=WPAkeyManagement.display_list(), 
                                      help="The WPA key management")
 
         pairwise_parser = subparsers.add_parser("pairwise", help="Configure WPA pairwise")
-        pairwise_parser.add_argument("wpa_pairwise", choices=["CCMP", "TKIP"], help="The WPA pairwise encryption method")
+        pairwise_parser.add_argument("wpa_pairwise", choices=Pairwise.display_list(), help="The WPA pairwise encryption method")
 
         try:
             if not isinstance(args, list):
@@ -145,20 +148,21 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             return
 
     def do_mode(self, args, negate=False):
-        self.log.debug(f"do_mode() - args: {args}")
-
+        self.log.info(f"do_mode() - args: {args} -> negate: {negate}")
+        
+        args = f'mode  {args}'
+        
         parser = argparse.ArgumentParser(
             description="Configure Hardware Mode",
             epilog="Usage:\n"
-            "   mode [ a | b | g | ad | ax | any]\n"
+            f"   mode [{HardwareMode.display_list()}]\n"
             "\n"
             "   <suboption> --help                           Get help for specific suboptions."
         )
 
         subparsers = parser.add_subparsers(dest="subcommand")
-
         mode_parser = subparsers.add_parser("mode", help="Configure the hardware mode")
-        mode_parser.add_argument("mode_option", choices=HardwareMode.display_list(), help="The hardware mode")
+        mode_parser.add_argument("mode_option", help="The hardware mode")
 
         try:
             if not isinstance(args, list):
@@ -170,12 +174,14 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         if args.subcommand == "mode":
             mode_option = args.mode_option
-            if self.add_hardware_mode(HardwareMode[mode_option]):
+            self.log.info(f"do_mode() - mode_option: {mode_option}")
+            
+            if self.add_hardware_mode(HardwareMode[mode_option.upper()]):
                 self.log.error(f"Unable to add hardware-mode: {mode_option} to wifi-policy: {self.wifi_policy_name}")
 
     def do_channel(self, args, negate=False):
         self.log.debug(f"do_channel() - args: {args}")
-
+        args = f'channel  {args}'
         parser = argparse.ArgumentParser(
             description="Configure Channel",
             epilog="Usage:\n"
@@ -200,7 +206,6 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         if args.subcommand == "channel":
             self.add_channel(WifiChannel[args.channel_number])
     
-
     def do_ieee80211(self, args: str, negate: bool = False):
         parser = argparse.ArgumentParser(
             description="Configure IEEE802.11 Support",
@@ -218,3 +223,9 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         return
 
 
+    def do_end(self):
+        
+        #check to see if there is at least 1 
+        
+        GlobalUserCommand().do_end()
+        

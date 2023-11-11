@@ -1,14 +1,37 @@
 
 # Wireless WiFi Access Point Configuration Guide
 
+```config
+clear router-db
+yes
+
+configure terminal 
+
+wireless wifi wifi-guest-network
+    ssid GuestNetwork pass-phrase FBI wpa-mode WPA2
+    mode any
+    channel 6
+end
+
+wireless wifi wifi-default-check
+end
+
+rename -if wlx80afca061616 -ifalias wlan0
+
+interface wlan0
+    ip address 172.16.0.1/24
+    wireless wifi-policy wifi-guest-network
+end
+
+
+```
 
 ```config
 enable
 configure terminal
 
 wireless wifi <wifi-policy-name>
-    ssid <ssid> pass-phrase <pass-phrase>
-    [no] wpa [WPA | {WPA2} | WPA3 | Mixed-Mode]
+    ssid <ssid> pass-phrase <pass-phrase> wpa-mode [WPA | {WPA2} | WPA3 | Mixed-Mode]
     [no] wpa key-mgmt [WPA-PSK | {WPA-EPA} | WPA-EPA-SHA256 | WPA-EPA-TLS]
     [no] wpa pairwise [CCMP | {TKIP}]
     [no] rsn pairwise [{CCMP} | TKIP]

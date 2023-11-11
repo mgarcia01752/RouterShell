@@ -4,7 +4,7 @@ from typing import List
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.wireless_wifi import HardwareMode
+
 
 class WifiDB:
     
@@ -29,7 +29,6 @@ class WifiDB:
         """
         return RSDB().wifi_policy_exist(wifi_policy_name).status
 
-
     def add_wifi_policy(cls, wifi_policy_name: str) -> bool:
         """
         Insert a new wireless Wi-Fi policy into the database.
@@ -45,7 +44,14 @@ class WifiDB:
         - It returns STATUS_Ok if the insertion is successful, and STATUS_NOK if it fails.
 
         """
-        return RSDB().insert_wifi_policy(wifi_policy_name).status
+        
+        sql_result = RSDB().insert_wifi_policy(wifi_policy_name)
+        
+        if sql_result.status:
+            cls.log.error(f"Unable to add wifi-policy: {wifi_policy_name} -> Reason: {sql_result.reason}")
+            return STATUS_NOK
+                
+        return STATUS_OK 
 
     def add_wifi_security_access_group(cls, wifi_policy_name: str, ssid: str, pass_phrase: str, mode: str) -> bool:
         """
@@ -70,21 +76,34 @@ class WifiDB:
     
     def add_wifi_key_management(cls, wifi_policy_name:str, key_management:str) -> bool:
         return STATUS_OK
-    
-    def add_hardware_mode(self, hardware_mode: HardwareMode) -> bool:
+
+    def add_wifi_hardware_mode(cls, wifi_policy_name:str, hardware_mode: str) -> bool:
         """
-        Add a hardware mode to a wireless Wi-Fi policy.
+        Add/update a hardware mode to a wireless Wi-Fi policy.
 
         Args:
-        - hardware_mode (HardwareMode): The hardware mode to add.
+            - wifi_policy_name (str): The name of the wireless Wi-Fi policy.
+            - hardware_mode (str): The hardware mode to add.
 
         Returns:
-        bool: STATUS_OK if the addition is successful, STATUS_NOK if it fails.
+            bool: True if the addition is successful, False if it fails.
+
+        Raises:
+            - Wi-FiPolicyNotFoundError: If the specified Wi-Fi policy is not found.
+            - InvalidHardwareModeError: If the provided hardware mode is not valid.
 
         Note:
-        - This method associates a hardware mode with the specified wireless Wi-Fi policy.
+            - This method associates a hardware mode with the specified wireless Wi-Fi policy.
+            - When a Wifi-policy name is create, a hardware-mode default of any is set
+            - The hardware mode should be a valid mode from the HardwareMode enum.
+            - If the Wi-Fi policy or hardware mode is not found, respective errors will be raised.
         """
-        return RSDB().insert_wifi_hardware_mode(self.wifi_policy_name, hardware_mode.value).status
+        sql_result = RSDB().update_wifi_hardware_mode(wifi_policy_name, hardware_mode)
+        if sql_result.status:
+            cls.log.error(f"Unable update wifi-hardware-mode: {hardware_mode} -> Reason: {sql_result.reason}")
+            return STATUS_NOK
+        
+        return STATUS_OK
 
     def add_wifi_channel(self, wifi_policy_name: str, channel: str) -> bool:
         """
@@ -101,3 +120,16 @@ class WifiDB:
         - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
         """
         return RSDB().insert_wifi_channel(wifi_policy_name, channel).status
+
+    def get_wifi_security_policy(self, wifi_policy_name: str) -> List[dict]:
+        """
+        Get a list of security policies associated with a specific Wi-Fi policy.
+
+        Args:
+            wifi_policy_name (str): The name of the Wi-Fi policy.
+
+        Returns:
+            List[dict]: A list of dictionaries containing security policy information.
+        """
+        return Result.sql_result_to_value_list(RSDB().select_wifi_security_policy(wifi_policy_name))
+      

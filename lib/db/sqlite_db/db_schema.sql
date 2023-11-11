@@ -209,7 +209,8 @@ DROP TABLE IF EXISTS WirelessWifiPolicy;
 CREATE TABLE IF NOT EXISTS WirelessWifiPolicy (
     ID INTEGER PRIMARY KEY,
     WirelessWifiPolicyInterface_FK INTEGER,
-    WifiPolicyName VARCHAR(50) UNIQUE,                          -- Only one Policy                               
+    WifiPolicyName VARCHAR(50) UNIQUE,                          -- Only one Policy 
+    HardwareMode VARCHAR(5) DEFAULT 'any',                                 
     CONSTRAINT FK_WirelessWifiPolicy_WirelessWifiPolicyInterface FOREIGN KEY (WirelessWifiPolicyInterface_FK) REFERENCES WirelessWifiPolicyInterface(ID) ON DELETE CASCADE
 );
 
@@ -217,8 +218,7 @@ DROP TABLE IF EXISTS WirelessWifiSecurityPolicy;
 CREATE TABLE IF NOT EXISTS WirelessWifiSecurityPolicy (
     ID INTEGER PRIMARY KEY,
     WirelessWifiPolicy_FK INTEGER,
-    Ssid VARCHAR(32) DEFAULT 'Guest-WiFi',
-    HardwareMode VARCHAR(5) DEFAULT 'any',                              -- 
+    Ssid VARCHAR(32) DEFAULT 'Guest-WiFi',                           -- 
     WpaPassPhrase VARCHAR(63) DEFAULT 'password',
     WpaVersion INTEGER DEFAULT 2,                                       -- WPA = 1, WPA2 = 2, WPA3 = 3
     WpaKeyManagment VARCHAR(20) DEFAULT 'WPA-Personal',
