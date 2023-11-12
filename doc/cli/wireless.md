@@ -2,9 +2,6 @@
 # Wireless WiFi Access Point Configuration Guide
 
 ```config
-
-
-
 cls
 clear router-db
 yes
@@ -12,10 +9,7 @@ yes
 configure terminal 
 
 wireless wifi wifi-guest-network
-end
-
     ssid GuestNetwork pass-phrase FBI wpa-mode WPA2
-
     mode any
     channel 6
 end
@@ -34,11 +28,31 @@ end
 ```
 
 ```config
+
+enable
+configure terminal
+
+; Default wifi-policy
+wireless wifi <wifi-policy-name-default>
+end
+
+rename if <os-announced-interface> if-alias <wireless-interface-alias>
+
+interface <wireless-interface-alias>
+    ip address <ip-address> <subnet-mask>
+    [no] wireless wifi-policy <wifi-policy-name>
+    no shutdown
+end
+
+```
+
+```config
+
 enable
 configure terminal
 
 wireless wifi <wifi-policy-name>
-    ssid <ssid> pass-phrase <pass-phrase> wpa-mode [WPA | {WPA2} | WPA3 | Mixed-Mode]
+    ssid <ssid> pass-phrase <pass-phrase> wpa-mode [WPA | {WPA2} | WPA3 ]
     [no] wpa key-mgmt [WPA-PSK | {WPA-EPA} | WPA-EPA-SHA256 | WPA-EPA-TLS]
     [no] wpa pairwise [CCMP | {TKIP}]
     [no] rsn pairwise [{CCMP} | TKIP]

@@ -344,6 +344,10 @@ class WifiPolicy():
         else:
             self.log.info(f"No security access group entry found for Wi-Fi policy '{wifi_policy_name}'.")
             return False
+
+    def get_ssid_list(self, wifi_policy_name: str) -> list:  
+        self.wifi_db.get_wifi_security_policy(wifi_policy_name)
+        
         
     def status(self) -> bool:
         """

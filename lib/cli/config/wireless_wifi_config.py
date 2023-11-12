@@ -1,3 +1,4 @@
+import inspect
 from typing import Any
 import cmd2
 import argparse
@@ -58,6 +59,11 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         else:
             print(f"Command '{self.command}' not recognized.")
 
+    def complete_ssid(self, text, line, begidx, endidx):
+        completions = ['ssid', 'pass-phrase' , 'pass-phrase']
+        completions.extend(WPAVersion.display_list())
+        return [comp for comp in completions if comp.startswith(text)]
+
     def do_ssid(self, args, negate=False):
         """
         Configure the Service Set Identifier (SSID), passphrase, and optional security mode.
@@ -92,7 +98,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         ssid_parser.add_argument("ssid_name", help="SSID of the Wi-Fi network")
         ssid_parser.add_argument("passphrase", help="pass-phrase", nargs='?', choices=["pass-phrase"])
         ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)")
-        ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['wpa-mode'])
+        ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['pass-phrase'])
         ssid_parser.add_argument("wpa_mode_type", help=f"Security mode (WPA, WP2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
 
         try:
@@ -123,6 +129,12 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             
             if self.add_security_access_group(ssid_name, pass_phrase, wpa_mode_type):
                 self.log.error(f"Unable to add Security Access Group SSID Name: {ssid_name}, Passphrase: {pass_phrase}, WPA-Mode: {wpa_mode_type} to DB")
+
+    def complete_wpa(self, text, line, begidx, endidx):
+        completions = ['key-mgmt', 'pairwise']
+        completions.extend(WPAkeyManagement.display_list())
+        completions.extend(Pairwise.display_list())
+        return [comp for comp in completions if comp.startswith(text)]
                 
     def do_wpa(self, args, negate=False):
         self.log.debug(f"do_wpa() - args: {args}")
@@ -234,6 +246,10 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
                 
         return
 
+    def complete_no(self, text, line, begidx, endidx):
+        completions = ['ssid', 'wpa', 'mode', 'channel', 'ieee80211']
+        return [comp for comp in completions if comp.startswith(text)]
+        
     def do_no(self, line):
         
         self.log.debug(f"do_no() -> Line -> {line}")
