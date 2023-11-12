@@ -542,29 +542,43 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args.subcommand == "wifi":
             suboption = args.suboption
-            wi = WifiInterface()
             
-            if not wi.is_interface_wifi():
-                self.info.error(f"Interface: {self.ifName} is not a WiFi Interface")
-                pass
+            wi = WifiInterface(self.ifName)
+            
+            if wi.is_interface_wifi():
                 
-            if suboption == "policy":
-                wifi_policy_name = args.policy_name
-                self.log.info(f"do_wireless() -> WIFI -> Policy: {wifi_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
-                wi.update_policy_to_interface(wifi_policy_name)
+                if suboption == "policy":
+                    wifi_policy_name = args.policy_name
+                    self.log.info(f"do_wireless() -> WIFI -> Policy: {wifi_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
+                    
+                    if wi.update_policy_to_interface(wifi_policy_name):
+                        self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} to wifi interface: {self.ifName}")
 
-            elif suboption == "mode":
-                wifi_mode_name = args.mode_name
-                self.log.info(f"do_wireless() -> WIFI -> Mode: {wifi_mode_name} -> Interface: {self.ifName} -> Negate: {negate}")
+                elif suboption == "mode":
+                    mode = args.mode_name
+                    self.log.info(f"do_wireless() -> WIFI -> Mode: {mode} -> Interface: {self.ifName} -> Negate: {negate}")
 
-            elif suboption == "channel":
-                wifi_channel_name = args.channel_name
-                self.log.info(f"do_wireless() -> WIFI -> Channel: {wifi_channel_name} -> Interface: {self.ifName} -> Negate: {negate}")
+                    if wi.update_policy_to_interface(wifi_policy_name):
+                        self.log.error(f"Unable to apply wifi-mode: {mode} to wifi interface: {self.ifName}")
 
+                elif suboption == "channel":
+                    channel = args.channel_name
+                    self.log.info(f"do_wireless() -> WIFI -> Channel: {channel} -> Interface: {self.ifName} -> Negate: {negate}")
+
+                    if wi.set_channel(wifi_policy_name):
+                        self.log.error(f"Unable to apply wifi-hardware: {wifi_policy_name} to wifi interface: {self.ifName}")
+
+                else:
+                    print(f"Invalid command: {suboption}")
+                
+            else:
+                 self.info.error(f"Interface: {self.ifName} is not a WiFi Interface")
+               
+            
         elif args.subcommand == "cell":
             cell_policy_name = args.cell_policy_name
             self.log.info(f"do_wireless() -> CELL -> Policy: {cell_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
-            # Implement the logic for handling cell policy command here
+
 
 
     def complete_no(self, text, line, begidx, endidx):
