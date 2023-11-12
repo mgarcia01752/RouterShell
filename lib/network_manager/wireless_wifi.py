@@ -283,7 +283,6 @@ class WifiPolicy():
         """
         return self.wifi_db.add_wifi_security_access_group_default(wifi_policy_name)
 
-
     def add_key_management(self, key_managment:WPAkeyManagement) -> bool:
         return STATUS_OK
     
@@ -317,6 +316,23 @@ class WifiPolicy():
         - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
         """        
         return self.wifi_db.add_wifi_channel(self.wifi_policy_name, str(wifi_channel.value))
+
+    def del_ssid(self, ssid: str) -> bool:
+        """
+        Delete a Wi-Fi security access group with the specified SSID from the associated wireless Wi-Fi policy.
+
+        Args:
+            ssid (str): The SSID (Service Set Identifier) of the Wi-Fi security access group to delete.
+
+        Returns:
+            bool: STATUS_OK if the Wi-Fi security access group is deleted successfully, STATUS_NOK otherwise.
+
+        Note:
+        - This method deletes a Wi-Fi security access group with the specified SSID from the associated wireless Wi-Fi policy.
+        - Returns True if the deletion is successful, and False otherwise.
+        """
+        return self.wifi_db.del_wifi_security_access_group(self.wifi_policy_name, ssid)
+
 
     def security_access_group_entry_exist(self, wifi_policy_name: str) -> bool:
         # Get the security policies associated with the Wi-Fi policy
@@ -353,6 +369,7 @@ class WifiPolicy():
         """
         self.wifi_policy_status = status
         return STATUS_OK
+
 
 class Wifi(NetworkManager):
     """Command set for managing wireless networks using the 'iw' command."""

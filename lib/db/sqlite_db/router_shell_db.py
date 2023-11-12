@@ -2713,10 +2713,10 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful row deletions and STATUS_NOK for failed ones.
-                - `row_id` contains the row ID of the deleted row if the deletion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for delete operations.
+            - `status` is set to STATUS_OK for successful row deletions and STATUS_NOK for failed ones.
+            - `row_id` contains the row ID of the deleted row if the deletion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+            - `result` is set to None for delete operations.
 
         Note:
         - The method deletes a specific row from the 'WirelessWifiSecurityPolicy' table, which represents the association of an SSID with a wireless Wi-Fi policy.

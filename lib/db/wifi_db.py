@@ -150,4 +150,20 @@ class WifiDB:
             List[dict]: A list of dictionaries containing security policy information.
         """
         return Result.sql_result_to_value_list(RSDB().select_wifi_security_policy(wifi_policy_name))
-      
+
+    def del_wifi_security_access_group(self, wifi_policy_name: str, ssid: str) -> bool:
+        """
+        Delete a Wi-Fi security access group with the specified SSID from the wireless Wi-Fi policy.
+
+        Args:
+            wifi_policy_name (str): The name of the wireless Wi-Fi policy from which to delete the security access group.
+            ssid (str): The SSID (Service Set Identifier) of the Wi-Fi security access group to delete.
+
+        Returns:
+            bool: STATUS_OK if the Wi-Fi security access group is deleted successfully, STATUS_NOK otherwise.
+
+        Note:
+        - This method deletes a Wi-Fi security access group with the specified SSID from the wireless Wi-Fi policy.
+        - Returns True if the deletion is successful, and False otherwise.
+        """
+        return RSDB().delete_wifi_ssid(wifi_policy_name, ssid).status

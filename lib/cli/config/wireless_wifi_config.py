@@ -108,6 +108,12 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             pass_phrase = args.pass_phrase
             wpa_mode_type = args.wpa_mode_type
             
+            if negate:
+                self.log.debug(f"Deleting SSID: {ssid_name}")
+                if self.del_ssid(ssid_name):
+                    self.log.error(f"Unable to delete SSID: {ssid_name} from wifi-policy:{self.wifi_policy_name}")
+                    pass
+            
             if not wpa_mode_type:
                 wpa_mode_type = WPAVersion.WPA2
             else:
@@ -222,6 +228,30 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         parsed_args = parser.parse_args(args)
                 
         return
+
+    def do_no(self, line):
+        
+        self.log.debug(f"do_no() -> Line -> {line}")
+        
+        parts = line.strip().split()
+        start_cmd = parts[0]
+        
+        self.log.debug(f"do_no() -> Start-CMD -> {start_cmd}")
+        
+        if start_cmd == 'ssid':
+            self.do_ssid(line, negate=True)
+            
+        elif start_cmd == 'wpa':
+            self.do_wpa(line, negate=True)
+
+        elif start_cmd == 'mode':
+            self.do_mode(line, negate=True)
+
+        elif start_cmd == 'channel':
+            self.do_channel(line, negate=True)
+        
+        else:
+            print(f"No command found {line}")
 
     def do_end(self, _: Any) -> None:
 
