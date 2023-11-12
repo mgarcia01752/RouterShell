@@ -266,8 +266,23 @@ class WifiPolicy():
         """
         return self.wifi_db.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
 
-    def add_security_access_group_default(self,wifi_policy_name:str) -> bool:
-        return self.wifi_db.add_wifi_security_access_group()
+    def add_security_access_group_default(self, wifi_policy_name: str) -> bool:
+        """
+        Add a default security access group to the specified wireless Wi-Fi policy.
+
+        Args:
+            wifi_policy_name (str): The name of the wireless Wi-Fi policy to add the default security access group to.
+
+        Returns:
+            bool: True if the default security access group is added successfully, False otherwise.
+
+        Note:
+        - This method adds a default security access group to the specified wireless Wi-Fi policy.
+        - The default security access group typically includes pre-defined settings for SSID, WPA passphrase, and security mode.
+        - Returns True if the default security access group is added successfully, and False otherwise.
+        """
+        return self.wifi_db.add_wifi_security_access_group_default(wifi_policy_name)
+
 
     def add_key_management(self, key_managment:WPAkeyManagement) -> bool:
         return STATUS_OK
@@ -303,10 +318,17 @@ class WifiPolicy():
         """        
         return self.wifi_db.add_wifi_channel(self.wifi_policy_name, str(wifi_channel.value))
 
-    def security_access_group_entry_exist(self,args=None) -> bool:
-            list_dict = self.wifi_db.get_wifi_security_policy(self.wifi_policy_name)
-            
-            self.log.info(f"security_access_group_entry_exist() -> {list_dict}")
+    def security_access_group_entry_exist(self, wifi_policy_name: str) -> bool:
+        # Get the security policies associated with the Wi-Fi policy
+        security_policies = self.wifi_db.get_wifi_security_policy(wifi_policy_name)
+
+        # Check if there are any security policies
+        if len(security_policies) > 0:
+            self.log.info(f"Security access group entry exists for Wi-Fi policy '{wifi_policy_name}'.")
+            return True
+        else:
+            self.log.info(f"No security access group entry found for Wi-Fi policy '{wifi_policy_name}'.")
+            return False
         
     def status(self) -> bool:
         """

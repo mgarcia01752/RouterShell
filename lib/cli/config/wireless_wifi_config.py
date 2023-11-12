@@ -1,3 +1,4 @@
+from typing import Any
 import cmd2
 import argparse
 import logging
@@ -222,11 +223,10 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
                 
         return
 
+    def do_end(self, _: Any) -> None:
 
-    def do_end(self, _):
-        
-        if len(self.security_access_group_entry_exist() == 0):
-            self.add_security_access_group()
-        
-        GlobalUserCommand().do_end()
+        if not self.security_access_group_entry_exist(self.wifi_policy_name):
+            self.add_security_access_group_default(self.wifi_policy_name)
+            
+        super().do_end()
         

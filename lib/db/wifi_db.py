@@ -73,7 +73,25 @@ class WifiDB:
         """
         cls.log.debug(f"{wifi_policy_name}, {ssid}, {pass_phrase}, {mode}")
         return RSDB().insert_wifi_access_security_group(wifi_policy_name, ssid, pass_phrase, mode).status
-    
+
+    def add_wifi_security_access_group_default(cls, wifi_policy_name: str) -> bool:
+        """
+        Add a default Wi-Fi security access group to the specified wireless Wi-Fi policy.
+
+        Args:
+            wifi_policy_name (str): The name of the wireless Wi-Fi policy to add the default security access group to.
+
+        Returns:
+            bool: True if the default Wi-Fi security access group is added successfully, False otherwise.
+
+        Note:
+        - This method adds a default Wi-Fi security access group to the specified wireless Wi-Fi policy.
+        - The default Wi-Fi security access group typically includes pre-defined settings for SSID, WPA passphrase, and security mode.
+        - Returns True if the default Wi-Fi security access group is added successfully, and False otherwise.
+        """
+        cls.log.debug(f"Adding default Wi-Fi security access group to policy '{wifi_policy_name}'")
+        return RSDB().insert_wifi_access_security_group_default(wifi_policy_name).status
+  
     def add_wifi_key_management(cls, wifi_policy_name:str, key_management:str) -> bool:
         return STATUS_OK
 

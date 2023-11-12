@@ -3361,9 +3361,9 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object representing the outcome of the operation.
-                - `status` is set to True for successful insertions and False for failed ones.
-                - `row_id` contains the row ID of the inserted settings if the insertion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
+            - `status` is set to True for successful insertions and False for failed ones.
+            - `row_id` contains the row ID of the inserted settings if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
 
         Note:
         - The method inserts default Wi-Fi access security group settings associated with the specified wireless Wi-Fi policy.
