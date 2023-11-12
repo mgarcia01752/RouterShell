@@ -97,8 +97,9 @@ end
 rename if <os-announced-interface> if-alias <wireless-interface-alias>
 
 interface <wireless-interface-alias>
-    ip address <ip-address> <subnet-mask>
-    wireless-policy <wireless-policy-name>
+    wireless wifi policy <wireless-policy-name>
+    wireless wifi mode <hardware-mode>
+    wireless wifi channel <channel>
     no shutdown
 end
 

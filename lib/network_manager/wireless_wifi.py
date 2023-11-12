@@ -1,6 +1,7 @@
 from enum import Enum
 import logging
 from lib.db.wifi_db import WifiDB
+from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.hostapd_config_gen import HostapdIEEE802Config
 
 from lib.network_manager.network_manager import NetworkManager
@@ -379,22 +380,105 @@ class WifiInterface():
     Interface level wifi settings
     '''
     
-    def __init__(self, wifi_policy_name: str, interface_name:str, negate=False):
+    def __init__(self, interface_name: str):
+        """
+        Initialize a WifiInterface instance.
+
+        Parameters:
+            interface_name (str): The name of the wireless interface.
+        """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WL_WIFI_INTERFACE)
-        self.log.debug(f"WifiInterface() -> Wifi-Policy: {wifi_policy_name} -> interface: {interface_name} -> Negate: {negate}")
+        self.log.debug(f"WifiInterface() -> interface: {interface_name}")
         
-        self.wifi_policy_name = wifi_policy_name
         self.interface_name = interface_name
-        self.negate = negate
+        self.cmd = RunCommand()
         
-    def update_policy_to_interface(self) -> bool:
+        self.is_wifi_interface = self._is_interface_wifi()
+
+    def _is_interface_wifi(self) -> bool:
+        """
+        Check if the current wireless interface is associated with Wi-Fi.
+
+        Returns:
+            bool: True if the current interface is associated with Wi-Fi, False otherwise.
+        """
+        cmd = ['iw', 'dev']
+        
+        result = self.cmd.run(cmd)
+        
+        if result.exit_code:
+            self.log.error("Unable to get wireless interface list")
+            return False
+
+        output_lines = result.stdout.strip().split('\n')
+        interface_names = [line.split()[1] for line in output_lines if line.startswith('Interface')]
+
+        if not interface_names:
+            self.log.error("No wireless interfaces found")
+            return False
+
+        if self.interface_name not in interface_names:
+            return False
+
+        return True
+
+    def is_interface_wifi(self) -> bool:
+        """
+        Check if the current interface is associated with Wi-Fi.
+
+        Returns:
+            bool: True if the interface is associated with Wi-Fi, False otherwise.
+        """
+        return self.is_wifi_interface
+    
+    def update_policy_to_interface(self, wifi_policy_name: str) -> bool:
+        """
+        Update the Wi-Fi policy for the wireless interface.
+
+        Parameters:
+            wifi_policy_name (str): The name of the Wi-Fi policy.
+
+        Returns:
+            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+        """
+        if not self.is_interface_wifi():
+            self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , due to interface: {self.interface_name} is not wifi")
+            return STATUS_NOK
+        
         return STATUS_OK
     
     def set_hardware_mode(self, hw_mode: HardwareMode) -> bool:
+        """
+        Set the hardware mode for the wireless interface.
+
+        Parameters:
+            hw_mode (HardwareMode): The hardware mode to set.
+
+        Returns:
+            bool: STATUS_OK if the set operation is successful, STATUS_NOK otherwise.
+        """
+
+        if not self.is_interface_wifi():
+            self.log.error(f"Unable to apply hardware-mode: {hw_mode.value} , due to interface: {self.interface_name} is not wifi")
+            return STATUS_NOK        
+
         return STATUS_OK
     
-    def set_channel(self, channel:WifiChannel) -> bool:
+    def set_channel(self, channel: WifiChannel) -> bool:
+        """
+        Set the Wi-Fi channel for the wireless interface.
+
+        Parameters:
+            channel (WifiChannel): The Wi-Fi channel to set.
+
+        Returns:
+            bool: STATUS_OK if the set operation is successful, STATUS_NOK otherwise.
+        """
+        if not self.is_interface_wifi():
+            self.log.error(f"Unable to apply channel: {channel.value} , due to interface: {self.interface_name} is not wifi")
+            return STATUS_NOK   
+        
         return STATUS_OK
 
 class Wifi(NetworkManager):

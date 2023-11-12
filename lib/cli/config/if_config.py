@@ -503,48 +503,69 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.error("Unknown subcommand")
 
     def do_wireless(self, args=None, negate=False):
-        self.log.info(f"do_wireless({args} ,{negate})")
-        
+        self.log.info(f"do_wireless({args}, {negate})")
+
         parser = argparse.ArgumentParser(
             description="Configure Wireless settings on the interface",
-            epilog= "Suboptions:\n"
-                    "   wifi <wireless-policy-name>\n"
-                    "   cell <cell-policy-name>\n"
-                    "   <suboption> --help                          Get help for specific suboptions."
+            epilog="Suboptions:\n"
+                   "   wifi policy <wireless-policy-name>\n"
+                   "   wifi mode <wifi-hardware-mode>\n"
+                   "   wifi channel <wireless-policy-name>\n"
+                   "   cell policy <cell-policy-name>\n"
+                   "   <suboption> --help                          Get help for specific suboptions."
         )
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        # Subparser for 'ip address' command
-        wifi_parser = subparsers.add_parser("wifi",
-                                            help=""
-        )
-        wifi_parser.add_argument("wifi_policy_name",
-                                            help="")
-               
-        cell_parser = subparsers.add_parser("cell",
-                                            help=""
-        )
-        cell_parser.add_argument("cell_policy_name",
-                                            help="")        
+        wifi_parser = subparsers.add_parser("wifi", help="Configure Wi-Fi settings on the interface")
+
+        wifi_parser.add_argument("suboption", choices=["policy", "mode", "channel"], help="Suboption for Wi-Fi configuration")
+
+        wifi_policy_parser = subparsers.add_parser("policy", help="Configure Wi-Fi policy on the interface")
+        wifi_policy_parser.add_argument("policy_name", help="The name of the Wi-Fi policy")
+
+        wifi_mode_parser = subparsers.add_parser("mode", help="Configure Wi-Fi mode on the interface")
+        wifi_mode_parser.add_argument("mode_name", help="The hardware mode for Wi-Fi")
+
+        wifi_channel_parser = subparsers.add_parser("channel", help="Configure Wi-Fi channel on the interface")
+        wifi_channel_parser.add_argument("channel_name", help="The channel for Wi-Fi")
+
+        cell_parser = subparsers.add_parser("cell", help="Configure cell settings on the interface")
+        cell_parser.add_argument("cell_policy_name", help="The name of the cell policy")
 
         try:
             if not isinstance(args, list):
                 args = parser.parse_args(args.split())
             else:
-                args = parser.parse_args(args)       
+                args = parser.parse_args(args)
         except SystemExit:
             return
 
         if args.subcommand == "wifi":
-            wifi_policy_name = args.wifi_policy_name
-            self.log.info(f"do_wireless() -> wifi -> Policy: {wifi_policy_name} -> interface: {self.ifName}")
+            suboption = args.suboption
+            wi = WifiInterface()
             
-            wi = WifiInterface(wifi_policy_name, self.ifName, negate)
-            wi.update_policy_to_interface()
-        
-        elif args.subcommand == 'cell':
-            cell_policy_name = args.cell_policy_name            
-            print("Not implemented")
+            if not wi.is_interface_wifi():
+                self.info.error(f"Interface: {self.ifName} is not a WiFi Interface")
+                pass
+                
+            if suboption == "policy":
+                wifi_policy_name = args.policy_name
+                self.log.info(f"do_wireless() -> WIFI -> Policy: {wifi_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
+                wi.update_policy_to_interface(wifi_policy_name)
+
+            elif suboption == "mode":
+                wifi_mode_name = args.mode_name
+                self.log.info(f"do_wireless() -> WIFI -> Mode: {wifi_mode_name} -> Interface: {self.ifName} -> Negate: {negate}")
+
+            elif suboption == "channel":
+                wifi_channel_name = args.channel_name
+                self.log.info(f"do_wireless() -> WIFI -> Channel: {wifi_channel_name} -> Interface: {self.ifName} -> Negate: {negate}")
+
+        elif args.subcommand == "cell":
+            cell_policy_name = args.cell_policy_name
+            self.log.info(f"do_wireless() -> CELL -> Policy: {cell_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
+            # Implement the logic for handling cell policy command here
+
 
     def complete_no(self, text, line, begidx, endidx):
         completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address', 'nat', 'switchport']
