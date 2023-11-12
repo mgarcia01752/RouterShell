@@ -223,9 +223,10 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         return
 
 
-    def do_end(self):
+    def do_end(self, _):
         
-        #check to see if there is at least 1 
+        if len(self.security_access_group_entry_exist() == 0):
+            self.add_security_access_group()
         
         GlobalUserCommand().do_end()
         

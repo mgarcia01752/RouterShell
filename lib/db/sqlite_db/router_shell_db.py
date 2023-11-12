@@ -1657,7 +1657,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve IP address ranges. Error: {str(e)}")]
 
-    def get_dhcp_pool_reservation(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_reservation(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve DHCP reservations associated with a DHCP pool name from the database.
 
@@ -1686,7 +1686,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP reservations. Error: {str(e)}")]
 
-    def get_dhcp_pool_options(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_options(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve DHCP options associated with a DHCP pool name from the database.
 
@@ -2663,36 +2663,9 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking policy existence: {str(e)}", result=None)
 
-    def insert_wifi_policy(self, wireless_wifi_policy: str) -> Result:
-        """
-        Insert a new wireless Wi-Fi policy into the database.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to insert.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-            - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
-            - `row_id` contains the row ID of the inserted policy if the insertion is successful, or 0 if it fails.
-            - `reason` provides an optional result message with additional information about the operation.
-
-        Note:
-        - The method inserts a new wireless Wi-Fi policy with the provided name into the database.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted policy's ID, and `reason` indicates success.
-        - If the insertion fails, `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-        """
-        try:
-            # Define the SQL query to insert the wireless Wi-Fi policy.
-            query = "INSERT INTO WirelessWifiPolicy (WifiPolicyName) VALUES (?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy,))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted wireless Wi-Fi policy '{wireless_wifi_policy}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}")
+    '''
+                        WIRELESS-POLICY-WIFI DELETE
+    '''
 
     def delete_wifi_policy(self, wireless_wifi_policy: str) -> Result:
         """
@@ -2730,152 +2703,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def insert_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
-        """
-        Insert a new wireless Wi-Fi SSID into the database for a specific policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the SSID with.
-            ssid (str): The SSID to insert.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
-                - `row_id` contains the row ID of the inserted SSID if the insertion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for insert operations.
-
-        Note:
-        - The method inserts a new SSID with the provided name and associates it with the specified wireless Wi-Fi policy.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted SSID's ID, and `reason` indicates success.
-        - If the insertion fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to insert the wireless Wi-Fi SSID for the specified policy.
-            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK, Ssid) VALUES ((SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, ssid))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted SSID '{ssid}' for policy '{wireless_wifi_policy}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert SSID '{ssid}' for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-
-    def insert_wifi_access_security_group(self, wireless_wifi_policy: str, ssid: str, pass_phrase: str, mode: str) -> Result:
-        """
-        Insert a new Wi-Fi access security group into the database associated with a wireless Wi-Fi policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the security group with.
-            ssid (str): The SSID (Service Set Identifier) for the security group.
-            pass_phrase (str): The WPA passphrase for the security group.
-            mode (str): The security mode (e.g., WPA, WPA2, WPA3) for the security group.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-            - `status` is set to True for successful insertions and False for failed ones.
-            - `row_id` contains the row ID of the inserted security group if the insertion is successful, or 0 if it fails.
-            - `reason` provides an optional result message with additional information about the operation.
-
-        Note:
-        - The method inserts a new Wi-Fi access security group associated with the specified wireless Wi-Fi policy.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted security group's ID, and `reason` indicates success.
-        - If the insertion fails, `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-        """
-        try:
-            # Check if the wireless Wi-Fi policy exists
-            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
-            if not policy_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
-
-            # Define the SQL query to insert the Wi-Fi access security group.
-            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK, Ssid, WpaPassPhrase, WpaVersion) VALUES (?, ?, ?, ?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (policy_exist_result.row_id, ssid, pass_phrase, mode))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Wi-Fi access security group for policy '{wireless_wifi_policy}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi access security group for policy '{wireless_wifi_policy}'. Error: {str(e)}")
-
-    def insert_wifi_access_security_group_default(self, wireless_wifi_policy: str) -> Result:
-        """
-        Insert the default Wi-Fi access security group settings into the database for a wireless Wi-Fi policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate with the default access security group settings.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to True for successful insertions and False for failed ones.
-                - `row_id` contains the row ID of the inserted settings if the insertion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-
-        Note:
-        - The method inserts default Wi-Fi access security group settings associated with the specified wireless Wi-Fi policy.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted settings' ID, and `reason` indicates success.
-        - If the insertion fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
-        """
-        try:
-            # Check if the wireless Wi-Fi policy exists
-            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
-            if not policy_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
-
-            # Define the SQL query to insert the default Wi-Fi access security group settings.
-            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK) VALUES (?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (policy_exist_result.row_id,))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted default Wi-Fi access security group settings for policy '{wireless_wifi_policy}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
-
-    def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
-        """
-        Update an existing wireless Wi-Fi SSID in the database for a specific policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the updated SSID with.
-            ssid (str): The new SSID value to update.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful updates and STATUS_NOK for failed ones.
-                - `row_id` contains the row ID of the updated SSID if the update is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for update operations.
-
-        Note:
-        - The method updates an existing SSID associated with the specified wireless Wi-Fi policy to the new value.
-        - If the update is successful, `status` is set to True, `row_id` contains the updated SSID's ID, and `reason` indicates success.
-        - If the update fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to update the wireless Wi-Fi SSID for the specified policy.
-            query = "UPDATE WirelessWifiSecurityPolicy SET Ssid = ? WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (ssid, wireless_wifi_policy))
-            self.connection.commit()
-
-            # Check the number of rows affected by the update.
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=cursor.rowcount, reason=f"Updated SSID for policy '{wireless_wifi_policy}' to '{ssid}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for the update.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update SSID for policy '{wireless_wifi_policy}' to '{ssid}'. Error: {str(e)}", result=None)
-
     def delete_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Delete a row from the 'WirelessWifiSecurityPolicy' table for a specific wireless Wi-Fi policy and SSID.
@@ -2912,224 +2739,6 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete row for SSID '{ssid}' from policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-
-    def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
-        """
-        Insert a new WPA passphrase for a specific wireless Wi-Fi policy and SSID.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the passphrase with.
-            ssid (str): The SSID to associate the passphrase with.
-            passphrase (str): The WPA passphrase to insert.
-            wpa_version (int): The WPA version to associate with the passphrase (1 for WPA, 2 for WPA2, 3 for WPA3).
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
-                - `row_id` contains the row ID of the inserted passphrase if the insertion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for insert operations.
-
-        Note:
-        - The method inserts a new WPA passphrase associated with the specified wireless Wi-Fi policy and SSID.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted passphrase's ID, and `reason` indicates success.
-        - If the insertion fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to insert the WPA passphrase for the specified policy and SSID.
-            query = """
-                        INSERT INTO WirelessWifiSecurityPolicy (
-                            WirelessWifiPolicy_FK, Ssid, WpaPassPhrase, WpaVersion) VALUES ((
-                                SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?, ?, ?)
-                    """
-            cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, ssid, passphrase, wpa_version))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
-    
-    def update_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
-        """
-        Update the WPA passphrase for a specific wireless Wi-Fi policy and SSID.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the updated passphrase with.
-            ssid (str): The SSID to associate the updated passphrase with.
-            passphrase (str): The new WPA passphrase to update.
-            wpa_version (int): The new WPA version to associate with the updated passphrase (1 for WPA, 2 for WPA2, 3 for WPA3).
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful updates and STATUS_NOK for failed ones.
-                - `row_id` contains the number of rows affected by the update if it is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for update operations.
-
-        Note:
-        - The method updates the WPA passphrase and version associated with the specified wireless Wi-Fi policy and SSID.
-        - If the update is successful, `status` is set to True, `row_id` contains the number of rows affected by the update, and `reason` indicates success.
-        - If the update fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to update the WPA passphrase and version for the specified policy and SSID.
-            query = """
-                        UPDATE WirelessWifiSecurityPolicy
-                        SET WpaPassPhrase = ?, WpaVersion = ?
-                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
-                        AND Ssid = ?
-                    """
-            cursor = self.connection.cursor()
-            cursor.execute(query, (passphrase, wpa_version, wireless_wifi_policy, ssid))
-            self.connection.commit()
-
-            # Check the number of rows affected by the update.
-            affected_rows = cursor.rowcount
-
-            if affected_rows > 0:
-                return Result(status=STATUS_OK, row_id=affected_rows, reason=f"Updated WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and SSID found for the update.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
-
-    def select_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
-        """
-        Retrieve a list of security policies associated with a specific wireless Wi-Fi policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to retrieve security policies for.
-
-        Returns:
-            List[Result]: A list of Result objects representing the outcome of the operation for each security policy.
-            - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
-            - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
-            - `reason` provides an optional result message with additional information about the operation.
-            - `result` contains the security policy information, e.g., SSID, WPA passphrase, and WPA version.
-
-        Note:
-        - The method retrieves a list of security policies associated with the specified wireless Wi-Fi policy.
-        - For each security policy retrieved successfully, a Result object is created with `status` set to True, `row_id` containing the policy ID, and `result` providing security policy details.
-        - If a security policy retrieval fails (e.g., due to a database error or no matching policy found), a Result object is created with `status` set to False and `row_id` set to 0, and `reason` explains the reason for the failure.
-        """
-        results = []
-
-        try:
-            # Define the SQL query to retrieve security policies for the specified policy.
-            query = """
-                        SELECT Ssid, WpaPassPhrase, WpaVersion, WpaKeyManagment, WpaPairwise, ID
-                        FROM WirelessWifiSecurityPolicy
-                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
-                    """
-            cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy,))
-            rows = cursor.fetchall()
-
-            for row in rows:
-                ssid, passphrase, wpa_version, key_management, pairwise, id = row
-                results.append(Result(status=STATUS_OK, row_id=id, 
-                                      reason=f"Retrieved security policy for policy '{wireless_wifi_policy}'", 
-                                      result={"Ssid": ssid, 
-                                              "WpaPassPhrase": passphrase, 
-                                              "WpaVersion": wpa_version, 
-                                              "WpaKeyManagment": key_management, 
-                                              "WpaPairwise": pairwise}))
-
-            return results
-
-        except sqlite3.Error as e:
-            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
-            return results
-
-    def insert_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
-        """
-        Insert a new Hostapd option for a specific wireless Wi-Fi policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the Hostapd option with.
-            hostapd_option (str): The name of the Hostapd option to insert.
-            hostapd_value (str): The value to associate with the Hostapd option.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
-                - `row_id` contains the row ID of the inserted Hostapd option if the insertion is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for insert operations.
-
-        Note:
-        - The method inserts a new Hostapd option associated with the specified wireless Wi-Fi policy.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted Hostapd option's ID, and `reason` indicates success.
-        - If the insertion fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to insert the Hostapd option for the specified policy.
-            query = """
-                        INSERT INTO WirelessWifiHostapdOptions (
-                            WirelessWifiPolicy_FK, OptionName, OptionValue) VALUES ((
-                                SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?, ?)
-                    """
-            cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, hostapd_option, hostapd_value))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Hostapd option for policy '{wireless_wifi_policy}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-
-    def update_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
-        """
-        Update the value of a Hostapd option for a specific wireless Wi-Fi policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the updated Hostapd option with.
-            hostapd_option (str): The name of the Hostapd option to update.
-            hostapd_value (str): The new value to associate with the Hostapd option.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-                - `status` is set to STATUS_OK for successful updates and STATUS_NOK for failed ones.
-                - `row_id` contains the number of rows affected by the update if it is successful, or 0 if it fails.
-                - `reason` provides an optional result message with additional information about the operation.
-                - `result` is set to None for update operations.
-
-        Note:
-        - The method updates the value of a Hostapd option associated with the specified wireless Wi-Fi policy.
-        - If the update is successful, `status` is set to True, `row_id` contains the number of rows affected by the update, and `reason` indicates success.
-        - If the update fails (e.g., due to a database error or no matching policy found), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to update the value of the Hostapd option for the specified policy.
-            query = """
-                        UPDATE WirelessWifiHostapdOptions
-                        SET OptionValue = ?
-                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
-                        AND OptionName = ?
-                    """
-            cursor = self.connection.cursor()
-            cursor.execute(query, (hostapd_value, wireless_wifi_policy, hostapd_option))
-            self.connection.commit()
-
-            # Check the number of rows affected by the update.
-            affected_rows = cursor.rowcount
-
-            if affected_rows > 0:
-                return Result(status=STATUS_OK, row_id=affected_rows, reason=f"Updated Hostapd option value for policy '{wireless_wifi_policy}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and Hostapd option found for the update.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Hostapd option value for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
     def delete_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
         """
@@ -3175,6 +2784,10 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
+
+    '''
+                        WIRELESS-POLICY-WIFI SELECT
+    '''
 
     def select_all_wifi_hostapd_options(self, wireless_wifi_policy: str) -> List[Result]:
         """
@@ -3268,45 +2881,6 @@ class RouterShellDB(metaclass=Singleton):
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve matching Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
-    def add_wifi_policy_to_interface(self, wireless_wifi_policy: str, wifi_interface: str) -> Result:
-        """
-        Associate a wireless Wi-Fi policy with a specific network interface.
-
-        Args:
-        wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate with the network interface.
-        wifi_interface (str): The name of the network interface to associate with the wireless Wi-Fi policy.
-
-        Returns:
-        Result: A Result object representing the outcome of the operation.
-            - `status` is set to STATUS_OK for successful associations and STATUS_NOK for failed ones.
-            - `row_id` contains the row ID of the association if it is successful, or 0 if it fails.
-            - `reason` provides an optional result message with additional information about the operation.
-
-        Note:
-        - The method associates a wireless Wi-Fi policy with the specified network interface.
-        - If the association is successful, `status` is set to True, `row_id` contains the row ID of the association, and `reason` indicates success.
-        - If the association fails (e.g., due to a database error, no matching policy, or no matching interface), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
-
-        """
-        try:
-            # Define the SQL query to associate the wireless Wi-Fi policy with the network interface.
-            query = """
-                        INSERT INTO WirelessWifiPolicyInterface (Interface_FK, WirelessWifiPolicy_FK)
-                        VALUES (
-                            (SELECT ID FROM Interfaces WHERE InterfaceName = ?),
-                            (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
-                        )
-                    """
-            cursor = self.connection.cursor()
-            cursor.execute(query, (wifi_interface, wireless_wifi_policy))
-            self.connection.commit()
-            row_id = cursor.lastrowid
-
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Associated wireless Wi-Fi policy '{wireless_wifi_policy}' with network interface '{wifi_interface}' successfully.")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to associate wireless Wi-Fi policy '{wireless_wifi_policy}' with network interface '{wifi_interface}'. Error: {str(e)}")
-
     def select_wifi_policy_interfaces(self, wireless_wifi_policy: str) -> List[Result]:
         """
         Retrieve a list of network interfaces associated with a specific wireless Wi-Fi policy.
@@ -3353,6 +2927,238 @@ class RouterShellDB(metaclass=Singleton):
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve associated network interfaces for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
+    def select_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
+        """
+        Retrieve a list of security policies associated with a specific wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to retrieve security policies for.
+
+        Returns:
+            List[Result]: A list of Result objects representing the outcome of the operation for each security policy.
+            - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
+            - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+            - `result` contains the security policy information, e.g., SSID, WPA passphrase, and WPA version.
+
+        Note:
+        - The method retrieves a list of security policies associated with the specified wireless Wi-Fi policy.
+        - For each security policy retrieved successfully, a Result object is created with `status` set to True, `row_id` containing the policy ID, and `result` providing security policy details.
+        - If a security policy retrieval fails (e.g., due to a database error or no matching policy found), a Result object is created with `status` set to False and `row_id` set to 0, and `reason` explains the reason for the failure.
+        """
+        results = []
+
+        try:
+            # Define the SQL query to retrieve security policies for the specified policy.
+            query = """
+                        SELECT Ssid, WpaPassPhrase, WpaVersion, WpaKeyManagment, WpaPairwise, ID
+                        FROM WirelessWifiSecurityPolicy
+                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy,))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                ssid, passphrase, wpa_version, key_management, pairwise, id = row
+                results.append(Result(status=STATUS_OK, row_id=id, 
+                                      reason=f"Retrieved security policy for policy '{wireless_wifi_policy}'", 
+                                      result={"Ssid": ssid, 
+                                              "WpaPassPhrase": passphrase, 
+                                              "WpaVersion": wpa_version, 
+                                              "WpaKeyManagment": key_management, 
+                                              "WpaPairwise": pairwise}))
+
+            return results
+
+        except sqlite3.Error as e:
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
+            return results
+
+    def select_wifi_security_policy_via_ssid(self, wireless_wifi_policy: str, ssid: str) -> List[Result]:
+        """
+        Select Wi-Fi security policies based on wireless Wi-Fi policy and SSID.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to retrieve security policies for.
+            ssid (str): The SSID (Service Set Identifier) to use for filtering.
+
+        Returns:
+            List[Result]: A list of Result objects representing the outcome of the operation for each matching security policy.
+            - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
+            - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+            - `result` contains the security policy information, e.g., SSID, WPA passphrase, and WPA version.
+
+        Note:
+        - The method retrieves a list of security policies based on the specified wireless Wi-Fi policy and SSID.
+        - For each security policy retrieved successfully, a Result object is created with `status` set to True, `row_id` containing the policy ID, and `result` providing security policy details.
+        - If a security policy retrieval fails (e.g., due to a database error or no matching policy found), a Result object is created with `status` set to False and `row_id` set to 0, and `reason` explains the reason for the failure.
+        """
+        results = []
+
+        try:
+            # Define the SQL query to retrieve security policies based on wireless Wi-Fi policy and SSID.
+            query = """
+                        SELECT Ssid, WpaPassPhrase, WpaVersion, WpaKeyManagment, WpaPairwise, ID
+                        FROM WirelessWifiSecurityPolicy
+                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
+                        AND Ssid = ?
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy, ssid))
+            rows = cursor.fetchall()
+
+            for row in rows:
+                ssid, passphrase, wpa_version, key_management, pairwise, id = row
+                results.append(Result(status=STATUS_OK, row_id=id,
+                                    reason=f"Retrieved security policy for policy '{wireless_wifi_policy}' and SSID '{ssid}'",
+                                    result={"Ssid": ssid,
+                                            "WpaPassPhrase": passphrase,
+                                            "WpaVersion": wpa_version,
+                                            "WpaKeyManagment": key_management,
+                                            "WpaPairwise": pairwise}))
+
+            return results
+
+        except sqlite3.Error as e:
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND,
+                                reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}"))
+            return results
+        
+
+    '''
+                        WIRELESS-POLICY-WIFI UPDATE
+    '''
+    
+    def update_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
+        """
+        Update the WPA passphrase for a specific wireless Wi-Fi policy and SSID.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the updated passphrase with.
+            ssid (str): The SSID to associate the updated passphrase with.
+            passphrase (str): The new WPA passphrase to update.
+            wpa_version (int): The new WPA version to associate with the updated passphrase (1 for WPA, 2 for WPA2, 3 for WPA3).
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to STATUS_OK for successful updates and STATUS_NOK for failed ones.
+                - `row_id` contains the number of rows affected by the update if it is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+                - `result` is set to None for update operations.
+
+        Note:
+        - The method updates the WPA passphrase and version associated with the specified wireless Wi-Fi policy and SSID.
+        - If the update is successful, `status` is set to True, `row_id` contains the number of rows affected by the update, and `reason` indicates success.
+        - If the update fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to update the WPA passphrase and version for the specified policy and SSID.
+            query = """
+                        UPDATE WirelessWifiSecurityPolicy
+                        SET WpaPassPhrase = ?, WpaVersion = ?
+                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
+                        AND Ssid = ?
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (passphrase, wpa_version, wireless_wifi_policy, ssid))
+            self.connection.commit()
+
+            # Check the number of rows affected by the update.
+            affected_rows = cursor.rowcount
+
+            if affected_rows > 0:
+                return Result(status=STATUS_OK, row_id=affected_rows, reason=f"Updated WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and SSID found for the update.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
+    
+    def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
+        """
+        Update an existing wireless Wi-Fi SSID in the database for a specific policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the updated SSID with.
+            ssid (str): The new SSID value to update.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to STATUS_OK for successful updates and STATUS_NOK for failed ones.
+                - `row_id` contains the row ID of the updated SSID if the update is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+                - `result` is set to None for update operations.
+
+        Note:
+        - The method updates an existing SSID associated with the specified wireless Wi-Fi policy to the new value.
+        - If the update is successful, `status` is set to True, `row_id` contains the updated SSID's ID, and `reason` indicates success.
+        - If the update fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to update the wireless Wi-Fi SSID for the specified policy.
+            query = "UPDATE WirelessWifiSecurityPolicy SET Ssid = ? WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (ssid, wireless_wifi_policy))
+            self.connection.commit()
+
+            # Check the number of rows affected by the update.
+            if cursor.rowcount > 0:
+                return Result(status=STATUS_OK, row_id=cursor.rowcount, reason=f"Updated SSID for policy '{wireless_wifi_policy}' to '{ssid}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for the update.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update SSID for policy '{wireless_wifi_policy}' to '{ssid}'. Error: {str(e)}", result=None)
+    
+    def update_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
+        """
+        Update the value of a Hostapd option for a specific wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the updated Hostapd option with.
+            hostapd_option (str): The name of the Hostapd option to update.
+            hostapd_value (str): The new value to associate with the Hostapd option.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to STATUS_OK for successful updates and STATUS_NOK for failed ones.
+                - `row_id` contains the number of rows affected by the update if it is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+                - `result` is set to None for update operations.
+
+        Note:
+        - The method updates the value of a Hostapd option associated with the specified wireless Wi-Fi policy.
+        - If the update is successful, `status` is set to True, `row_id` contains the number of rows affected by the update, and `reason` indicates success.
+        - If the update fails (e.g., due to a database error or no matching policy found), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to update the value of the Hostapd option for the specified policy.
+            query = """
+                        UPDATE WirelessWifiHostapdOptions
+                        SET OptionValue = ?
+                        WHERE WirelessWifiPolicy_FK = (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
+                        AND OptionName = ?
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (hostapd_value, wireless_wifi_policy, hostapd_option))
+            self.connection.commit()
+
+            # Check the number of rows affected by the update.
+            affected_rows = cursor.rowcount
+
+            if affected_rows > 0:
+                return Result(status=STATUS_OK, row_id=affected_rows, reason=f"Updated Hostapd option value for policy '{wireless_wifi_policy}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and Hostapd option found for the update.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Hostapd option value for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
+    
     def update_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
         """
         Update the Wi-Fi channel associated with a wireless Wi-Fi policy.
@@ -3392,6 +3198,313 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi channel for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+        
+    def update_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
+        """
+        Update the Wi-Fi hardware mode associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to update.
+            hw_mode (str): The new Wi-Fi hardware mode to set for the policy.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful updates and False for failed ones.
+            - `row_id` contains the row ID of the updated policy if the update is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method updates the Wi-Fi hardware mode for the specified wireless Wi-Fi policy.
+        - If the update is successful, `status` is set to True, `row_id` contains the updated policy's ID, and `reason` indicates success.
+        - If the update fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to update the Wi-Fi hardware mode.
+            query = "UPDATE WirelessWifiPolicy SET HardwareMode = ? WHERE WifiPolicyName = ?"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (hw_mode, wireless_wifi_policy))
+            self.connection.commit()
+
+            # Check if any rows were affected by the update
+            if cursor.rowcount > 0:
+                return Result(status=STATUS_OK, row_id=policy_exist_result.row_id, reason=f"Updated Wi-Fi hardware mode for policy '{wireless_wifi_policy}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}' - query: {query}")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi hardware mode for policy {wireless_wifi_policy} - query: {query}")
+
+    '''
+                        WIRELESS-POLICY-WIFI INSERT
+    '''
+
+    def insert_wifi_policy(self, wireless_wifi_policy: str) -> Result:
+        """
+        Insert a new wireless Wi-Fi policy into the database.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to insert.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
+            - `row_id` contains the row ID of the inserted policy if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts a new wireless Wi-Fi policy with the provided name into the database.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted policy's ID, and `reason` indicates success.
+        - If the insertion fails, `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+        """
+        try:
+            # Define the SQL query to insert the wireless Wi-Fi policy.
+            query = "INSERT INTO WirelessWifiPolicy (WifiPolicyName) VALUES (?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy,))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted wireless Wi-Fi policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}")
+    
+    def insert_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
+        """
+        Insert a new wireless Wi-Fi SSID into the database for a specific policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the SSID with.
+            ssid (str): The SSID to insert.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
+                - `row_id` contains the row ID of the inserted SSID if the insertion is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+                - `result` is set to None for insert operations.
+
+        Note:
+        - The method inserts a new SSID with the provided name and associates it with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted SSID's ID, and `reason` indicates success.
+        - If the insertion fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to insert the wireless Wi-Fi SSID for the specified policy.
+            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK, Ssid) VALUES ((SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy, ssid))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted SSID '{ssid}' for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert SSID '{ssid}' for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
+
+    def insert_wifi_access_security_group(self, wireless_wifi_policy: str, ssid: str, pass_phrase: str, mode: str) -> Result:
+        """
+        Insert a new Wi-Fi access security group into the database associated with a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the security group with.
+            ssid (str): The SSID (Service Set Identifier) for the security group.
+            pass_phrase (str): The WPA passphrase for the security group.
+            mode (str): The security mode (e.g., WPA, WPA2, WPA3) for the security group.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - `status` is set to True for successful insertions and False for failed ones.
+            - `row_id` contains the row ID of the inserted security group if the insertion is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts a new Wi-Fi access security group associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted security group's ID, and `reason` indicates success.
+        - If the insertion fails due to an existing combination of `wireless_wifi_policy` and `ssid`, `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Check if the combination of wireless_wifi_policy and ssid already exists
+            combination_exist_result = self.select_wifi_security_policy_via_ssid(wireless_wifi_policy, ssid)
+            if combination_exist_result:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Security group for SSID '{ssid}' already exists in policy '{wireless_wifi_policy}'.")
+
+            # Define the SQL query to insert the Wi-Fi access security group
+            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK, Ssid, WpaPassPhrase, WpaVersion) VALUES (?, ?, ?, ?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (policy_exist_result.row_id, ssid, pass_phrase, mode))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Wi-Fi access security group for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi access security group for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
+    def insert_wifi_access_security_group_default(self, wireless_wifi_policy: str) -> Result:
+        """
+        Insert the default Wi-Fi access security group settings into the database for a wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate with the default access security group settings.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to True for successful insertions and False for failed ones.
+                - `row_id` contains the row ID of the inserted settings if the insertion is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method inserts default Wi-Fi access security group settings associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted settings' ID, and `reason` indicates success.
+        - If the insertion fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        """
+        try:
+            # Check if the wireless Wi-Fi policy exists
+            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            if not policy_exist_result.status:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+
+            # Define the SQL query to insert the default Wi-Fi access security group settings.
+            query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK) VALUES (?)"
+            cursor = self.connection.cursor()
+            cursor.execute(query, (policy_exist_result.row_id,))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted default Wi-Fi access security group settings for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
+    def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
+        """
+        Insert a new WPA passphrase for a specific wireless Wi-Fi policy and SSID.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the passphrase with.
+            ssid (str): The SSID to associate the passphrase with.
+            passphrase (str): The WPA passphrase to insert.
+            wpa_version (int): The WPA version to associate with the passphrase (1 for WPA, 2 for WPA2, 3 for WPA3).
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
+                - `row_id` contains the row ID of the inserted passphrase if the insertion is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+                - `result` is set to None for insert operations.
+
+        Note:
+        - The method inserts a new WPA passphrase associated with the specified wireless Wi-Fi policy and SSID.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted passphrase's ID, and `reason` indicates success.
+        - If the insertion fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to insert the WPA passphrase for the specified policy and SSID.
+            query = """
+                        INSERT INTO WirelessWifiSecurityPolicy (
+                            WirelessWifiPolicy_FK, Ssid, WpaPassPhrase, WpaVersion) VALUES ((
+                                SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?, ?, ?)
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy, ssid, passphrase, wpa_version))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
+      
+    def insert_wifi_policy_to_interface(self, wireless_wifi_policy: str, wifi_interface: str) -> Result:
+        """
+        Associate a wireless Wi-Fi policy with a specific network interface.
+
+        Args:
+        wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate with the network interface.
+        wifi_interface (str): The name of the network interface to associate with the wireless Wi-Fi policy.
+
+        Returns:
+        Result: A Result object representing the outcome of the operation.
+            - `status` is set to STATUS_OK for successful associations and STATUS_NOK for failed ones.
+            - `row_id` contains the row ID of the association if it is successful, or 0 if it fails.
+            - `reason` provides an optional result message with additional information about the operation.
+
+        Note:
+        - The method associates a wireless Wi-Fi policy with the specified network interface.
+        - If the association is successful, `status` is set to True, `row_id` contains the row ID of the association, and `reason` indicates success.
+        - If the association fails (e.g., due to a database error, no matching policy, or no matching interface), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to associate the wireless Wi-Fi policy with the network interface.
+            query = """
+                        INSERT INTO WirelessWifiPolicyInterface (Interface_FK, WirelessWifiPolicy_FK)
+                        VALUES (
+                            (SELECT ID FROM Interfaces WHERE InterfaceName = ?),
+                            (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
+                        )
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wifi_interface, wireless_wifi_policy))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Associated wireless Wi-Fi policy '{wireless_wifi_policy}' with network interface '{wifi_interface}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to associate wireless Wi-Fi policy '{wireless_wifi_policy}' with network interface '{wifi_interface}'. Error: {str(e)}")
+
+    def insert_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
+        """
+        Insert a new Hostapd option for a specific wireless Wi-Fi policy.
+
+        Args:
+            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to associate the Hostapd option with.
+            hostapd_option (str): The name of the Hostapd option to insert.
+            hostapd_value (str): The value to associate with the Hostapd option.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+                - `status` is set to STATUS_OK for successful insertions and STATUS_NOK for failed ones.
+                - `row_id` contains the row ID of the inserted Hostapd option if the insertion is successful, or 0 if it fails.
+                - `reason` provides an optional result message with additional information about the operation.
+                - `result` is set to None for insert operations.
+
+        Note:
+        - The method inserts a new Hostapd option associated with the specified wireless Wi-Fi policy.
+        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted Hostapd option's ID, and `reason` indicates success.
+        - If the insertion fails (e.g., due to a database error), `status` is set to False, `row_id` is 0, and `reason` explains the reason for the failure.
+
+        """
+        try:
+            # Define the SQL query to insert the Hostapd option for the specified policy.
+            query = """
+                        INSERT INTO WirelessWifiHostapdOptions (
+                            WirelessWifiPolicy_FK, OptionName, OptionValue) VALUES ((
+                                SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?, ?)
+                    """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (wireless_wifi_policy, hostapd_option, hostapd_value))
+            self.connection.commit()
+            row_id = cursor.lastrowid
+
+            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted Hostapd option for policy '{wireless_wifi_policy}' successfully.")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
         
     def insert_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
         """
@@ -3466,45 +3579,3 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi hardware mode for policy '{wireless_wifi_policy}'. Error: {str(e)}")
-
-    def update_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
-        """
-        Update the Wi-Fi hardware mode associated with a wireless Wi-Fi policy.
-
-        Args:
-            wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to update.
-            hw_mode (str): The new Wi-Fi hardware mode to set for the policy.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-            - `status` is set to True for successful updates and False for failed ones.
-            - `row_id` contains the row ID of the updated policy if the update is successful, or 0 if it fails.
-            - `reason` provides an optional result message with additional information about the operation.
-
-        Note:
-        - The method updates the Wi-Fi hardware mode for the specified wireless Wi-Fi policy.
-        - If the update is successful, `status` is set to True, `row_id` contains the updated policy's ID, and `reason` indicates success.
-        - If the update fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
-        """
-        try:
-            # Check if the wireless Wi-Fi policy exists
-            policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
-            if not policy_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
-
-            # Define the SQL query to update the Wi-Fi hardware mode.
-            query = "UPDATE WirelessWifiPolicy SET HardwareMode = ? WHERE WifiPolicyName = ?"
-            cursor = self.connection.cursor()
-            cursor.execute(query, (hw_mode, wireless_wifi_policy))
-            self.connection.commit()
-
-            # Check if any rows were affected by the update
-            if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=policy_exist_result.row_id, reason=f"Updated Wi-Fi hardware mode for policy '{wireless_wifi_policy}' successfully.")
-            else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}' - query: {query}")
-
-        except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi hardware mode for policy {wireless_wifi_policy} - query: {query}")
-
-        

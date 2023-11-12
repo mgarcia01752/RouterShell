@@ -232,7 +232,7 @@ class DHCPServerDatabase:
                 - 'mac_address' (str): The MAC address of the reserved device.
                 - 'inet_address' (str): The internet address reserved for the device.
         """
-        sql_result = RSDB().get_dhcp_pool_reservation(dhcp_pool_name)
+        sql_result = RSDB().select_dhcp_pool_reservation(dhcp_pool_name)
         results = []
 
         for result in sql_result:
@@ -259,7 +259,7 @@ class DHCPServerDatabase:
                 - 'option' (str): The DHCP option.
                 - 'value' (str): The value associated with the option.
         """
-        sql_result = RSDB().get_dhcp_pool_options(dhcp_pool_name)
+        sql_result = RSDB().select_dhcp_pool_options(dhcp_pool_name)
         results = []
         
         for result in sql_result:

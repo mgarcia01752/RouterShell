@@ -266,6 +266,9 @@ class WifiPolicy():
         """
         return self.wifi_db.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
 
+    def add_security_access_group_default(self,wifi_policy_name:str) -> bool:
+        return self.wifi_db.add_wifi_security_access_group()
+
     def add_key_management(self, key_managment:WPAkeyManagement) -> bool:
         return STATUS_OK
     
@@ -299,6 +302,11 @@ class WifiPolicy():
         - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
         """        
         return self.wifi_db.add_wifi_channel(self.wifi_policy_name, str(wifi_channel.value))
+
+    def security_access_group_entry_exist(self,args=None) -> bool:
+            list_dict = self.wifi_db.get_wifi_security_policy(self.wifi_policy_name)
+            
+            self.log.info(f"security_access_group_entry_exist() -> {list_dict}")
         
     def status(self) -> bool:
         """

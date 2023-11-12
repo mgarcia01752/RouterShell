@@ -2,6 +2,7 @@
 # Wireless WiFi Access Point Configuration Guide
 
 ```config
+cls
 clear router-db
 yes
 
@@ -9,6 +10,7 @@ configure terminal
 
 wireless wifi wifi-guest-network
     ssid GuestNetwork pass-phrase FBI wpa-mode WPA2
+    
     mode any
     channel 6
 end
