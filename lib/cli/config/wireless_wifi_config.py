@@ -182,9 +182,12 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         if args.subcommand == "mode":
             mode_option = args.mode_option
             self.log.info(f"do_mode() - mode_option: {mode_option}")
-            
-            if self.add_hardware_mode(HardwareMode[mode_option.upper()]):
-                self.log.error(f"Unable to add hardware-mode: {mode_option} to wifi-policy: {self.wifi_policy_name}")
+
+            hw_add_update = 'update' if negate else 'add'
+
+            if not self.add_hardware_mode(HardwareMode[mode_option.upper()]):
+                self.log.error(f"Failed to {hw_add_update} hardware-mode '{mode_option}' to wifi-policy '{self.wifi_policy_name}'")
+
 
     def do_channel(self, args, negate=False):
         self.log.debug(f"do_channel() - args: {args}")
@@ -211,7 +214,12 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             return
 
         if args.subcommand == "channel":
-            self.add_channel(WifiChannel[args.channel_number])
+            
+            hw_add_update = 'update' if negate else 'add'
+             
+            if self.add_channel(WifiChannel[args.channel_number]):
+                self.log.error(f"Failed to {hw_add_update} hardware-mode '{mode_option}' to wifi-policy '{self.wifi_policy_name}'")
+
     
     def do_ieee80211(self, args: str, negate: bool = False):
         parser = argparse.ArgumentParser(

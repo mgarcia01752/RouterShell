@@ -333,7 +333,6 @@ class WifiPolicy():
         """
         return self.wifi_db.del_wifi_security_access_group(self.wifi_policy_name, ssid)
 
-
     def security_access_group_entry_exist(self, wifi_policy_name: str) -> bool:
         # Get the security policies associated with the Wi-Fi policy
         security_policies = self.wifi_db.get_wifi_security_policy(wifi_policy_name)
