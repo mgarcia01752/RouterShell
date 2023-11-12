@@ -501,6 +501,46 @@ class InterfaceConfig(cmd2.Cmd,
         else:
             self.log.error("Unknown subcommand")
 
+    def do_wireless(self, args=None, negate=False):
+        self.log.debug(f"do_wireless({args} ,{negate})")
+        
+        parser = argparse.ArgumentParser(
+            description="Configure Wireless settings on the interface",
+            epilog= "Suboptions:\n"
+                    "   wifi <wireless-policy-name>\n"
+                    "   cell <cell-policy-name>\n"
+                    "   <suboption> --help                          Get help for specific suboptions."
+        )
+        subparsers = parser.add_subparsers(dest="subcommand")
+
+        # Subparser for 'ip address' command
+        wifi_parser = subparsers.add_parser("wifi",
+                                            help=""
+        )
+        wifi_parser.add_argument("wifi_policy_name",
+                                            help="")
+               
+        cell_parser = subparsers.add_parser("cell",
+                                            help=""
+        )
+        cell_parser.add_argument("cell_policy_name",
+                                            help="")        
+
+        try:
+            if not isinstance(args, list):
+                args = parser.parse_args(args.split())
+            else:
+                args = parser.parse_args(args)       
+        except SystemExit:
+            return
+
+        if args.subcommand == "wifi":
+            wifi_policy_name = args.wifi_policy_name
+        
+        elif args.subcommand == 'cell':
+            cell_policy_name = args.cell_policy_name            
+            print("Not implemented")
+
     def complete_no(self, text, line, begidx, endidx):
         completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address', 'nat', 'switchport']
         return [comp for comp in completions if comp.startswith(text)]

@@ -314,4 +314,10 @@ Configuring network interfaces is crucial for establishing network connectivity 
       [no] shutdown
       end
 
+   ; wireless-wifi
+   interface <physical_interface>
+      [no] wireless wireless-wifi <wifi-policy-name>
+      [no] shutdown
+      end
+
 ```
