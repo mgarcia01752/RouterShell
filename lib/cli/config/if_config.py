@@ -503,7 +503,7 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.error("Unknown subcommand")
 
     def do_wireless(self, args=None, negate=False):
-        self.log.debug(f"do_wireless({args} ,{negate})")
+        self.log.info(f"do_wireless({args} ,{negate})")
         
         parser = argparse.ArgumentParser(
             description="Configure Wireless settings on the interface",
@@ -537,6 +537,8 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args.subcommand == "wifi":
             wifi_policy_name = args.wifi_policy_name
+            self.log.info(f"do_wireless() -> wifi -> Policy: {wifi_policy_name} -> interface: {self.ifName}")
+            
             wi = WifiInterface(wifi_policy_name, self.ifName, negate)
             wi.update_policy_to_interface()
         
