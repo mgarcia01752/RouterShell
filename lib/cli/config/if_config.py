@@ -14,6 +14,7 @@ from lib.network_manager.arp import Encapsulate
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.wireless_wifi import WifiInterface
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -536,6 +537,8 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args.subcommand == "wifi":
             wifi_policy_name = args.wifi_policy_name
+            wi = WifiInterface(wifi_policy_name, self.ifName, negate)
+            wi.update_policy_to_interface()
         
         elif args.subcommand == 'cell':
             cell_policy_name = args.cell_policy_name            

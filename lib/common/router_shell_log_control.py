@@ -70,6 +70,7 @@ class RouterShellLoggingGlobalSettings():
     WL_WIFI                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     WL_WIFI_DB                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     WL_WIFI_POLICY              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WL_WIFI_INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     WL_WIFI_POLICY_CONFIG       = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
     WL_CELL                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -374,6 +374,29 @@ class WifiPolicy():
         return STATUS_OK
 
 
+class WifiInterface():
+    '''
+    Interface level wifi settings
+    '''
+    
+    def __init__(self, wifi_policy_name: str, interface_name:str, negate=False):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().WL_WIFI_INTERFACE)
+        self.log.debug(f"WifiInterface() -> Wifi-Policy: {wifi_policy_name} -> interface: {interface_name} -> Negate: {negate}")
+        
+        self.wifi_policy_name = wifi_policy_name
+        self.interface_name = interface_name
+        self.negate = negate
+        
+    def update_policy_to_interface(self) -> bool:
+        return STATUS_OK
+    
+    def set_hardware_mode(self, hw_mode: HardwareMode) -> bool:
+        return STATUS_OK
+    
+    def set_channel(self, channel:WifiChannel) -> bool:
+        return STATUS_OK
+
 class Wifi(NetworkManager):
     """Command set for managing wireless networks using the 'iw' command."""
 
