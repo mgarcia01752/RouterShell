@@ -69,7 +69,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         Configure the Service Set Identifier (SSID), passphrase, and optional security mode.
 
         Usage:
-            ssid <ssid> passphrase <passphrase> [mode [WPA | WPA2 | WPA3]]
+            ssid <ssid> pass-phrase <passphrase> [mode [WPA | WPA2 | WPA3]]
 
         Args:
             args (str): The input arguments containing SSID, passphrase, and optional mode.
@@ -88,7 +88,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         parser = argparse.ArgumentParser(
             description="Configure Service Set Identifier (SSID), passphrase, and optional security mode.",
             epilog="Usage:\n"
-                   "   ssid <ssid> passphrase <passphrase> [mode [WPA | \{WPA2\} | WPA3]]\n"
+                   "   ssid <ssid> pass-phrase <passphrase> [mode [WPA | \{WPA2\} | WPA3]]\n"
                    "\n"
                    "   <suboption> --help                           Get help for specific suboptions."
         )
@@ -98,7 +98,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         ssid_parser.add_argument("ssid_name", help="SSID of the Wi-Fi network")
         ssid_parser.add_argument("passphrase", help="pass-phrase", nargs='?', choices=["pass-phrase"])
         ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)")
-        ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['pass-phrase'])
+        ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['wpa-mode'])
         ssid_parser.add_argument("wpa_mode_type", help=f"Security mode (WPA, WP2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
 
         try:
