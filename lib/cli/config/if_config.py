@@ -508,7 +508,7 @@ class InterfaceConfig(cmd2.Cmd,
         parser = argparse.ArgumentParser(
             description="Configure Wireless settings on the interface",
             epilog="Suboptions:\n"
-                   "   wifi policy <wireless-policy-name>\n"
+                   "   wifi policy <wifi-policy-name>\n"
                    "   wifi mode <wifi-hardware-mode>\n"
                    "   wifi channel <wireless-policy-name>\n"
                    "   cell policy <cell-policy-name>\n"
@@ -551,14 +551,14 @@ class InterfaceConfig(cmd2.Cmd,
                     wifi_policy_name = args.policy_name
                     self.log.info(f"do_wireless() -> WIFI -> Policy: {wifi_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
                     
-                    if wi.update_policy_to_interface(wifi_policy_name):
+                    if wi.update_policy_to_wifi_interface(wifi_policy_name):
                         self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} to wifi interface: {self.ifName}")
 
                 elif suboption == "mode":
                     mode = args.mode_name
                     self.log.info(f"do_wireless() -> WIFI -> Mode: {mode} -> Interface: {self.ifName} -> Negate: {negate}")
 
-                    if wi.update_policy_to_interface(wifi_policy_name):
+                    if wi.update_policy_to_wifi_interface(wifi_policy_name):
                         self.log.error(f"Unable to apply wifi-mode: {mode} to wifi interface: {self.ifName}")
 
                 elif suboption == "channel":

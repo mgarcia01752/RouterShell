@@ -348,8 +348,7 @@ class WifiPolicy():
 
     def get_ssid_list(self, wifi_policy_name: str) -> list:  
         self.wifi_db.get_wifi_security_policy(wifi_policy_name)
-        
-        
+             
     def status(self) -> bool:
         """
         Get the status of the Wi-Fi policy.
@@ -374,7 +373,6 @@ class WifiPolicy():
         self.wifi_policy_status = status
         return STATUS_OK
 
-
 class WifiInterface():
     '''
     Interface level wifi settings
@@ -393,6 +391,7 @@ class WifiInterface():
         
         self.interface_name = interface_name
         self.cmd = RunCommand()
+        self.wifi_db = WifiDB()
         
         self.is_wifi_interface = self._is_interface_wifi()
 
@@ -432,7 +431,7 @@ class WifiInterface():
         """
         return self.is_wifi_interface
     
-    def update_policy_to_interface(self, wifi_policy_name: str) -> bool:
+    def update_policy_to_wifi_interface(self, wifi_policy_name: str) -> bool:
         """
         Update the Wi-Fi policy for the wireless interface.
 
@@ -445,6 +444,12 @@ class WifiInterface():
         if not self.is_interface_wifi():
             self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , due to interface: {self.interface_name} is not wifi")
             return STATUS_NOK
+        
+        if not self.wifi_db.wifi_policy_exist(wifi_policy_name):
+            self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , interface: {self.interface_name} does not exists")
+            return STATUS_NOK
+        
+        self.wifi_db.add_wifi_policy_to_wifi_interface(wifi_policy_name, self.interface_name)
         
         return STATUS_OK
     
@@ -461,7 +466,9 @@ class WifiInterface():
 
         if not self.is_interface_wifi():
             self.log.error(f"Unable to apply hardware-mode: {hw_mode.value} , due to interface: {self.interface_name} is not wifi")
-            return STATUS_NOK        
+            return STATUS_NOK
+        
+                
 
         return STATUS_OK
     

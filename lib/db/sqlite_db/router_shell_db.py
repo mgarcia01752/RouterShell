@@ -3428,7 +3428,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
       
-    def insert_wifi_policy_to_interface(self, wireless_wifi_policy: str, wifi_interface: str) -> Result:
+    def insert_wifi_policy_to_wifi_interface(self, wireless_wifi_policy: str, wifi_interface: str) -> Result:
         """
         Associate a wireless Wi-Fi policy with a specific network interface.
 
