@@ -197,6 +197,15 @@ CREATE TABLE IF NOT EXISTS RenameInterface (
     AliasInterface VARCHAR(50) UNIQUE
 );
 
+DROP TABLE IF EXISTS WifiInterface;
+CREATE TABLE IF NOT EXISTS WifiInterface (
+    ID INTEGER PRIMARY KEY,
+    Interface_FK INTEGER UNIQUE,
+    Channel INT DEFAULT 6, 
+    HardwareMode VARCHAR(5) DEFAULT 'any',                                 
+    CONSTRAINT FK_WifiInterface_Interface FOREIGN KEY (Interface_FK) REFERENCES Interface(ID) ON DELETE CASCADE
+);
+
 DROP TABLE IF EXISTS WirelessWifiPolicyInterface;
 CREATE TABLE IF NOT EXISTS WirelessWifiPolicyInterface (
     ID INTEGER PRIMARY KEY,

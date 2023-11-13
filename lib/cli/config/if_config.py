@@ -558,14 +558,14 @@ class InterfaceConfig(cmd2.Cmd,
                     mode = args.mode_name
                     self.log.info(f"do_wireless() -> WIFI -> Mode: {mode} -> Interface: {self.ifName} -> Negate: {negate}")
 
-                    if wi.update_policy_to_wifi_interface(wifi_policy_name):
+                    if wi.set_hardware_mode(self.ifName, mode):
                         self.log.error(f"Unable to apply wifi-mode: {mode} to wifi interface: {self.ifName}")
 
                 elif suboption == "channel":
                     channel = args.channel_name
                     self.log.info(f"do_wireless() -> WIFI -> Channel: {channel} -> Interface: {self.ifName} -> Negate: {negate}")
 
-                    if wi.set_channel(wifi_policy_name):
+                    if wi.set_channel(self.ifName, channel):
                         self.log.error(f"Unable to apply wifi-hardware: {wifi_policy_name} to wifi interface: {self.ifName}")
 
                 else:

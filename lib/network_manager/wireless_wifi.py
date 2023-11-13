@@ -449,11 +449,9 @@ class WifiInterface():
             self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , interface: {self.interface_name} does not exists")
             return STATUS_NOK
         
-        self.wifi_db.add_wifi_policy_to_wifi_interface(wifi_policy_name, self.interface_name)
-        
-        return STATUS_OK
+        return self.wifi_db.add_wifi_policy_to_wifi_interface(wifi_policy_name, self.interface_name)
     
-    def set_hardware_mode(self, hw_mode: HardwareMode) -> bool:
+    def set_hardware_mode(self, wifi_interface_name:str, hw_mode: HardwareMode) -> bool:
         """
         Set the hardware mode for the wireless interface.
 
@@ -468,11 +466,9 @@ class WifiInterface():
             self.log.error(f"Unable to apply hardware-mode: {hw_mode.value} , due to interface: {self.interface_name} is not wifi")
             return STATUS_NOK
         
-                
-
         return STATUS_OK
     
-    def set_channel(self, channel: WifiChannel) -> bool:
+    def set_channel(self, wifi_interface_name:str, channel: WifiChannel) -> bool:
         """
         Set the Wi-Fi channel for the wireless interface.
 

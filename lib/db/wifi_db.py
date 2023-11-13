@@ -141,7 +141,7 @@ class WifiDB:
             wifi_interface_name (str): The name of the Wi-Fi interface to which the policy should be added.
 
         Returns:
-            bool: True if the association is successful, False if it fails.
+            bool: STATUS_OK if the association is successful, STATUS_NOK if it fails.
 
         Note:
             - If the Wi-Fi policy or Wi-Fi interface is not found, respective errors will be logged.
