@@ -1,5 +1,8 @@
 from enum import Enum
 import logging
+from typing import List
+
+import jc
 from lib.db.wifi_db import WifiDB
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.hostapd_config_gen import HostapdIEEE802Config
@@ -378,7 +381,7 @@ class WifiInterface():
     Interface level wifi settings
     '''
     
-    def __init__(self, interface_name: str):
+    def __init__(self, wifi_interface_name: str):
         """
         Initialize a WifiInterface instance.
 
@@ -387,9 +390,9 @@ class WifiInterface():
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().WL_WIFI_INTERFACE)
-        self.log.debug(f"WifiInterface() -> interface: {interface_name}")
+        self.log.debug(f"WifiInterface() -> interface: {wifi_interface_name}")
         
-        self.interface_name = interface_name
+        self.wifi_interface_name = wifi_interface_name
         self.cmd = RunCommand()
         self.wifi_db = WifiDB()
         
@@ -402,7 +405,7 @@ class WifiInterface():
         Returns:
             bool: True if the current interface is associated with Wi-Fi, False otherwise.
         """
-        cmd = ['iw', 'dev']
+        cmd = ['iw', 'dev', self.wifi_interface_name , 'info']
         
         result = self.cmd.run(cmd)
         
@@ -417,7 +420,7 @@ class WifiInterface():
             self.log.error("No wireless interfaces found")
             return False
 
-        if self.interface_name not in interface_names:
+        if self.wifi_interface_name not in interface_names:
             return False
 
         return True
@@ -431,6 +434,29 @@ class WifiInterface():
         """
         return self.is_wifi_interface
     
+    def scan(self):
+        """
+        Perform a Wi-Fi scan on the specified interface and return the parsed scan results.
+
+        Returns:
+            List[Dict[str, Union[str, int, float]]]: Parsed Wi-Fi scan results as a list
+            of dictionaries, where each dictionary represents information about a Wi-Fi network.
+        """
+        result = self.cmd.run(['iw', 'dev', self.wifi_interface_name, 'scan'])
+
+        if result.exit_code:
+            self.log.error(f"Unable to obtain scan from wifi-interface: {self.wifi_interface_name}")
+            return []
+
+        try:
+            parsed_data = jc.parse('iw_scan', result.stdout)
+            return parsed_data
+        
+        except Exception as e:
+            self.log.error(f"Error parsing scan results: {e}")
+            return []
+
+        
     def update_policy_to_wifi_interface(self, wifi_policy_name: str) -> bool:
         """
         Update the Wi-Fi policy for the wireless interface.
@@ -442,14 +468,14 @@ class WifiInterface():
             bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
         if not self.is_interface_wifi():
-            self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , due to interface: {self.interface_name} is not wifi")
+            self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , due to interface: {self.wifi_interface_name} is not wifi")
             return STATUS_NOK
         
         if not self.wifi_db.wifi_policy_exist(wifi_policy_name):
-            self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , interface: {self.interface_name} does not exists")
+            self.log.error(f"Unable to apply wifi-policy: {wifi_policy_name} , interface: {self.wifi_interface_name} does not exists")
             return STATUS_NOK
         
-        return self.wifi_db.add_wifi_policy_to_wifi_interface(wifi_policy_name, self.interface_name)
+        return self.wifi_db.add_wifi_policy_to_wifi_interface(wifi_policy_name, self.wifi_interface_name)
     
     def set_hardware_mode(self, wifi_interface_name:str, hw_mode: HardwareMode) -> bool:
         """
@@ -463,7 +489,7 @@ class WifiInterface():
         """
 
         if not self.is_interface_wifi():
-            self.log.error(f"Unable to apply hardware-mode: {hw_mode.value} , due to interface: {self.interface_name} is not wifi")
+            self.log.error(f"Unable to apply hardware-mode: {hw_mode.value} , due to interface: {self.wifi_interface_name} is not wifi")
             return STATUS_NOK
         
         return STATUS_OK
@@ -479,7 +505,7 @@ class WifiInterface():
             bool: STATUS_OK if the set operation is successful, STATUS_NOK otherwise.
         """
         if not self.is_interface_wifi():
-            self.log.error(f"Unable to apply channel: {channel.value} , due to interface: {self.interface_name} is not wifi")
+            self.log.error(f"Unable to apply channel: {channel.value} , due to interface: {self.wifi_interface_name} is not wifi")
             return STATUS_NOK   
         
         return STATUS_OK

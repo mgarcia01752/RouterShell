@@ -21,7 +21,7 @@ rename -if wlx80afca061616 -ifalias wlan0
 
 interface wlan0
     ip address 172.16.0.1/24
-    wireless wifi-policy wifi-guest-network
+    wireless wifi policy wifi-guest-network
 end
 
 

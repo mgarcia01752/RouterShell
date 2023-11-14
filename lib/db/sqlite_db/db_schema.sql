@@ -201,8 +201,8 @@ DROP TABLE IF EXISTS WifiInterface;
 CREATE TABLE IF NOT EXISTS WifiInterface (
     ID INTEGER PRIMARY KEY,
     Interface_FK INTEGER UNIQUE,
-    Channel INT DEFAULT 6, 
-    HardwareMode VARCHAR(5) DEFAULT 'any',                                 
+    Channel INT DEFAULT 6,                                      -- Channel 1 - 11 
+    HardwareMode VARCHAR(5) DEFAULT 'any',                      -- Mode: a, b, g, ad, ax, any            
     CONSTRAINT FK_WifiInterface_Interface FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
@@ -218,8 +218,9 @@ DROP TABLE IF EXISTS WirelessWifiPolicy;
 CREATE TABLE IF NOT EXISTS WirelessWifiPolicy (
     ID INTEGER PRIMARY KEY,
     WirelessWifiPolicyInterface_FK INTEGER,
-    WifiPolicyName VARCHAR(50) UNIQUE,                          -- Only one Policy 
-    HardwareMode VARCHAR(5) DEFAULT 'any',                                 
+    WifiPolicyName VARCHAR(50) UNIQUE,                          -- Only one Policy
+    Channel INT DEFAULT 6,                                      -- Channel 1 - 11 
+    HardwareMode VARCHAR(5) DEFAULT 'any',                      -- Mode: a, b, g, ad, ax, any           
     CONSTRAINT FK_WirelessWifiPolicy_WirelessWifiPolicyInterface FOREIGN KEY (WirelessWifiPolicyInterface_FK) REFERENCES WirelessWifiPolicyInterface(ID) ON DELETE CASCADE
 );
 
