@@ -556,17 +556,17 @@ class InterfaceConfig(cmd2.Cmd,
 
             if wifi_option == "policy":
                 self.log.debug(f"_handle_wifi_suboption() -> WIFI -> policy: {wifi_suboption}")
-                if not wi.update_policy_to_wifi_interface(wifi_suboption):
+                if wi.update_policy_to_wifi_interface(wifi_suboption):
                     self.log.error(f"Unable to apply wifi-policy: {wifi_suboption} to wifi interface: {self.ifName}")
 
             elif wifi_option == "mode":
                 self.log.debug(f"_handle_wifi_suboption() -> WIFI -> mode: {wifi_suboption}")
-                if not wi.set_hardware_mode(HardwareMode[str(wifi_suboption).upper()]):
+                if wi.set_hardware_mode(HardwareMode[str(wifi_suboption).upper()]):
                     self.log.error(f"Unable to apply wifi-mode: {wifi_suboption} to wifi interface: {self.ifName}")
 
             elif wifi_option == "channel":
                 self.log.debug(f"_handle_wifi_suboption() -> WIFI -> channel: {wifi_suboption}")
-                if not wi.set_channel(WifiChannel[f'CHANNEL_{str(wifi_suboption)}']):
+                if wi.set_channel(WifiChannel[f'CHANNEL_{str(wifi_suboption)}']):
                         self.log.error(f"Unable to apply wifi-hardware: {wifi_suboption} to wifi interface: {self.ifName}")
 
             else:
