@@ -343,10 +343,10 @@ class WifiPolicy():
 
         # Check if there are any security policies
         if len(security_policies) > 0:
-            self.log.info(f"Security access group entry exists for Wi-Fi policy '{wifi_policy_name}'.")
+            self.log.debug(f"Security access group entry exists for Wi-Fi policy '{wifi_policy_name}'.")
             return True
         else:
-            self.log.info(f"No security access group entry found for Wi-Fi policy '{wifi_policy_name}'.")
+            self.log.debug(f"No security access group entry found for Wi-Fi policy '{wifi_policy_name}'.")
             return False
 
     def get_ssid_list(self, wifi_policy_name: str) -> list:  

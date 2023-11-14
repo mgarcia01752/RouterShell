@@ -14,7 +14,7 @@ from lib.network_manager.arp import Encapsulate
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.nat import NATDirection
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import WifiInterface
+from lib.network_manager.wireless_wifi import HardwareMode, WifiChannel, WifiInterface
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -494,7 +494,7 @@ class InterfaceConfig(cmd2.Cmd,
 
         if args.subcommand == "access-vlan":
             vlan_id = args.vlan_id
-            self.log.info(f"Configuring switchport as access with VLAN ID: {vlan_id}")
+            self.log.debug(f"Configuring switchport as access with VLAN ID: {vlan_id}")
             
             if self.update_interface_vlan(self.ifName, vlan_id):
                 self.log.error(f"Unable to add vlan id: {vlan_id}")
@@ -503,7 +503,7 @@ class InterfaceConfig(cmd2.Cmd,
             self.log.error("Unknown subcommand")
 
     def do_wireless(self, args=None, negate:bool=False):
-        self.log.info(f"do_wireless({args}, negate: {negate})")
+        self.log.debug(f"do_wireless({args}, negate: {negate})")
         
         parser = argparse.ArgumentParser(
             description="Configure Wireless settings on the interface",
@@ -517,8 +517,14 @@ class InterfaceConfig(cmd2.Cmd,
         subparsers = parser.add_subparsers(dest="subcommand")
 
         wifi_parser = subparsers.add_parser("wifi", help="Configure Wi-Fi settings on the interface")
-        wifi_parser.add_argument("wifi_option", choices=["policy", "mode", "channel"], help="Suboption for Wi-Fi configuration")
-        wifi_parser.add_argument("wifi_suboption", help="Suboption for Wi-Fi configuration")
+        wifi_parser.add_argument("wifi_option", choices=["policy", "mode", "channel"], 
+                                 help=f"""Suboption for Wi-Fi configuration:
+                                         policy <wifi-policy-name>
+                                         mode {HardwareMode.display_list()}
+                                         channel {WifiChannel.display_list()}
+                                        """       
+                                )
+        wifi_parser.add_argument("wifi_suboption")
 
         cell_parser = subparsers.add_parser("cell", help="Configure cell settings on the interface")
         cell_parser.add_argument("cell_policy_name", help="The name of the cell policy")
@@ -533,15 +539,15 @@ class InterfaceConfig(cmd2.Cmd,
         
         if args.subcommand == "wifi":
             wifi_suboption = args.wifi_suboption
-            self.log.info(f"do_wireless() -> WIFI -> sub-options: {wifi_suboption} -> Interface: {self.ifName} -> Negate: {negate}")
+            self.log.debug(f"do_wireless() -> WIFI -> sub-options: {wifi_suboption} -> Interface: {self.ifName} -> Negate: {negate}")
             self._handle_wifi_suboption(args, negate)
 
         elif args.subcommand == "cell":
             cell_policy_name = args.cell_policy_name
-            self.log.info(f"do_wireless() -> CELL -> sub-options: {cell_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
+            self.log.debug(f"do_wireless() -> CELL -> sub-options: {cell_policy_name} -> Interface: {self.ifName} -> Negate: {negate}")
 
     def _handle_wifi_suboption(self, args, negate:bool=False):
-        self.log.info(f"_handle_wifi_suboption() -> WIFI -> sub-options: {args} -> Interface: {self.ifName} -> Negate: {negate}")
+        self.log.debug(f"_handle_wifi_suboption() -> WIFI -> sub-options: {args} -> Interface: {self.ifName} -> Negate: {negate}")
         wifi_option = args.wifi_option
         wifi_suboption = args.wifi_suboption
         wi = WifiInterface(self.ifName)
@@ -549,18 +555,18 @@ class InterfaceConfig(cmd2.Cmd,
         if wi.is_interface_wifi():
 
             if wifi_option == "policy":
-                self.log.info(f"_handle_wifi_suboption() -> WIFI -> policy: {wifi_suboption}")
+                self.log.debug(f"_handle_wifi_suboption() -> WIFI -> policy: {wifi_suboption}")
                 if not wi.update_policy_to_wifi_interface(wifi_suboption):
                     self.log.error(f"Unable to apply wifi-policy: {wifi_suboption} to wifi interface: {self.ifName}")
 
             elif wifi_option == "mode":
-                self.log.info(f"_handle_wifi_suboption() -> WIFI -> mode: {wifi_suboption}")
-                if not wi.set_hardware_mode(wifi_suboption):
+                self.log.debug(f"_handle_wifi_suboption() -> WIFI -> mode: {wifi_suboption}")
+                if not wi.set_hardware_mode(HardwareMode[str(wifi_suboption).upper()]):
                     self.log.error(f"Unable to apply wifi-mode: {wifi_suboption} to wifi interface: {self.ifName}")
 
             elif wifi_option == "channel":
-                self.log.info(f"_handle_wifi_suboption() -> WIFI -> channel: {wifi_suboption}")
-                if not wi.set_channel(wifi_suboption):
+                self.log.debug(f"_handle_wifi_suboption() -> WIFI -> channel: {wifi_suboption}")
+                if not wi.set_channel(WifiChannel[f'CHANNEL_{str(wifi_suboption)}']):
                         self.log.error(f"Unable to apply wifi-hardware: {wifi_suboption} to wifi interface: {self.ifName}")
 
             else:
@@ -569,55 +575,53 @@ class InterfaceConfig(cmd2.Cmd,
         else:
             self.log.error(f"Interface: {self.ifName} is not a WiFi Interface")
 
+    def complete_no(self, text, line, begidx, endidx):
+        completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address', 'nat', 'switchport']
+        return [comp for comp in completions if comp.startswith(text)]
+        
+    def do_no(self, line):
+        """
+        Negate or remove a previously configured setting or command.
 
+        Args:
+            line (str): The command or setting to negate or remove.
 
-        def complete_no(self, text, line, begidx, endidx):
-            completions = ['shutdown', 'bridge', 'group', 'ip', 'ipv6', 'address', 'nat', 'switchport']
-            return [comp for comp in completions if comp.startswith(text)]
-            
-        def do_no(self, line):
-            """
-            Negate or remove a previously configured setting or command.
+        Debugging Information:
+            - This method logs debugging information about the actions performed.
 
-            Args:
-                line (str): The command or setting to negate or remove.
+        Supported Commands:
+            - shutdown: Enable the interface (opposite of 'shutdown' command).
+            - bridge <args>: Remove a bridge configuration.
+            - ip <args>: Remove an IP configuration.
+            - ipv6 <args>: Remove an IPv6 configuration.
+            - switchport <args>: Remove switchport settings.
 
-            Debugging Information:
-                - This method logs debugging information about the actions performed.
+        Note:
+            This command is used to negate or remove a previously configured setting or command.
+        """
+        self.log.debug(f"do_no() -> Line -> {line}")
+        
+        parts = line.strip().split()
+        start_cmd = parts[0]
+        
+        self.log.debug(f"do_no() -> Start-CMD -> {start_cmd}")
+        
+        if start_cmd == 'shutdown':
+            self.log.debug(f"Enable interface -> {self.ifName}")
+            self.do_shutdown(None, negate=True)
+        
+        elif start_cmd == 'bridge':
+            self.log.debug(f"Remove bridge -> ({line})")
+            self.do_bridge(parts[1:], negate=True)
+        
+        elif start_cmd == 'ip':
+            self.log.debug(f"Remove ip -> ({line})")
+            self.do_ip(parts[1:], negate=True)
+        
+        elif start_cmd == 'ipv6':
+            self.log.debug(f"Remove ipv6 -> ({line})")
+            self.do_ipv6(parts[1:], negate=True)
 
-            Supported Commands:
-                - shutdown: Enable the interface (opposite of 'shutdown' command).
-                - bridge <args>: Remove a bridge configuration.
-                - ip <args>: Remove an IP configuration.
-                - ipv6 <args>: Remove an IPv6 configuration.
-                - switchport <args>: Remove switchport settings.
-
-            Note:
-                This command is used to negate or remove a previously configured setting or command.
-            """
-            self.log.debug(f"do_no() -> Line -> {line}")
-            
-            parts = line.strip().split()
-            start_cmd = parts[0]
-            
-            self.log.debug(f"do_no() -> Start-CMD -> {start_cmd}")
-            
-            if start_cmd == 'shutdown':
-                self.log.debug(f"Enable interface -> {self.ifName}")
-                self.do_shutdown(None, negate=True)
-            
-            elif start_cmd == 'bridge':
-                self.log.debug(f"Remove bridge -> ({line})")
-                self.do_bridge(parts[1:], negate=True)
-            
-            elif start_cmd == 'ip':
-                self.log.debug(f"Remove ip -> ({line})")
-                self.do_ip(parts[1:], negate=True)
-            
-            elif start_cmd == 'ipv6':
-                self.log.debug(f"Remove ipv6 -> ({line})")
-                self.do_ipv6(parts[1:], negate=True)
-
-            elif start_cmd == 'switchport':
-                self.log.debug(f"Remove switchport -> ({line})")
-                self.do_switchport(parts[1:], negate=True)
+        elif start_cmd == 'switchport':
+            self.log.debug(f"Remove switchport -> ({line})")
+            self.do_switchport(parts[1:], negate=True)

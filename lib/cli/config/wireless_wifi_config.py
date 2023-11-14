@@ -167,7 +167,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             return
 
     def do_mode(self, args, negate=False):
-        self.log.info(f"do_mode() - args: {args} -> negate: {negate}")
+        self.log.debug(f"do_mode() - args: {args} -> negate: {negate}")
         
         args = f'mode  {args}'
         
@@ -193,7 +193,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         if args.subcommand == "mode":
             mode_option = args.mode_option
-            self.log.info(f"do_mode() - mode_option: {mode_option}")
+            self.log.debug(f"do_mode() - mode_option: {mode_option}")
 
             hw_add_update = 'update' if negate else 'add'
 
