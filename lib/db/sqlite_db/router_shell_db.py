@@ -2010,7 +2010,7 @@ class RouterShellDB(metaclass=Singleton):
             
             self.connection.commit()
             
-            self.log.debug(f"Shutdown status updated for interface: {interface_name}")
+            self.log.debug(f"Shutdown status ({shutdown_status}) updated for interface: {interface_name}")
             
             return Result(status=STATUS_OK, row_id=existing_result.row_id)
         

@@ -260,7 +260,7 @@ class InetServiceLayer(MacServiceLayer):
             cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface_name]
 
             if secondary:
-                cmd += ["label", f"{interface_name}:secondary"]
+                cmd += ["label", f"{interface_name}:sec"]
             
             self.log.debug(f"set_inet_address() -> cmd: {cmd}")
                     
