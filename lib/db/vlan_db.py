@@ -12,37 +12,56 @@ class VLANDatabase():
     
     def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Result:
         """
-        Add a VLAN to the database.
+        Add a new VLAN to the database.
 
         Args:
-            cls: The class reference.
             vlan_id (int): The unique ID of the VLAN.
             vlan_name (str): The name of the VLAN.
-            description (str, optional): Description of the VLAN.
+            description (str, optional): A description of the VLAN.
 
         Returns:
-            tuple: A tuple containing two values:
-                - int: Status indicator (STATUS_NOK or STATUS_OK).
-                - int: The row ID of the inserted VLAN if successful, or -1 if unsuccessful.
+            Result: A Result object representing the outcome of the operation.
+                - If the operation is successful, the Result object will have 'status' set to STATUS_OK
+                  and 'row_id' containing the unique identifier of the inserted VLAN.
+                - If there is an error or if the VLAN already exists, the Result object will have 'status' set to STATUS_NOK,
+                  'row_id' set to None, and 'reason' providing additional information.
 
-        Note:
-            STATUS_NOK and STATUS_OK are constants used to indicate the status of the operation.
-        """
+        Example:
+        You can use the add_vlan class method to add a new VLAN to the database.
+        For example:
+        ```
+        result = YourClass.add_vlan(10, 'VLAN_10', 'Example VLAN')
         
-        # Insert the VLAN into the database
+        if result.status == STATUS_OK:
+            print(f"VLAN added successfully with ID: {result.row_id}")
+        else:
+            print(f"Failed to add VLAN: {result.reason}")
+        ```
+        """
         return cls.rsdb.insert_vlan(vlan_id, vlan_name, description)
 
-    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> Result:
+    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> bool:
         """
         Update the description of a VLAN by its ID.
 
         Args:
-            vlan_id (int): The unique ID of the VLAN to update.
+            vlan_id (int): The unique ID of the VLAN.
             vlan_description (str): The new description for the VLAN.
 
         Returns:
-            Result: 
+            bool: True if the update is successful, False otherwise.
 
+        Example:
+        You can use the update_vlan_description class method to update the description of a VLAN.
+        For example:
+        ```
+        success = YourClass.update_vlan_description(10, 'New VLAN Description')
+        
+        if success:
+            print("VLAN description updated successfully.")
+        else:
+            print("Failed to update VLAN description.")
+        ```
         """
         return cls.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description).status
 
@@ -61,15 +80,33 @@ class VLANDatabase():
 
     def get_vlan_name(cls, vlan_id: int) -> Result:
         """
-        Retrieve the name of a VLAN by its ID.
+        Get the name of a VLAN by its ID.
 
         Args:
-            vlan_id (int): The unique ID of the VLAN for which to retrieve the name.
+            vlan_id (int): The unique ID of the VLAN.
 
         Returns:
+            Result: A Result object representing the outcome of the operation.
+                - If the operation is successful, the Result object will have 'status' set to STATUS_OK,
+                  'row_id' set to the unique identifier of the VLAN, and 'result' containing the VLAN name.
+                - If there is an error or if the VLAN with the provided ID does not exist, the Result object will have
+                  'status' set to STATUS_NOK, 'row_id' set to None, and 'reason' providing additional information.
 
+        Example:
+        You can use the get_vlan_name class method to retrieve the name of a VLAN by its ID.
+        For example:
+        ```
+        result = YourClass.get_vlan_name(10)
+        
+        if result.status == STATUS_OK:
+            vlan_name = result.result['VlanName']
+            print(f"VLAN name: {vlan_name}")
+        else:
+            print(f"Failed to retrieve VLAN name: {result.reason}")
+        ```
         """
         return cls.rsdb.select_vlan_name_by_vlan_id(vlan_id)
+
         
     def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> Result:
         """
