@@ -336,6 +336,10 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object with the status and row ID of the inserted VLAN.
+                - If the operation is successful, the Result object will have 'status' set to STATUS_OK and 'row_id' set to the
+                  unique identifier of the inserted VLAN.
+                - If the VLAN with the provided 'vlanid' already exists, the Result object will have 'status' set to STATUS_NOK,
+                  'row_id' set to None, and 'reason' providing information about the existing VLAN.
 
         Raises:
             sqlite3.Error: If there's an error during the database operation.
@@ -343,6 +347,11 @@ class RouterShellDB(metaclass=Singleton):
         self.log.debug(f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
 
         try:
+            # Check if VLAN with the provided 'vlanid' already exists
+            if self.does_vlan_exist(vlanid):
+                existing_vlan_info = self.get_vlan_info(vlanid)
+                return Result(status=STATUS_NOK, row_id=None, reason=f"VLAN with ID {vlanid} already exists.", result=existing_vlan_info)
+
             cursor = self.connection.cursor()
             cursor.execute(
                 "INSERT INTO Vlans (VlanID, VlanInterfaces_FK, VlanName) VALUES (?, ?, ?)",
@@ -352,10 +361,11 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             self.log.debug("Data inserted into the 'Vlans' table successfully.")
             return Result(status=STATUS_OK, row_id=cursor.lastrowid)
-        
+
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
-            return Result(status=STATUS_NOK, row_id=0, reason=str(e))
+            return Result(status=STATUS_NOK, row_id=None, reason=str(e))
+
 
     def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> Result:
         """

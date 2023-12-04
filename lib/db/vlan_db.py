@@ -29,19 +29,8 @@ class VLANDatabase():
             STATUS_NOK and STATUS_OK are constants used to indicate the status of the operation.
         """
         
-        # Check if the VLAN already exists
-        if cls.vlan_exists(vlan_id):
-            cls.log.error(f"Unable to add, VLAN already exists: {vlan_id}. Delete VLAN and re-add")
-            return STATUS_NOK, -1
-
         # Insert the VLAN into the database
-        row_id = cls.rsdb.insert_vlan(vlan_id, vlan_name, description).row_id
-
-        if row_id > 0:
-            return Result(STATUS_OK, row_id)
-        else:
-            cls.log.error("Failed to insert VLAN into the database")
-            return Result(STATUS_NOK, -1)
+        return cls.rsdb.insert_vlan(vlan_id, vlan_name, description)
 
     def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> Result:
         """

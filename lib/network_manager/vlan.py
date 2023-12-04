@@ -21,7 +21,7 @@ class Vlan(NetworkManager):
     def does_vlan_id_exist_in_vlan_db(self, vlan_id:int) -> bool:
         return VLANDatabase().vlan_exists(vlan_id)
     
-    def add_vlan_to_db(self, vlan_id: int, vlan_name: str = None) -> Result:
+    def check_or_add_vlan_to_db(self, vlan_id: int, vlan_name: str = None) -> Result:
         """
         Add a VLAN to the database.
 
@@ -38,6 +38,7 @@ class Vlan(NetworkManager):
         """
         if not vlan_name:
             vlan_name = f'vlan{str(vlan_id)}'
+            
         return VLANDatabase().add_vlan(vlan_id, vlan_name)
 
     def update_vlan_name(self, vlan_id: int, vlan_name: str) -> Result:

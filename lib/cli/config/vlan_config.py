@@ -21,7 +21,9 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
 
         self.prompt = self.set_prompt()
         self.vlan_id = vlan_id
-        self.add_vlan_to_db(self.vlan_id)
+        
+        if self.check_or_add_vlan_to_db(self.vlan_id).status:
+            self.log.debug(f"VLAN-ID {self.vlan_id} is already configured")
 
     def do_name(self, vlan_name: str) -> int:
         """
