@@ -1,7 +1,7 @@
 
 class Cmd2GlobalSettings():
     
-    DEBUG_GLOBAL = False
+    DEBUG_GLOBAL = True
     
     DEBUG_ROUTER_SHELL_DB   = DEBUG_GLOBAL or True
     

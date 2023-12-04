@@ -258,7 +258,8 @@ class InetServiceLayer(MacServiceLayer):
             self.log.debug(f"Skipping...Inet: {inet_address_cidr} already assigned to Interface: {interface_name}")
         else:
             cmd = ["ip", "addr", "add", f"{inet_address_cidr}", "dev", interface_name]
-
+            
+            # TODO: ip route has a 15 character length label limit, need to add check
             if secondary:
                 cmd += ["label", f"{interface_name}:sec"]
             

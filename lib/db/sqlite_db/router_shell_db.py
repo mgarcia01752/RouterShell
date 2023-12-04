@@ -311,17 +311,19 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Vlans WHERE ID = ?", (vlan_id,))
+            cursor.execute("SELECT ID FROM Vlans WHERE VlanID = ?", (vlan_id,))
             result = cursor.fetchone()
             
             if result is not None:
+                self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} FOUND")
                 return Result(status=True, row_id=result[0])
             else:
+                self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} NOT FOUND")
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"VLAN with ID {vlan_id} not found")
 
         except sqlite3.Error as e:
             self.log.error("Error checking VLAN existence: %s", e)
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
+            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
     def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
@@ -350,6 +352,7 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             self.log.debug("Data inserted into the 'Vlans' table successfully.")
             return Result(status=STATUS_OK, row_id=cursor.lastrowid)
+        
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=str(e))
@@ -374,10 +377,11 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             row_id = cursor.lastrowid  # Retrieve the row_id of the affected row
             self.log.debug(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
-            return Result(success=STATUS_OK, row_id=row_id, result=f"VLAN Name updated successfully: {vlan_name}")
+            return Result(status=STATUS_OK, row_id=row_id, result=f"VLAN Name updated successfully: {vlan_name}")
+        
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN name: %s", e)
-            return Result(success=STATUS_NOK, row_id=vlan_id, reason=str(e))
+            return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
     def update_vlan_description_by_vlan_id(self, vlan_id: int, vlan_description: str) -> Result:
         """
@@ -401,10 +405,11 @@ class RouterShellDB(metaclass=Singleton):
             updated_row = cursor.fetchone()
 
             self.log.debug(f"Description of VLAN {vlan_id} updated successfully.")
-            return Result(success=STATUS_OK, row_id=updated_row, result=f"Description of VLAN {vlan_id} updated successfully")
+            return Result(status=STATUS_OK, row_id=updated_row, result=f"Description of VLAN {vlan_id} updated successfully")
+        
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN description: %s", e)
-            return Result(success=STATUS_NOK, row_id=vlan_id, reason=str(e))
+            return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
     def insert_vlan_interface(self, id: int, vlan_name: str, interface_fk: int, bridge_fk: int) -> Result:
         """
@@ -431,10 +436,11 @@ class RouterShellDB(metaclass=Singleton):
             updated_row = cursor.fetchone()
 
             self.log.debug("Data inserted into the 'VlanInterfaces' table successfully.")
-            return Result(success=STATUS_OK, row_id=updated_row, result=f"Data inserted into 'VlanInterfaces' table successfully")
+            return Result(status=STATUS_OK, row_id=updated_row, result=f"Data inserted into 'VlanInterfaces' table successfully")
+        
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'VlanInterfaces': %s", e)
-            return Result(success=STATUS_NOK, row_id=id, reason=str(e))
+            return Result(status=STATUS_NOK, row_id=id, reason=str(e))
 
     def show_vlans(self):
         try:
@@ -486,9 +492,40 @@ class RouterShellDB(metaclass=Singleton):
             row = cursor.fetchone()
             if row:
                 return row[0]
+            
         except sqlite3.Error as e:
             self.log.error("Error retrieving 'VlanInterfaces' ID: %s", e)
         return None
+    
+    def select_vlan_name_by_vlan_id(self, vlan_id: int) -> Result:
+        """
+        Retrieve the VLAN name based on the VLAN ID from the 'Vlans' table.
+
+        Args:
+            vlan_id (int): The VLAN ID to search for.
+
+        Returns:
+            Optional[Result]: A Result object representing the outcome of the database operation.
+                - If the operation is successful, the Result object will have 'status' set to True,
+                  'row_id' representing the unique identifier of the affected row, and 'result' containing the VLAN name.
+                - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
+                  information about the error, and 'row_id' and 'result' set to None.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
+            row = cursor.fetchone()
+
+            if row:
+                return Result(status=STATUS_OK, row_id=vlan_id, result={'VlanName': row[0]})
+            else:
+                return Result(status=STATUS_NOK, row_id=None, reason=f"No VLAN found with ID: {vlan_id}")
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving VLAN name for ID {vlan_id}: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
 
     '''
                         NAT DATABASE
@@ -1949,6 +1986,10 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             
             self.log.debug("Data inserted into the 'Interfaces' table successfully.")
+            
+            self.delete_global_nat_pool_name
+            
+            self._insert_default_row_in_interface_sub_option(if_name)
             
             return Result(status=STATUS_OK, row_id=cursor.lastrowid)
         

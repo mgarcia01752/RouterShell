@@ -75,21 +75,13 @@ class VLANDatabase():
         Retrieve the name of a VLAN by its ID.
 
         Args:
-            cls: The class reference.
             vlan_id (int): The unique ID of the VLAN for which to retrieve the name.
 
         Returns:
-            tuple: A tuple containing two values:
-                - int: Status indicator (STATUS_NOK or STATUS_OK).
-                - str or None: The name of the VLAN with the given ID if found, or None if it doesn't exist.
-        """
-        vlan_name = cls.rsdb.get_vlan_name_by_id(vlan_id)
-        if vlan_name is not None:
-            return Result(STATUS_OK, vlan_name)
-        else:
-            cls.log.error(f"VLAN with ID {vlan_id} not found.")
-            return Result(STATUS_NOK, None)
 
+        """
+        return cls.rsdb.select_vlan_name_by_vlan_id(vlan_id)
+        
     def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> Result:
         """
         Update the name of a VLAN by its ID.

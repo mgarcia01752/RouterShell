@@ -459,7 +459,7 @@ class InterfaceConfig(cmd2.Cmd,
         self.update_shutdown(self.ifName, ifState)
 
     def complete_switchport(self, text, line, begidx, endidx):
-        completions = ['access', 'mode']
+        completions = ['access-vlan']
         return [comp for comp in completions if comp.startswith(text)]
  
     def do_switchport(self, args=None, negate=False):
