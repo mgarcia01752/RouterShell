@@ -2714,6 +2714,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=None, reason=str(e))
 
+
     '''
                         WIRELESS-POLICY-WIFI
     '''
@@ -3706,7 +3707,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface(self, interface_name) -> Result:
+    def select_interface_configuration(self, interface_name) -> Result:
         """
         Select information about a specific interface.
 
@@ -3760,7 +3761,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def select_interface_ip_address(self, interface_name) -> List[Result]:
+    def select_interface_ip_address_configuration(self, interface_name) -> List[Result]:
         """
         Select distinct IP addresses for a specific interface.
 
@@ -3795,7 +3796,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_ip_static_arp(self, interface_name) -> List[Result]:
+    def select_interface_ip_static_arp_configuration(self, interface_name) -> List[Result]:
         """
         Select distinct static ARP entries for a specific interface.
 
@@ -3831,6 +3832,39 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             error_message = f"Error selecting interface static ARP entries: {e}"
             self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_interface_rename_configuration(self) -> List[Result]:
+        """
+        Retrieve data from the 'RenameInterface' table and format it into a list of Result objects.
+
+        Returns:
+            List[Result]: A list of Result objects containing data from the 'RenameInterface' table.
+        """
+        query = '''
+            SELECT DISTINCT
+                'rename if ' || RenameInterface.InitialInterface || ' if-alias ' || RenameInterface.AliasInterface AS RenameInterfaceConfig
+            FROM
+                RenameInterface
+        '''
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+
+            # Fetch all rows from the result set
+            rows = cursor.fetchall()
+
+            # Process rows and create Result objects
+            result_list = [Result(status=STATUS_OK, row_id=None, result={'RenameInterfaceConfig': row[0]}) for row in rows]
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving data from 'RenameInterface': {e}"
+            self.log.error(error_message)
+
+            # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
     

@@ -1,5 +1,6 @@
 import logging
 from typing import List
+from lib.common.constants import STATUS_OK
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
@@ -39,6 +40,25 @@ class RouterConfiguration:
 
         return cli_commands
 
+    def _get_rename_interface_config(self) -> List[str]:
+        """
+        Generate CLI commands for renaming interface configurations.
+
+        Returns:
+            List[str]: List of CLI commands for renaming interface configurations.
+        """
+        rename_cmd_config_lines = []
+        
+        status, results = self.rcdb.get_interface_rename_configuration()
+        
+        if status == STATUS_OK:
+            for result in results:
+                rename_cmd_setting = result.get('RenameInterfaceConfig')
+                rename_cmd_config_lines.append(rename_cmd_setting)
+                    
+        return rename_cmd_config_lines
+
+
     def _get_global_settings(self) -> List[str]:
         """
         Generate CLI commands for global settings.
@@ -46,11 +66,14 @@ class RouterConfiguration:
         Returns:
             List[str]: List of CLI commands for global settings.
         """
-        global_settings_cmds = [
+        
+        global_settings_cmds = []
 
-        ]
+        rename_interface_config_cmds = self._get_rename_interface_config()
+        global_settings_cmds.extend(rename_interface_config_cmds)
 
         return global_settings_cmds
+
 
     def _get_interface_settings(self) -> List[str]:
         """
@@ -65,7 +88,7 @@ class RouterConfiguration:
         ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
 
         # Define values outside the loop
-        values = []
+        interface_cmd_lines = []
 
         for if_name in ethernet_interfaces:
             self.log.debug(f'Interface: {if_name}')
@@ -77,13 +100,13 @@ class RouterConfiguration:
                 self.log.debug(f"Unable to get config for interface: {if_name}")
                 continue
 
-            values.extend(filter(None, if_config.values()))
-            values.append('end')
+            interface_cmd_lines.extend(filter(None, if_config.values()))
+            interface_cmd_lines.append('end')
             
-            self.log.debug(f'Interface-Config: {values}')
+            self.log.debug(f'Interface-Config: {interface_cmd_lines}')
 
         # Append other interface commands
-        interface_cmds.extend(values)
+        interface_cmds.extend(interface_cmd_lines)
 
         return interface_cmds
 
