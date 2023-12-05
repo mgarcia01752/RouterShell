@@ -3669,13 +3669,7 @@ class RouterShellDB(metaclass=Singleton):
     '''
                             ROUTER-CONFIGURATION
     '''
-    
-    def select_global_bridge_configuration(self) -> Result:
-        pass
-    
-    def select_global_vlan_configuration(self) -> Result:
-        pass
-    
+        
     def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
         """
         Select a list of interface names based on the specified interface type.
@@ -3867,7 +3861,7 @@ class RouterShellDB(metaclass=Singleton):
             # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_bridge_configuration(self) -> List[Result]:
+    def select_global_bridge_configuration(self) -> List[Result]:
         """
         Retrieve bridge configuration data from the 'Bridges' table.
 
@@ -3912,7 +3906,7 @@ class RouterShellDB(metaclass=Singleton):
             # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_vlan_configuration(self) -> List[Result]:
+    def select_global_vlan_configuration(self) -> List[Result]:
         """
         Retrieve VLAN configuration data from the 'Vlans' table.
 

@@ -147,6 +147,63 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, rename_list
 
+    def get_bridge_configuration(cls) -> Tuple[bool, List[Dict]]:
+        """
+        Retrieve bridge configuration data.
 
+        Returns:
+            Tuple[bool, List[Dict]]:
+            - A tuple containing a boolean indicating the success of the operation
+              and a list of dictionaries with bridge configuration data.
+            - If the operation is successful, the boolean will be True, and the list will contain dictionaries
+              with 'BridgeName', 'Protocol', 'StpStatus', and 'Shutdown' keys.
+            - If there is an error, the boolean will be False, and the list will be empty.
+        """
+        cls.log.debug('get_bridge_configuration()')
 
+        bridge_config_list = []
+
+        bridge_result = cls.rsdb.select_global_bridge_configuration()
+
+        # Check if any errors occurred during the retrieval
+        if any(result.status for result in bridge_result):
+            error_messages = [result.reason for result in bridge_result if result.status]
+            cls.log.debug(f"Error retrieving bridge configuration, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        # Extract data from the result list and build the list of dictionaries
+        for result in bridge_result:
+            bridge_config_list.append(result.result)
+
+        return STATUS_OK, bridge_config_list
+
+    def get_vlan_configuration(cls) -> Tuple[bool, List[Dict]]:
+        """
+        Retrieve VLAN configuration data.
+
+        Returns:
+            Tuple[bool, List[Dict]]:
+            - A tuple containing a boolean indicating the success of the operation
+              and a list of dictionaries with VLAN configuration data.
+            - If the operation is successful, the boolean will be True, and the list will contain dictionaries
+              with 'VlanID', 'VlanDescription', and 'VlanName' keys.
+            - If there is an error, the boolean will be False, and the list will be empty.
+        """
+        cls.log.debug('get_vlan_configuration()')
+
+        vlan_config_list = []
+
+        vlan_result = cls.rsdb.select_global_vlan_configuration()
+
+        # Check if any errors occurred during the retrieval
+        if any(result.status for result in vlan_result):
+            error_messages = [result.reason for result in vlan_result if result.status]
+            cls.log.debug(f"Error retrieving VLAN configuration, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        # Extract data from the result list and build the list of dictionaries
+        for result in vlan_result:
+            vlan_config_list.append(result.result)
+
+        return STATUS_OK, vlan_config_list
 

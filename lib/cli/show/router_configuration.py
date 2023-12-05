@@ -9,7 +9,7 @@ from lib.network_manager.network_manager import InterfaceType
 class RouterConfiguration:
 
     CONFIG_MSG_START='; RouterShell Configuration'
-    SECTION_BREAK = "\n"
+    LINE_BREAK = "\n"
     
     def __init__(self, args=None):
         """
@@ -39,21 +39,21 @@ class RouterConfiguration:
 
         # Add configuration message start and section break
         cli_commands.extend([self.CONFIG_MSG_START])
-        cli_commands.extend([self.SECTION_BREAK])
+        cli_commands.extend([self.LINE_BREAK])
 
         # Enter configuration mode
         cli_commands.extend(['enable', 'configure terminal'])
-        cli_commands.extend([self.SECTION_BREAK])
+        cli_commands.extend([self.LINE_BREAK])
 
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
         cli_commands.extend(global_settings_cmds)
-        cli_commands.extend([self.SECTION_BREAK])
+        cli_commands.extend([self.LINE_BREAK])
 
         # Generate CLI commands for interface settings
         interface_settings_cmds = self._get_interface_settings()
         cli_commands.extend(interface_settings_cmds)
-        cli_commands.extend([self.SECTION_BREAK])
+        cli_commands.extend([self.LINE_BREAK])
 
         # Generate CLI commands for access control list
         acl_cmds = self._get_access_control_list()
@@ -61,6 +61,63 @@ class RouterConfiguration:
 
         return cli_commands
 
+    def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
+        """
+        Generate CLI commands for global bridge configuration.
+
+        Args:
+            indent (int, optional): The number of spaces to indent each line. Defaults to 1.
+
+        Returns:
+            List[str]: List of CLI commands for global bridge configuration.
+        """
+        status, bridge_info_results = self.rcdb.get_bridge_configuration()
+
+        if status:
+            return []
+
+        bridge_cmd_lines = []
+
+        for bridge_config in bridge_info_results:
+            bridge_cmd_lines.extend(
+                ' ' * indent + line if i != 0 and i != len(bridge_config.values()) else line
+                for i, line in enumerate(filter(None, bridge_config.values()))
+            )
+
+        # Place 'end' outside the loop to avoid indentation
+        bridge_cmd_lines.append('end')
+        bridge_cmd_lines.extend([self.LINE_BREAK])
+
+        return bridge_cmd_lines
+
+    def _get_global_vlan_config(self, indent: int = 1) -> List[str]:
+        """
+        Generate CLI commands for global VLAN configuration.
+
+        Args:
+            indent (int, optional): The number of spaces to indent each line. Defaults to 1.
+
+        Returns:
+            List[str]: List of CLI commands for global VLAN configuration.
+        """
+        status, vlan_info_results = self.rcdb.get_vlan_configuration()
+
+        if status:
+            return []
+
+        vlan_cmd_lines = []
+
+        for vlan_config in vlan_info_results:
+            vlan_cmd_lines.extend(
+                ' ' * indent + line if i != 0 and i != len(vlan_config.values()) else line
+                for i, line in enumerate(filter(None, vlan_config.values()))
+            )
+
+        # Place 'end' outside the loop to avoid indentation
+        vlan_cmd_lines.append('end')
+        vlan_cmd_lines.extend([self.LINE_BREAK])
+
+        return vlan_cmd_lines
 
     def _get_rename_interface_config(self) -> List[str]:
         """
@@ -80,7 +137,6 @@ class RouterConfiguration:
                     
         return rename_cmd_config_lines
 
-
     def _get_global_settings(self) -> List[str]:
         """
         Generate CLI commands for global settings.
@@ -91,10 +147,11 @@ class RouterConfiguration:
         
         global_settings_cmds = []
 
+        global_settings_cmds.extend(self._get_global_bridge_config())
+        global_settings_cmds.extend(self._get_global_vlan_config())
         global_settings_cmds.extend(self._get_rename_interface_config())
 
         return global_settings_cmds
-
 
     def _get_interface_settings(self, indent: int = 1) -> List[str]:
         """
@@ -143,8 +200,6 @@ class RouterConfiguration:
         interface_cmds.extend(interface_cmd_lines)
 
         return interface_cmds
-
-
 
     def _get_access_control_list(self) -> List[str]:
         """
