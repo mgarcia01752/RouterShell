@@ -3867,4 +3867,90 @@ class RouterShellDB(metaclass=Singleton):
             # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    
+    def select_bridge_configuration(self) -> List[Result]:
+        """
+        Retrieve bridge configuration data from the 'Bridges' table.
+
+        Returns:
+            List[Result]: A list of Result objects containing bridge configuration data.
+        """
+        query = '''
+            SELECT DISTINCT
+                'bridge ' || Bridges.BridgeName AS BridgeName,
+                'protocol ' || Bridges.Protocol AS Protocol,    
+                'stp ' || Bridges.StpStatus AS StpStatus,
+                CASE WHEN Bridges.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
+            FROM
+                Bridges;
+        '''
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+
+            # Fetch all rows from the result set
+            rows = cursor.fetchall()
+
+            # Process rows and create Result objects using a list comprehension
+            result_list = [
+                Result(status=STATUS_OK, row_id=None,
+                    result={
+                        'BridgeName': row[0],
+                        'Protocol': row[1],
+                        'StpStatus': row[2],
+                        'Shutdown': row[3]
+                    }
+                ) for row in rows
+            ]
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving data from 'Bridges': {e}"
+            self.log.error(error_message)
+
+            # Return a single Result object in case of an error
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_vlan_configuration(self) -> List[Result]:
+        """
+        Retrieve VLAN configuration data from the 'Vlans' table.
+
+        Returns:
+            List[Result]: A list of Result objects containing VLAN configuration data.
+        """
+        query = '''
+            SELECT DISTINCT
+                'vlan ' || Vlans.VlanID AS VlanID,
+                'description ' || Vlans.VlanDescription AS VlanDescription,
+                'name ' || Vlans.VlanName AS VlanName
+            FROM
+                Vlans;
+        '''
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+
+            # Fetch all rows from the result set
+            rows = cursor.fetchall()
+
+            # Process rows and create Result objects using a list comprehension
+            result_list = [
+                Result( status=STATUS_OK, row_id=None,
+                    result={
+                        'VlanID': row[0],
+                        'VlanDescription': row[1],
+                        'VlanName': row[2],
+                    }
+                ) for row in rows
+            ]
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving data from 'Vlans': {e}"
+            self.log.error(error_message)
+
+            # Return a single Result object in case of an error
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
