@@ -355,7 +355,7 @@ class RouterShellDB(metaclass=Singleton):
             result_vlan_id = self.vlan_id_exists(vlanid)
             
             if result_vlan_id.status:
-                return Result(status=STATUS_NOK, row_id=None, reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
+                return Result(status=STATUS_NOK, row_id=result_vlan_id.row_id, reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
 
             cursor = self.connection.cursor()
             cursor.execute(
