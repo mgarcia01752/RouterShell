@@ -3675,7 +3675,7 @@ class RouterShellDB(metaclass=Singleton):
     def select_global_vlan_configuration(self) -> Result:
         pass
     
-    def select_interface_name_list_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
+    def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
         """
         Select a list of interface names based on the specified interface type.
 
@@ -3706,7 +3706,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    
     def select_interface(self, interface_name) -> Result:
         """
         Select information about a specific interface.
@@ -3752,14 +3751,14 @@ class RouterShellDB(metaclass=Singleton):
                     'BridgeGroup': result[6],
                     'Shutdown': result[7],
                 }
-                return Result(status=True, row_id=None, result=sql_result_dict)
+                return Result(status=STATUS_OK, row_id=None, result=sql_result_dict)
             else:
-                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Interface {interface_name} not found.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Interface {interface_name} not found.")
 
         except sqlite3.Error as e:
             error_message = f"Error selecting interface information: {e}"
             self.log.error(error_message)
-            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
     def select_interface_ip_address(self, interface_name) -> List[Result]:
         """
