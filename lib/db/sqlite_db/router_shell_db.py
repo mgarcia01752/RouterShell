@@ -3675,7 +3675,92 @@ class RouterShellDB(metaclass=Singleton):
     def select_global_vlan_configuration(self) -> Result:
         pass
     
-    def select_interface(self, interface_type:InterfaceType) -> Result:
-        pass
+    def select_interface_name_list_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
+        """
+        Select a list of interface names based on the specified interface type.
+
+        Args:
+            interface_type (InterfaceType): The type of interface to filter by.
+
+        Returns:
+            List[Result]: A list of Result objects containing the interface names.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT Interfaces.ID, Interfaces.InterfaceName
+                FROM Interfaces
+                WHERE Interfaces.InterfaceType = ?;
+                ''', (interface_type.value,))
+
+            result_list = []
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                result_list.append(Result(status=STATUS_OK, row_id=row[0], result={'InterfaceName': row[1]}))
+            
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface names by interface type: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    
+    def select_interface(self, interface_name) -> Result:
+        """
+        Select information about a specific interface.
+
+        Args:
+            interface_name (str): The name of the interface to select.
+
+        Returns:
+            Result: A Result object containing information about the selected interface.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'interface ' || Interfaces.InterfaceName AS Interface,
+                    'mac address ' || InterfaceSubOptions.MacAddress AS MacAddress,
+                    'duplex ' || InterfaceSubOptions.Duplex AS Duplex,
+                    'speed ' || InterfaceSubOptions.Speed AS Speed,
+                    CASE WHEN InterfaceSubOptions.ProxyArp THEN 'ip proxy-arp' ELSE 'no ip proxy-arp' END AS ProxyArp,
+                    CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
+                    'bridge group ' || Bridges.BridgeName AS BridgeGroup,
+                    CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
+                FROM
+                    Interfaces
+                LEFT JOIN InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interface_FK
+                LEFT JOIN InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
+                LEFT JOIN BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
+                LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
+                WHERE Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+            
+            result = cursor.fetchone()
+
+            if result is not None:
+                # Construct a dictionary with the SQL result
+                sql_result_dict = {
+                    'Interface': result[0],
+                    'MacAddress': result[1],
+                    'Duplex': result[2],
+                    'Speed': result[3],
+                    'ProxyArp': result[4],
+                    'DropGratuitousArp': result[5],
+                    'BridgeGroup': result[6],
+                    'Shutdown': result[7],
+                }
+                return Result(status=True, row_id=None, result=sql_result_dict)
+            else:
+                return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Interface {interface_name} not found.")
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface information: {e}"
+            self.log.error(error_message)
+            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
+
+        
     
     

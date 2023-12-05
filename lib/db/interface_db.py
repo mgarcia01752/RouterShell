@@ -402,5 +402,5 @@ class InterfaceDatabase:
 
         alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
 
-        return alias_result.status and alias_result.alias_name == alias_interface_name
+        return alias_result.status and alias_result.result == alias_interface_name
 
