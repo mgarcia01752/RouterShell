@@ -3761,6 +3761,77 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-        
-    
+    def select_interface_ip_address(self, interface_name) -> List[Result]:
+        """
+        Select distinct IP addresses for a specific interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            List[Result]: A list of Result objects containing the IP addresses for the interface.
+        """
+        try:
+            cursor = self.connection.cursor()
+            
+            cursor.execute('''
+                SELECT DISTINCT
+                    'ip address ' || InterfaceIpAddress.IpAddress || CASE WHEN InterfaceIpAddress.SecondaryIp THEN ' secondary' ELSE '' END AS IpAddress
+                FROM
+                    Interfaces
+                LEFT JOIN InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interface_FK
+                WHERE Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+
+            result_list = []
+            rows = cursor.fetchall()
+
+            for row in rows:
+                result_list.append(Result(status=STATUS_OK, row_id=None, result={'IpAddress': row[0]}))
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface IP addresses: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_interface_ip_static_arp(self, interface_name) -> List[Result]:
+        """
+        Select distinct static ARP entries for a specific interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            List[Result]: A list of Result objects containing the static ARP entries for the interface.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    CASE WHEN InterfaceStaticArp.IpAddress THEN 'ip static-arp '    || InterfaceStaticArp.IpAddress  || ' ' 
+                                                                                    || InterfaceStaticArp.MacAddress || ' ' 
+                                                                                    || InterfaceStaticArp.Encapsulation END AS StaticArp
+                FROM
+                    Interfaces
+                    
+                LEFT JOIN InterfaceStaticArp ON Interfaces.ID = InterfaceStaticArp.Interface_FK
+                
+                WHERE Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+
+            result_list = []
+            rows = cursor.fetchall()
+
+            for row in rows:
+                result_list.append(Result(status=STATUS_OK, row_id=None, result={'StaticArp': row[0]}))
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface static ARP entries: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
     
