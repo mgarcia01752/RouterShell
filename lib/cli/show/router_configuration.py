@@ -8,6 +8,9 @@ from lib.network_manager.network_manager import InterfaceType
 
 class RouterConfiguration:
 
+    CONFIG_MSG_START='; RouterShell Configuration'
+    SECTION_BREAK = "\n"
+    
     def __init__(self, args=None):
         """
         Initialize the RouterConfiguration instance.
@@ -24,21 +27,40 @@ class RouterConfiguration:
         # Implement the logic for copying configurations if needed
         pass
 
-    def get_running_configuration(self, verbose:bool=False, indent:int=1) -> List[str]:
+    def get_running_configuration(self, verbose: bool = False, indent: int = 1) -> List[str]:
         """
         Generate the running configuration for the router CLI.
 
         Returns:
             List[str]: List of CLI commands representing the running configuration.
         """
-        cli_commands = ['enable', 'configure terminal']
+        
+        cli_commands = []
 
-        # Generate CLI commands for different sections
-        cli_commands.extend(self._get_global_settings())
-        cli_commands.extend(self._get_interface_settings())
-        cli_commands.extend(self._get_access_control_list())
+        # Add configuration message start and section break
+        cli_commands.extend([self.CONFIG_MSG_START])
+        cli_commands.extend([self.SECTION_BREAK])
+
+        # Enter configuration mode
+        cli_commands.extend(['enable', 'configure terminal'])
+        cli_commands.extend([self.SECTION_BREAK])
+
+        # Generate CLI commands for global settings
+        global_settings_cmds = self._get_global_settings()
+        cli_commands.extend(global_settings_cmds)
+        cli_commands.extend([self.SECTION_BREAK])
+
+        # Generate CLI commands for interface settings
+        interface_settings_cmds = self._get_interface_settings()
+        cli_commands.extend(interface_settings_cmds)
+        cli_commands.extend([self.SECTION_BREAK])
+
+        # Generate CLI commands for access control list
+        acl_cmds = self._get_access_control_list()
+        cli_commands.extend(acl_cmds)
 
         return cli_commands
+
 
     def _get_rename_interface_config(self) -> List[str]:
         """
@@ -69,13 +91,12 @@ class RouterConfiguration:
         
         global_settings_cmds = []
 
-        rename_interface_config_cmds = self._get_rename_interface_config()
-        global_settings_cmds.extend(rename_interface_config_cmds)
+        global_settings_cmds.extend(self._get_rename_interface_config())
 
         return global_settings_cmds
 
 
-    def _get_interface_settings(self) -> List[str]:
+    def _get_interface_settings(self, indent: int = 1) -> List[str]:
         """
         Generate CLI commands for interface settings.
 
@@ -99,16 +120,31 @@ class RouterConfiguration:
             if status:
                 self.log.debug(f"Unable to get config for interface: {if_name}")
                 continue
-
-            interface_cmd_lines.extend(filter(None, if_config.values()))
-            interface_cmd_lines.append('end')
             
+            status, if_ip_addr_config = self.rcdb.get_interface_ip_address_configuration(if_name)
+            
+            status, if_ip_static_arp_config = self.rcdb.get_interface_ip_static_arp_configuration(if_name)
+
+            # Indent the lines excluding the first and last lines
+            interface_cmd_lines.extend(' ' * indent + line if i != 0 and i != len(if_config.values()) - 1 else line
+                                    for i, line in enumerate(filter(None, if_config.values())))
+
+            for ip_addr_config in if_ip_addr_config:
+                interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_addr_config.values()))
+
+            for ip_static_arp_config in if_ip_static_arp_config:
+                interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_static_arp_config.values()))
+
+            interface_cmd_lines.append('end')
+
             self.log.debug(f'Interface-Config: {interface_cmd_lines}')
 
         # Append other interface commands
         interface_cmds.extend(interface_cmd_lines)
 
         return interface_cmds
+
+
 
     def _get_access_control_list(self) -> List[str]:
         """

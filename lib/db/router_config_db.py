@@ -62,6 +62,61 @@ class RouterConfigurationDatabase:
         
         return if_result.status, if_result.result
 
+    def get_interface_ip_address_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+        """
+        Retrieve IP address configuration for a specific interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            Tuple[bool, List[dict]]: A tuple containing a boolean indicating the success of the operation
+                                    and a list of dictionaries with IP address configuration data.
+                                    If the operation is successful, the boolean will be True, and the list
+                                    will contain dictionaries with IP address details.
+                                    If there is an error, the boolean will be False, and the list will be empty.
+        """
+        if_ip_result = cls.rsdb.select_interface_ip_address_configuration(interface_name)
+
+        # Check if any errors occurred during the retrieval
+        if any(result.status for result in if_ip_result):
+            error_messages = [result.reason for result in if_ip_result if result.status]
+            cls.log.debug(f"Error retrieving IP address configuration, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        # Extract data from the result list and build the list of dictionaries
+        ip_config_list = [result.result for result in if_ip_result]
+
+        return STATUS_OK, ip_config_list
+
+    def get_interface_ip_static_arp_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+        """
+        Retrieve IP static ARP configuration for a specific interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            Tuple[bool, List[dict]]: A tuple containing a boolean indicating the success of the operation
+                                    and a list of dictionaries with IP static ARP configuration data.
+                                    If the operation is successful, the boolean will be True, and the list
+                                    will contain dictionaries with IP static ARP details.
+                                    If there is an error, the boolean will be False, and the list will be empty.
+        """
+        if_static_arp_result = cls.rsdb.select_interface_ip_static_arp_configuration(interface_name)
+
+        # Check if any errors occurred during the retrieval
+        if any(result.status for result in if_static_arp_result):
+            error_messages = [result.reason for result in if_static_arp_result if result.status]
+            cls.log.debug(f"Error retrieving IP static ARP configuration, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        # Extract data from the result list and build the list of dictionaries
+        static_arp_config_list = [result.result for result in if_static_arp_result]
+
+        return STATUS_OK, static_arp_config_list
+
+
     def get_interface_rename_configuration(cls) -> Tuple[bool, List[Dict]]:
         """
         Retrieve data from the 'RenameInterface' table.
