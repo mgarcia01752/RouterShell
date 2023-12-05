@@ -14,6 +14,7 @@ from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
+from lib.cli.show.router_configuration import RouterConfiguration
 from lib.db.vlan_db import VLANDatabase
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
@@ -192,7 +193,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         elif args.subcommand == 'running-config':
             self.log.debug("Show running configuration")
-            Run        
+            RouterConfiguration().get_running_configuration()        
 
         
         elif args.subcommand == 'nat':

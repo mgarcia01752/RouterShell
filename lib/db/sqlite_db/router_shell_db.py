@@ -3659,3 +3659,17 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi hardware mode for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+
+    '''
+                            ROUTER-CONFIGURATION
+    '''
+    
+    def select_global_bridge_configuration(self) -> Result:
+        pass
+    
+    def select_global_vlan_configuration(self) -> Result:
+        pass
+    
+    def select_interface(self, interface_type:InterfaceType) -> Result:
+    
+    
