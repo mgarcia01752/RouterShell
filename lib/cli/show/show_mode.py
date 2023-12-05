@@ -63,6 +63,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             show vlan                       (Implemented)
             show vlan database
             show route                      (Implemented)
+            show running-config
             show ip route
             show ip6 route
             show ip interface
@@ -139,6 +140,10 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             help="Display routing table information."
         )
 
+        show_running_config_parser = show_parser.add_parser("running-config",
+            help="Display running configuration."
+        )
+
         try:
             args = parser.parse_args(args.split())
         except SystemExit:
@@ -148,10 +153,12 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug("Show arp command")
             ArpShow().arp()
             return
+        
         elif args.subcommand == 'bridge':
             self.log.debug("Show bridge command")
             BridgeShow().show_bridges()
             return
+        
         elif args.subcommand == 'interfaces':
             self.log.debug("Show interfaces command")
             InterfaceShow().show_ip_interface_brief()
@@ -173,29 +180,41 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         elif args.subcommand == 'ip':
             self.log.debug("Show ip command")
             return
+        
         elif args.subcommand == 'ip6':
             self.log.debug("Show ip6 command")
             return
+        
         elif args.subcommand == 'route':
             self.log.debug("Show route command")
             RouteShow().route()
             return
+
+        elif args.subcommand == 'running-config':
+            self.log.debug("Show running configuration")
+            Run        
+
+        
         elif args.subcommand == 'nat':
             self.log.debug("Show nat command")
             NatShow().getNatTable()
             return
+        
         elif args.subcommand == 'nat-db':
             self.log.debug("Show nat command")
             print(NatDB().to_json())
             return
+        
         elif args.subcommand == 'vlan':
             self.log.debug("Show vlan command")
             VlanShow().vlan()
             return
+        
         elif args.subcommand == 'vlan-db':
             self.log.debug("Show vlan database")
             print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
             return
+        
         elif args.subcommand == 'if-db':
             self.log.debug("Show interface database")
             print(f"{json.dumps(InterfaceDatabase.to_json(), indent=4)}")
