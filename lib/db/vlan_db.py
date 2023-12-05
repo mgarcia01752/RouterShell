@@ -1,6 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.network_manager import InterfaceType
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 
 class VLANDatabase():
@@ -87,9 +88,9 @@ class VLANDatabase():
 
         Returns:
             Result: A Result object representing the outcome of the operation.
-                - If the operation is successful, the Result object will have 'status' set to STATUS_OK,
+            - If the operation is successful, the Result object will have 'status' set to STATUS_OK,
                   'row_id' set to the unique identifier of the VLAN, and 'result' containing the VLAN name.
-                - If there is an error or if the VLAN with the provided ID does not exist, the Result object will have
+            - If there is an error or if the VLAN with the provided ID does not exist, the Result object will have
                   'status' set to STATUS_NOK, 'row_id' set to None, and 'reason' providing additional information.
 
         Example:
@@ -107,7 +108,6 @@ class VLANDatabase():
         """
         return cls.rsdb.select_vlan_name_by_vlan_id(vlan_id)
 
-        
     def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> Result:
         """
         Update the name of a VLAN by its ID.
@@ -140,3 +140,28 @@ class VLANDatabase():
         vlan_interface_id = cls.get_vlan_interface_id(vlan_id)
         if vlan_interface_id:
             cls.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)
+
+    def add_vlan_to_interface_type(cls, vlan_id: int, interface_name: str, interface_type: InterfaceType) -> bool:
+        """
+        Add a VLAN to a specific interface type in the database.
+
+        Args:
+            vlan_id (int): The unique identifier of the VLAN.
+            interface_name (str): The name of the interface or bridge group.
+            interface_type (InterfaceType): The type of the interface (ethernet, bridge, etc.).
+
+        Returns:
+            bool: STATUS_OK if the VLAN was successfully added to the specified interface type, STATUS_NOK otherwise.
+
+        """
+        try:
+            if interface_type == InterfaceType.BRIDGE:
+                result = cls.rsdb.insert_vlan_interface(vlan_id, bridge_group_name=interface_name)
+            else:
+                result = cls.rsdb.insert_vlan_interface(vlan_id, interface_name=interface_name)
+
+            return result.status
+
+        except Exception as e:
+            cls.log.error("Error adding VLAN to interface type: %s", e)
+            return STATUS_NOK

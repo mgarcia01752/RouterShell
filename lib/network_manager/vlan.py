@@ -7,6 +7,7 @@ from lib.db.vlan_db import VLANDatabase
 from lib.network_manager.bridge import Bridge
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_manager import InterfaceType, NetworkManager
 class Vlan(NetworkManager):
 
@@ -16,6 +17,7 @@ class Vlan(NetworkManager):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().VLAN)
         self.arg = arg
 
     def does_vlan_id_exist_in_vlan_db(self, vlan_id:int) -> bool:
@@ -151,20 +153,20 @@ class Vlan(NetworkManager):
 
         Returns:
             str: A status indicating the result of the operation:
-                - 'STATUS_OK' if the interface was successfully added to the VLAN.
-                - 'STATUS_NOK' if the operation failed due to invalid parameters or other issues.
+            - 'STATUS_OK' if the interface was successfully added to the VLAN.
+            - 'STATUS_NOK' if the operation failed due to invalid parameters or other issues.
         """
         if vlan_id <= 0 or vlan_id > self.VLAN_MAX_ID:
-            self.log.debug(f"add_interface_to_vlan() Error: Invalid VLAN ID: {vlan_id}")
+            self.log.debug(f"add_interface_to_vlan({interface_type.name}) Error: Invalid VLAN ID: {vlan_id}")
             return STATUS_NOK
 
         if not self.does_vlan_id_exist_in_vlan_db(vlan_id):
-            self.log.debug(f"add_interface_to_vlan() Error: VLAN ID {vlan_id} already exists.")
+            self.log.debug(f"add_interface_to_vlan({interface_type.name}) Error: VLAN ID {vlan_id} already exists.")
             return STATUS_NOK
         
         db_result = VLANDatabase().get_vlan_name(vlan_id)
 
-        if not db_result.status:
+        if db_result.status:
             self.log.error(f"Unable to obtain vlan-name from vlan-id: {vlan_id}")
             return STATUS_NOK
 
@@ -177,10 +179,10 @@ class Vlan(NetworkManager):
         result = self.run(['ip', 'link', 'add', 'link', interface_name, 'name', vlan_name , 'type', 'vlan', 'id', str(vlan_id)], suppress_error=True)
 
         if result.exit_code:
-            self.log.debug(f"Unable to add VLAN {vlan_name} to interface: {interface_name}")
+            self.log.debug(f"Unable to add VLAN {vlan_name} to interface: {interface_name} via OS")
             return STATUS_NOK
-
-        return STATUS_OK
+        
+        return VLANDatabase().add_vlan_to_interface_type(vlan_id, interface_name, interface_type)
 
     def del_interface_to_vlan(self, vlan_id: int) -> bool:
         """
@@ -262,6 +264,5 @@ class Vlan(NetworkManager):
         headers = ['VLAN ID', 'MAC Address', 'Interface', 'State']
         print(tabulate(data, headers, tablefmt='plain'))
 
-    
     def get_vlan_db(self):
         return VLANDatabase().show_vlans()

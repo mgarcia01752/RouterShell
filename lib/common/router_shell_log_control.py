@@ -61,8 +61,8 @@ class RouterShellLoggingGlobalSettings():
     
     HARDWARE_NETWORK            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    VLAN                        = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    VLAN_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    VLAN                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    VLAN_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ARP                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ARP_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
