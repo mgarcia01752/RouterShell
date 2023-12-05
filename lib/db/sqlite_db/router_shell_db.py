@@ -308,6 +308,10 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object indicating the operation's success or failure.
+            - If the VLAN with the specified ID is found, 'status' is set to True,
+                    'row_id' contains the ID of the found VLAN, and 'reason' is not applicable.
+            - If the VLAN with the specified ID is not found, 'status' is set to False,
+                    'row_id' is set to self.ROW_ID_NOT_FOUND, and 'reason' provides a detailed message.
         """
         try:
             cursor = self.connection.cursor()
@@ -348,9 +352,10 @@ class RouterShellDB(metaclass=Singleton):
 
         try:
             # Check if VLAN with the provided 'vlanid' already exists
-            if self.vlan_id_exists(vlanid).status:
-                existing_vlan_info = self.get_vlan_info(vlanid)
-                return Result(status=STATUS_NOK, row_id=None, reason=f"VLAN with ID {vlanid} already exists.", result=existing_vlan_info)
+            result_vlan_id = self.vlan_id_exists(vlanid)
+            
+            if result_vlan_id.status:
+                return Result(status=STATUS_NOK, row_id=None, reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
 
             cursor = self.connection.cursor()
             cursor.execute(

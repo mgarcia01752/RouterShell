@@ -26,7 +26,7 @@ class RouterConfiguration:
         Returns:
             List[str]: List of CLI commands representing the running configuration.
         """
-        cli_commands = ['enable', 'configuration terminal']
+        cli_commands = ['enable', 'configure terminal']
 
         # Generate CLI commands for different sections
         cli_commands.extend(self._get_global_settings())
