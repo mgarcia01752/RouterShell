@@ -2,6 +2,7 @@ import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_manager import InterfaceType
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
 
 class VLANDatabase():
@@ -9,7 +10,8 @@ class VLANDatabase():
     rsdb = RSDB()
     
     def __init__(cls):
-        cls.log = logging.getLogger(cls.__class__.__name__)   
+        cls.log = logging.getLogger(cls.__class__.__name__)
+        cls.log.setLevel(RSLGS().VLAN_DB)   
     
     def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Result:
         """
@@ -152,9 +154,12 @@ class VLANDatabase():
 
         Returns:
             bool: STATUS_OK if the VLAN was successfully added to the specified interface type, STATUS_NOK otherwise.
-
         """
+        
+        cls.log.debug(f"add_vlan_to_interface_type({vlan_id} -> {interface_name}) -> Interface-Type: {interface_type}")
+        
         try:
+            
             if interface_type == InterfaceType.BRIDGE:
                 result = cls.rsdb.insert_vlan_interface(vlan_id, bridge_group_name=interface_name)
             else:
@@ -163,5 +168,5 @@ class VLANDatabase():
             return result.status
 
         except Exception as e:
-            cls.log.error("Error adding VLAN to interface type: %s", e)
+            cls.log.error("add_vlan_to_interface_type() -> Error adding VLAN to interface type: %s", e)
             return STATUS_NOK

@@ -420,54 +420,61 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error updating VLAN description: %s", e)
             return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
-    def insert_vlan_interface(self, vlan_name: str, interface_name: str = None, bridge_group_name: str = None) -> Result:
+    def insert_vlan_interface(self, vlan_id: int, interface_name: str = None, bridge_group_name: str = None) -> Result:
         """
         Insert a VLAN interface into the database.
 
         Args:
-            vlan_name (str): The name of the VLAN.
+            vlan_id (int): VLAN-ID.
             interface_name (str, optional): The name of the interface. Default is None.
             bridge_group_name (str, optional): The name of the bridge group. Default is None.
 
         Returns:
             Result: A Result object representing the outcome of the operation.
             - If the operation is successful, the Result object will have 'status' set to STATUS_OK
-                  and 'row_id' set to the unique identifier of the inserted VLAN interface.
+              and 'row_id' set to the unique identifier of the inserted VLAN interface.
             - If there is an error during the database operation, the Result object will have 'status' set to STATUS_NOK,
-                  'row_id' set to None, and 'reason' providing additional information.
+              'row_id' set to None, and 'reason' providing additional information.
 
         """
         try:
             cursor = self.connection.cursor()
 
-            foreign_key_column = None
-            constraint_name = None
-            if interface_name is not None:
-                foreign_key_column = 'Interface_FK'
-                constraint_name = 'FK_VLANs_Interfaces'
-            elif bridge_group_name is not None:
-                foreign_key_column = 'Bridge_FK'
-                constraint_name = 'FK_VLANs_Bridges'
-            else:
+            # Determine foreign key column and constraint name
+            foreign_key_column, constraint_name = (
+                ('Interface_FK', 'FK_VLANs_Interfaces') if interface_name is not None
+                else ('Bridge_FK', 'FK_VLANs_Bridges') if bridge_group_name is not None
+                else (None, None)
+            )
+
+            # Check if either interface_name or bridge_group_name is provided
+            if foreign_key_column is None:
                 return Result(status=STATUS_NOK, row_id=None, reason="Either interface_name or bridge_group_name must be provided.")
 
+            # Look up the ID of the interface or bridge group based on the name
             cursor.execute(f"SELECT ID FROM {foreign_key_column.replace('_FK', 's')} WHERE {foreign_key_column.replace('_FK', 'Name')} = ?", 
                            (interface_name or bridge_group_name,))
-            
             foreign_key_id = cursor.fetchone()
-            
+
+            # Check if the interface or bridge group exists
             if not foreign_key_id:
                 return Result(status=STATUS_NOK, row_id=None, reason=f"No {foreign_key_column.replace('_FK', '')} found with name: {interface_name or bridge_group_name}")
 
+            # Insert into VlanInterfaces table
             cursor.execute(
                 f"INSERT INTO VlanInterfaces ({foreign_key_column}) VALUES (?)",
-                (foreign_key_id[0])
+                (foreign_key_id[0],)
             )
 
+            # Get the row ID of the inserted row in VlanInterfaces
             row_id = cursor.lastrowid
 
+            # Update Vlans.VlanInterfaces_FK with VlanInterfaces.ID
+            cursor.execute("UPDATE Vlans SET VlanInterfaces_FK = ? WHERE VlanID = ?", (row_id, vlan_id))
+
             self.connection.commit()
-            self.log.debug("VLAN interface inserted successfully.")
+            self.log.debug("VLAN interface inserted successfully and Vlans.VlanInterfaces_FK updated.")
+            
             return Result(status=STATUS_OK, row_id=row_id)
 
         except sqlite3.Error as e:

@@ -13,7 +13,7 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL CRITICAL
     '''
     
-    GLOBAL_DEBUG = True
+    GLOBAL_DEBUG = False
     
     ROUTER_SHELL_DB             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
@@ -62,6 +62,7 @@ class RouterShellLoggingGlobalSettings():
     HARDWARE_NETWORK            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     VLAN                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    VLAN_DB                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ARP                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
