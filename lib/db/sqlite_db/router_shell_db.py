@@ -3671,5 +3671,6 @@ class RouterShellDB(metaclass=Singleton):
         pass
     
     def select_interface(self, interface_type:InterfaceType) -> Result:
+        pass
     
     

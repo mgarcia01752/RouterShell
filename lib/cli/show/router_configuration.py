@@ -1,5 +1,6 @@
 import logging
-from typing import Dict, List
+from typing import List
+
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
 class RouterConfiguration:
@@ -18,15 +19,14 @@ class RouterConfiguration:
         # Implement the logic for copying configurations if needed
         pass
 
-    def get_running_configuration(self, args=None) -> Dict:
+    def get_running_configuration(self, args=None) -> List[str]:
         """
         Generate the running configuration for the router CLI.
 
         Returns:
-            Dict: A dictionary representing the running configuration.
+            List[str]: List of CLI commands representing the running configuration.
         """
-        cli_commands = ['enable', 
-                        'configuration terminal']
+        cli_commands = ['enable', 'configuration terminal']
 
         # Generate CLI commands for different sections
         cli_commands.extend(self._get_global_settings())
@@ -43,10 +43,9 @@ class RouterConfiguration:
             List[str]: List of CLI commands for global settings.
         """
         global_settings_cmds = [
-            # Add commands for global settings, NAT, VLAN, etc.
-            'global setting command',
-            'global NAT command',
-            'global VLAN command',
+            ';Global setting command',
+            ';Global NAT command',
+            ';Global VLAN command',
         ]
         return global_settings_cmds
 
@@ -58,10 +57,9 @@ class RouterConfiguration:
             List[str]: List of CLI commands for interface settings.
         """
         interface_cmds = [
-            # Add commands for interfaces (loopback, ethernet, wifi)
-            'interface loopback command',
-            'interface ethernet command',
-            'interface wifi command',
+            '; Interface loopback command',
+            '; Interface ethernet command',
+            '; Interface wifi command',
         ]
         return interface_cmds
 
@@ -73,7 +71,6 @@ class RouterConfiguration:
             List[str]: List of CLI commands for access control lists.
         """
         acl_cmds = [
-            # Add commands for access control lists
-            'access control list command',
+            '; Access Control List command',
         ]
         return acl_cmds

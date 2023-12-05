@@ -193,8 +193,9 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         elif args.subcommand == 'running-config':
             self.log.debug("Show running configuration")
-            RouterConfiguration().get_running_configuration()        
-
+            run_config = RouterConfiguration().get_running_configuration()
+            for line in run_config:        
+                print(line)
         
         elif args.subcommand == 'nat':
             self.log.debug("Show nat command")
