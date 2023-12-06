@@ -61,6 +61,23 @@ class RouterConfiguration:
 
         return cli_commands
 
+    def _get_global_settings(self) -> List[str]:
+            """
+            Generate CLI commands for global settings.
+
+            Returns:
+                List[str]: List of CLI commands for global settings.
+            """
+            
+            global_settings_cmds = []
+
+            global_settings_cmds.extend(self._get_global_bridge_config())
+            global_settings_cmds.extend(self._get_global_vlan_config())
+            global_settings_cmds.extend(self._get_global_nat_config())
+            global_settings_cmds.extend(self._get_rename_interface_config())
+
+            return global_settings_cmds
+
     def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
         """
         Generate CLI commands for global bridge configuration.
@@ -121,38 +138,53 @@ class RouterConfiguration:
 
     def _get_rename_interface_config(self) -> List[str]:
         """
-        Generate CLI commands for renaming interface configurations.
+        Generate CLI commands for renaming interface configurations based on the database.
 
         Returns:
-            List[str]: List of CLI commands for renaming interface configurations.
+            List[str]: A list of CLI commands for renaming interface configurations.
         """
-        rename_cmd_config_lines = []
-        
+        cmd_config_lines = []
+
+        # Assuming the correct method name is get_interface_rename_configuration
         status, results = self.rcdb.get_interface_rename_configuration()
-        
+
         if status == STATUS_OK:
             for result in results:
-                rename_cmd_setting = result.get('RenameInterfaceConfig')
-                rename_cmd_config_lines.append(rename_cmd_setting)
-                    
-        return rename_cmd_config_lines
+                # Assuming 'RenameInterfaceConfig' is the correct key in the result
+                cmd_setting = result.get('RenameInterfaceConfig')
+                cmd_config_lines.append(cmd_setting)
 
-    def _get_global_settings(self) -> List[str]:
+            return cmd_config_lines
+        else:
+            # Log an error if the retrieval fails and return an empty list
+            self.log.error("Failed to retrieve interface rename configurations.")
+            return []
+
+    def _get_global_nat_config(self) -> List[str]:
         """
-        Generate CLI commands for global settings.
+        Get the global NAT configuration from the database.
 
         Returns:
-            List[str]: List of CLI commands for global settings.
+        List[str]: A list of global NAT pool names.
         """
+        cmd_config_lines = []
+
+        # Assuming the correct method name is get_nat_configuration
+        status, results = self.rcdb.get_nat_configuration()
+        self.log.debug(f"_get_global_nat_config() -> {results}")
+
+        if status == STATUS_OK:
+            for result in results:
+                cmd_setting = result.get('IpNatPoolName')
+                cmd_config_lines.append(cmd_setting)
+            cmd_config_lines.append(self.LINE_BREAK)
+            return cmd_config_lines
         
-        global_settings_cmds = []
-
-        global_settings_cmds.extend(self._get_global_bridge_config())
-        global_settings_cmds.extend(self._get_global_vlan_config())
-        global_settings_cmds.extend(self._get_rename_interface_config())
-
-        return global_settings_cmds
-
+        else:
+            # Log an error if the retrieval fails and return an empty list
+            self.log.debug("Failed to retrieve global NAT configurations.")
+            return []
+         
     def _get_interface_settings(self, indent: int = 1) -> List[str]:
         """
         Generate CLI commands for interface settings.

@@ -117,7 +117,6 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, static_arp_config_list
 
-
     def get_interface_rename_configuration(cls) -> Tuple[bool, List[Dict]]:
         """
         Retrieve data from the 'RenameInterface' table.
@@ -208,3 +207,26 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, vlan_config_list
 
+    def get_nat_configuration(cls) -> Tuple[bool, List[Dict]]:
+        """
+        Get the NAT configurations.
+
+        Returns:
+        Tuple[bool, List[Dict]]: A tuple containing a boolean indicating success and a list of NAT configurations as dictionaries.
+        """
+        cls.log.debug('get_nat_configuration()')
+
+        nat_config_list = []
+
+        nat_result = cls.rsdb.select_global_nat_configuration()
+
+        if all(result.status == STATUS_OK for result in nat_result):
+            nat_config_list = [result.result for result in nat_result]
+            cls.log.debug(f"Retrieved NAT configurations: {nat_config_list}")
+            return STATUS_OK, nat_config_list
+
+        else:
+            cls.log.error("Failed to retrieve NAT configurations.")
+            return STATUS_NOK, []
+
+     

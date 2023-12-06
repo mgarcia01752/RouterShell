@@ -38,7 +38,7 @@ class NatDB:
         cls.log.debug(f"pool_name_exists() Pool-Name: {pool_name}")
         return cls.rsdb.global_nat_pool_name_exists(pool_name).status
        
-    def insert_global_pool_name(cls, pool_name: str) -> bool:
+    def insert_global_nat_pool_name(cls, pool_name: str) -> bool:
         """
         Create a new global NAT pool configuration in the NAT database.
 
@@ -68,7 +68,7 @@ class NatDB:
             cls.log.error(f"An error occurred while creating global NAT pool: {e}")
             return STATUS_NOK
 
-    def delete_global_pool_name(cls, pool_name: str) -> bool:
+    def delete_global_nat_pool_name(cls, pool_name: str) -> bool:
         """
         Delete a global NAT pool configuration from the NAT database.
 
@@ -96,7 +96,7 @@ class NatDB:
             cls.log.error(f"An error occurred while deleting global NAT pool: {e}")
             return STATUS_NOK
 
-    def get_global_pool_names(cls) -> list:
+    def get_global_nat_pool_names(cls) -> list:
         """
         Retrieve a list of global NAT pool names from the NAT database.
 

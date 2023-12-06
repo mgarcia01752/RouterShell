@@ -3963,18 +3963,15 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            # Execute the SQL query
-            cursor.execute("SELECT DISTINCT 'ip nat ' || NatPoolName AS NatPoolName FROM Nats")
+            cursor.execute("SELECT DISTINCT 'ip nat ' || NatPoolName AS IpNatPoolName FROM Nats")
 
-            # Fetch all rows
             rows = cursor.fetchall()
 
-            # Create Result objects with the selected NAT pool names
-            results = [Result(STATUS_OK, row_id=index, result={"NatPoolName": row[0]}) for index, row in enumerate(rows, start=1)]
+            result_list = [Result(status=STATUS_OK, row_id=None, result={'IpNatPoolName': row[0]}) for row in rows]
+            
+            self.log.debug(f"Selected global NAT configurations: {result_list}")
 
-            self.log.debug(f"Selected global NAT configurations: {results}")
-
-            return results
+            return result_list
 
         except sqlite3.Error as e:
             error_message = f"Error selecting global NAT configurations: {e}"

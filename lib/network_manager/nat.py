@@ -70,10 +70,10 @@ class Nat(NetworkManager):
                 return STATUS_NOK
 
             if negate:
-                result = NatDB().delete_global_pool_name(nat_pool_name)
+                result = NatDB().delete_global_nat_pool_name(nat_pool_name)
                 self.log.debug(f"Deleting NAT pool: {nat_pool_name}")
             else:
-                result = NatDB().insert_global_pool_name(nat_pool_name)
+                result = NatDB().insert_global_nat_pool_name(nat_pool_name)
                 self.log.debug(f"Creating NAT pool: {nat_pool_name}")
             
             if result:
