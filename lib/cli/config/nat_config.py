@@ -6,7 +6,8 @@ import logging
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.network_manager.nat import Nat, NATDirection
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from lib.common.constants import *
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class InvalidNatConfig(Exception):
     def __init__(self, message):
@@ -22,6 +23,7 @@ class NatConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Nat):
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
         Nat.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().NAT_CONFIG)
 
         self.log.debug(f"__init__ -> (negate={negate}) -> arg -> {arg}")
 

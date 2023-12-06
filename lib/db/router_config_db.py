@@ -70,11 +70,12 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface.
 
         Returns:
-            Tuple[bool, List[dict]]: A tuple containing a boolean indicating the success of the operation
-                                    and a list of dictionaries with IP address configuration data.
-                                    If the operation is successful, the boolean will be True, and the list
-                                    will contain dictionaries with IP address details.
-                                    If there is an error, the boolean will be False, and the list will be empty.
+            Tuple[bool, List[dict]]: 
+                A tuple containing a boolean indicating the success of the operation
+                    and a list of dictionaries with IP address configuration data.
+                If the operation is successful, the boolean will be True, and the list
+                    will contain dictionaries with IP address details.
+                If there is an error, the boolean will be False, and the list will be empty.
         """
         if_ip_result = cls.rsdb.select_interface_ip_address_configuration(interface_name)
 
@@ -182,7 +183,7 @@ class RouterConfigurationDatabase:
         Retrieve VLAN configuration data.
 
         Returns:
-            Tuple[bool, List[Dict]]:
+            Tuple[bool, List[Dict]]:CONFIG_MODE
             - A tuple containing a boolean indicating the success of the operation
               and a list of dictionaries with VLAN configuration data.
             - If the operation is successful, the boolean will be True, and the list will contain dictionaries

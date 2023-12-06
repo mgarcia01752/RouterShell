@@ -50,23 +50,16 @@ class Nat(NetworkManager):
         """
         Create or delete a NAT pool configuration in the NAT database.
 
-        Args:
-            nat_pool_name (str): The name of the NAT pool to create or delete.
-            negate (bool, optional): If True, delete the NAT pool; if False, create it (default: False).
-
-        Returns:
-            bool: True if the operation is successful, False otherwise.
-
         This method allows you to create or delete a NAT pool configuration in the NAT database.
         You can specify the `nat_pool_name` to create or delete, and set `negate` to True to delete
         the NAT pool.
 
         Args:
             - nat_pool_name (str): The name of the NAT pool to create or delete.
-            - negate (bool, optional): If True, the method will delete the NAT pool; if False, it will create it (default: False).
+            - negate (bool, optional): If STATUS_OK, the method will delete the NAT pool; if False, it will create it (default: STATUS_NOK).
 
         Returns:
-            - bool: True if the operation is successful, False if there was an error during the operation.
+            - bool: STATUS_OK if the operation is successful, STATUS_NOK if there was an error during the operation.
 
         """
         self.log.debug(f"create_nat_pool() -> NAT Pool: {nat_pool_name} -> negate: {negate}")
@@ -86,6 +79,7 @@ class Nat(NetworkManager):
             if result:
                 self.log.debug(f"Did Not Update NAT pool: {nat_pool_name} -> negate: {negate}")
                 return STATUS_NOK
+            
             else:
                 self.log.debug(f"Updated NAT pool: {nat_pool_name} -> negate: {negate}")
                 return STATUS_OK

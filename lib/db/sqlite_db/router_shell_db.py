@@ -620,19 +620,21 @@ class RouterShellDB(metaclass=Singleton):
                     - 'status' STATUS_OK if successful, STATUS_NOK otherwise
         """
         self.log.debug(f"insert_global_nat_pool({nat_pool_name})")
+
         try:
             cursor = self.connection.cursor()
             cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", (nat_pool_name,))
             self.connection.commit()
-            
+
             row_id = cursor.lastrowid
             self.log.debug(f"Inserted global NAT pool '{nat_pool_name}' with row ID: {row_id}")
-            
-            return Result(STATUS_OK, row_id=row_id)
+
+            return Result(status=STATUS_OK, row_id=row_id)
+        
         except sqlite3.Error as e:
             error_message = f"Error inserting global NAT: {e}"
             self.log.error(error_message)
-            return Result(STATUS_NOK, reason=error_message)
+            return Result(status=STATUS_NOK, reason=error_message)
 
     def delete_global_nat_pool_name(self, nat_pool_name: str) -> Result:
         """
@@ -3948,3 +3950,33 @@ class RouterShellDB(metaclass=Singleton):
 
             # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_global_nat_configuration(self) -> List[Result]:
+        """
+        Select distinct NAT pool names from the 'Nats' table.
+
+        Returns:
+        List[Result]: A list of Result objects with the selected NAT pool names.
+        """
+        self.log.debug("select_global_nat_configuration()")
+
+        try:
+            cursor = self.connection.cursor()
+
+            # Execute the SQL query
+            cursor.execute("SELECT DISTINCT 'ip nat ' || NatPoolName AS NatPoolName FROM Nats")
+
+            # Fetch all rows
+            rows = cursor.fetchall()
+
+            # Create Result objects with the selected NAT pool names
+            results = [Result(STATUS_OK, row_id=index, result={"NatPoolName": row[0]}) for index, row in enumerate(rows, start=1)]
+
+            self.log.debug(f"Selected global NAT configurations: {results}")
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting global NAT configurations: {e}"
+            self.log.error(error_message)
+            return [Result(STATUS_NOK, reason=error_message)]

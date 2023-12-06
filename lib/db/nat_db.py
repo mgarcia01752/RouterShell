@@ -34,15 +34,6 @@ class NatDB:
         Returns:
             bool: True if a NAT pool with the specified name exists, False otherwise.
 
-        This method queries the NAT database to determine whether a NAT pool with the
-        provided name exists.
-
-        Args:
-            - pool_name (str): The name of the NAT pool to check for existence.
-
-        Returns:
-            - bool: True if a NAT pool with the specified name exists, False otherwise.
-
         """
         cls.log.debug(f"pool_name_exists() Pool-Name: {pool_name}")
         return cls.rsdb.global_nat_pool_name_exists(pool_name).status
@@ -57,13 +48,6 @@ class NatDB:
         Returns:
             bool: True if the NAT pool is created successfully, False otherwise.
 
-        This method allows you to create a new global NAT pool configuration in the NAT database.
-
-        Args:
-            - pool_name (str): The name of the NAT pool to create.
-
-        Returns:
-            - bool: STATUS_OK if the NAT pool is created successfully, STATUS_NOK if there was an error during creation.
         """
         try:
             if cls.pool_name_exists(pool_name):

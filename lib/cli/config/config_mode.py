@@ -20,6 +20,7 @@ from lib.common.constants import *
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
+from lib.network_manager.nat import Nat
 
 class InvalidConfigureMode(Exception):
     def __init__(self, message):
@@ -216,36 +217,49 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         completions.extend( ['nat', 'pool', 'inside', 'outside'])
         return [comp for comp in completions if comp.startswith(text)]
 
-    def do_ip(self, args=None, negate=False):
+    def do_ip(self, args=None):
         self.log.debug(f"do_ip() -> command: ({args})")
 
         parser = argparse.ArgumentParser(
             description="Configure IP settings",
             epilog="Usage:\n"
-            "   [no] nat <nat-policy-name>\n"
-            "   [no] route <src-inet-subnet> <src-inet-mast> <gw-inet-address>\n"
+            "   [no] ip nat <nat-policy-name>\n"
+            "   [no] ip route <src-inet-subnet> <src-inet-mast> <gw-inet-address>\n"
             "\n"
             "   <suboption> --help                           Get help for specific suboptions."
         )
 
-        parser.add_argument("ip_command", choices=["nat", "route"], 
+        parser.add_argument("ip_command", choices=["nat", "route"],
                             help="Choose between 'nat' or 'route'")
-
-        parser.add_argument("nat_args", nargs="*", 
-                            help="Additional arguments for NAT configuration")
-        parser.add_argument("route_args", nargs="*", 
-                            help="Additional arguments for IP routing configuration")
+        parser.add_argument("ip_args", nargs="*",
+                            help="Additional arguments for IP configuration")
 
         parsed_args = parser.parse_args(args.split())
 
-        if parsed_args.ip_command == "route":
-            IpRouteConfig(args.route_args)
+        try:
+            if parsed_args.ip_command == "route":
+                self._handle_ip_route(parsed_args.ip_args)
+                
+            elif parsed_args.ip_command == "nat":
+                self.log.info("IP-NAT-CONFIG")
+                self._handle_ip_nat(parsed_args.ip_args[0])
+            
+            else:
+                raise ValueError(f"Invalid command: {parsed_args.ip_command}")
 
-        elif parsed_args.ip_command == "nat":
-            NatConfig(args.nat_args)
-        
-        else:
-            print(f"Invalid command: {args}")
+        except Exception as e:
+            self.log.error(f"Error handling IP command: {e}")
+            print(f"Error: {e}")
+
+    def _handle_ip_route(self, args):
+        # Logic for handling IP routing configuration
+        IpRouteConfig(args)
+
+    def _handle_ip_nat(self, args):
+        # Logic for handling NAT configuration
+        if Nat().create_nat_pool(args):
+            print(f"Unable to create ANT pool: {args}")
+
 
     def complete_ipv6(self, text, line, begidx, endidx):
         completions = ['route']

@@ -10,17 +10,17 @@ DROP TABLE IF EXISTS Interfaces;
 CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
     InterfaceName VARCHAR(100) UNIQUE,
-    InterfaceType VARCHAR(100),             -- Interface Type (ethernet, loopback, wireless wifi, wireless cell)
-    ShutdownStatus BOOLEAN DEFAULT TRUE     -- True = interface is shutdown
+    InterfaceType VARCHAR(100),                         -- Interface Type (ethernet, loopback, wireless wifi, wireless cell)
+    ShutdownStatus BOOLEAN DEFAULT TRUE                 -- True = interface is shutdown
 );
 
 DROP TABLE IF EXISTS InterfaceSubOptions;
 CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     ID INTEGER PRIMARY KEY,
     Interface_FK INT DEFAULT -1,
-    MacAddress VARCHAR(17),                 -- MAC address format: xx:xx:xx:xx:xx:xx
-    Duplex VARCHAR(4) DEFAULT 'auto',       -- Duplex [half | full | auto]
-    Speed VARCHAR(5) DEFAULT 'auto',        -- Speed [10 | 100 | 1000 | 10000 | auto]
+    MacAddress VARCHAR(17),                             -- MAC address format: xx:xx:xx:xx:xx:xx
+    Duplex VARCHAR(4) DEFAULT 'auto',                   -- Duplex [half | full | auto]
+    Speed VARCHAR(5) DEFAULT 'auto',                    -- Speed [10 | 100 | 1000 | 10000 | auto]
     ProxyArp BOOLEAN DEFAULT TRUE,
     DropGratuitousArp BOOLEAN DEFAULT TRUE,
     CONSTRAINT FK_InterfaceSubOptions_Interfaces FOREIGN KEY (Interface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE

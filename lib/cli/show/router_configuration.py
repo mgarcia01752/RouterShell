@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from lib.common.constants import STATUS_OK
+from lib.common.constants import STATUS_OK, STATUS_NOK
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
@@ -193,6 +193,8 @@ class RouterConfiguration:
                 interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_static_arp_config.values()))
 
             interface_cmd_lines.append('end')
+            
+            interface_cmd_lines.extend([self.LINE_BREAK])
 
             self.log.debug(f'Interface-Config: {interface_cmd_lines}')
 
