@@ -38,22 +38,21 @@ class RouterConfiguration:
         cli_commands = []
 
         # Add configuration message start and section break
+        cli_commands.extend([self.LINE_BREAK])  
         cli_commands.extend([self.CONFIG_MSG_START])
-        cli_commands.extend([self.LINE_BREAK])
+        cli_commands.extend([self.LINE_BREAK])        
 
         # Enter configuration mode
         cli_commands.extend(['enable', 'configure terminal'])
         cli_commands.extend([self.LINE_BREAK])
-
+        
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
         cli_commands.extend(global_settings_cmds)
-        cli_commands.extend([self.LINE_BREAK])
 
         # Generate CLI commands for interface settings
         interface_settings_cmds = self._get_interface_settings()
         cli_commands.extend(interface_settings_cmds)
-        cli_commands.extend([self.LINE_BREAK])
 
         # Generate CLI commands for access control list
         acl_cmds = self._get_access_control_list()
@@ -153,8 +152,10 @@ class RouterConfiguration:
                 # Assuming 'RenameInterfaceConfig' is the correct key in the result
                 cmd_setting = result.get('RenameInterfaceConfig')
                 cmd_config_lines.append(cmd_setting)
-
+            
+            cmd_config_lines.extend([self.LINE_BREAK])
             return cmd_config_lines
+        
         else:
             # Log an error if the retrieval fails and return an empty list
             self.log.error("Failed to retrieve interface rename configurations.")

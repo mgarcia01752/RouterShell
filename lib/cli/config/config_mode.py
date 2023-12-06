@@ -260,7 +260,6 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         if Nat().create_nat_pool(args):
             print(f"Unable to create ANT pool: {args}")
 
-
     def complete_ipv6(self, text, line, begidx, endidx):
         completions = ['route']
         return [comp for comp in completions if comp.startswith(text)]

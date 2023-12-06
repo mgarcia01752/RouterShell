@@ -3724,6 +3724,7 @@ class RouterShellDB(metaclass=Singleton):
                     CASE WHEN InterfaceSubOptions.ProxyArp THEN 'ip proxy-arp' ELSE 'no ip proxy-arp' END AS ProxyArp,
                     CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
                     'bridge group ' || Bridges.BridgeName AS BridgeGroup,
+                    'ip nat ' || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
                     CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
                 FROM
                     Interfaces
@@ -3731,6 +3732,8 @@ class RouterShellDB(metaclass=Singleton):
                 LEFT JOIN InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
                 LEFT JOIN BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
                 LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
+                LEFT JOIN NatDirections ON Interfaces.ID = NatDirections.Interface_FK
+                LEFT JOIN Nats ON Nats.ID = NatDirections.NAT_FK
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
             
