@@ -73,7 +73,7 @@ class RouterConfiguration:
             global_settings_cmds.extend(self._get_global_bridge_config())
             global_settings_cmds.extend(self._get_global_vlan_config())
             global_settings_cmds.extend(self._get_global_nat_config())
-            global_settings_cmds.extend(self._get_rename_interface_config())
+            global_settings_cmds.extend(self._get_global_rename_interface_config())
 
             return global_settings_cmds
 
@@ -89,22 +89,21 @@ class RouterConfiguration:
         """
         status, bridge_info_results = self.rcdb.get_bridge_configuration()
 
-        if status:
+        if status == STATUS_NOK:
             return []
 
-        bridge_cmd_lines = []
+        cmd_lines = []
 
         for bridge_config in bridge_info_results:
-            bridge_cmd_lines.extend(
+            cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(bridge_config.values()) else line
                 for i, line in enumerate(filter(None, bridge_config.values()))
             )
 
-        # Place 'end' outside the loop to avoid indentation
-        bridge_cmd_lines.append('end')
-        bridge_cmd_lines.extend([self.LINE_BREAK])
+        cmd_lines.append('end')
+        cmd_lines.extend([self.LINE_BREAK])
 
-        return bridge_cmd_lines
+        return cmd_lines
 
     def _get_global_vlan_config(self, indent: int = 1) -> List[str]:
         """
@@ -121,43 +120,40 @@ class RouterConfiguration:
         if status:
             return []
 
-        vlan_cmd_lines = []
+        cmd_lines = []
 
         for vlan_config in vlan_info_results:
-            vlan_cmd_lines.extend(
+            cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(vlan_config.values()) else line
                 for i, line in enumerate(filter(None, vlan_config.values()))
             )
 
         # Place 'end' outside the loop to avoid indentation
-        vlan_cmd_lines.append('end')
-        vlan_cmd_lines.extend([self.LINE_BREAK])
+        cmd_lines.append('end')
+        cmd_lines.extend([self.LINE_BREAK])
 
-        return vlan_cmd_lines
+        return cmd_lines
 
-    def _get_rename_interface_config(self) -> List[str]:
+    def _get_global_rename_interface_config(self) -> List[str]:
         """
         Generate CLI commands for renaming interface configurations based on the database.
 
         Returns:
             List[str]: A list of CLI commands for renaming interface configurations.
         """
-        cmd_config_lines = []
+        cmd_lines = []
 
-        # Assuming the correct method name is get_interface_rename_configuration
         status, results = self.rcdb.get_interface_rename_configuration()
 
         if status == STATUS_OK:
             for result in results:
-                # Assuming 'RenameInterfaceConfig' is the correct key in the result
                 cmd_setting = result.get('RenameInterfaceConfig')
-                cmd_config_lines.append(cmd_setting)
+                cmd_lines.append(cmd_setting)
             
-            cmd_config_lines.extend([self.LINE_BREAK])
-            return cmd_config_lines
+            cmd_lines.extend([self.LINE_BREAK])
+            return cmd_lines
         
         else:
-            # Log an error if the retrieval fails and return an empty list
             self.log.error("Failed to retrieve interface rename configurations.")
             return []
 
@@ -168,21 +164,19 @@ class RouterConfiguration:
         Returns:
         List[str]: A list of global NAT pool names.
         """
-        cmd_config_lines = []
+        cmd_lines = []
 
-        # Assuming the correct method name is get_nat_configuration
         status, results = self.rcdb.get_nat_configuration()
         self.log.debug(f"_get_global_nat_config() -> {results}")
 
         if status == STATUS_OK:
             for result in results:
                 cmd_setting = result.get('IpNatPoolName')
-                cmd_config_lines.append(cmd_setting)
-            cmd_config_lines.append(self.LINE_BREAK)
-            return cmd_config_lines
+                cmd_lines.append(cmd_setting)
+            cmd_lines.append(self.LINE_BREAK)
+            return cmd_lines
         
         else:
-            # Log an error if the retrieval fails and return an empty list
             self.log.debug("Failed to retrieve global NAT configurations.")
             return []
          
@@ -193,18 +187,15 @@ class RouterConfiguration:
         Returns:
             List[str]: List of CLI commands for interface settings.
         """
-        interface_cmds = []
+        cmds_lines = []
 
-        # Get a list of Ethernet interface names
         ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
 
-        # Define values outside the loop
         interface_cmd_lines = []
 
         for if_name in ethernet_interfaces:
             self.log.debug(f'Interface: {if_name}')
 
-            # Get configuration for the current interface
             status, if_config = self.rcdb.get_interface_configuration(if_name)
 
             if status:
@@ -215,7 +206,6 @@ class RouterConfiguration:
             
             status, if_ip_static_arp_config = self.rcdb.get_interface_ip_static_arp_configuration(if_name)
 
-            # Indent the lines excluding the first and last lines
             interface_cmd_lines.extend(' ' * indent + line if i != 0 and i != len(if_config.values()) - 1 else line
                                     for i, line in enumerate(filter(None, if_config.values())))
 
@@ -232,9 +222,9 @@ class RouterConfiguration:
             self.log.debug(f'Interface-Config: {interface_cmd_lines}')
 
         # Append other interface commands
-        interface_cmds.extend(interface_cmd_lines)
+        cmds_lines.extend(interface_cmd_lines)
 
-        return interface_cmds
+        return cmds_lines
 
     def _get_access_control_list(self) -> List[str]:
         """
@@ -243,7 +233,6 @@ class RouterConfiguration:
         Returns:
             List[str]: List of CLI commands for access control lists.
         """
-        acl_cmds = [
-
-        ]
-        return acl_cmds
+        cmd_lines = []
+        
+        return cmd_lines
