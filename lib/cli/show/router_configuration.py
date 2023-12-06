@@ -35,30 +35,30 @@ class RouterConfiguration:
             List[str]: List of CLI commands representing the running configuration.
         """
         
-        cli_commands = []
+        cmd_lines = []
 
         # Add configuration message start and section break
-        cli_commands.extend([self.LINE_BREAK])  
-        cli_commands.extend([self.CONFIG_MSG_START])
-        cli_commands.extend([self.LINE_BREAK])        
+        cmd_lines.extend([self.LINE_BREAK])  
+        cmd_lines.extend([self.CONFIG_MSG_START])
+        cmd_lines.extend([self.LINE_BREAK])        
 
         # Enter configuration mode
-        cli_commands.extend(['enable', 'configure terminal'])
-        cli_commands.extend([self.LINE_BREAK])
+        cmd_lines.extend(['enable', 'configure terminal'])
+        cmd_lines.extend([self.LINE_BREAK])
         
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
-        cli_commands.extend(global_settings_cmds)
+        cmd_lines.extend(global_settings_cmds)
 
         # Generate CLI commands for interface settings
         interface_settings_cmds = self._get_interface_settings()
-        cli_commands.extend(interface_settings_cmds)
+        cmd_lines.extend(interface_settings_cmds)
 
         # Generate CLI commands for access control list
         acl_cmds = self._get_access_control_list()
-        cli_commands.extend(acl_cmds)
+        cmd_lines.extend(acl_cmds)
 
-        return cli_commands
+        return cmd_lines
 
     def _get_global_settings(self) -> List[str]:
             """
@@ -187,7 +187,7 @@ class RouterConfiguration:
         Returns:
             List[str]: List of CLI commands for interface settings.
         """
-        cmds_lines = []
+        cmd_lines = []
 
         ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
 
@@ -222,9 +222,9 @@ class RouterConfiguration:
             self.log.debug(f'Interface-Config: {interface_cmd_lines}')
 
         # Append other interface commands
-        cmds_lines.extend(interface_cmd_lines)
+        cmd_lines.extend(interface_cmd_lines)
 
-        return cmds_lines
+        return cmd_lines
 
     def _get_access_control_list(self) -> List[str]:
         """
