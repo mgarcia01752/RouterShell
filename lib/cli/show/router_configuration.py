@@ -68,14 +68,14 @@ class RouterConfiguration:
                 List[str]: List of CLI commands for global settings.
             """
             
-            global_settings_cmds = []
+            cmd_lines = []
 
-            global_settings_cmds.extend(self._get_global_bridge_config())
-            global_settings_cmds.extend(self._get_global_vlan_config())
-            global_settings_cmds.extend(self._get_global_nat_config())
-            global_settings_cmds.extend(self._get_global_rename_interface_config())
+            cmd_lines.extend(self._get_global_bridge_config())
+            cmd_lines.extend(self._get_global_vlan_config())
+            cmd_lines.extend(self._get_global_nat_config())
+            cmd_lines.extend(self._get_global_rename_interface_config())
 
-            return global_settings_cmds
+            return cmd_lines
 
     def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
         """

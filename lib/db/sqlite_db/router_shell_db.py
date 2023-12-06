@@ -3717,6 +3717,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute('''
                 SELECT DISTINCT
+                
                     'interface ' || Interfaces.InterfaceName AS Interface,
                     'mac address ' || InterfaceSubOptions.MacAddress AS MacAddress,
                     'duplex ' || InterfaceSubOptions.Duplex AS Duplex,
@@ -3726,14 +3727,16 @@ class RouterShellDB(metaclass=Singleton):
                     'bridge group ' || Bridges.BridgeName AS BridgeGroup,
                     'ip nat ' || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
                     CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
-                FROM
-                    Interfaces
+                
+                FROM Interfaces
+                
                 LEFT JOIN InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interface_FK
                 LEFT JOIN InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
                 LEFT JOIN BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
                 LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
                 LEFT JOIN NatDirections ON Interfaces.ID = NatDirections.Interface_FK
                 LEFT JOIN Nats ON Nats.ID = NatDirections.NAT_FK
+                
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
             
