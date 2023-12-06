@@ -3899,10 +3899,8 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query)
 
-            # Fetch all rows from the result set
             rows = cursor.fetchall()
 
-            # Process rows and create Result objects
             result_list = [Result(status=STATUS_OK, row_id=None, result={'RenameInterfaceConfig': row[0]}) for row in rows]
 
             return result_list
@@ -3911,7 +3909,6 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error retrieving data from 'RenameInterface': {e}"
             self.log.error(error_message)
 
-            # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
     def select_global_bridge_configuration(self) -> List[Result]:
@@ -3938,7 +3935,6 @@ class RouterShellDB(metaclass=Singleton):
             # Fetch all rows from the result set
             rows = cursor.fetchall()
 
-            # Process rows and create Result objects using a list comprehension
             result_list = [
                 Result(status=STATUS_OK, row_id=None,
                     result={
@@ -3956,7 +3952,6 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error retrieving data from 'Bridges': {e}"
             self.log.error(error_message)
 
-            # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
     def select_global_vlan_configuration(self) -> List[Result]:
@@ -3979,10 +3974,8 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query)
 
-            # Fetch all rows from the result set
             rows = cursor.fetchall()
-
-            # Process rows and create Result objects using a list comprehension
+            
             result_list = [
                 Result( status=STATUS_OK, row_id=None,
                     result={
@@ -3999,7 +3992,6 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error retrieving data from 'Vlans': {e}"
             self.log.error(error_message)
 
-            # Return a single Result object in case of an error
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
     def select_global_nat_configuration(self) -> List[Result]:
@@ -4043,7 +4035,7 @@ class RouterShellDB(metaclass=Singleton):
         - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools) exist with the specified schema.
         """
         try:
-            # Define the SQL query to retrieve global DHCP server pool IP address configurations.
+
             query = """
                 SELECT DISTINCT
                     'pool ' || ' ' || DHCPSubnetPools.InetAddressStart || ' ' || DHCPSubnetPools.InetAddressEnd || ' ' || DHCPSubnetPools.InetSubnet AS DhcpServerIpAddrPool
@@ -4058,10 +4050,8 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
             
-            # Fetch all rows from the result set.
             rows = cursor.fetchall()
 
-            # Build Result objects for each row in the result set.
             results = [
                 Result(
                     status=STATUS_OK,
