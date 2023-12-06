@@ -167,6 +167,7 @@ class InterfaceConfig(cmd2.Cmd,
     def complete_ip(self, text, line, begidx, endidx):
         completions = ['address', 'secondary']
         completions.extend(['proxy-arp', 'drop-gratuitous-arp', 'static-arp'])
+        completions.extend(['dhcp-server', 'dhcp-client', 'pool-name'])
         completions.extend(['nat', 'inside', 'outside', 'pool'])
         return [comp for comp in completions if comp.startswith(text)]
     

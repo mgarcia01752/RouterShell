@@ -1050,6 +1050,39 @@ class RouterShellDB(metaclass=Singleton):
     '''
                         DHCP-SERVER DATABASE
     '''
+    def select_dhcp_server_pool_list(self) -> List[Result]:
+        """
+        Retrieve a list of DHCP server pool names from the 'DHCPServer' table.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a row from the 'DHCPServer' table.
+
+        Note:
+        - This method assumes that the 'DHCPServer' table exists with the specified schema.
+        """
+        try:
+            # Define the SQL query to retrieve DHCP server pool names.
+            query = "SELECT ID, DhcpPoolname FROM DHCPServer;"
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            
+            dhcp_pool_names = [row[0] for row in cursor.fetchall()]
+
+            # Build Result objects for each DHCP server pool name.
+            results = [
+                Result(status=STATUS_OK, row_id=dhcp_pool_name[0],
+                        reason=f"Retrieved DHCP server pool '{dhcp_pool_name}' successfully",
+                        result={"DhcpPoolname": dhcp_pool_name[1]},
+                )
+                for dhcp_pool_name in dhcp_pool_names
+            ]
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve DHCP server pool names. Error: {str(e)}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
     def insert_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
         """
@@ -3671,6 +3704,10 @@ class RouterShellDB(metaclass=Singleton):
     '''
                             ROUTER-CONFIGURATION
     '''
+
+    '''
+                            ROUTER-CONFIGURATION-INTERFACE
+    '''
         
     def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
         """
@@ -3726,6 +3763,7 @@ class RouterShellDB(metaclass=Singleton):
                     CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
                     'bridge group ' || Bridges.BridgeName AS BridgeGroup,
                     'ip nat ' || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
+                    'ip dhcp-server pool ' || DHCPServer.DhcpPoolname as DhcpServerPool,
                     CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
                 
                 FROM Interfaces
@@ -3736,6 +3774,7 @@ class RouterShellDB(metaclass=Singleton):
                 LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
                 LEFT JOIN NatDirections ON Interfaces.ID = NatDirections.Interface_FK
                 LEFT JOIN Nats ON Nats.ID = NatDirections.NAT_FK
+                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interface_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
@@ -3752,7 +3791,9 @@ class RouterShellDB(metaclass=Singleton):
                     'ProxyArp': result[4],
                     'DropGratuitousArp': result[5],
                     'BridgeGroup': result[6],
-                    'Shutdown': result[7],
+                    'NatInterafaceDirection': result[7],
+                    'DhcpServerPool': result[8],
+                    'Shutdown': result[9],
                 }
                 return Result(status=STATUS_OK, row_id=None, result=sql_result_dict)
             else:
@@ -3987,3 +4028,148 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting global NAT configurations: {e}"
             self.log.error(error_message)
             return [Result(STATUS_NOK, reason=error_message)]
+
+    def select_global_dhcp_server_pool(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve a list of global DHCP server pool IP address configurations.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP server pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a row from the DHCPSubnetPools table.
+
+        Note:
+        - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools) exist with the specified schema.
+        """
+        try:
+            # Define the SQL query to retrieve global DHCP server pool IP address configurations.
+            query = """
+                SELECT DISTINCT
+                    'pool ' || ' ' || DHCPSubnetPools.InetAddressStart || ' ' || DHCPSubnetPools.InetAddressEnd || ' ' || DHCPSubnetPools.InetSubnet AS DhcpServerIpAddrPool
+                
+                FROM DHCPServer
+                
+                LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK
+                LEFT JOIN DHCPSubnetPools ON DHCPSubnet.ID = DHCPSubnetPools.DHCPSubnet_FK
+                
+                WHERE DHCPServer.DhcpPoolname = ?;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (dhcp_pool_name,))
+            
+            # Fetch all rows from the result set.
+            rows = cursor.fetchall()
+
+            # Build Result objects for each row in the result set.
+            results = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=row[0],  # Assuming the first column is an ID column, adjust if necessary
+                    reason=f"Retrieved global DHCP server pool IP address configuration for pool '{dhcp_pool_name}' successfully",
+                    result={"DhcpServerIpAddrPool": row[1]},  # Assuming the second column is the IP address pool
+                )
+                for row in rows
+            ]
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve global DHCP server pool IP address configurations. Error: {str(e)}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_global_dhcp_server_reservation_pool(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve a list of global DHCP server reservation pool configurations.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP server pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a row from the DHCPSubnetReservations table.
+
+        Note:
+        - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetReservations) exist with the specified schema.
+        """
+        try:
+            query = """
+                SELECT DISTINCT
+                    'reservations ' || 'hw-address ' || DHCPSubnetReservations.MacAddress || ' ip-address ' || DHCPSubnetReservations.InetAddress AS DhcpServerReservationPool
+                
+                FROM DHCPServer
+                
+                LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK
+                LEFT JOIN DHCPSubnetReservations ON DHCPSubnet.ID = DHCPSubnetReservations.DHCPSubnet_FK
+                
+                WHERE DHCPServer.DhcpPoolname = ?;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (dhcp_pool_name,))
+            
+            rows = cursor.fetchall()
+
+            results = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=row[0],
+                    reason=f"Retrieved global DHCP server reservation pool configuration for pool '{dhcp_pool_name}' successfully",
+                    result={"DhcpServerReservationPool": row[1]},
+                )
+                for row in rows
+            ]
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve global DHCP server reservation pool configurations. Error: {str(e)}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+        
+    def select_global_dhcp_server_subnet_option_pool(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve a list of global DHCP server subnet option pool configurations.
+
+        Args:
+            dhcp_pool_name (str): The name of the DHCP server pool.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a row from the DHCPOptions table.
+
+        Note:
+        - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools, DHCPOptions) exist with the specified schema.
+        """
+        try:
+            query = """
+                SELECT DISTINCT
+                    'option ' || DHCPOptions.DhcpOption || ' ' || DHCPOptions.DhcpValue AS DhcpServerOptionPool
+                
+                FROM DHCPServer
+                
+                LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK
+                LEFT JOIN DHCPSubnetPools ON DHCPServer.ID = DHCPSubnetPools.DHCPSubnet_FK
+                LEFT JOIN DHCPOptions ON DHCPSubnetPools.ID = DHCPOptions.DHCPSubnetPools_FK
+                
+                WHERE DHCPServer.DhcpPoolname = ?;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (dhcp_pool_name,))
+            
+            rows = cursor.fetchall()
+
+            results = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=row[0],
+                    reason=f"Retrieved global DHCP server subnet option pool configuration for pool '{dhcp_pool_name}' successfully",
+                    result={"DhcpServerOptionPool": row[1]},
+                )
+                for row in rows
+            ]
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve global DHCP server subnet option pool configurations. Error: {str(e)}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
