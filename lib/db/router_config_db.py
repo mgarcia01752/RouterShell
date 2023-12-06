@@ -133,7 +133,7 @@ class RouterConfigurationDatabase:
 
         rename_list = []
 
-        rename_result = cls.rsdb.select_interface_rename_configuration()
+        rename_result = cls.rsdb.select_global_interface_rename_configuration()
 
         # Check if any errors occurred during the retrieval
         if any(result.status for result in rename_result):

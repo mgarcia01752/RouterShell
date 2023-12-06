@@ -3836,7 +3836,11 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_rename_configuration(self) -> List[Result]:
+    '''
+                            ROUTER-CONFIGURATION-GLOBAL
+    '''
+
+    def select_global_interface_rename_configuration(self) -> List[Result]:
         """
         Retrieve data from the 'RenameInterface' table and format it into a list of Result objects.
 
