@@ -73,9 +73,47 @@ class RouterConfiguration:
             cmd_lines.extend(self._get_global_bridge_config())
             cmd_lines.extend(self._get_global_vlan_config())
             cmd_lines.extend(self._get_global_nat_config())
+            cmd_lines.extend(self._get_global_dhcp_server_config())
             cmd_lines.extend(self._get_global_rename_interface_config())
 
             return cmd_lines
+
+    def _get_global_dhcp_server_config(self, indent: int = 1) -> List[str]:
+        """
+        Generate CLI commands for global DHCP server configuration based on retrieved information.
+
+        Args:
+            indent (int, optional): The number of spaces to use for indentation in the generated commands. Defaults to 1.
+
+        Returns:
+            List[str]: A list of CLI commands representing global DHCP server configuration.
+            
+        Note:
+        - This method retrieves DHCP server configuration information using the `get_dhcp_server_configuration` method.
+        - The generated CLI commands are structured and indented based on the specified indent parameter.
+        - If the retrieval of DHCP server configuration information fails, an empty list is returned.
+        - The 'end' command is added at the end of the generated commands to denote the completion of configuration.
+
+        """
+        status, dhcp_server_info_results = self.rcdb.get_dhcp_server_configuration()
+
+        if status == STATUS_NOK:
+            return []
+
+        cmd_lines = []
+
+        for dhcp_server_config in dhcp_server_info_results:
+            self.log.info(f"_get_global_dhcp_server_config() -> {dhcp_server_config}")
+            cmd_lines.extend(
+                ' ' * indent + line if i != 0 and i != len(dhcp_server_config.values()) else line
+                for i, line in enumerate(filter(None, dhcp_server_config.values()))
+            )
+
+        cmd_lines.append('end')
+        cmd_lines.extend([self.LINE_BREAK])
+
+        return cmd_lines
+     
 
     def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
         """

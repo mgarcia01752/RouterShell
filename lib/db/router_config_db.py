@@ -1,4 +1,5 @@
 import logging
+from itertools import count
 from typing import Dict, List, Tuple
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
@@ -10,6 +11,7 @@ from lib.network_manager.network_manager import InterfaceType
 class RouterConfigurationDatabase:
 
     rsdb = RSDB()
+    counter = count(start=1)
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
@@ -18,6 +20,7 @@ class RouterConfigurationDatabase:
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()
+            
     
     def get_interface_name_list(cls, interface_type: InterfaceType) -> List[str]:
         """
@@ -229,4 +232,60 @@ class RouterConfigurationDatabase:
             cls.log.error("Failed to retrieve NAT configurations.")
             return STATUS_NOK, []
 
-     
+    def get_dhcp_server_configuration(cls) -> Tuple[bool, List[Dict]]:
+        """
+        Retrieve global DHCP server configuration data, including pool details, reservations, and subnet options.
+
+        Returns:
+            Tuple[bool, List[Dict]]: A tuple containing a boolean status and a list of dictionaries representing DHCP server configuration data.
+                - The boolean status is True (STATUS_OK) if the retrieval is successful, and False (STATUS_NOK) otherwise.
+                - The list includes dictionaries for each type of data, making it easy to distinguish between pool details,
+                reservations, and subnet options.
+
+        Note:
+        - This method relies on the assumption that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools, DHCPOptions)
+        exist with the specified schema.
+        - The returned list includes dictionaries for each type of data, providing a structured format for the DHCP server configuration.
+        - If the retrieval is unsuccessful, the method returns a tuple with a status of STATUS_NOK and an empty list.
+        """
+        dhcp_server_config_result = cls.rsdb.select_global_dhcp_server_configuration()
+        dhcp_server_config_data = []
+
+        if all(result.status == STATUS_OK for result in dhcp_server_config_result):
+            for dsc_result in dhcp_server_config_result:
+                pool_name = dsc_result.result.get('DhcpServerPoolName').split()[1]
+
+                # Create a dictionary to store the combined information
+                combined_data = dsc_result.result
+
+                # Update the dictionary with pool data
+                dhcp_server_pool_results = cls.rsdb.select_global_dhcp_server_pool(pool_name)
+                for data in dhcp_server_pool_results:
+                    for key, value in data.result.items():
+                        combined_data.update({f"{key}-{str(next(cls.counter))}": value})
+
+                # Update the dictionary with reservation data
+                dhcp_server_reservation_results = cls.rsdb.select_global_dhcp_server_reservation_pool(pool_name)
+                for data in dhcp_server_reservation_results:
+                    for key, value in data.result.items():
+                        combined_data.update({f"{key}-{str(next(cls.counter))}": value})
+
+
+                # Update the dictionary with option data
+                dhcp_server_option_results = cls.rsdb.select_global_dhcp_server_subnet_option_pool(pool_name)
+                for data in dhcp_server_option_results:
+                    for key, value in data.result.items():
+                        combined_data.update({f"{key}-{str(next(cls.counter))}": value})
+
+                dhcp_server_config_data.append(combined_data)
+
+                print(f"DICT: {str(combined_data)}")
+
+        else:
+            return STATUS_NOK, dhcp_server_config_data
+
+        print(dhcp_server_config_data[0])
+
+        return STATUS_OK, dhcp_server_config_data
+
+

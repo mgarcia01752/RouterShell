@@ -4021,6 +4021,50 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(STATUS_NOK, reason=error_message)]
 
+    def select_global_dhcp_server_configuration(self) -> List[Result]:
+        """
+        Retrieve a list of global DHCP server configurations.
+
+        Returns:
+            List[Result]: A list of Result objects, each representing a row from the DHCPServer and DHCPSubnet tables.
+
+        Note:
+        - This method assumes that the necessary tables (DHCPServer, DHCPSubnet) exist with the specified schema.
+        """
+        try:
+
+            query = """
+                SELECT DISTINCT
+                    'dhcp ' || DHCPServer.DhcpPoolname AS DhcpServerPollName,
+                    'subnet ' || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
+                FROM DHCPServer
+                LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            
+            rows = cursor.fetchall()
+
+            results = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=0,
+                    reason=f"Retrieved global DHCP server configuration for pool '{row[0]}' and subnet '{row[1]}' successfully",
+                    result={
+                        "DhcpServerPoolName": row[0],
+                        "DHCPSubnetSubnet": row[1],
+                    },
+                )
+                for row in rows
+            ]
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve global DHCP server configurations. Error: {str(e)}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
     def select_global_dhcp_server_pool(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve a list of global DHCP server pool IP address configurations.
@@ -4051,13 +4095,13 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute(query, (dhcp_pool_name,))
             
             rows = cursor.fetchall()
-
+                        
             results = [
                 Result(
                     status=STATUS_OK,
-                    row_id=row[0],  # Assuming the first column is an ID column, adjust if necessary
+                    row_id=0,
                     reason=f"Retrieved global DHCP server pool IP address configuration for pool '{dhcp_pool_name}' successfully",
-                    result={"DhcpServerIpAddrPool": row[1]},  # Assuming the second column is the IP address pool
+                    result={"DhcpServerIpAddrPool": row[0]},
                 )
                 for row in rows
             ]
@@ -4102,9 +4146,9 @@ class RouterShellDB(metaclass=Singleton):
             results = [
                 Result(
                     status=STATUS_OK,
-                    row_id=row[0],
+                    row_id=0,
                     reason=f"Retrieved global DHCP server reservation pool configuration for pool '{dhcp_pool_name}' successfully",
-                    result={"DhcpServerReservationPool": row[1]},
+                    result={"DhcpServerReservationPool": row[0]},
                 )
                 for row in rows
             ]
@@ -4150,9 +4194,9 @@ class RouterShellDB(metaclass=Singleton):
             results = [
                 Result(
                     status=STATUS_OK,
-                    row_id=row[0],
+                    row_id=0,
                     reason=f"Retrieved global DHCP server subnet option pool configuration for pool '{dhcp_pool_name}' successfully",
-                    result={"DhcpServerOptionPool": row[1]},
+                    result={"DhcpServerOptionPool": row[0]},
                 )
                 for row in rows
             ]

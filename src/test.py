@@ -6,10 +6,8 @@ from lib.db.router_config_db import RouterConfigurationDatabase
 from lib.network_manager.network_manager import InterfaceType
 
 
-rc = RouterConfiguration()
+rcdb = RouterConfigurationDatabase()
 
-run_config = rc.get_running_configuration()
-for line in run_config:
-    print(line)
+print(rcdb.get_dhcp_server_configuration())
     
 
