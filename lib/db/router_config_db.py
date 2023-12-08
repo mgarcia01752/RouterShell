@@ -279,13 +279,9 @@ class RouterConfigurationDatabase:
 
                 dhcp_server_config_data.append(combined_data)
 
-                print(f"DICT: {str(combined_data)}")
-
         else:
             return STATUS_NOK, dhcp_server_config_data
-
-        print(dhcp_server_config_data[0])
-
+        
         return STATUS_OK, dhcp_server_config_data
 
 

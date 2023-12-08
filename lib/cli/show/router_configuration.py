@@ -103,7 +103,6 @@ class RouterConfiguration:
         cmd_lines = []
 
         for dhcp_server_config in dhcp_server_info_results:
-            self.log.info(f"_get_global_dhcp_server_config() -> {dhcp_server_config}")
             cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(dhcp_server_config.values()) else line
                 for i, line in enumerate(filter(None, dhcp_server_config.values()))

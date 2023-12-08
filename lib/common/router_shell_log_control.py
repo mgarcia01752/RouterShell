@@ -33,10 +33,10 @@ class RouterShellLoggingGlobalSettings():
     DHCP_CLIENT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CLIENT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    DHCP_SERVER                 = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    DHCP_SERVER_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    DHCP_POOL_FACTORY           = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    DHCP_SERVER_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    DHCP_SERVER                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_SERVER_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_POOL_FACTORY           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_SERVER_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     DHCP_SERVER_SERVICE         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_SERVER_SERVICE_DB      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -55,9 +55,9 @@ class RouterShellLoggingGlobalSettings():
     ROUTE                       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    NAT                         = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    NAT_DB                      = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    NAT_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    NAT                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT_DB                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NAT_CONFIG                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     HARDWARE_NETWORK            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
@@ -76,8 +76,8 @@ class RouterShellLoggingGlobalSettings():
     
     WL_CELL                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    ROUTER_CONFIG               = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    ROUTER_CONFIG_DB            = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    ROUTER_CONFIG               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ROUTER_CONFIG_DB            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
  
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
