@@ -40,8 +40,11 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
                         
         self.prompt = self.set_prompt()
              
-    def do_protocol(self, args=None):
+    def do_protocol(self, args=None, negate=False):
         return 
+    
+    def do_stp(self, args=None, negate=False):
+        return
     
     def do_shutdown(self, args=None, negate=False) -> bool:
         """
@@ -75,4 +78,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         if start_cmd == 'shutdown':
             self.log.debug(f"Enable interface -> {self.bridge_ifName}")
             self.do_shutdown(None, negate=True)
+    
+    def default(self, args):
+        print(f'Invalid command')
     
