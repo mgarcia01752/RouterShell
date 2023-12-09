@@ -61,7 +61,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         if negate:
             state = State.UP
         
-        return Bridge().set_interface_shutdown(self.bridge_ifName, state)
+        Bridge().set_interface_shutdown(self.bridge_ifName, state)
         
     def complete_no(self, text, line, begidx, endidx):
         completions = ['shutdown', 'name', 'protocol']

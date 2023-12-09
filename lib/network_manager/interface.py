@@ -417,10 +417,10 @@ class Interface(NetworkManager, InterfaceDatabase):
             bool: STATUS_OK if the interface was successfully renamed, STATUS_NOK otherwise.
         """
                 
-        self.log.debug(f"rename_interface() -> Curr-if: {initial_interface_name} -> alias-if: {alias_interface_name}")
+        self.log.debug(f"rename_interface() -> if: {initial_interface_name} -> alias-if: {alias_interface_name}")
         
         if not self.does_interface_exist(initial_interface_name):
-            self.log.debug(f"rename_interface() -> initial interface: {initial_interface_name} does not exists")
+            self.log.error(f"Interface: {initial_interface_name} does not exists")
             return STATUS_NOK
         
         if self.db_lookup_interface_alias_exist(initial_interface_name, alias_interface_name):
@@ -620,7 +620,41 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return STATUS_NOK
 
         return STATUS_OK
-    
+
+    def get_interface_info(self, interface_name: str) -> dict:
+        """
+        Retrieve detailed information about a specific network interface.
+
+        Parameters:
+        - interface_name (str): The logical name of the network interface.
+
+        Returns:
+        - dict: Detailed information about the specified network interface, or None if not found.
+        """
+        try:
+            command = ['lshw', '-c', 'network', '-json']
+            result = self.run(command)
+
+            if result:
+                # Parse JSON output
+                output_json = json.loads(result.stdout)
+
+                # Find the specified interface in the JSON output
+                for interface in output_json:
+                    if interface.get('logicalname') == interface_name:
+                        return interface
+
+                # Interface not found
+                return None
+            else:
+                # Handle the case where the command failed
+                print("Error running lshw command.")
+                return None
+
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return None
+            
     def _update_interface_db_from_os_settings(self, interface_name:str = None) -> bool:
         # TODO
         # if interface_name == None, then update all interfaces found on the system

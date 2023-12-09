@@ -111,7 +111,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         return [comp for comp in completions if comp.startswith(text)]
 
     @cmd2.with_argument_list
-    def do_bridge(self, args=None):
+    def do_bridge(self, args=None, negate=False):
         """
         Enter the Bridge configuration mode for a specific Bridge.
 
@@ -140,33 +140,41 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         BridgeConfig(args[0]).cmdloop()
 
     @cmd2.with_argument_list
-    def do_vlan(self, args=None) -> None:
+    def do_vlan(self, args=None, negate=False) -> None:
         """
         Enter the VLAN configuration mode for a specific VLAN.
 
         This method allows you to enter the VLAN configuration mode for a specific VLAN.
-        You must specify the VLAN name as an argument to enter the configuration mode.
+        You must specify the VLAN ID as an argument to enter the configuration mode.
 
         Usage:
-            vlan <vlan_name>
+            vlan <vlan_id>
 
         Args:
-            args (list): A list of arguments. It should contain one element, which is the name of the VLAN.
+            args (str): A string representing the VLAN ID. It should be a single argument.
+            negate (bool): A boolean parameter with a default value of False.
 
         Raises:
-            InvalidConfigureMode: If the number of arguments is not exactly one, an error is raised.
+            ValueError: If the number of arguments is not exactly one, or if the VLAN ID is not a valid integer (1-4096).
 
         Returns:
             None
         """
-        self.log.debug(f"Vlan ARGS -> {args}")
-        
+        self.log.debug(f"do_vlan(args={args}, negate={negate})")
+                
+        # Check if the number of arguments is exactly one
         if len(args) != 1:
-            self.log.error(f"vlan -> {args[0]}")
-            raise InvalidConfigureMode(f"Invalid vlan name")
+            raise ValueError(f"vlan command expects exactly one argument, received: {len(args)}")
         
-        self.log.debug(f"do_vlan() -> Bridge: ({args[0]})")    
-        VlanConfig(args[0]).cmdloop()       
+        # Check if the argument is a valid integer in the range 1-4096
+        vlan_id = args[0]
+        if not vlan_id.isdigit() or not (1 <= int(vlan_id) <= 4096):
+            raise ValueError(f"Invalid VLAN ID: {vlan_id}. VLAN ID must be an integer in the range 1-4096.")
+        
+        # Enter VLAN configuration mode
+        VlanConfig(vlan_id).cmdloop()
+
+   
 
     def do_vlanDB(self, args=None) -> None:
         """

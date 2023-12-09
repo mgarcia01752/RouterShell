@@ -69,8 +69,7 @@ class HardwareDetection(RunCommand):
 
         except Exception as e:
             return f"Error: {str(e)}"        
-        
-    
+            
     def hardware_network(self):
         interface_info = []
 
