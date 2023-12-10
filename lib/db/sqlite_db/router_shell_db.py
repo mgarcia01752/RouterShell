@@ -391,7 +391,7 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             row_id = cursor.lastrowid  # Retrieve the row_id of the affected row
             self.log.debug(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
-            return Result(status=STATUS_OK, row_id=row_id, result=f"VLAN Name updated successfully: {vlan_name}")
+            return Result(status=STATUS_OK, row_id=row_id, result={'VlanName': vlan_name})
         
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN name: %s", e)
@@ -1019,10 +1019,29 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             error_message = f"Error checking NAT interface direction: {e}"
-            self.log.critical(error_message)
-            return Result(status=False, row_id=0, reason=error_message)
+            self.log.error(error_message)
+            return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
     def select_nat_interface_direction_list(self, nat_pool_name: str, direction: str) -> List[Result]:
+        """
+        Selects a list of interfaces associated with a specific NAT pool and direction.
+
+        Args:
+            nat_pool_name: The name of the NAT pool.
+            direction: The direction (inbound or outbound) for which to select interfaces.
+
+        Returns:
+            A list of `Result` objects. Each `Result` object contains the following information:
+            * `status`: True if successful, False if an error occurred.
+            * `row_id`: The primary key of the selected record (interface_fk) or `ROW_ID_NOT_FOUND` if an error occurred.
+            * `result`: A dictionary containing the following key-value pairs:
+                * `Interface_FK`: The primary key of the interface record.
+                * `InterfaceName`: The name of the interface.
+
+        Raises:
+            sqlite3.Error: If an error occurs while interacting with the database.
+        """
+
         try:
             cursor = self.connection.cursor()
             results = []
@@ -1037,15 +1056,22 @@ class RouterShellDB(metaclass=Singleton):
 
             rows = cursor.fetchall()
             for row in rows:
-                interface_id, interface_name = row
-                result = Result(status=True, row_id=interface_id, result=interface_name)
+                interface_fk, interface_name = row
+                result = Result(status=STATUS_OK, row_id=interface_fk, result={'Interface_FK': interface_fk, 'InterfaceName':interface_name})
                 results.append(result)
-
+                
+            if len(results) == 0:
+                return Result(status=STATUS_NOK, 
+                              row_id=self.ROW_ID_NOT_FOUND, 
+                              reason=f'No Interface Found for Nat-Pool: {nat_pool_name} for direction: {direction}',
+                              result={'Interface_FK': None, 'InterfaceName':None})
+            
             return results
-        except sqlite3.Error as e:
-            # Handle the database error, possibly log it or raise a custom exception
-            raise e
 
+        except sqlite3.Error as e:
+            error_message = f"Error selecting NAT interface direction list: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
     '''
                         DHCP-SERVER DATABASE
@@ -2683,39 +2709,43 @@ class RouterShellDB(metaclass=Singleton):
                         INTERFACE-RENAME-ALIAS
     '''
 
-    def update_interface_alias(self, initial_interface: str, alias_interface: str) -> Result:
+    def update_interface_alias(self, bus_info: str, initial_interface: str, alias_interface: str) -> Result:
         """
-            Update or create an alias for an initial interface.
+        Update or insert a record in the RenameInterface table to associate an alias interface with the initial interface.
 
-            Args:
-                initial_interface (str): The name of the initial interface.
-                alias_interface (str): The name of the alias interface.
+        Parameters:
+        - bus_info (str): The bus information of the interface.
+        - initial_interface (str): The initial name of the interface.
+        - alias_interface (str): The desired alias name for the interface.
 
-            Returns:
-                Result: A Result object with the following fields:
-                - status (bool): STATUS_OK if the alias was updated or created successfully, STATUS_NOK otherwise.
-                - row_id (int): The row ID of the updated or created alias entry.
-
-            Raises:
-                sqlite3.Error: If there is an error with the database query.
+        Returns:
+        - Result: An instance of the Result class indicating the status of the operation.
+          - status (str): STATUS_OK if the operation is successful, STATUS_NOK otherwise.
+          - row_id (int): The ID of the updated/inserted record in the RenameInterface table.
+          - reason (str): The error message, if any (only applicable if status is STATUS_NOK).
         """
+        self.log.debug(f"update_interface_alias({bus_info}, {initial_interface}, {alias_interface})")
         try:
             cursor = self.connection.cursor()
 
+            # Insert or replace the record in the RenameInterface table
             cursor.execute("""
-                INSERT OR REPLACE INTO RenameInterface (InitialInterface, AliasInterface)
-                VALUES (?, ?)
-            """, (initial_interface, alias_interface))
+                INSERT OR REPLACE INTO RenameInterface (BusInfo, InitialInterface, AliasInterface)
+                VALUES (?, ?, ?)
+            """, (bus_info, initial_interface, alias_interface))
 
             self.connection.commit()
 
+            # Retrieve the ID of the updated/inserted record
             cursor.execute("SELECT ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
             row_id = cursor.fetchone()[0]
 
             return Result(status=STATUS_OK, row_id=row_id)
         
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=e)
+            # Handle database-related errors and return the Result instance with the error details
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
+
 
     def is_initial_interface_alias_exist(self, initial_interface: str) -> Result:
         """
@@ -2742,7 +2772,7 @@ class RouterShellDB(metaclass=Singleton):
 
             if row is not None:
                 alias_name, row_id = row
-                return Result(status=True, row_id=row_id, result=alias_name)
+                return Result(status=True, row_id=row_id, result={'AliasInterface' : alias_name})
             else:
                 return Result(status=False, row_id=None, result=None)
         

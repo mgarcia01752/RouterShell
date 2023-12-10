@@ -152,6 +152,7 @@ class NatDB:
 
         """
         cls.log.debug(f"get_interface_direction_in_nat_pool_list({nat_pool_name} -> {direction})")
+        
         return cls.rsdb.select_nat_interface_direction_list(nat_pool_name, direction)
 
     def add_inside_interface(cls, nat_pool_name: str, interface_name: str) -> bool:

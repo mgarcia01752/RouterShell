@@ -26,6 +26,42 @@ class Arp(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ARP)
 
+    def is_arp_entry_exists(self, ip_address: str, interface: str = None) -> bool:
+        """
+        Check if an ARP entry already exists for a specific IP address on a given interface.
+
+        Parameters:
+            ip_address (str): The IP address to check.
+            interface (str): The network interface to check. If None, checks all interfaces.
+
+        Returns:
+            bool: True if the ARP entry exists, False otherwise.
+        """
+        try:
+            output = self.run(['ip', 'neighbor', 'show'])
+
+            if output.exit_code == 0:
+                arp_lines = output.stdout.strip().split('\n')
+
+                for line in arp_lines:
+                    words = line.split()
+
+                    if ip_address in words:
+                        if interface and interface in words:
+                            return True
+                        elif not interface:
+                            return True
+
+                return False
+            else:
+                self.log.error(f"Error executing 'ip neighbor show' command: {output.stderr}")
+                return False
+            
+        except Exception as e:
+            self.log.error(f"Error: {e}")
+            return False
+
+
     def arp_clear(self, ifName:str=None):
         """
         Clear the ARP cache for a specific network interface or all interfaces.

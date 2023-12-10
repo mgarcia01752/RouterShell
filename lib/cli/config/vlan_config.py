@@ -27,7 +27,7 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
         if self.check_or_add_vlan_to_db(self.vlan_id).status:
             self.log.debug(f"VLAN-ID {self.vlan_id} is already configured")
 
-    def do_name(self, vlan_name: str) -> int:
+    def do_name(self, vlan_name: str):
         """
         Change the name of the VLAN.
 
@@ -39,10 +39,7 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
 
         """
         if self.update_vlan_name(self.vlan_id, vlan_name).status:
-            self.log.error(f"Unable to add name: {vlan_name} to Vlan-ID {self.vlan_id}")
-            return STATUS_NOK
-        
-        return STATUS_OK
+            print(f"Unable to add name: {vlan_name} to Vlan-ID {self.vlan_id}")
 
     def do_description(self, vlan_descr: str) -> int:
         """

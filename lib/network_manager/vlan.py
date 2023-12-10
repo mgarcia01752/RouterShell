@@ -57,7 +57,7 @@ class Vlan(NetworkManager):
         Note:
         - This method calls the `update_vlan_name` method of `VLANDatabase` to update the VLAN's name in the database.
         """
-        self.log.info(f"update_vlan_name() -> VlanID: {vlan_id} -> VlanName: {vlan_name}")
+        self.log.debug(f"update_vlan_name() -> VlanID: {vlan_id} -> VlanName: {vlan_name}")
         
         return VLANDatabase().update_vlan_name_via_vlanID(vlan_id, vlan_name)
 

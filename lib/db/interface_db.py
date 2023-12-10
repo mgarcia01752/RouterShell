@@ -366,7 +366,7 @@ class InterfaceDatabase:
             return STATUS_NOK
         return STATUS_OK
 
-    def update_db_rename_alias(cls, initial_interface_name: str, alias_interface_name: str) -> bool:
+    def update_db_rename_alias(cls, bus_info: str, initial_interface_name: str, alias_interface_name: str) -> bool:
         """
         Update or create an alias for an initial interface and check if they match.
 
@@ -381,12 +381,12 @@ class InterfaceDatabase:
         alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
 
         if alias_result.status:
-            if alias_result.alias_name == alias_interface_name:
+            if alias_result.result['AliasInterface'] == alias_interface_name:
                 return STATUS_OK
             else:
                 return STATUS_NOK
         
-        return cls.rsdb.update_interface_alias(initial_interface_name, alias_interface_name)
+        return cls.rsdb.update_interface_alias(bus_info, initial_interface_name, alias_interface_name).status
 
     def db_lookup_interface_alias_exist(cls, initial_interface_name: str, alias_interface_name: str) -> bool:
         """

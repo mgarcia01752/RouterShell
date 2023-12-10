@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS FirewallRules (
 DROP TABLE IF EXISTS RenameInterface;
 CREATE TABLE IF NOT EXISTS RenameInterface (
     ID INTEGER PRIMARY KEY,
+    BusInfo VARCHAR(30) UNIQUE,
     InitialInterface VARCHAR(50) UNIQUE,
     AliasInterface VARCHAR(50) UNIQUE
 );

@@ -218,17 +218,19 @@ class Nat(NetworkManager):
         
         outside_nat_interfaces = NatDB().get_interface_direction_in_nat_pool_list(nat_pool_name, NATDirection.OUTSIDE.value)
         
-        if len(outside_nat_interfaces) != 1:
-            if len(outside_nat_interfaces):
-                self.log.error(f"Define an outside interface before creating inside NAT rules for poll: {nat_pool}.")
-                return STATUS_NOK
-            if len(outside_nat_interfaces) > 1:
-                self.log.critical(f"More than 1 interfaces are defined in: {nat_pool}.  DataBase ERROR")
-                return STATUS_NOK
+        if len(outside_nat_interfaces) > 1:
+            self.log.error(f"More than 1 interfaces are defined in: {nat_pool}.  DataBase ERROR")
+            return STATUS_NOK
 
-        outside_nat_interface = outside_nat_interfaces[0].result
+        outside_nat_interface = outside_nat_interfaces[0]
         
-        outside_nat_if_ip_addr = self.get_interface_ip_addresses(outside_nat_interface, 'ipv4')
+        if outside_nat_interface.status:
+            self.log.error(f'Unable to retrieve outside NAT interface: {outside_nat_interface.reason}')
+            return STATUS_NOK
+            
+        outside_nat_interface = outside_nat_interface.result
+        
+        outside_nat_if_ip_addr = self.get_interface_ip_addresses(outside_nat_interface['InterfaceName'], 'ipv4')
         
         self.log.debug(f"NAT-Pool: {nat_pool_name} -> Out-NAT-ifName: {outside_nat_interface} -> Out-NAT-Inet: {outside_nat_if_ip_addr}")
 

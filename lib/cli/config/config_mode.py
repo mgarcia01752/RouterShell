@@ -249,7 +249,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
                 self._handle_ip_route(parsed_args.ip_args)
                 
             elif parsed_args.ip_command == "nat":
-                self.log.info("IP-NAT-CONFIG")
+                self.log.debug("IP-NAT-CONFIG")
                 self._handle_ip_nat(parsed_args.ip_args[0])
             
             else:

@@ -70,11 +70,11 @@ class RouterConfiguration:
             
             cmd_lines = []
 
+            cmd_lines.extend(self._get_global_rename_interface_config())
             cmd_lines.extend(self._get_global_bridge_config())
             cmd_lines.extend(self._get_global_vlan_config())
             cmd_lines.extend(self._get_global_nat_config())
             cmd_lines.extend(self._get_global_dhcp_server_config())
-            cmd_lines.extend(self._get_global_rename_interface_config())
 
             return cmd_lines
 
@@ -113,7 +113,6 @@ class RouterConfiguration:
 
         return cmd_lines
      
-
     def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
         """
         Generate CLI commands for global bridge configuration.
@@ -229,6 +228,7 @@ class RouterConfiguration:
         ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
 
         interface_cmd_lines = []
+        temp_interface_cmd_lines = []
 
         for if_name in ethernet_interfaces:
             self.log.debug(f'Interface: {if_name}')
@@ -247,14 +247,16 @@ class RouterConfiguration:
                                     for i, line in enumerate(filter(None, if_config.values())))
 
             for ip_addr_config in if_ip_addr_config:
-                interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_addr_config.values()))
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_addr_config.values()))
 
             for ip_static_arp_config in if_ip_static_arp_config:
-                interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_static_arp_config.values()))
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_static_arp_config.values()))
 
             interface_cmd_lines.append('end')
             
             interface_cmd_lines.extend([self.LINE_BREAK])
+            
+            interface_cmd_lines[1:1] = temp_interface_cmd_lines
 
             self.log.debug(f'Interface-Config: {interface_cmd_lines}')
 

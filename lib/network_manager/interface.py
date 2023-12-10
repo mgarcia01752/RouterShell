@@ -421,20 +421,21 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         if not self.does_interface_exist(initial_interface_name):
             self.log.error(f"Interface: {initial_interface_name} does not exists")
-            return STATUS_NOK
+            return STATUS_NOK        
+
+        bus_info = self.get_interface_info(initial_interface_name)['businfo']
         
+        result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
+                
         if self.db_lookup_interface_alias_exist(initial_interface_name, alias_interface_name):
             self.log.debug(f"Alias-Interface already exists: {alias_interface_name} assigned to initial-interface: {initial_interface_name}")
             return STATUS_OK
-        
-        '''sudo ip link set <current_interface_name> name <new_interface_name>'''
-        result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
         
         if result.exit_code:
             self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name} to OS")
             return STATUS_NOK
         
-        if self.update_db_rename_alias(initial_interface_name, alias_interface_name):
+        if self.update_db_rename_alias(bus_info, initial_interface_name, alias_interface_name):
             self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
             return STATUS_NOK
         
@@ -511,10 +512,13 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Invalid ARP entry mac address: {mac_address}")
             return STATUS_NOK
         
-        if Arp().set_os_static_arp(interface_name, inet, mac_address, encap.value, not negate):
-            self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via OS")
-            return STATUS_NOK
-
+        if not Arp().is_arp_entry_exists(inet):
+            self.log.debug(f"ARP entry for {inet} already exists")
+            
+            if Arp().set_os_static_arp(interface_name, inet, mac_address, encap.value, not negate):
+                self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via OS")
+                return STATUS_NOK
+        
         if self.update_db_static_arp(interface_name, inet, mac_address, encap.value, negate):
             self.log.error(f"Unable to update static ARP: {not negate} on interface: {interface_name} via DB")
             return STATUS_NOK
