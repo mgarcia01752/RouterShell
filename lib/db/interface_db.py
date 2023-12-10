@@ -84,18 +84,18 @@ class InterfaceDatabase:
         
         return result.status
  
-    def update_db_shutdown_status(cls, interface_name: str, status: bool) -> bool:
+    def update_db_shutdown_status(cls, interface_name: str, shutdown_status: bool) -> bool:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
         Args:
             interface_name (str): The name of the interface to update.
-            status (bool): The new shutdown status.
+            shutdown_status (bool): The new shutdown status.
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
-        result = cls.rsdb.update_interface_shutdown(interface_name, status)
+        result = cls.rsdb.update_interface_shutdown(interface_name, shutdown_status)
         return result.status
 
     def update_db_duplex_status(cls, interface_name: str, duplex: str) -> bool:

@@ -228,9 +228,12 @@ class RouterConfiguration:
         ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
 
         interface_cmd_lines = []
-        temp_interface_cmd_lines = []
 
         for if_name in ethernet_interfaces:
+            
+            start_temp_interface_cmd_lines = []
+            temp_interface_cmd_lines = []
+            
             self.log.debug(f'Interface: {if_name}')
 
             status, if_config = self.rcdb.get_interface_configuration(if_name)
@@ -243,8 +246,8 @@ class RouterConfiguration:
             
             status, if_ip_static_arp_config = self.rcdb.get_interface_ip_static_arp_configuration(if_name)
 
-            interface_cmd_lines.extend(' ' * indent + line if i != 0 and i != len(if_config.values()) - 1 else line
-                                    for i, line in enumerate(filter(None, if_config.values())))
+            start_temp_interface_cmd_lines.extend(' ' * indent + line if i != 0 and i != len(if_config.values()) - 1 else line
+                                                    for i, line in enumerate(filter(None, if_config.values())))
 
             for ip_addr_config in if_ip_addr_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_addr_config.values()))
@@ -252,13 +255,15 @@ class RouterConfiguration:
             for ip_static_arp_config in if_ip_static_arp_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_static_arp_config.values()))
 
-            interface_cmd_lines.append('end')
-            
-            interface_cmd_lines.extend([self.LINE_BREAK])
-            
-            interface_cmd_lines[1:1] = temp_interface_cmd_lines
+            start_temp_interface_cmd_lines[1:1] = temp_interface_cmd_lines
 
-            self.log.debug(f'Interface-Config: {interface_cmd_lines}')
+            start_temp_interface_cmd_lines.append('end')
+            
+            start_temp_interface_cmd_lines.extend([self.LINE_BREAK])
+
+            self.log.debug(f'Interface-Config: {start_temp_interface_cmd_lines}')
+            
+            interface_cmd_lines.extend(start_temp_interface_cmd_lines)
 
         # Append other interface commands
         cmd_lines.extend(interface_cmd_lines)

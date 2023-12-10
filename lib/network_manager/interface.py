@@ -318,7 +318,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
         
         # Determine the value of 'shutdown' based on 'state'
-        shutdown = state == State.UP
+        shutdown = state != State.UP
         
         if self.update_db_shutdown_status(interface_name, shutdown):
             self.log.error(f"Unable to set interface: {interface_name} to {state.value} via db")

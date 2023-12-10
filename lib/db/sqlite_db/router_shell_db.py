@@ -2143,7 +2143,6 @@ class RouterShellDB(metaclass=Singleton):
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
-            # Interface does not exist
             return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         try:

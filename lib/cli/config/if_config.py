@@ -457,6 +457,8 @@ class InterfaceConfig(cmd2.Cmd,
         if negate:
             ifState = State.UP
 
+        self.log.info(f'do_shutdown(negate: {negate}) -> State: {ifState.name}')
+
         self.update_shutdown(self.ifName, ifState)
 
     def complete_switchport(self, text, line, begidx, endidx):
