@@ -50,6 +50,7 @@ class RouterConfiguration:
         # Generate Banner Message Of The Day (MOTD)
         banner_motd = self._get_banner()
         cmd_lines.extend(banner_motd)
+        cmd_lines.extend([self.LINE_BREAK])
         
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
@@ -63,6 +64,8 @@ class RouterConfiguration:
         acl_cmds = self._get_access_control_list()
         cmd_lines.extend(acl_cmds)
 
+        cmd_lines.append('end')
+        
         return cmd_lines
 
     def _get_global_settings(self) -> List[str]:

@@ -219,7 +219,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Unexpected error updating BannerMotd: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-
     def select_banner_motd(self) -> Result:
         """
         Select the BannerMotd from the SystemConfiguration table.
