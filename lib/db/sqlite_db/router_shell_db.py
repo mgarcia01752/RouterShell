@@ -1805,6 +1805,7 @@ class RouterShellDB(metaclass=Singleton):
     '''
  
     def select_global_options(self) -> List[Result]:
+        '''TODO'''
         return []
 
     def select_dhcp_pool_interfaces(self, dhcp_pool_name: str) -> List[Result]:
@@ -2812,7 +2813,6 @@ class RouterShellDB(metaclass=Singleton):
             # Handle database-related errors and return the Result instance with the error details
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-
     def is_initial_interface_alias_exist(self, initial_interface: str) -> Result:
         """
         Check if an alias exists for the given initial interface.
@@ -3798,10 +3798,8 @@ class RouterShellDB(metaclass=Singleton):
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi hardware mode for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
     '''
-                            ROUTER-CONFIGURATION
-    '''
+                                ROUTER-CONFIGURATION
 
-    '''
                             ROUTER-CONFIGURATION-INTERFACE
     '''
         

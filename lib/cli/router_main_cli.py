@@ -122,6 +122,7 @@ class RouterCLI(cmd2.Cmd,
             show vlan                       (Implemented)
             show vlan-db                    (Implemented)
             show route                      (Implemented)
+            show running-config             (Implemented)
             show ip route
             show ip6 route
             show ip interface
@@ -186,3 +187,11 @@ class RouterCLI(cmd2.Cmd,
             clear arp [interface]
         '''
         ClearMode(ExecMode.PRIV_MODE, args)
+        
+    def do_end(self, line=None):
+        '''Do Nothing - Do not Exit from Router-CLI-Main'''
+        return
+    
+    def do_quit(self, line=None):
+        '''Do Nothing - Do not Exit from Router-CLI-Main'''
+        return

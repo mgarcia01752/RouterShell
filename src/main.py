@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from lib.cli.router_cli import RouterCLI
+from lib.cli.router_main_cli import RouterCLI
 
 import platform
 
