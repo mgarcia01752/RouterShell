@@ -90,7 +90,7 @@ class RouterCLI(cmd2.Cmd,
         self.prompt = self.set_prompt()
         return False
 
-    def complete_show(  self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
+    def complete_show(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
         """
         Tab completion for the 'configure' command.
 
@@ -103,9 +103,10 @@ class RouterCLI(cmd2.Cmd,
         Returns:
             list[str]: List of completions that start with the provided text.
         """
-        show_commands = ['arp', 'bridge', 'interfaces', 'route', 'running-config']
-        show_commands.extend(['hardware'])
+        show_commands = ['arp', 'bridge', 'interfaces', 'route']
+        show_commands.extend(['hardware', 'cpu', 'network'])
         show_commands.extend(['nat', 'nat-db', 'vlan', 'vlan-db'])
+        show_commands.extend(['running-config'])
         return [cmd for cmd in show_commands if cmd.startswith(text)]
     
     def do_show(self, arg: str) -> None:
@@ -130,7 +131,7 @@ class RouterCLI(cmd2.Cmd,
         """
         ShowMode(ExecMode.PRIV_MODE, arg)
 
-    def complete_configure(  self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
+    def complete_configure(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
         """
         Tab completion for the 'configure' command.
 
@@ -153,17 +154,12 @@ class RouterCLI(cmd2.Cmd,
         Args:
             args (str): Command arguments.
         """
-        # Create an ArgumentParser
         parser = argparse.ArgumentParser(description="Configuration Mode")
-        
-        # Add a positional argument for the command
         parser.add_argument("command", nargs="*", help="Command to execute (e.g., 'terminal')")
         
         try:
-            # Parse the arguments
             parsed_args = parser.parse_args(args.split())
             
-            # Check if the command is "terminal"
             if parsed_args.command and parsed_args.command[0] == "terminal":
                 print("Enter configuration commands, one per line. End with Control-Z.")
                 self.set_exec_mode(ExecMode.CONFIG_MODE)
@@ -172,10 +168,9 @@ class RouterCLI(cmd2.Cmd,
                 self.set_exec_mode(ExecMode.PRIV_MODE)
                 self.prompt = self.set_prompt()
             else:
-                # Handle other cases or provide an error message
                 print("Invalid command. Use 'configure terminal' to enter configuration mode.")
+        
         except SystemExit:
-            # In this case, just return without taking any action.
             return
 
     def complete_clear(  self, text: str, line: str, begidx: int, endidx: int) -> list[str]:

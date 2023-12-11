@@ -1,4 +1,3 @@
-import logging
 from enum import Enum, auto
 
 class ExecMode(Enum):

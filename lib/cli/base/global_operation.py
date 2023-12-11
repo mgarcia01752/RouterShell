@@ -1,5 +1,7 @@
 import argparse
-from lib.common.common import *
+
+from bs4 import Comment
+from lib.common.common import STATUS_NOK, STATUS_OK
 import subprocess
 
 from lib.network_manager.network_manager import NetworkManager
@@ -127,7 +129,7 @@ class GlobalUserCommand():
             bool: Always returns False.
         '''
         
-        print(Common.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
+        print(Comment.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
         return False
     
     def do_reload(self, args=None):
@@ -175,10 +177,10 @@ class GlobalUserCommand():
 
             if len(args) < 1:
                 print("Usage: ping <destination>")
-                return False  # Command execution failed
+                return False
 
             # Construct the ping command
-            ping_command = ['ping', '-c', '4', args[0]]  # Send 4 ICMP echo requests
+            ping_command = ['ping', '-c', '4', args[0]]
 
             # Start the ping process in the background
             self.ping_process = subprocess.Popen(ping_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

@@ -1,4 +1,3 @@
-import json
 import cmd2
 import logging
 import argparse
