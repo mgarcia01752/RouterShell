@@ -64,18 +64,6 @@ class RouterCLI(cmd2.Cmd,
             return ""
         return line
     
-    def do_exit(self, args: str) -> bool:
-        """
-        Exit the Router CLI.
-                # Enter configuration commands, one per line. End with CNTL-Z.
-        Args:
-            args (str): Command arguments (unused).
-
-        Returns:
-            bool: Always returns True to exit the CLI.
-        """
-        return True
-
     def do_enable(self, line: str = None) -> bool:
         """
         Enter privilege mode.
@@ -105,7 +93,8 @@ class RouterCLI(cmd2.Cmd,
         """
         show_commands = ['arp', 'bridge', 'interfaces', 'route']
         show_commands.extend(['hardware', 'cpu', 'network'])
-        show_commands.extend(['nat', 'nat-db', 'vlan', 'vlan-db'])
+        show_commands.extend(['nat', 'nat-db', 
+                              'vlan', 'vlan-db'])
         show_commands.extend(['running-config'])
         return [cmd for cmd in show_commands if cmd.startswith(text)]
     
@@ -174,7 +163,8 @@ class RouterCLI(cmd2.Cmd,
             return
 
     def complete_clear(  self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
-        configure_commands = ['arp', 'router-db']
+        configure_commands = ['arp', 
+                              'router-db']
         return [cmd for cmd in configure_commands if cmd.startswith(text)]
 
     def do_clear(self, args: str) -> None:
@@ -182,6 +172,18 @@ class RouterCLI(cmd2.Cmd,
             clear arp [interface]
         '''
         ClearMode(ExecMode.PRIV_MODE, args)
+
+    def do_exit(self, args: str) -> bool:
+        """
+        Exit the Router CLI.
+                # Enter configuration commands, one per line. End with CNTL-Z.
+        Args:
+            args (str): Command arguments (unused).
+
+        Returns:
+            bool: Always returns True to exit the CLI.
+        """
+        return True
         
     def do_end(self, line=None):
         '''Do Nothing - Do not Exit from Router-CLI-Main'''
