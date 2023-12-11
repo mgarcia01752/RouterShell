@@ -2,6 +2,16 @@
 
 This page provides information about global Priv Exec commands that allow users with administrative privileges to perform various system-level tasks.
 
+## banner
+
+```shell
+configure terminal
+banner motd ^
+BANNER MESSAGE OF THE DAY
+^
+
+```
+
 ## flush
 
 The `flush` command is used to clear or reset specific system components or settings. It can be used to clear interfaces, NAT translations, VLAN information, routing tables, and more.
