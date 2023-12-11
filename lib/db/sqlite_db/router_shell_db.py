@@ -3851,15 +3851,15 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute('''
                 SELECT DISTINCT
                 
-                    'interface ' || Interfaces.InterfaceName AS Interface,
-                    'mac address ' || InterfaceSubOptions.MacAddress AS MacAddress,
-                    'duplex ' || InterfaceSubOptions.Duplex AS Duplex,
-                    'speed ' || CASE WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' ELSE InterfaceSubOptions.Speed END AS Speed,
+                    'interface '            || Interfaces.InterfaceName AS Interface,
+                    'mac address '          || InterfaceSubOptions.MacAddress AS MacAddress,
+                    'duplex '               || InterfaceSubOptions.Duplex AS Duplex,
+                    'speed '                || CASE WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' ELSE InterfaceSubOptions.Speed END AS Speed,
                     CASE WHEN InterfaceSubOptions.ProxyArp THEN 'ip proxy-arp' ELSE 'no ip proxy-arp' END AS ProxyArp,
                     CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
-                    'bridge group ' || Bridges.BridgeName AS BridgeGroup,
-                    'ip nat ' || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
-                    'ip dhcp-server pool ' || DHCPServer.DhcpPoolname as DhcpServerPool,
+                    'bridge group '         || Bridges.BridgeName AS BridgeGroup,
+                    'ip nat '               || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
+                    'ip dhcp-server pool '  || DHCPServer.DhcpPoolname as DhcpServerPool,
                     CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
                 
                 FROM Interfaces
@@ -4016,9 +4016,9 @@ class RouterShellDB(metaclass=Singleton):
         """
         query = '''
             SELECT DISTINCT
-                'bridge ' || Bridges.BridgeName AS BridgeName,
+                'bridge '   || Bridges.BridgeName AS BridgeName,
                 'protocol ' || Bridges.Protocol AS Protocol,    
-                'stp ' || Bridges.StpStatus AS StpStatus,
+                'stp '      || Bridges.StpStatus AS StpStatus,
                 CASE WHEN Bridges.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
             FROM
                 Bridges;
@@ -4059,9 +4059,9 @@ class RouterShellDB(metaclass=Singleton):
         """
         query = '''
             SELECT DISTINCT
-                'vlan ' || Vlans.VlanID AS VlanID,
-                'description ' || Vlans.VlanDescription AS VlanDescription,
-                'name ' || Vlans.VlanName AS VlanName
+                'vlan '         || Vlans.VlanID AS VlanID,
+                'description '  || Vlans.VlanDescription AS VlanDescription,
+                'name '         || Vlans.VlanName AS VlanName
             FROM
                 Vlans;
         '''
@@ -4131,8 +4131,8 @@ class RouterShellDB(metaclass=Singleton):
 
             query = """
                 SELECT DISTINCT
-                    'dhcp ' || DHCPServer.DhcpPoolname AS DhcpServerPollName,
-                    'subnet ' || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
+                    'dhcp '     || DHCPServer.DhcpPoolname AS DhcpServerPollName,
+                    'subnet '   || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
                 FROM DHCPServer
                 LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK;
             """
