@@ -255,23 +255,18 @@ class RouterConfigurationDatabase:
             for dsc_result in dhcp_server_config_result:
                 pool_name = dsc_result.result.get('DhcpServerPoolName').split()[1]
 
-                # Create a dictionary to store the combined information
                 combined_data = dsc_result.result
 
-                # Update the dictionary with pool data
                 dhcp_server_pool_results = cls.rsdb.select_global_dhcp_server_pool(pool_name)
                 for data in dhcp_server_pool_results:
                     for key, value in data.result.items():
                         combined_data.update({f"{key}-{str(next(cls.counter))}": value})
 
-                # Update the dictionary with reservation data
                 dhcp_server_reservation_results = cls.rsdb.select_global_dhcp_server_reservation_pool(pool_name)
                 for data in dhcp_server_reservation_results:
                     for key, value in data.result.items():
                         combined_data.update({f"{key}-{str(next(cls.counter))}": value})
 
-
-                # Update the dictionary with option data
                 dhcp_server_option_results = cls.rsdb.select_global_dhcp_server_subnet_option_pool(pool_name)
                 for data in dhcp_server_option_results:
                     for key, value in data.result.items():
@@ -284,4 +279,23 @@ class RouterConfigurationDatabase:
         
         return STATUS_OK, dhcp_server_config_data
 
+    def get_banner(cls) -> Tuple[bool, Dict]:
+        """
+        Retrieve the banner Message of the Day (Motd) from the database.
+
+        Args:
+            cls: The RouterShellDB class.
+
+        Returns:
+            Tuple[bool, Dict]: A tuple containing a boolean indicating the operation's success or failure,
+            and a dictionary with the banner Motd if found.
+
+        """
+        result = cls.rsdb.select_banner_motd()
+
+        if result.status:
+            cls.log.debug("Banner not found in the database.")
+            return STATUS_NOK, {}
+        
+        return STATUS_OK, result.result
 

@@ -5,6 +5,7 @@ from lib.common.constants import STATUS_OK, STATUS_NOK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
 from lib.network_manager.network_manager import InterfaceType
+from lib.system.system_config import SystemConfig
 
 class RouterConfiguration:
 
@@ -45,6 +46,10 @@ class RouterConfiguration:
         # Enter configuration mode
         cmd_lines.extend(['enable', 'configure terminal'])
         cmd_lines.extend([self.LINE_BREAK])
+        
+        # Generate Banner Message Of The Day (MOTD)
+        banner_motd = self._get_banner()
+        cmd_lines.extend(banner_motd)
         
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
@@ -107,9 +112,10 @@ class RouterConfiguration:
                 ' ' * indent + line if i != 0 and i != len(dhcp_server_config.values()) else line
                 for i, line in enumerate(filter(None, dhcp_server_config.values()))
             )
-
-        cmd_lines.append('end')
-        cmd_lines.extend([self.LINE_BREAK])
+            
+        if cmd_lines:
+            cmd_lines.append('end')
+            cmd_lines.extend([self.LINE_BREAK])
 
         return cmd_lines
      
@@ -136,8 +142,9 @@ class RouterConfiguration:
                 for i, line in enumerate(filter(None, bridge_config.values()))
             )
 
-        cmd_lines.append('end')
-        cmd_lines.extend([self.LINE_BREAK])
+        if cmd_lines:
+            cmd_lines.append('end')
+            cmd_lines.extend([self.LINE_BREAK])
 
         return cmd_lines
 
@@ -164,9 +171,9 @@ class RouterConfiguration:
                 for i, line in enumerate(filter(None, vlan_config.values()))
             )
 
-        # Place 'end' outside the loop to avoid indentation
-        cmd_lines.append('end')
-        cmd_lines.extend([self.LINE_BREAK])
+        if cmd_lines:
+            cmd_lines.append('end')
+            cmd_lines.extend([self.LINE_BREAK])
 
         return cmd_lines
 
@@ -280,3 +287,22 @@ class RouterConfiguration:
         cmd_lines = []
         
         return cmd_lines
+
+    def _get_banner(self) -> List[str]:
+        """
+        Retrieve the banner Message of the Day (Motd) from the RouterShell configuration and split it into a list of strings.
+
+        Returns:
+            List[str]: The formatted banner text as a list of strings, where each element represents a line in the banner.
+        """
+        banner_text = SystemConfig().get_banner()
+        
+        if not banner_text:
+            return []
+
+        banner_cmd = ['banner motd ^']
+        banner_cmd.extend(banner_text.split("\n"))
+        banner_cmd.append('^')
+
+        return banner_cmd
+

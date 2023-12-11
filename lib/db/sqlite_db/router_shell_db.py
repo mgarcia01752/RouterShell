@@ -175,6 +175,74 @@ class RouterShellDB(metaclass=Singleton):
     
         return self.create_database()
 
+    '''
+                        ROUTER SYSTEM/GLOBAL CONFIGURATION DATABASE
+    '''
+
+    def update_banner_motd(self, motd: str) -> Result:
+        """
+        Update the BannerMotd in the SystemConfiguration table.
+
+        Args:
+            motd (str): The new message of the day.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure and the affected row_id.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Check if a row with ID = 1 exists
+            cursor.execute("SELECT COUNT(*) FROM SystemConfiguration")
+            row_count = cursor.fetchone()[0]
+
+            if row_count > 0:
+                cursor.execute("UPDATE SystemConfiguration SET BannerMotd = ? WHERE ID = 1", (motd,))
+            else:
+                # Insert new row
+                cursor.execute("INSERT INTO SystemConfiguration (BannerMotd) VALUES (?)", (motd,))
+
+            self.connection.commit()
+            row_id = cursor.lastrowid  # Retrieve the row_id of the affected row
+            self.log.debug("Update operation: BannerMotd updated successfully in the 'SystemConfiguration' table.")
+            return Result(status=STATUS_OK, row_id=row_id, result={'BannerMotd': motd})
+
+        except sqlite3.IntegrityError as integrity_error:
+            self.log.error("IntegrityError updating BannerMotd: %s", integrity_error)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(integrity_error))
+
+        except sqlite3.Error as sql_error:
+            self.log.error("Error updating BannerMotd: %s", sql_error)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(sql_error))
+
+        except Exception as e:
+            self.log.error("Unexpected error updating BannerMotd: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
+
+
+    def select_banner_motd(self) -> Result:
+        """
+        Select the BannerMotd from the SystemConfiguration table.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure and the BannerMotd value.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT BannerMotd FROM SystemConfiguration WHERE ID = 1")
+            result = cursor.fetchone()
+
+            if result is not None:
+                banner_motd = result[0]
+                self.log.debug("Select operation: BannerMotd retrieved successfully from the 'SystemConfiguration' table.")
+                return Result(status=STATUS_OK, row_id=1, result={'BannerMotd': banner_motd})
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
+
+        except sqlite3.Error as e:
+            self.log.error("Error selecting BannerMotd: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
+
 
     '''
                         BRIDGE DATABASE

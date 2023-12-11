@@ -6,7 +6,6 @@ from lib.cli.config.arp_config import ArpConfig
 from lib.cli.config.dhcp_server_config import DHCPServerConfig
 from lib.cli.config.if_config import InterfaceConfig
 from lib.cli.config.bridge_config import BridgeConfig
-from lib.cli.config.nat_config import NatConfig
 from lib.cli.config.vlan_config import VlanConfig
 from lib.cli.config.ip_route_config import IpRouteConfig
 from lib.cli.base.global_operation import GlobalUserCommand
@@ -16,11 +15,12 @@ from lib.cli.config.wireless_wifi_config import WirelessWifiPolicyConfig
 from lib.network_manager.interface import Interface
 from lib.network_manager.bridge import Bridge
 from lib.cli.common.router_prompt import RouterPrompt
-from lib.common.constants import *
+from lib.network_manager.nat import Nat
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.network_manager.nat import Nat
+from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.system.system_config import SystemConfig
 
 class InvalidConfigureMode(Exception):
     def __init__(self, message):
@@ -30,6 +30,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     """Command set for ConfigureMode-Commands"""  
     """
         arp                     (Implemented)
+        banner                  (Implemented)
         bridge                  (Implemented)
         dhcp
         interface <ifName>      (Implemented)
@@ -63,7 +64,30 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         # Set a custom prompt for interface configuration
         self.prompt = self.set_prompt()
-  
+
+    def do_banner(self, line) -> None:
+        """
+        Configure the banner Message of the Day (Motd) through the command-line interface.
+
+        Args:
+            self: The ConfigureMode class instance.
+            line (str): The input string provided by the user.
+
+        Returns:
+            None
+
+        """
+        banner_config = []
+
+        self.poutput("Enter the banner text. Type '^' on a new line to finish.")
+        while True:
+            line = input("> ")
+            if line.lower().strip() == '^':
+                break
+            banner_config.append(line)
+
+        SystemConfig().set_banner('\n'.join(banner_config))
+
     def complete_interface(self, text, line, begidx, endidx):
         completions = ['loopback', 'vlan']
         '''Dynamically add interfaces to tab completion'''

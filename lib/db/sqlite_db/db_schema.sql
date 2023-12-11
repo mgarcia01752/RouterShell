@@ -1,3 +1,10 @@
+DROP TABLE IF EXISTS SystemConfiguration;
+CREATE TABLE IF NOT EXISTS SystemConfiguration (
+    ID INTEGER PRIMARY KEY,
+    BannerMotd TEXT DEFAULT '^^'
+);
+INSERT INTO SystemConfiguration DEFAULT VALUES;
+
 DROP TABLE IF EXISTS InterfaceAlias;
 CREATE TABLE IF NOT EXISTS InterfaceAlias (
     ID INTEGER PRIMARY KEY,
@@ -244,3 +251,6 @@ CREATE TABLE IF NOT EXISTS WirelessWifiHostapdOptions (
     OptionValue VARCHAR(255),
     CONSTRAINT FK_WirelessWifiHostapdOptions_Interfaces FOREIGN KEY (WirelessWifiPolicy_FK) REFERENCES WirelessWifiPolicy(ID) ON DELETE CASCADE
 );
+
+
+
