@@ -1,6 +1,9 @@
+import datetime
 import logging
+import os
+import shutil
 from typing import List
-from lib.common.constants import STATUS_OK, STATUS_NOK
+from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
@@ -25,9 +28,25 @@ class RouterConfiguration:
         """
         Copy the running configuration to the startup configuration.
         """
-        # Implement the logic for copying configurations if needed
-        pass
+        startup_config_file = f"{ROUTER_CONFIG_DIR}/startup-config.cfg"
 
+        # Add timestamp component to the backup filename
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        backup_config_file = f"{ROUTER_CONFIG_DIR}/startup-config-backup-{timestamp}.cfg"
+
+        # Check if the startup configuration file exists
+        if os.path.exists(startup_config_file):
+            # Create a backup of the existing startup configuration file
+            shutil.copy2(startup_config_file, backup_config_file)
+            self.log.debug(f"Backup of startup configuration created: {backup_config_file}")
+
+        # Save the new running configuration to the startup configuration file
+        running_config = self.get_running_configuration()
+        with open(startup_config_file, 'w') as file:
+            file.write('\n'.join(running_config))
+
+        self.log.debug(f"Running configuration copied to startup configuration: {startup_config_file}")
+                
     def get_running_configuration(self, verbose: bool = False, indent: int = 1) -> List[str]:
         """
         Generate the running configuration for the router CLI.
