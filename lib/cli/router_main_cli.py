@@ -10,7 +10,9 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show.show_mode import ShowMode
 from lib.cli.config.config_mode import ConfigureMode
+from lib.common.constants import STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
+from lib.system.copy_mode import CopyMode, CopyType
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,6 +79,66 @@ class RouterCLI(cmd2.Cmd,
         self.set_exec_mode(ExecMode.PRIV_MODE)
         self.prompt = self.set_prompt()
         return False
+
+    def complete_copy(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
+        configure_commands = ['running-config', 'start-config', 'file']
+        return [cmd for cmd in configure_commands if cmd.startswith(text)]
+
+    def do_copy(self, line: str) -> None:
+        """
+        Copy Command
+        """
+        parser = argparse.ArgumentParser(
+            description="Copy Command",
+            epilog="Available suboptions:\n"
+                    "   copy running-config start-config        copy running configuration to startup configuration.\n"
+                    "   copy running-config file <file-name>    copy running configuration to destination file \n"
+                    "\n"
+                    "Use <suboption> --help to get help for specific suboptions."
+        )
+
+        subparsers = parser.add_subparsers(dest="subcommand")
+
+        running_config_parser = subparsers.add_parser("running-config",
+                                                    help="Copy running configuration to specified destination.")
+        
+        running_config_parser.add_argument("destination_file_type",
+                                            help="Specify the type of destination file.",
+                                            choices=['start-config', 'file'])
+
+        running_config_parser.add_argument("file", nargs="?", const=True, default=False,
+                                            help="Specify the destination file name.")
+
+
+        args = parser.parse_args(line.split())
+        subcommand = args.subcommand
+
+        if subcommand == "running-config":
+            destination_file_type = args.destination_file_type
+
+            if destination_file_type == 'start-config':
+
+                result = CopyMode().copy_running_config()
+                if result == STATUS_OK:
+                    self.poutput("Running configuration copied to startup configuration.")
+                else:
+                    self.poutput("Failed to copy running configuration to startup configuration.")
+
+            elif destination_file_type == 'file':
+                
+                destination_file = args.file
+                result = CopyMode().copy_running_config(copy_type=CopyType.DEST_FILE, destination=destination_file)
+                if result == STATUS_OK:
+                    self.poutput(f"Running configuration copied to {destination_file}.")
+                else:
+                    self.poutput(f"Failed to copy running configuration to {destination_file}.")
+
+            else:
+                self.poutput("Invalid destination file type specified.")
+
+        else:
+            self.poutput("Invalid subcommand.")
+
 
     def complete_show(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
         """
