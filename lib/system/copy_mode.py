@@ -6,7 +6,7 @@ from datetime import datetime
 from lib.cli.show.router_configuration import RouterConfiguration
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.common import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
+from lib.common.common import STATUS_OK, STATUS_NOK, CONFIG_DIR
 
 class InvalidCopyMode(Exception):
     def __init__(self, message):
@@ -41,25 +41,26 @@ class CopyMode:
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
         if copy_type == CopyType.DEST_START_UP:
-            config_file = os.path.join(ROUTER_CONFIG_DIR, "startup-config.cfg")
+            config_file = os.path.join(CONFIG_DIR, "startup-config.cfg")
             
         elif copy_type == CopyType.DEST_BACK_UP:
-            config_file = os.path.join(ROUTER_CONFIG_DIR, "startup-config-backup-{timestamp}.cfg")
+            config_file = os.path.join(CONFIG_DIR, f"startup-config-backup-{timestamp}.cfg")
             
         elif copy_type == CopyType.DEST_FILE:
             if not destination:
                 self.log.error("Destination filename not specified")
                 return STATUS_NOK
             
-            config_file = os.path.join(ROUTER_CONFIG_DIR, destination)
+            config_file = os.path.join(CONFIG_DIR, destination)
 
         else:
             self.log.error("Invalid copy type specified")
             return STATUS_NOK
 
         if os.path.exists(config_file):
-            shutil.copy2(config_file, destination)
-            self.log.debug(f"Backup of startup configuration created: {config_file}")
+            backup_file = f"{config_file}-{timestamp}"
+            shutil.copy2(config_file, backup_file)
+            self.log.debug(f"Backup of startup configuration created: {backup_file}")
 
         running_config = RouterConfiguration().get_running_configuration()
         with open(config_file, 'w') as file:
@@ -67,5 +68,6 @@ class CopyMode:
 
         self.log.debug(f"Running configuration copied to {copy_type.value} configuration: {config_file}")
         return STATUS_OK
+
 
 

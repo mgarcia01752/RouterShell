@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 from typing import List
-from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
+from lib.common.constants import STATUS_OK, STATUS_NOK, CONFIG_DIR
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
@@ -28,11 +28,11 @@ class RouterConfiguration:
         """
         Copy the running configuration to the startup configuration.
         """
-        startup_config_file = f"{ROUTER_CONFIG_DIR}/startup-config.cfg"
+        startup_config_file = f"{CONFIG_DIR}/startup-config.cfg"
 
         # Add timestamp component to the backup filename
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        backup_config_file = f"{ROUTER_CONFIG_DIR}/startup-config-backup-{timestamp}.cfg"
+        backup_config_file = f"{CONFIG_DIR}/startup-config-backup-{timestamp}.cfg"
 
         # Check if the startup configuration file exists
         if os.path.exists(startup_config_file):

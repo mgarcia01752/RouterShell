@@ -1,4 +1,4 @@
 STATUS_OK = False
 STATUS_NOK = True
 
-ROUTER_CONFIG_DIR = 'config'
+CONFIG_DIR = 'config'
