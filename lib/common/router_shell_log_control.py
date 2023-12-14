@@ -20,6 +20,7 @@ class RouterShellLoggingGlobalSettings():
     ROUTERCLI                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     SYSTEM_CONFIG               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    SYSTEM_START_UP             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_DB                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     COPY_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -13,6 +13,7 @@ from lib.cli.config.config_mode import ConfigureMode
 from lib.common.constants import STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.system.copy_mode import CopyMode, CopyType
+from lib.system.system_start_up import SystemStartUp
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +41,8 @@ class RouterCLI(cmd2.Cmd,
         self.set_prompt()
         self.prompt = self.get_prompt()
 
+        SystemStartUp()
+        
         # Define a custom intro message
         intro = "Welcome to the Router CLI!\n"
         

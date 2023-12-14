@@ -198,8 +198,6 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         # Enter VLAN configuration mode
         VlanConfig(vlan_id).cmdloop()
 
-   
-
     def do_vlanDB(self, args=None) -> None:
         """
         Enter the VLAN Database configuration mode for a specific VLAN.
@@ -420,4 +418,16 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         else:
             print(f"Invalid command: {line}")
             
-                
+    def do_hostname(self, line) -> None:
+        """
+        Set the hostname
+        """
+        args = line.split()
+
+        if len(args) > 1:
+            raise ValueError("The 'hostname' command accepts only one argument.")
+        
+        SystemConfig().set_hostname(args[0])
+        
+        self.set_prompt()
+              

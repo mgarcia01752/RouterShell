@@ -4,6 +4,7 @@ from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 
 # Importing constants from a separate module
 from lib.common.constants import *
+from lib.system.system_config import SystemConfig
 
 class RouterPrompt:
     '''CMD prompt formatter'''
@@ -16,7 +17,7 @@ class RouterPrompt:
     PROMPT_MAX_LENGTH = 2
 
     DEF_PREFIX_START = ""
-    DEF_START_PROMPT = "Router"
+    DEF_START_HOSTNAME = "Router"
     CONFIG_MODE_PROMPT = 'config'
     PREFIX_SEP = ':'
 
@@ -31,7 +32,12 @@ class RouterPrompt:
         self.log = logging.getLogger(self.__class__.__name__)
         self.SUB_CMD_START = sub_cmd_name        
         self.execute_mode = exec_mode
-        self.prompt_parts = [self.DEF_START_PROMPT]
+        
+        self._prompt_hostname = self.DEF_START_HOSTNAME
+        
+        self.update_prompt_hostname()
+        
+        self.prompt_parts = [self.get_prompt_hostname()]
         self.prompt_prefix = self.current_prompt = ""
         
         if self.execute_mode is ExecMode.USER_MODE:
@@ -49,6 +55,27 @@ class RouterPrompt:
         # Set the prompt for the first time
         self.set_prompt()
 
+    def update_prompt_hostname(self) -> bool:
+        """
+        Update the prompt hostname attribute based on the hostname retrieved from the 'SystemConfig'.
+
+        Returns:
+            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+        """
+        self._prompt_hostname = SystemConfig().get_hostname()
+            
+        return STATUS_OK
+
+    def get_prompt_hostname(self) -> str:
+        """
+        Get the prompt hostname attribute.
+
+        Returns:
+            str: The prompt hostname.
+        """
+        return self._prompt_hostname
+
+    
     def set_prompt(self, interface_name: str = None) -> str:
         '''
         Set the router command prompt based on the current configuration mode and optional interface name.
@@ -59,6 +86,8 @@ class RouterPrompt:
         Returns:
             str: The formatted command prompt string.
         '''
+        
+        self.update_prompt_hostname()
         
         self.log.debug(f"set_prompt() -> Execute Mode: {self.execute_mode}")
         
@@ -72,7 +101,7 @@ class RouterPrompt:
         
         if self.execute_mode is ExecMode.USER_MODE:
             self.log.debug("User Mode")
-            self.prompt_parts = [self.DEF_START_PROMPT]
+            self.prompt_parts = [self.get_prompt_hostname()]
             self.current_prompt = f"{self.prompt_parts[0]}"
             prompt_mode = self.USER_MODE_PROMPT
             self.log.debug(f"User Mode - Prompt-Parts -> ({self.prompt_parts})") 
@@ -80,7 +109,7 @@ class RouterPrompt:
      
         elif self.execute_mode is ExecMode.PRIV_MODE:
             self.log.debug("Priv Mode")
-            self.prompt_parts = [self.DEF_START_PROMPT]
+            self.prompt_parts = [self.get_prompt_hostname()]
             prompt_mode = self.PRIV_MODE_PROMPT
             self.current_prompt = f"{self.prompt_parts[0]}"
             self.log.debug(f"Priv Mode - Prompt-Parts -> ({self.prompt_parts})") 
