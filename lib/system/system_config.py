@@ -53,6 +53,30 @@ class SystemConfig(RunCommand):
         """
         return self.sys_db.set_banner_motd(banner_motd)
     
+    def del_banner(self) -> bool:
+        """
+        Delete the banner Message of the Day (MOTD).
+
+        This method sets the banner MOTD in the system configuration to an empty string, effectively removing any existing banner.
+
+        Returns:
+            bool: True if the banner MOTD is successfully deleted, False otherwise.
+
+        Example:
+            To delete the banner MOTD, you can use the 'del_banner' method as follows:
+
+            >>> result = SystemConfigurator().del_banner()
+            >>> if result:
+            ...     print("Banner MOTD deleted successfully.")
+            ... else:
+            ...     print("Failed to delete banner MOTD.")
+
+        Note:
+            - This method updates the system configuration using the 'set_banner_motd' method of the underlying 'SystemDatabase' class.
+            - The 'set_banner_motd' method returns True if the update is successful, and False otherwise.
+        """
+        return self.sys_db.set_banner_motd('')
+    
     def set_hostname(self, hostname: str) -> bool:
         """
         Set the system hostname using the `hostnamectl set-hostname` command.

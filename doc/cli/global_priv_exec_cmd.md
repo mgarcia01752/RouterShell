@@ -2,14 +2,42 @@
 
 This page provides information about global Priv Exec commands that allow users with administrative privileges to perform various system-level tasks.
 
-## banner
+## hostname
+
+```shell
+configure terminal
+hostname local-hostname
+```
+
+## banner (Message of the Day)
 
 ```shell
 configure terminal
 banner motd ^
 BANNER MESSAGE OF THE DAY
 ^
+```
+## Negate banner (Message of the Day)
 
+```shell
+configure terminal
+no banner motd 
+```
+
+## banner (Login)
+
+```shell
+configure terminal
+banner login ^
+BANNER LOGIN MESSAGE
+^
+```
+
+## Negate banner (Login)
+
+```shell
+configure terminal
+no banner login
 ```
 
 ## flush

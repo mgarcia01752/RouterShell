@@ -65,7 +65,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         # Set a custom prompt for interface configuration
         self.prompt = self.set_prompt()
 
-    def do_banner(self, line) -> None:
+    def do_banner(self, line, negate=False) -> None:
         """
         Configure the banner Message of the Day (Motd) through the command-line interface.
 
@@ -77,6 +77,10 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             None
 
         """
+        if negate:
+            SystemConfig().del_banner()
+            
+
         banner_config = []
 
         self.poutput("Enter the banner text. Type '^' on a new line to finish.")
@@ -285,7 +289,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         # Logic for handling IP routing configuration
         IpRouteConfig(args)
 
-    def _handle_ip_nat(self, args):
+    def _handle_ip_nat(self, args): 
         # Logic for handling NAT configuration
         if Nat().create_nat_pool(args):
             print(f"Unable to create ANT pool: {args}")
@@ -372,7 +376,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             print(f"Invalid wireless type: {parsed_args.wireless_type}")
                         
     def complete_no(self, text, line, begidx, endidx):
-        completions = ['arp', 'bridge', 'ip', 'ipv6']
+        completions = ['arp', 'bridge', 'ip', 'ipv6', 'banner']
         return [comp for comp in completions if comp.startswith(text)]
             
     def do_no(self, line) -> None:
@@ -415,6 +419,11 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
                 Interface().rename_interface(line_parts[3], line_parts[1])
             else:
                 print(f"Invalid command: rename {line}")        
+        
+        elif line_parts[0] == 'banner':
+            self.log.debug(f"do_no(banner)")
+            SystemConfig().del_banner()
+        
         else:
             print(f"Invalid command: {line}")
             
