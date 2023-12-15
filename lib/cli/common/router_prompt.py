@@ -65,7 +65,6 @@ class RouterPrompt:
             self._prompt_dict['ExecModePrompt'] = self.PRIV_MODE_PROMPT
             self.log.debug(f"Config Mode - Prompt-Parts {self._prompt_dict}")
         
-        
         self.set_prompt()
 
     def set_prompt(self) -> str:
@@ -109,33 +108,7 @@ class RouterPrompt:
             self.log.error(f"No execute_mode defined ({self.execute_mode})")  
         
         return self.current_prompt 
-
-    def popInterfacePrompt(self):
-        '''
-        Pop the interface prompt level when exiting a sub-configuration mode.
-
-        Returns:
-            str: Status message ('STATUS_OK' or 'STATUS_NOK').
-        '''
-        if len(self.prompt_parts) is self.PROMPT_MAX_LENGTH:
-            self.log.debug(f"popInterfacePrompt() -> {self.prompt_parts}")
-            self.prompt_parts.pop()
-            self.log.debug(f"popInterfacePrompt() - popped -> {self.prompt_parts}")
-            return STATUS_OK
-        return STATUS_NOK
     
-    def set_prompt_prefix(self, prefix: str) -> str:
-        '''
-        Add a prefix to the command prompt, typically the hostname.
-
-        Args:
-            prefix (str): The prefix to be added to the prompt.
-
-        Returns:
-            str: The updated command prompt string.
-        '''
-        self.prompt_prefix = prefix
-
     def get_prompt(self):
         '''
         Get the current router command prompt.
