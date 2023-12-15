@@ -22,7 +22,7 @@ class RouterPrompt:
     DEF_NO_CONFIG_MODE_PROMPT = None
     PREFIX_SEP = ':'
     
-    def __init__(self, exec_mode: ExecMode, sub_cmd_name: str = None):
+    def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None):
         '''
         Initialize a RouterPrompt object with the specified configuration mode and sub-command name.
 
@@ -129,6 +129,9 @@ class RouterPrompt:
             None
         '''
         self.execute_mode = execute_mode
+
+    def get_exec_mode(self) -> ExecMode:
+        return self.execute_mode
         
     def update_prompt_hostname(self) -> bool:
         """

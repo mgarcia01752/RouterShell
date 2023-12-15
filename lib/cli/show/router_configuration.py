@@ -23,7 +23,6 @@ class RouterConfiguration:
         self.log.setLevel(RSLGS().ROUTER_CONFIG)
         self.rcdb = RouterConfigurationDatabase()
         
-
     def copy_running_configuration_to_startup_configuration(self, args=None):
         """
         Copy the running configuration to the startup configuration.
@@ -66,9 +65,10 @@ class RouterConfiguration:
         cmd_lines.extend(['enable', 'configure terminal'])
         cmd_lines.extend([self.LINE_BREAK])
         
-        # Generate Banner Message Of The Day (MOTD)
-        banner_motd = self._get_banner()
-        cmd_lines.extend(banner_motd)
+        cmd_lines.extend(self._get_hostname())
+        cmd_lines.extend([self.LINE_BREAK])
+        
+        cmd_lines.extend(self._get_banner())
         cmd_lines.extend([self.LINE_BREAK])
         
         # Generate CLI commands for global settings
@@ -322,9 +322,14 @@ class RouterConfiguration:
         if not banner_text:
             return []
 
-        banner_cmd = ['banner motd ^']
-        banner_cmd.extend(banner_text.split("\n"))
-        banner_cmd.append('^')
+        config_cmd = ['banner motd ^']
+        config_cmd.extend(banner_text.split("\n"))
+        config_cmd.append('^')
 
-        return banner_cmd
+        return config_cmd
+    
+    def _get_hostname(self) -> List[str]:
+        
+        hostname = f'hostname {SystemConfig().get_hostname()}'
 
+        return [hostname]

@@ -12,5 +12,3 @@ class SystemStartUp(RunCommand):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
         
-    
-        

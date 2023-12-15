@@ -327,7 +327,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
 
-
     def select_hostname(self) -> Result:
         """
         Select the hostname from the 'SystemConfiguration' table.
@@ -365,8 +364,6 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting hostname from 'SystemConfiguration': {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
-
-
 
     '''
                         BRIDGE DATABASE

@@ -32,9 +32,10 @@ class RouterCLI(cmd2.Cmd,
 
     def __init__(self):
         super().__init__()
+        RouterPrompt.__init__(self, ExecMode.USER_MODE)
         GlobalUserCommand.__init__(self)
         GlobalPrivCommand.__init__(self)
-        RouterPrompt.__init__(self, ExecMode.USER_MODE)
+        
                        
         self.log = logging.getLogger(self.__class__.__name__)
         
@@ -111,7 +112,6 @@ class RouterCLI(cmd2.Cmd,
 
         running_config_parser.add_argument("file", nargs="?", const=True, default=False,
                                             help="Specify the destination file name.")
-
 
         args = parser.parse_args(line.split())
         subcommand = args.subcommand

@@ -20,7 +20,7 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     def __init__(self, usr_exec_mode: ExecMode, arg=None):
         super().__init__()
         GlobalUserCommand.__init__(self)
-        RouterPrompt.__init__(self, ExecMode.PRIV_MODE)
+        RouterPrompt.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CLEAR_MODE)
         
@@ -73,6 +73,11 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         elif parsed_args.subcommand == 'router-db':
             self.log.debug("Clear RouterShell DB command")
+            
+            if self.get_exec_mode() != ExecMode.PRIV_MODE:
+                print(f"Unable to clear router-db, must be in Privilege Mode")
+                return            
+            
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':
                 RSDB().reset_database()

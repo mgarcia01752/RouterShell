@@ -1,6 +1,7 @@
 import argparse
 
 from bs4 import Comment
+from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK
 import subprocess
 
@@ -8,7 +9,7 @@ from lib.network_manager.network_manager import NetworkManager
 
 class GlobalPrivCommand(NetworkManager):
 
-    def __init__(self, args=None):
+    def __init__(self):
         super().__init__()
         
     def do_reboot(self, args=None):
@@ -25,10 +26,13 @@ class GlobalPrivCommand(NetworkManager):
                                          epilog="")
         parser.add_argument("--force", action="store_true", help="Force reboot")
         
+        if self.get_exec_mode() != ExecMode.PRIV_MODE:
+            print(f"Unable to reboot, must be in Privilege Mode")
+            return
+        
         try:
             args = parser.parse_args(args.split())
         except SystemExit:
-            # In this case, just return without taking any action.
             return
         
         if args.force:
@@ -59,6 +63,10 @@ class GlobalPrivCommand(NetworkManager):
         Example:
             flush eth0
         """
+        if self.get_exec_mode() != ExecMode.PRIV_MODE:
+            print(f"Unable to flush, must be in Privilege Mode")
+            return
+                
         self.flush_interface(interface_name)
 
     def do_adduser(self, args=None):
@@ -71,6 +79,10 @@ class GlobalPrivCommand(NetworkManager):
         Returns:
             bool: False (implementation pending).
         '''
+        if self.get_exec_mode() != ExecMode.PRIV_MODE:
+            print(f"Unable to add user, must be in Privilege Mode")
+            return
+                
         return False
     
     def do_deluser(self, args=None):
@@ -83,7 +95,22 @@ class GlobalPrivCommand(NetworkManager):
         Returns:
             bool: False (implementation pending).
         '''
+        if self.get_exec_mode() != ExecMode.PRIV_MODE:
+            print(f"Unable to delete user, must be in Privilege Mode")
+            return
         return False
+    
+    def set_prompt_prefix(self, prefix: str) -> str:
+        '''
+        Add a prefix to the command prompt, typically the hostname.
+
+        Args:
+            prefix (str): The prefix to be added to the prompt.
+
+        Returns:
+            str: The updated command prompt string.
+        '''
+        self.prompt_prefix = prefix
 
 class GlobalUserCommand():
 
