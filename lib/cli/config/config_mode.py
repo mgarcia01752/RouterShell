@@ -30,7 +30,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     """Command set for ConfigureMode-Commands"""  
     """
         arp                     (Implemented)
-        banner                  (Implemented)
+        banner [login | motd]   (Implemented)
         bridge                  (Implemented)
         dhcp
         interface <ifName>      (Implemented)
@@ -376,7 +376,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             print(f"Invalid wireless type: {parsed_args.wireless_type}")
                         
     def complete_no(self, text, line, begidx, endidx):
-        completions = ['arp', 'bridge', 'ip', 'ipv6', 'banner']
+        completions = ['arp', 'bridge', 'ip', 'ipv6', 'banner', 'alias']
         return [comp for comp in completions if comp.startswith(text)]
             
     def do_no(self, line) -> None:
@@ -411,16 +411,8 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             
         elif start_cmd == 'rename':
             self.log.debug(f"do_no(rename) -> {line_parts}")
-               
-        elif line_parts[0] == 'if':
-            self.log.debug(f"do_alias() -> if")
-            if len(line_parts) == 4:
-                self.log.debug(f"do_alias() -> args-parts: {line_parts}")
-                Interface().rename_interface(line_parts[3], line_parts[1])
-            else:
-                print(f"Invalid command: rename {line}")        
-        
-        elif line_parts[0] == 'banner':
+                       
+        elif start_cmd == 'banner':
             self.log.debug(f"do_no(banner)")
             SystemConfig().del_banner()
         
