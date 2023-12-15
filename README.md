@@ -14,7 +14,7 @@ RouterShell's key features include:
 
 5. **VLAN Support:** VLAN support is a part of RouterShell's feature set, aiding in network segmentation and organization, especially in more extensive networks.
 
-6. **NAT Support:** RouterShell includes NAT (Network Address Translation) support, essential for translating private IP addresses to public IP addresses, a common requirement in home and business network configurations.
+6. **NAT Support:** RouterShell includes NAT (Network Address Translation) support, which is essential for translating private IP addresses to public IP addresses, a common requirement in home and business network configurations.
 
 7. **Access Control List/Firewall Support:** RouterShell supports access control lists (ACLs) and firewalls, providing enhanced network security and traffic control.
 
@@ -30,25 +30,25 @@ In conclusion, RouterShell is a router CLI distribution with features well-suite
 
 ## Table of Contents
 
-- [Global Privileged EXEC Commands](doc/cli/global_priv_exec_cmd.md): Learn about global privileged EXEC commands used for system-level tasks.
+- [Global Privileged EXEC Commands](doc/cli/global_priv_exec_cmd.md): Learn about global privileged EXEC commands for system-level tasks.
 
-- [ARP (Address Resolution Protocol)](doc/cli/arp.md): Understand ARP and how it works in RouterShell.
+- [ARP (Address Resolution Protocol)](doc/cli/configure/arp.md): Understand ARP and how it works in RouterShell.
 
-- [Bridge Configuration](doc/cli/bridge.md): Configure and manage bridges in RouterShell.
+- [Bridge Configuration](doc/cli//configurebridge.md): Configure and manage bridges in RouterShell.
 
-- [DHCPv4/v6 Configuration](doc/cli/dhcp.md): Explore DHCP (Dynamic Host Configuration Protocol) setup for IPv4 and IPv6.
+- [DHCPv4/v6 Configuration](doc/cli/configure/dhcp.md): Explore DHCP (Dynamic Host Configuration Protocol) setup for IPv4 and IPv6.
 
-- [Interface Configuration](doc/cli/interface.md): Configure and manage network interfaces in RouterShell.
+- [Interface Configuration](doc/cli//configureinterface.md): Configure and manage network interfaces in RouterShell.
 
-- [NAT (Network Address Translation)](doc/cli/nat.md): Set up Network Address Translation for your RouterShell router.
+- [NAT (Network Address Translation)](doc/cli/configure/nat.md): Set up Network Address Translation for your RouterShell router.
 
-- [Route Configuration](doc/cli/route.md): Understand routing and how to configure it in RouterShell.
+- [Route Configuration](doc/cli//configureroute.md): Understand the routing and how to configure it in RouterShell.
 
-- [VLAN Configuration](doc/cli/vlan.md): Configure and manage VLANs in your RouterShell network.
+- [VLAN Configuration](doc/cli//configurevlan.md): Configure and manage VLANs in your RouterShell network.
 
-- [System Configuration](doc/cli/system.md): Learn about system-level configuration options in RouterShell.
+- [System Configuration](doc/cli/global/system.md): Learn about system-level configuration options in RouterShell.
 
-- [Wireless Configuration](doc/cli/wireless.md): Explore wireless network configuration in RouterShell.
+- [Wireless Configuration](doc/cli/configure/wireless.md): Explore wireless network configuration in RouterShell.
 
 ## Router Configuration Examples
 
@@ -58,13 +58,13 @@ These examples cover scenarios like configuring a four-port bridge with VLAN sup
 
 - [Four-Port Bridge with VLAN Configuration](doc/cli/four_port_bridge_vlan_config.md): This example guides you through setting up a four-port bridge with VLAN support, allowing for network segmentation and efficient traffic management.
 
-- [Four-Port Switch Configuration](doc/cli/four_port_switch_config.md): Learn how to configure a four-port switch, essential for creating a network with multiple connected devices.
+- [Four-Port Switch Configuration](doc/cli/four_port_switch_config.md): Learn how to configure a four-port switch, which is essential for creating a network with multiple connected devices.
 
 - [Two-Port NAT Configuration](doc/cli/two_port_nat_config.md): Understand how to set up Network Address Translation (NAT) for a two-port router, enabling the translation of private IP addresses to public IP addresses.
 
-These configuration examples serve as practical guides to help you implement specific networking setups with RouterShell. You can refer to the linked documentation files for step-by-step instructions and detailed explanations.
+These configuration examples serve as practical guides to help you implement specific networking setups with RouterShell. Refer to the linked documentation files for step-by-step instructions and detailed explanations.
 
-Feel free to explore these examples and adapt them to your specific networking needs. If you have any questions or need further assistance, don't hesitate to reach out to our community or project team. Thank you for choosing RouterShell!
+Feel free to explore these examples and adapt them to your networking needs. If you have any questions or need further assistance, don't hesitate to contact our community or project team. Thank you for choosing RouterShell!
 
 ## Additional Resources
 
