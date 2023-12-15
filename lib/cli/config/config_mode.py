@@ -429,5 +429,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         SystemConfig().set_hostname(args[0])
         
-        self.set_prompt()
+        self.prompt = self.set_prompt()
+        
+        print(f"HOstnaem:-new-prompt: {self.prompt}")
               

@@ -272,8 +272,8 @@ class RouterShellDB(metaclass=Singleton):
             result = cursor.fetchone()
 
             if result is not None:
-                existing_row_id = result["ID"]
-                existing_hostname = result["Hostname"]
+                existing_row_id = result[0]
+                existing_hostname = result[1]
                 self.log.debug(f"Hostname '{existing_hostname}' already exists with ID: {existing_row_id}")
                 return Result(status=True, row_id=existing_row_id, result={"Hostname": existing_hostname})
             else:
