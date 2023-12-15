@@ -55,20 +55,20 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         Args:
             arg (str): Command arguments.
             
-            show arp                        (Implemented)
-            show bridge                     (Implemented)
-            show interface                  (Implemented)
+            show arp                            (Implemented)
+            show bridge                         (Implemented)
+            show interfaces [brief | statistic] (Implemented)
             show hardware [cpu | network]
             show nat
             show nat-db
-            show vlan                       (Implemented)
+            show vlan                           (Implemented)
             show vlan database
-            show route                      (Implemented)
+            show route                          (Implemented)
             show running-config
             show ip route
             show ip6 route
             show ip interface
-            show if-db                      (Implemented)
+            show if-db                          (Implemented)
             show wireless
             
         """  
@@ -177,7 +177,6 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
                 print(InterfaceShow().show_interface_statistics())
                 return
 
-            
         elif args.subcommand == 'hardware':
 
             hardware_type = args.hardware_type
