@@ -1,3 +1,4 @@
+import json
 import logging
 
 from tabulate import tabulate
@@ -14,7 +15,38 @@ class InterfaceShow(Interface):
         self.log.setLevel(RSLGS().IF_SHOW)
         self.debug = CGS.DEBUG_SHOW_INTERFACE
         self.arg = arg
-        
+    
+    def show_interface_statistics(self, interface_name=None):
+        if interface_name:
+            command = ["ip", "-json", "-s", "link", "show", interface_name]
+        else:
+            command = ["ip", "-json", "-s", "link", "show"]
+
+        result = self.run(command)
+                    
+        interface_data = result.stdout
+
+        parsed_data = json.loads(interface_data)
+
+        headers = ["Interface Name", "MAC Address", "Tx Bytes", "Tx Packets", "Rx Bytes", "Rx Packets", "Rx Errors", "Rx Drops"]
+
+        rows = []
+        for entry in parsed_data:
+            interface_name = entry["ifname"]
+            mac_address = entry["address"]
+            tx_bytes = entry["stats64"]["tx"]["bytes"]
+            tx_packets = entry["stats64"]["tx"]["packets"]
+            rx_bytes = entry["stats64"]["rx"]["bytes"]
+            rx_packets = entry["stats64"]["rx"]["packets"]
+            rx_errors = entry["stats64"]["rx"]["errors"]
+            rx_drops = entry["stats64"]["rx"]["dropped"]            
+
+            rows.append([interface_name, mac_address, tx_bytes, tx_packets, rx_bytes, rx_packets, rx_errors, rx_drops])
+
+        table = tabulate(rows, headers=headers, tablefmt="simple")
+
+        print(table)
+
     def show_ip_interface_brief(self):
         """
         Display a brief summary of IP interfaces.

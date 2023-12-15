@@ -100,6 +100,10 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         show_interfaces_parser = show_parser.add_parser("interfaces",
             help="Display information about network interfaces."
         )
+
+        show_interfaces_parser.add_argument("interface_show_type", choices=['brief', 'statistic'],
+            help="Specify interface [brief | statistic]"
+        )
         
         show_hardware_parser = show_parser.add_parser("hardware",
             help="Display information about network interfaces."
@@ -162,8 +166,17 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         elif args.subcommand == 'interfaces':
             self.log.debug("Show interfaces command")
-            InterfaceShow().show_ip_interface_brief()
-            return
+            
+            interface_show_type = args.interface_show_type
+            
+            if interface_show_type == 'brief':
+                print(InterfaceShow().show_ip_interface_brief())
+                return
+                
+            elif interface_show_type == 'statistic':
+                print(InterfaceShow().show_interface_statistics())
+                return
+
             
         elif args.subcommand == 'hardware':
 
