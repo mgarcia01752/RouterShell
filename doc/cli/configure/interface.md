@@ -1,5 +1,61 @@
 # Interface Configuration
 
+```text
+
+
+   interface vlan <vlan-id [1 - 4096] >
+      [no] description <name>
+      [no] [mac [auto | <mac-address>]]
+      [no] [ip address <ip-address>/<CIDR> [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]
+      [no] [bridge group <bridge-name>]
+      [no] shutdown
+   end
+
+   interface loopback <id>
+      [no] description <name>
+      [no] [mac [auto | <mac-address>]]
+      [no] [ip address <ip-address>/<CIDR> [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]
+      [no] [bridge group <bridge-name>]
+      [no] shutdown
+   end
+
+   interface <physical_interface>
+      [no] description <name>
+      [no] [mac [auto | <mac-address>]]      
+      [no] [ip address <ip-address>/<CIDR> [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]
+      [no] [ip proxy-arp]
+      [no] [ip nat [inside | outside] pool <nat-pool-name>]
+      [no] [ip static-arp <ip-address> <mac-address> [arpa]]
+      [no] [duplex [half | full | auto]]
+      [no] [speed [10 | 100 | 1000 | 10000 | auto]]
+      [no] [bridge group <bridge-name>]
+      [no] switchport access-vlan [vlan <vlan-id>]
+      [no] shutdown
+   end
+
+   ; wireless-wifi
+   interface <physical_interface>
+      [no] description <name>
+      [no] [mac [auto | <mac-address>]]      
+      [no] [ip address <ip-address>/<CIDR> [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]
+      [no] [ip proxy-arp]
+      [no] [ip nat [inside | outside] pool <nat-pool-name>]
+      [no] [ip static-arp <ip-address> <mac-address> [arpa]]
+      [no] wireless wireless-wifi <wifi-policy-name>
+      [no] [bridge group <bridge-name>]
+      [no] switchport access-vlan [vlan <vlan-id>]
+      [no] shutdown
+      end
+
+
+```
+
+
+
 ## Introduction
 
 Network interfaces are essential components of a network device that enable communication between the device and other network entities. This page provides instructions for configuring network interfaces on a network device.
