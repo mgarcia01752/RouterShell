@@ -3,8 +3,27 @@ from git import List
 from tabulate import tabulate
 from lib.common.common import Common
 from lib.common.constants import STATUS_OK
+from lib.network_manager.dhcp_client import DHCPClient
 
 from lib.network_manager.dhcp_server import DhcpServerManager
+
+class DHCPClientShow():
+    """Command set for showing DHCPClient-Show-Command"""
+
+    def __init__(self, args=None):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.args = args
+    
+    def flow_log(self) -> List[str]:
+        """
+        Retrieve DHCP client flow logs related to IPv4 address assignment from the system journal.
+
+        Returns:
+            List[str]: A list of DHCP client flow log entries related to IPv4 address assignment.
+        """
+        for line in DHCPClient().get_flow_log():
+            print(line)    
 
 class DHCPServerShow():
     """Command set for showing DHCPServer-Show-Command"""

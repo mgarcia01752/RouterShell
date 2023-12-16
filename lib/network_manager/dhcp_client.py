@@ -1,8 +1,11 @@
 from enum import Enum
 import logging
 import shutil
+from typing import List
+
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_manager import NetworkManager
 
 class DHCPVersion(Enum):
@@ -10,7 +13,7 @@ class DHCPVersion(Enum):
     DHCP_V4 = 'DHCPv4'
     DHCP_V6 = 'DHCPv6'
 
-class DHCPClient(NetworkManager):
+class DHCPClient(RunCommand):
     """
     A class for managing DHCP clients.
 
@@ -87,6 +90,27 @@ class DHCPClient(NetworkManager):
         
         return STATUS_OK
 
+    def get_flow_log(self) -> List[str]:
+        """
+        Retrieve DHCP client flow logs (DORA/SARR) from the system journal.
+
+        Returns:
+            List[str]: A list of DHCP client flow log entries.
+        """
+        try:
+            result = self.run(['journalctl | grep dhclient'], shell=True, sudo=False)
+
+            if result.exit_code:
+                return []
+
+            log_entries = result.stdout.split('\n')
+
+            return log_entries
+
+        except Exception as e:
+            self.log.error(f"Error retrieving DHCP client flow logs: {e}")
+            return []
+    
     def _enable_dhcpv4(self, interface_name: str) -> bool:
         """
         Enable DHCPv4 on the specified interface.

@@ -11,7 +11,7 @@ from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.cli.config.vlan_config import VlanShow
 from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow
-from lib.cli.show.dhcpd_show import DHCPServerShow
+from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
@@ -59,8 +59,8 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             show arp                            (Implemented)
             show bridge                         (Implemented)
             show interfaces [brief | statistic] (Implemented)
-            show dhcp-client
-            show dhcp-server [leases | status]
+            show dhcp-client [log]
+            show dhcp-server [leases | lease-log | server-log | status]
             show hardware [cpu | network]
             show nat
             show nat-db
@@ -99,6 +99,12 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         show_bridge_parser = show_parser.add_parser("bridge",
             help="Display information about network bridges."
         )
+
+        show_dhcp_client_parser = show_parser.add_parser("dhcp-client", help="Specify dhcp-client")
+        
+        show_dhcp_client_parser.add_argument("dhcp_client_get_option", choices=['log'],
+            help="Specify dhcp-client [log]"
+        )   
 
         show_dhcp_server_parser = show_parser.add_parser("dhcp-server", help="Specify dhcp-server")
         
@@ -175,7 +181,12 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         elif args.subcommand == 'dhcp-client':
             self.log.debug("Show DHCP Client command")
-            return
+            
+            dhcp_client_get_option = args.dhcp_client_get_option
+            
+            if dhcp_client_get_option == 'log':
+                DHCPClientShow().flow_log()
+                return
         
         elif args.subcommand == 'dhcp-server':
             

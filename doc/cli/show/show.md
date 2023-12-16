@@ -18,12 +18,20 @@ Shows information related to bridging configurations and the state of bridge int
 
 ## DHCP
 
+### DHCP Client
+
+```text
+    show dhcp-client 
+```
+
+### DHCP Server
+
 ```text
     show dhcp-server status
     show dhcp-server leases
-    
+    show dhcp-server lease-log
+    show dhcp-server server-log        
 ```
-
 
 ## Interfaces
 
@@ -130,5 +138,3 @@ Displays information about the interface database, providing details about the c
 ```text
 show wireless
 ```
-
-Shows information related to wireless configurations, including details about wireless interfaces, SSIDs, and other wireless settings.
