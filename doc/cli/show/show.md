@@ -21,7 +21,7 @@ Shows information related to bridging configurations and the state of bridge int
 ### DHCP Client
 
 ```text
-    show dhcp-client 
+    show dhcp-client log
 ```
 
 ### DHCP Server
