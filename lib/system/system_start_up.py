@@ -11,4 +11,13 @@ class SystemStartUp(RunCommand):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
-        
+
+
+class SystemShutDown(RunCommand):
+    
+    def __init__(self):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().SYSTEM_START_UP)
+
+       

@@ -16,6 +16,15 @@ show bridge
 
 Shows information related to bridging configurations and the state of bridge interfaces.
 
+## DHCP
+
+```text
+    show dhcp-server status
+    show dhcp-server leases
+    
+```
+
+
 ## Interfaces
 
 ```text

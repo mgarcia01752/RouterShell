@@ -72,11 +72,11 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             return
         
         elif parsed_args.subcommand == 'router-db':
-            self.log.debug("Clear RouterShell DB command")
+            self.log.info(f"Clear RouterShell DB command, EXEC-MODE:({self.get_exec_mode()})")
             
             if self.get_exec_mode() != ExecMode.PRIV_MODE:
                 print(f"Unable to clear router-db, must be in Privilege Mode")
-                return            
+                # return            
             
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':

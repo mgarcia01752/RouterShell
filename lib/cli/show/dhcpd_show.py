@@ -8,3 +8,11 @@ class DHCPServerShow():
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.args = args
+        
+    def status(self):
+        pass
+    
+    def config(self, interface_name:str):
+        pass
+    
+    

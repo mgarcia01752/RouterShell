@@ -1,11 +1,14 @@
+import json
 import logging
+import os
 
-from typing import Optional
+from typing import Dict, Optional
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.common.inet import InetServiceLayer, InetVersion
+from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_manager import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq import Action, DNSMasqDeploy, DNSMasqInterfaceService
@@ -345,3 +348,166 @@ class DhcpPoolFactory():
             return DHCPVersion.DHCP_V4
         else:
             return DHCPVersion.DHCP_V6
+
+import logging
+import os
+from typing import Dict
+
+import logging
+import os
+import ipaddress
+from typing import Dict, List, Union
+
+class DhcpServerManager(RunCommand):
+
+    def __init__(self):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().DHCP_SERVER_MANAGER)
+
+    def get_dhcp_lease_summary(self) -> Dict[str, List[Dict[str, Union[str, List[Dict[str, str]]]]]]:
+        '''
+        Get a summary of DHCP leases grouped by subnet.
+
+        Returns:
+            Dict: A hierarchical dictionary containing DHCP lease information.
+                {
+                    'subnet': [
+                        {
+                            "ip_address": str,
+                            "mac_address": str,
+                            "hostname": str,
+                            "expires": str
+                        },
+                        ...
+                    ],
+                    ...
+                }
+        '''
+        all_leases = self.get_all_leases()
+        subnets = self.get_subnets_from_config()
+
+        # Initialize the DHCP lease summary dictionary
+        dhcp_lease_summary = {subnet: [] for subnet in subnets}
+
+        # Group leases by subnet
+        for lease in all_leases:
+            for subnet in subnets:
+                if self._is_ip_in_subnet(lease['ip_address'], subnet):
+                    dhcp_lease_summary[subnet].append({
+                        "ip_address": lease['ip_address'],
+                        "mac_address": lease['mac_address'],
+                        "hostname": lease['hostname'],
+                        "expires": lease['expires'],
+                    })
+                    break  # Stop searching for other subnets once a match is found
+
+        return dhcp_lease_summary
+
+    def _is_ip_in_subnet(self, ip_address: str, subnet: str) -> bool:
+        '''
+        Check if an IP address belongs to a specified subnet.
+
+        Args:
+            ip_address (str): The IP address to check.
+            subnet (str): The subnet in CIDR format.
+
+        Returns:
+            bool: True if the IP address belongs to the subnet, False otherwise.
+        '''
+        try:
+            ip_obj = ipaddress.ip_address(ip_address)
+            network_obj = ipaddress.ip_network(subnet, strict=False)
+
+            return ip_obj in network_obj
+        except ValueError:
+            # Handle invalid IP address or subnet
+            return False
+
+    def get_all_leases(self) -> List[Dict[str, str]]:
+        try:
+            leases_path = "/var/lib/misc/dnsmasq.leases"  # Modify this path based on your system
+            if os.path.exists(leases_path):
+                with open(leases_path, 'r') as leases_file:
+                    leases_raw = leases_file.readlines()
+
+                # Extract relevant fields from each lease entry
+                leases = []
+                for lease_raw in leases_raw:
+                    lease_info = lease_raw.split()
+                    # Check if the lease entry has the expected number of elements
+                    if len(lease_info) >= 5:
+                        subnet = lease_info[4]
+                        if subnet != '*':
+                            lease_dict = {
+                                "ip_address": lease_info[2],
+                                "mac_address": lease_info[1],
+                                "hostname": lease_info[3],
+                                "expires": lease_info[0],
+                                "subnet": subnet,
+                            }
+                            leases.append(lease_dict)
+                            print(f"Processed lease entry: {lease_dict}")
+                        else:
+                            print(f"Skipped lease entry due to wildcard subnet: {lease_info}")
+                    else:
+                        # Include malformed entries in the list with an indication
+                        lease_dict = {
+                            "malformed_entry": lease_raw.strip(),
+                        }
+                        leases.append(lease_dict)
+                        print(f"Processed malformed lease entry: {lease_dict}")
+
+                return leases
+
+            else:
+                self.log.warning(f"Leases file '{leases_path}' not found.")
+                return []
+
+        except Exception as e:
+            self.log.error(f"Error retrieving DHCP leases: {e}")
+            return []
+
+
+
+    # Update get_subnets_from_config method
+    def get_subnets_from_config(self, config_dir: str = "/etc/dnsmasq.d") -> List[str]:
+        try:
+            subnets = []
+            
+            # Check if the specified directory exists
+            if os.path.exists(config_dir) and os.path.isdir(config_dir):
+                # Iterate through all files in the specified directory
+                for file_name in os.listdir(config_dir):
+                    file_path = os.path.join(config_dir, file_name)
+                    if os.path.isfile(file_path):
+                        with open(file_path, 'r') as config_file:
+                            config_lines = config_file.readlines()
+
+                        # Process the lines in each file
+                        for line in config_lines:
+                            if line.startswith("dhcp-range="):
+                                subnet = line.split(",")[1].strip()
+                                subnets.append(subnet)
+                                print(f"Found subnet in {file_name}: {subnet}")
+            else:
+                self.log.warning(f"Config directory '{config_dir}' not found or is not a directory.")
+
+            # Log the subnets found
+            subnet_log_str = ", ".join(subnets)
+            self.log.info(f"Subnets found in {config_dir}: {subnet_log_str}")
+
+            return subnets
+
+        except Exception as e:
+            self.log.error(f"Error retrieving subnets from config directory: {e}")
+            return []
+
+
+    def get_status(self) -> bool:
+        return STATUS_OK
+        
+    def test_dhcp_server(self) -> bool:
+        return STATUS_OK
+    
+    

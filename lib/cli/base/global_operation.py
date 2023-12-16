@@ -1,8 +1,9 @@
 import argparse
+import os
 
 from bs4 import Comment
 from lib.cli.base.exec_priv_mode import ExecMode
-from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK, Common
 import subprocess
 
 from lib.network_manager.network_manager import NetworkManager
