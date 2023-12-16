@@ -4,6 +4,9 @@ import os
 
 from typing import Dict, Optional
 
+from git import List
+from lib.common.constants import DNSMASQ_LEASE_FILE_PATH
+
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
@@ -215,7 +218,8 @@ class DHCPServer(NetworkManager):
         return STATUS_OK
 
 class DhcpPoolFactory():
-    ''''''
+    '''
+    '''
     def __init__(self, dhcp_pool_name: str):
         """
         Initialize the DhcpPoolFactory instance.
@@ -349,14 +353,6 @@ class DhcpPoolFactory():
         else:
             return DHCPVersion.DHCP_V6
 
-import logging
-import os
-from typing import Dict
-
-import logging
-import os
-import ipaddress
-from typing import Dict, List, Union
 
 class DhcpServerManager(RunCommand):
 
@@ -365,11 +361,21 @@ class DhcpServerManager(RunCommand):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_SERVER_MANAGER)
 
-    def get_all_leases(self) -> List[Dict[str, str]]:
-        
+    def get_leases(self) -> List[Dict[str, str]]:
+        """
+        Retrieve a list of DHCP leases from the dnsmasq leases file.
+
+        Returns:
+            List[Dict[str, str]]: A list of dictionaries containing lease information.
+                Each dictionary has the following keys:
+                - 'ip_address': The leased IP address.
+                - 'mac_address': The MAC address of the device.
+                - 'hostname': The hostname associated with the lease.
+                - 'expires': The expiration timestamp of the lease.
+        """        
         try:
 
-            leases_path = "/var/lib/misc/dnsmasq.leases"
+            leases_path = DNSMASQ_LEASE_FILE_PATH
 
             if os.path.exists(leases_path):
                 with open(leases_path, 'r') as leases_file:
@@ -406,11 +412,73 @@ class DhcpServerManager(RunCommand):
             self.log.error(f"Error retrieving DHCP leases: {e}")
             return []
 
+    def status(self) -> bool:
+        """
+        Get the status of dnsmasq.
 
-    def get_status(self) -> bool:
+        Returns:
+            bool: STATUS_OK is active, otherwise STATUS_NOK
+
+        """
+
+        result = self.run(["systemctl", "is-active", "dnsmasq"])
+
+        if result.exit_code:
+            self.log.error(f"Error: Unable to get dnsmasq status. Exit code: {result.stderr}")
+            return STATUS_NOK
+
+        if result.stdout.strip() != 'active':
+            self.log.debug(result.stdout)
+            return STATUS_NOK
+
         return STATUS_OK
-        
+
     def test_dhcp_server(self) -> bool:
+        """
+        Test the syntax of dnsmasq configuration files.
+
+        Returns:
+            bool: STATUS_OK if the syntax test is successful, STATUS_NOK otherwise.
+        """
+
+        result = self.run(["dnsmasq", "--test"])
+        
+        if result.exit_code:
+            return STATUS_NOK
+        
+        self.log.debug(f"dnsmasq syntax test passed: {result.stdout}")
         return STATUS_OK
-    
-    
+
+    def lease_log(self) -> List[str]:
+        """
+        Get the DHCP-related log entries from the system journal.
+
+        Returns:
+            List[str]: A list of DHCP-related log entries.
+        """
+        result = self.run(['journalctl | grep dnsmasq-dhcp'], shell=True, sudo=False)
+        
+        if result.exit_code:
+            return []
+        
+        log_entries = result.stdout.split('\n')
+        return log_entries
+
+    def server_log(self) -> List[str]:
+        """
+        Get the DHCP-related log entries from the system journal.
+
+        Returns:
+            List[str]: A list of DHCP-related log entries.
+        """
+        command = 'journalctl | grep dnsmasq\\['
+
+        result = self.run(["journalctl | grep 'dnsmasq\\['"], shell=True, sudo=False)
+        
+        if result.exit_code:
+            return []
+        
+        log_entries = result.stdout.split('\n')
+        return log_entries
+
+ 

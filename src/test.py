@@ -9,7 +9,7 @@ def main():
     dhcp_manager = DhcpServerManager()
 
     # Get DHCP lease summary
-    dhcp_lease_summary = dhcp_manager.get_all_leases()
+    dhcp_lease_summary = dhcp_manager.get_leases()
 
     # Display the DHCP lease summary
     print("DHCP Lease Summary:")

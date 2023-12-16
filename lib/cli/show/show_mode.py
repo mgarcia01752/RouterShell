@@ -102,8 +102,8 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         show_dhcp_server_parser = show_parser.add_parser("dhcp-server", help="Specify dhcp-server")
         
-        show_dhcp_server_parser.add_argument("dhcp_server_get_option", choices=['leases', 'status'],
-            help="Specify dhcp-server [leases | status]"
+        show_dhcp_server_parser.add_argument("dhcp_server_get_option", choices=['leases', 'lease-log', 'server-log', 'status'],
+            help="Specify dhcp-server [leases | lease-log | server-log | status]"
         )        
 
         show_interfaces_parser = show_parser.add_parser("interfaces",
@@ -186,10 +186,18 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             if dhcp_server_get_option == 'leases':
                 print(DHCPServerShow().leases())
                 return
-                
-            elif dhcp_server_get_option == 'status':
-                print(DHCPServerShow().leases())
+
+            if dhcp_server_get_option == 'lease-log':
+                DHCPServerShow().dhcp_lease_log()
                 return
+                            
+            elif dhcp_server_get_option == 'server-log':
+                print(DHCPServerShow().dhcp_server_log())
+                return            
+
+            elif dhcp_server_get_option == 'status':
+                print(DHCPServerShow().status())
+                return            
                 
         elif args.subcommand == 'interfaces':
             self.log.debug("Show interfaces command")

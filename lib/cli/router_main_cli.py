@@ -158,7 +158,7 @@ class RouterCLI(cmd2.Cmd,
         """
         show_commands = [   'arp', 'bridge', 
                             'dhcp-client',
-                            'dhcp-server', 'leases', 'status',
+                            'dhcp-server', 'leases', 'lease-log', 'server-log', 'status',
                             'interfaces', 'brief', 'statistics',
                             'route',
                             'hardware', 'cpu', 'network',

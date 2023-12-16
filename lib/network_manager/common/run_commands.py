@@ -52,7 +52,7 @@ class RunCommand:
         with open(log_path, "a") as log_file:
             log_file.write(log_entry + "\n")
     
-    def run(self, command:List[str], suppress_error:bool=False) -> RunResult:
+    def run(self, command:List[str], suppress_error:bool=False, shell=False, sudo=True) -> RunResult:
         """
         Run a Linux command with sudo and log the result.
 
@@ -63,15 +63,22 @@ class RunCommand:
             RunResult: A named tuple containing stdout, stderr, exit_code, and the command.
         """
         try:
-            command = ['sudo'] + command
-            process = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if sudo:
+                command = ['sudo'] + command
+            
+            process = subprocess.run(command,   shell=shell,
+                                                check=True, 
+                                                stdout=subprocess.PIPE, 
+                                                stderr=subprocess.PIPE)
+            
             exit_code = process.returncode
+            
             stdout = process.stdout.decode("utf-8")
             stderr = process.stderr.decode("utf-8")
             
             cmd_str = " ".join(command)
             
-            self.log.debug(f"run({exit_code}) -> cmd -> {cmd_str}")
+            self.log.info(f"run({exit_code}) -> cmd -> {cmd_str}")
             
             self.log_command(cmd_str)
             
@@ -82,6 +89,7 @@ class RunCommand:
             
             if not suppress_error:
                 logging.error(f"Command failed: {e}: {cmd_str}")
+                logging.error(f"Error output: {e.stderr.decode('utf-8')}")
             
             self.run_cmds_failed.append(cmd_str)
             self.log_command(cmd_str)
