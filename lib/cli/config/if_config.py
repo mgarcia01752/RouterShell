@@ -91,7 +91,14 @@ class InterfaceConfig(cmd2.Cmd,
         completions = ['address', 'auto']
         return [comp for comp in completions if comp.startswith(text)]
     
-    def do_mac(self, args):
+    def do_description(self, line:str, negate=False):
+        if negate:
+            line = None
+        
+        if self.update_db_description(self.ifName, line):
+            print("Unable to add description to DB")
+        
+    def do_mac(self, args:str):
         parts = args.strip().split()
         self.log.debug(f"do_mac() -> Parts: {parts}")
         
@@ -583,25 +590,6 @@ class InterfaceConfig(cmd2.Cmd,
         return [comp for comp in completions if comp.startswith(text)]
         
     def do_no(self, line):
-        """
-        Negate or remove a previously configured setting or command.
-
-        Args:
-            line (str): The command or setting to negate or remove.
-
-        Debugging Information:
-            - This method logs debugging information about the actions performed.
-
-        Supported Commands:
-            - shutdown: Enable the interface (opposite of 'shutdown' command).
-            - bridge <args>: Remove a bridge configuration.
-            - ip <args>: Remove an IP configuration.
-            - ipv6 <args>: Remove an IPv6 configuration.
-            - switchport <args>: Remove switchport settings.
-
-        Note:
-            This command is used to negate or remove a previously configured setting or command.
-        """
         self.log.debug(f"do_no() -> Line -> {line}")
         
         parts = line.strip().split()
@@ -628,3 +616,10 @@ class InterfaceConfig(cmd2.Cmd,
         elif start_cmd == 'switchport':
             self.log.debug(f"Remove switchport -> ({line})")
             self.do_switchport(parts[1:], negate=True)
+        
+        elif start_cmd == 'description':
+            self.log.debug(f"Remove description -> ({line})")
+            self.do_description(parts[1:], negate=True)
+        
+        else:
+            print(f"No negate option for {start_cmd}")

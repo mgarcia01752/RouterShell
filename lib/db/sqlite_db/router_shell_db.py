@@ -2485,6 +2485,31 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
+    def update_interface_description(self, interface_name, description:str) -> Result:
+        
+        existing_result = self.interface_exists(interface_name)
+
+        if not existing_result.status:
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
+
+        try:
+            cursor = self.connection.cursor()
+            
+            cursor.execute(
+                "UPDATE Interfaces SET Description = ? WHERE InterfaceName = ?",
+                (description, interface_name)
+            )
+            
+            self.connection.commit()
+            
+            self.log.debug(f"Description: ({description}) updated for interface: {interface_name}")
+            
+            return Result(status=STATUS_OK, row_id=existing_result.row_id)
+        
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating shutdown status for interface {interface_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")       
+        
     '''
                     INTERFACE-IP-ADDRESS DATABASE
     '''
@@ -3972,6 +3997,7 @@ class RouterShellDB(metaclass=Singleton):
                 SELECT DISTINCT
                 
                     'interface '            || Interfaces.InterfaceName AS Interface,
+                    'description '          || Interfaces.Description AS Description,
                     'mac address '          || InterfaceSubOptions.MacAddress AS MacAddress,
                     'duplex '               || InterfaceSubOptions.Duplex AS Duplex,
                     'speed '                || CASE WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' ELSE InterfaceSubOptions.Speed END AS Speed,
@@ -3998,18 +4024,19 @@ class RouterShellDB(metaclass=Singleton):
             result = cursor.fetchone()
 
             if result is not None:
-                # Construct a dictionary with the SQL result
+                i = 0
                 sql_result_dict = {
                     'Interface': result[0],
-                    'MacAddress': result[1],
-                    'Duplex': result[2],
-                    'Speed': 'auto' if result[3] == 1 else result[3],
-                    'ProxyArp': result[4],
-                    'DropGratuitousArp': result[5],
-                    'BridgeGroup': result[6],
-                    'NatInterafaceDirection': result[7],
-                    'DhcpServerPool': result[8],
-                    'Shutdown': result[9],
+                    'Description': result[1],
+                    'MacAddress': result[2],
+                    'Duplex': result[3],
+                    'Speed': 'auto' if result[4] == 1 else result[4],
+                    'ProxyArp': result[5],
+                    'DropGratuitousArp': result[6],
+                    'BridgeGroup': result[7],
+                    'NatInterafaceDirection': result[8],
+                    'DhcpServerPool': result[9],
+                    'Shutdown': result[10],
                 }
                 return Result(status=STATUS_OK, row_id=None, result=sql_result_dict)
             else:

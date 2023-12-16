@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS Interfaces (
     ID INTEGER PRIMARY KEY,
     InterfaceName VARCHAR(100) UNIQUE,
     InterfaceType VARCHAR(100),                         -- Interface Type (ethernet, loopback, wireless wifi, wireless cell)
-    ShutdownStatus BOOLEAN DEFAULT TRUE                 -- True = interface is shutdown
+    ShutdownStatus BOOLEAN DEFAULT TRUE,                -- True = interface is shutdown
+    Description VARCHAR(100)
 );
 
 DROP TABLE IF EXISTS InterfaceSubOptions;
