@@ -6,6 +6,7 @@ import os
 import datetime
 import subprocess
 import logging
+from datetime import datetime 
 
 from lib.common.constants import *
 
@@ -167,6 +168,16 @@ class Common():
     @staticmethod    
     def flatten_list(simple_list):
         return [item for item in simple_list]
+    
+    @staticmethod
+    def convert_timestamp(timestamp:int):
+        """
+        Convert Unix timestamp to human-readable date and time.
+        """
+        if timestamp:
+            return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return "N/A" 
 
 
 

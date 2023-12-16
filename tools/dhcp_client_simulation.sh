@@ -2,22 +2,18 @@
 
 # Function to display script usage
 display_usage() {
-    echo "Usage: $0 -i <main_interface> -n <max_subinterfaces>"
-    echo "Example: $0 -i Gig1 -n 20"
+    echo "Usage: $0 -n <num_interfaces>"
+    echo "Example: $0 -n 10"
 }
 
 # Initialize default values
-main_interface=""
-max_subinterfaces=""
+num_interfaces=""
 
 # Parse command-line options
-while getopts ":i:n:" opt; do
+while getopts ":n:" opt; do
     case $opt in
-        i)
-            main_interface="$OPTARG"
-            ;;
         n)
-            max_subinterfaces="$OPTARG"
+            num_interfaces="$OPTARG"
             ;;
         \?)
             echo "Invalid option: -$OPTARG"
@@ -32,29 +28,28 @@ while getopts ":i:n:" opt; do
     esac
 done
 
-# Check for the required options
-if [ -z "$main_interface" ] || [ -z "$max_subinterfaces" ]; then
-    echo "Missing required options."
+# Check for the required option
+if [ -z "$num_interfaces" ]; then
+    echo "Missing required option."
     display_usage
     exit 1
 fi
 
 # Validate user input
-if ! [[ "$max_subinterfaces" =~ ^[1-9][0-9]*$ ]]; then
-    echo "Invalid input. Please enter a positive integer for the maximum number of subinterfaces."
+if ! [[ "$num_interfaces" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Invalid input. Please enter a positive integer for the number of loopback interfaces."
     display_usage
     exit 1
 fi
 
-# Create subinterfaces based on user input
-for ((i = 1; i <= max_subinterfaces; i++)); do
-    ip link add link $main_interface name ${main_interface}:$i type vlan id $i
-    sleep 1  # Add a delay to allow time for the interface creation
+# Create loopback interfaces based on user input
+for ((i = 1; i <= num_interfaces; i++)); do
+    ip link add lo$i type dummy
 done
 
-# Activate subinterfaces
-for ((i = 1; i <= max_subinterfaces; i++)); do
-    ip link set ${main_interface}:$i up
+# Activate loopback interfaces
+for ((i = 1; i <= num_interfaces; i++)); do
+    ip link set lo$i up
 done
 
 # Install DHCP client if not already installed
@@ -64,9 +59,9 @@ if ! command -v dhclient &> /dev/null; then
     sudo apt-get install -y isc-dhcp-client
 fi
 
-# Configure DHCP on subinterfaces
-for ((i = 1; i <= max_subinterfaces; i++)); do
-    dhclient ${main_interface}:$i
+# Configure DHCP on loopback interfaces
+for ((i = 1; i <= num_interfaces; i++)); do
+    dhclient lo$i
 done
 
 # Display the configured IP addresses

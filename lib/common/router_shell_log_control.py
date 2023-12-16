@@ -41,7 +41,7 @@ class RouterShellLoggingGlobalSettings():
     DHCP_CLIENT_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     DHCP_SERVER                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    DHCP_SERVER_MANAGER         = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    DHCP_SERVER_MANAGER         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_SERVER_DB              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_POOL_FACTORY           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_SERVER_CONFIG          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

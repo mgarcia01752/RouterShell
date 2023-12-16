@@ -11,6 +11,7 @@ from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.cli.config.vlan_config import VlanShow
 from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow
+from lib.cli.show.dhcpd_show import DHCPServerShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
@@ -58,6 +59,8 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             show arp                            (Implemented)
             show bridge                         (Implemented)
             show interfaces [brief | statistic] (Implemented)
+            show dhcp-client
+            show dhcp-server [leases | status]
             show hardware [cpu | network]
             show nat
             show nat-db
@@ -96,6 +99,12 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         show_bridge_parser = show_parser.add_parser("bridge",
             help="Display information about network bridges."
         )
+
+        show_dhcp_server_parser = show_parser.add_parser("dhcp-server", help="Specify dhcp-server")
+        
+        show_dhcp_server_parser.add_argument("dhcp_server_get_option", choices=['leases', 'status'],
+            help="Specify dhcp-server [leases | status]"
+        )        
 
         show_interfaces_parser = show_parser.add_parser("interfaces",
             help="Display information about network interfaces."
@@ -163,7 +172,25 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug("Show bridge command")
             BridgeShow().show_bridges()
             return
+
+        elif args.subcommand == 'dhcp-client':
+            self.log.debug("Show DHCP Client command")
+            return
         
+        elif args.subcommand == 'dhcp-server':
+            
+            self.log.debug("Show DHCP Server command")
+
+            dhcp_server_get_option = args.dhcp_server_get_option
+            
+            if dhcp_server_get_option == 'leases':
+                print(DHCPServerShow().leases())
+                return
+                
+            elif dhcp_server_get_option == 'status':
+                print(DHCPServerShow().leases())
+                return
+                
         elif args.subcommand == 'interfaces':
             self.log.debug("Show interfaces command")
             

@@ -156,11 +156,19 @@ class RouterCLI(cmd2.Cmd,
         Returns:
             list[str]: List of completions that start with the provided text.
         """
-        show_commands = ['arp', 'bridge', 'interfaces', 'route']
-        show_commands.extend(['hardware', 'cpu', 'network'])
-        show_commands.extend(['nat', 'nat-db', 
-                              'vlan', 'vlan-db'])
-        show_commands.extend(['running-config'])
+        show_commands = [   'arp', 'bridge', 
+                            'dhcp-client',
+                            'dhcp-server', 'leases', 'status',
+                            'interfaces', 'brief', 'statistics',
+                            'route',
+                            'hardware', 'cpu', 'network',
+                            'nat', 
+                            'nat-db', 
+                            'vlan', 
+                            'vlan-db',
+                            'running-config'
+                         ]
+
         return [cmd for cmd in show_commands if cmd.startswith(text)]
     
     def do_show(self, arg: str) -> None:
