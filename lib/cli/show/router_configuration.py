@@ -371,20 +371,8 @@ class RouterConfiguration:
 
                 cmd_lines.extend(temp_cmd_line)
                 cmd_lines.append('end')               
-                cmd_lines.append('')
+                cmd_lines.append(self.LINE_BREAK)
 
         return cmd_lines
 
-
-
-
-
-                
-                
-                
-                
-                    
-                    
-                
-                
       
