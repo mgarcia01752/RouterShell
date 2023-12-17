@@ -136,6 +136,9 @@ class RouterConfiguration:
                 for i, line in enumerate(filter(None, dhcp_server_config.values()))
             )
             
+            cmd_lines.append('end')
+            cmd_lines.extend([self.LINE_BREAK])
+            
         if cmd_lines:
             cmd_lines.append('end')
             cmd_lines.extend([self.LINE_BREAK])
