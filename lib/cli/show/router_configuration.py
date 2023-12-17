@@ -301,7 +301,6 @@ class RouterConfiguration:
 
         return cmd_lines
 
-
     def _get_access_control_list(self) -> List[str]:
         """
         Generate CLI commands for access control lists.

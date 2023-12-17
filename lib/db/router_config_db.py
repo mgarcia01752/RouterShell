@@ -21,7 +21,6 @@ class RouterConfigurationDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()
             
-    
     def get_interface_name_list(cls, interface_type: InterfaceType) -> List[str]:
         """
         Get a list of interface names based on the specified interface type.
@@ -136,7 +135,7 @@ class RouterConfigurationDatabase:
         # Extract data from the result list and build the list of dictionaries
         wifi_config_list = [result.result for result in wifi_config_result]
 
-        cls.log.info(f"WiFi Interface Config: {wifi_config_list}")
+        cls.log.debug(f"WiFi Interface Config: {wifi_config_list}")
 
         return STATUS_OK, wifi_config_list
      
@@ -354,7 +353,7 @@ class RouterConfigurationDatabase:
 
                 config_data[wifi_policy] = temp_config
 
-        cls.log.info(f'{config_data}')
+        cls.log.debug(f'{config_data}')
 
         return STATUS_OK if config_data else STATUS_NOK, config_data
 
