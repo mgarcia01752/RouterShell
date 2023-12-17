@@ -4514,9 +4514,9 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute('''
                 SELECT DISTINCT
-                    'wireless wifi  '       || WirelessWifiPolicy.WifiPolicyName AS WifiPolicyName,
-                    'channel '              || WirelessWifiPolicy.Channel AS Channel,
-                    'mode '                 || WirelessWifiPolicy.HardwareMode AS HardwareMode
+                    'wireless wifi '    || WirelessWifiPolicy.WifiPolicyName AS WifiPolicyName,
+                    'channel '          || WirelessWifiPolicy.Channel AS Channel,
+                    'mode '             || WirelessWifiPolicy.HardwareMode AS HardwareMode
                 FROM WirelessWifiPolicy
                                 
                 WHERE WirelessWifiPolicy.WifiPolicyName = ?;

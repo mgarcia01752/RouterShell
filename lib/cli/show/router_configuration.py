@@ -13,7 +13,7 @@ from lib.system.system_config import SystemConfig
 class RouterConfiguration:
 
     CONFIG_MSG_START='; RouterShell Configuration'
-    LINE_BREAK = "\n"
+    LINE_BREAK = ""
     
     def __init__(self, args=None):
         """
@@ -101,6 +101,7 @@ class RouterConfiguration:
             cmd_lines.extend(self._get_global_bridge_config())
             cmd_lines.extend(self._get_global_vlan_config())
             cmd_lines.extend(self._get_global_nat_config())
+            cmd_lines.extend(self._get_global_wifi_policy())
             cmd_lines.extend(self._get_global_dhcp_server_config())
 
             return cmd_lines
@@ -334,9 +335,56 @@ class RouterConfiguration:
 
         return [hostname]
 
-    def _get_wifi_policy(self) -> List[str]:
- 
+    def _get_global_wifi_policy(self, indent: int=1) -> List[str]:
+        """
+        Generate CLI commands for WiFi policy configuration.
+
+        Args:
+            indent (int, optional): The number of spaces to use for indentation. Defaults to 1.
+
+        Returns:
+            List[str]: List of CLI commands for WiFi policy configuration. Each command is indented based on the specified 'indent' parameter.
+        """
         cmd_lines = []
 
-        self.rcdb.get_wifi_policy_configuration()
-        
+        status, wifi_policy_config = self.rcdb.get_wifi_policy_configuration()
+
+        if status == STATUS_OK:
+
+            for wifi_policy, config_data in wifi_policy_config.items():
+                
+                temp_cmd_line = []
+                
+                temp_cmd_line.append(config_data.get('WifiPolicyName'))
+
+                # WifiSecurityPolicy list after the start of the wifi-policy-name start
+                wifi_sec_policy_list = config_data.get('WifiSecurityPolicy')
+
+                if isinstance(wifi_sec_policy_list, list):
+                    for item in wifi_sec_policy_list:
+                        ssid_line = " ".join(item.values())
+                        temp_cmd_line.append(indent * ' ' + ssid_line)
+                        
+                # Append the following at the end of the config list
+                temp_cmd_line.append(indent * ' ' + f"{config_data.get('Channel')}")
+                temp_cmd_line.append(indent * ' ' + f"{config_data.get('HardwareMode')}")
+
+                cmd_lines.extend(temp_cmd_line)
+                cmd_lines.append('end')               
+                cmd_lines.append('')
+
+        return cmd_lines
+
+
+
+
+
+                
+                
+                
+                
+                    
+                    
+                
+                
+      
