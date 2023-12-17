@@ -125,6 +125,7 @@ class RouterConfiguration:
         status, dhcp_server_info_results = self.rcdb.get_dhcp_server_configuration()
 
         if status == STATUS_NOK:
+            self.log.debug('No DHCP-Server configuration found')
             return []
 
         cmd_lines = []
