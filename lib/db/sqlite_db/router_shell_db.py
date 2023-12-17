@@ -4014,7 +4014,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_configuration(self, interface_name) -> Result:
+    def select_interface_configuration(self, interface_name:str) -> Result:
         """
         Select information about a specific interface.
 
@@ -4080,7 +4080,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def select_interface_ip_address_configuration(self, interface_name) -> List[Result]:
+    def select_interface_ip_address_configuration(self, interface_name:str) -> List[Result]:
         """
         Select distinct IP addresses for a specific interface.
 
@@ -4115,7 +4115,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_ip_static_arp_configuration(self, interface_name) -> List[Result]:
+    def select_interface_ip_static_arp_configuration(self, interface_name:str) -> List[Result]:
         """
         Select distinct static ARP entries for a specific interface.
 
@@ -4152,6 +4152,46 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting interface static ARP entries: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_interface_wifi_configuration(self, interface_name: str) -> List[Result]:
+        """
+        Select distinct wireless wifi policy entries for a given interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            List[Result]: A list of Result objects containing the wireless wifi policy names.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'wireless wifi policy ' || WirelessWifiPolicy.WifiPolicyName AS WifiPolicyName
+                FROM
+                    Interfaces
+                JOIN
+                    WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interface_FK
+                JOIN
+                    WirelessWifiPolicy ON WirelessWifiPolicyInterface.WirelessWifiPolicy_FK = WirelessWifiPolicy.ID
+                WHERE
+                    Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+
+            result_list = []
+            rows = cursor.fetchall()
+
+            for row in rows:
+                result_list.append(Result(status=STATUS_OK, row_id=None, result={'WifiPolicyName': row[0]}))
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface wifi-policy entries: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+
 
     '''
                             ROUTER-CONFIGURATION-GLOBAL
@@ -4584,5 +4624,4 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting WifiPolicyName information: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-
      

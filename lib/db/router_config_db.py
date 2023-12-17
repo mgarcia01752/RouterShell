@@ -120,6 +120,26 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, static_arp_config_list
 
+    def get_interface_wifi_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+        """
+        Get the wireless wifi configuration for a specified interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            Tuple[bool, List[dict]]: A tuple containing a boolean status and a list of dictionaries
+            representing the wireless wifi configuration for the given interface.
+        """
+        wifi_config_result = cls.rsdb.select_interface_wifi_configuration(interface_name)
+
+        # Extract data from the result list and build the list of dictionaries
+        wifi_config_list = [result.result for result in wifi_config_result]
+
+        cls.log.info(f"WiFi Interface Config: {wifi_config_list}")
+
+        return STATUS_OK, wifi_config_list
+     
     def get_interface_rename_configuration(cls) -> Tuple[bool, List[Dict]]:
         """
         Retrieve data from the 'RenameInterface' table.
@@ -337,3 +357,5 @@ class RouterConfigurationDatabase:
         cls.log.info(f'{config_data}')
 
         return STATUS_OK if config_data else STATUS_NOK, config_data
+
+

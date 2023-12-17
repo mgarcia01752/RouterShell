@@ -282,6 +282,10 @@ class RouterConfiguration:
 
             for ip_static_arp_config in if_ip_static_arp_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_static_arp_config.values()))
+            
+            status, if_wifi_config = self.rcdb.get_interface_wifi_configuration(if_name)
+            for wifi_config in if_wifi_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, wifi_config.values()))                
 
             start_temp_interface_cmd_lines[1:1] = temp_interface_cmd_lines
 
