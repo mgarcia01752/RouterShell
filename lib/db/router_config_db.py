@@ -243,15 +243,14 @@ class RouterConfigurationDatabase:
                 reservations, and subnet options.
 
         Note:
-        - This method relies on the assumption that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools, DHCPOptions)
-        exist with the specified schema.
         - The returned list includes dictionaries for each type of data, providing a structured format for the DHCP server configuration.
         - If the retrieval is unsuccessful, the method returns a tuple with a status of STATUS_NOK and an empty list.
         """
         dhcp_server_config_result = cls.rsdb.select_global_dhcp_server_configuration()
-        dhcp_server_config_data = []
+        config_data = []
 
         if all(result.status == STATUS_OK for result in dhcp_server_config_result):
+            
             for dsc_result in dhcp_server_config_result:
                 pool_name = dsc_result.result.get('DhcpServerPoolName').split()[1]
 
@@ -272,12 +271,12 @@ class RouterConfigurationDatabase:
                     for key, value in data.result.items():
                         combined_data.update({f"{key}-{str(next(cls.counter))}": value})
 
-                dhcp_server_config_data.append(combined_data)
+                config_data.append(combined_data)
 
         else:
-            return STATUS_NOK, dhcp_server_config_data
+            return STATUS_NOK, config_data
         
-        return STATUS_OK, dhcp_server_config_data
+        return STATUS_OK, config_data
 
     def get_banner(cls) -> Tuple[bool, Dict]:
         """
@@ -298,4 +297,46 @@ class RouterConfigurationDatabase:
             return STATUS_NOK, {}
         
         return STATUS_OK, result.result
+
+    def get_wifi_policy_configuration(cls) -> Tuple[bool, Dict]:
+
+        wifi_policy_result = cls.rsdb.select_wifi_policies()
+
+        config_data = {}
+
+        if all(result.status == STATUS_OK for result in wifi_policy_result):
+
+            for wp_result in wifi_policy_result:
+
+                wifi_policy = wp_result.result.get('WifiPolicyName')
+
+                wp_config = cls.rsdb.select_global_wireless_wifi_policy(wifi_policy)
+
+                temp_config = wp_config.result
+
+                wp_sec_policy = cls.rsdb.select_global_wireless_wifi_security_policy(wifi_policy)
+
+                wifi_sec_policy_list = wp_sec_policy
+                wifi_sec_policy_data = []
+
+                for wifi_sec_policy_item in wifi_sec_policy_list:
+
+                    ssid = wifi_sec_policy_item.get('Ssid')
+                    passphrase = wifi_sec_policy_item.get('WpaPassPhrase')
+                    version = wifi_sec_policy_item.get('WpaVersion')
+
+                    wifi_sec_policy_data.append({
+                        'Ssid': ssid,
+                        'Passphrase': passphrase,
+                        'Version': version
+                    })
+
+                temp_config['WifiSecurityPolicy'] = wifi_sec_policy_data
+
+                config_data[wifi_policy] = temp_config
+
+        print(f'\n\n{config_data}\n\n')
+        
+        return STATUS_OK if config_data else STATUS_NOK, config_data
+
 

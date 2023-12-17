@@ -3152,6 +3152,39 @@ class RouterShellDB(metaclass=Singleton):
     '''
                         WIRELESS-POLICY-WIFI SELECT
     '''
+    def select_wifi_policies(self) -> List[Result]:
+        """
+        Retrieves information about all wireless WiFi policies.
+
+        Returns:
+        - List[Result]: A list of Result objects containing information about wireless WiFi policies.
+        """
+        results = []
+
+        try:
+            query = """
+                SELECT ID, WifiPolicyName, Channel, HardwareMode
+                FROM WirelessWifiPolicy;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+            for row in rows:
+                id, policy_name, channel, hardware_mode = row
+                results.append(Result(
+                    status=STATUS_OK,
+                    row_id=id,
+                    reason=f"Retrieved information for wireless WiFi policy '{policy_name}'",
+                    result={"WifiPolicyName": policy_name, "Channel": channel, "HardwareMode": hardware_mode}
+                ))
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve information for wireless WiFi policies. Error: {str(e)}"
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message))
+            return results
 
     def select_all_wifi_hostapd_options(self, wireless_wifi_policy: str) -> List[Result]:
         """
@@ -4450,3 +4483,106 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Failed to retrieve global DHCP server subnet option pool configurations. Error: {str(e)}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_global_wireless_wifi_policy(self, wifi_policy_name: str) -> Result:
+        """
+        Selects global wireless WiFi policy based on the provided WifiPolicyName.
+
+        Parameters:
+        - wifi_policy_name (str): The WifiPolicyName to search for.
+
+        Returns:
+        - Result: A dictionary containing the selected wireless WiFi policy information.
+
+        Example:
+        ```
+        result = db_instance.select_global_wireless_wifi_policy("example_policy")
+
+        if result.status:
+            print(f"Successfully retrieved WiFi policy: {result.result}")
+        else:
+            print(f"Failed to retrieve WiFi policy. Reason: {result.reason}")
+        ```
+
+        Note:
+        - 'status' attribute should be set to True for successful operations (STATUS_OK) and False for failed ones (STATUS_NOK).
+        - 'row_id' represents the unique identifier of the affected row. Set to None for STATUS_OK or 0 for STATUS_NOK.
+        - 'reason' provides additional information about the operation, which is particularly useful for error messages.
+        - 'result' is a dictionary containing the selected wireless WiFi policy information.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'wireless wifi  '       || WirelessWifiPolicy.WifiPolicyName AS WifiPolicyName,
+                    'channel '              || WirelessWifiPolicy.Channel AS Channel,
+                    'mode '                 || WirelessWifiPolicy.HardwareMode AS HardwareMode
+                FROM WirelessWifiPolicy
+                                
+                WHERE WirelessWifiPolicy.WifiPolicyName = ?;
+                ''', (wifi_policy_name,))
+
+            result = cursor.fetchone()
+
+            if result is not None:
+                sql_result_dict = {
+                    'WifiPolicyName': result[0],
+                    'Channel': result[1],
+                    'HardwareMode': result[2],
+                }
+                return Result(status=STATUS_OK, row_id=None, result=sql_result_dict)
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"WifiPolicyName {wifi_policy_name} not found.")
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting WifiPolicyName information: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
+
+    def select_global_wireless_wifi_security_policy(self, wifi_policy_name: str) -> List[Result]:
+        """
+        Selects global wireless WiFi security policy based on the provided WifiPolicyName.
+
+        Parameters:
+        - wifi_policy_name (str): The WifiPolicyName to search for.
+
+        Returns:
+        - List[Result]: A list of dictionaries containing selected wireless WiFi security policy information.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'ssid '         || wws.Ssid AS Ssid,
+                    'pass-phrase '  || wws.WpaPassPhrase AS WpaPassPhrase,
+                    'wpa-mode '     || wws.WpaVersion AS WpaVersion
+                
+                FROM WirelessWifiPolicy wwp
+                
+                LEFT JOIN WirelessWifiSecurityPolicy wws ON wwp.ID = wws.WirelessWifiPolicy_FK
+                
+                WHERE wwp.WifiPolicyName = ?;
+                ''', (wifi_policy_name,))
+
+            results = cursor.fetchall()
+
+            if results:
+                # Create a list of dictionaries for each result
+                result_list: List[Result] = [
+                    {
+                        'Ssid': result[0],
+                        'WpaPassPhrase': result[1],
+                        'WpaVersion': result[2],
+                    }
+                    for result in results
+                ]
+                return result_list
+            else:
+                return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"WifiPolicyName {wifi_policy_name} not found.")]
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting WifiPolicyName information: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+     

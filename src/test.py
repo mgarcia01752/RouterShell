@@ -2,21 +2,9 @@
 
 import json
 
-from lib.network_manager.dhcp_server import DhcpServerManager
+from lib.db.router_config_db import RouterConfigurationDatabase
 
-def main():
-    # Create an instance of DhcpServerManager
-    dhcp_manager = DhcpServerManager()
-
-    # Get DHCP lease summary
-    dhcp_lease_summary = dhcp_manager.get_leases()
-
-    # Display the DHCP lease summary
-    print("DHCP Lease Summary:")
-    print(json.dumps(dhcp_lease_summary, indent=2))
-
-if __name__ == "__main__":
-    main()
+RouterConfigurationDatabase().get_wifi_policy_configuration()
 
 
 

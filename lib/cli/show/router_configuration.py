@@ -333,3 +333,10 @@ class RouterConfiguration:
         hostname = f'hostname {SystemConfig().get_hostname()}'
 
         return [hostname]
+
+    def _get_wifi_policy(self) -> List[str]:
+ 
+        cmd_lines = []
+
+        # self.rcdb.
+        
