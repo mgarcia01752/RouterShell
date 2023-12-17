@@ -69,7 +69,6 @@ class RouterConfiguration:
         cmd_lines.extend([self.LINE_BREAK])
         
         cmd_lines.extend(self._get_banner())
-        cmd_lines.extend([self.LINE_BREAK])
         
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
@@ -139,10 +138,6 @@ class RouterConfiguration:
             cmd_lines.append('end')
             cmd_lines.extend([self.LINE_BREAK])
             
-        if cmd_lines:
-            cmd_lines.append('end')
-            cmd_lines.extend([self.LINE_BREAK])
-
         return cmd_lines
      
     def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
@@ -219,7 +214,6 @@ class RouterConfiguration:
                 cmd_setting = result.get('RenameInterfaceConfig')
                 cmd_lines.append(cmd_setting)
             
-            cmd_lines.extend([self.LINE_BREAK])
             return cmd_lines
         
         else:
