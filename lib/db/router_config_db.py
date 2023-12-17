@@ -298,29 +298,33 @@ class RouterConfigurationDatabase:
         
         return STATUS_OK, result.result
 
-    def get_wifi_policy_configuration(cls) -> Tuple[bool, Dict]:
+    def get_wifi_policy_configuration(cls) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Retrieves WiFi policy configuration data including global policy information and associated security policies.
 
+        Returns:
+        - Tuple[bool, Dict]: A tuple containing a boolean status and a dictionary with WiFi policy configuration data.
+
+        Notes:
+        - The returned dictionary structure is: {WifiPolicyName: {ConfigKey1: ConfigValue1, ...}, ...}
+        - ConfigKey1, ConfigValue1, etc. represent the keys and values of the global WiFi policy configuration.
+        - 'WifiSecurityPolicy' key in the dictionary contains a list of dictionaries with security policy information.
+        """
         wifi_policy_result = cls.rsdb.select_wifi_policies()
-
         config_data = {}
 
         if all(result.status == STATUS_OK for result in wifi_policy_result):
-
             for wp_result in wifi_policy_result:
-
                 wifi_policy = wp_result.result.get('WifiPolicyName')
 
                 wp_config = cls.rsdb.select_global_wireless_wifi_policy(wifi_policy)
-
                 temp_config = wp_config.result
 
                 wp_sec_policy = cls.rsdb.select_global_wireless_wifi_security_policy(wifi_policy)
-
-                wifi_sec_policy_list = wp_sec_policy
+                wifi_sec_policy_list = wp_sec_policy.result
                 wifi_sec_policy_data = []
 
                 for wifi_sec_policy_item in wifi_sec_policy_list:
-
                     ssid = wifi_sec_policy_item.get('Ssid')
                     passphrase = wifi_sec_policy_item.get('WpaPassPhrase')
                     version = wifi_sec_policy_item.get('WpaVersion')
@@ -335,8 +339,6 @@ class RouterConfigurationDatabase:
 
                 config_data[wifi_policy] = temp_config
 
-        print(f'\n\n{config_data}\n\n')
-        
+        cls.log.debug(f'{config_data}')
+
         return STATUS_OK if config_data else STATUS_NOK, config_data
-
-

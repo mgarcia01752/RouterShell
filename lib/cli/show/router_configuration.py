@@ -338,5 +338,5 @@ class RouterConfiguration:
  
         cmd_lines = []
 
-        # self.rcdb.
+        self.rcdb.get_wifi_policy_configuration()
         
