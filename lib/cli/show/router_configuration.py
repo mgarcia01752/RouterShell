@@ -297,10 +297,10 @@ class RouterConfiguration:
             
             interface_cmd_lines.extend(start_temp_interface_cmd_lines)
 
-        # Append other interface commands
         cmd_lines.extend(interface_cmd_lines)
 
         return cmd_lines
+
 
     def _get_access_control_list(self) -> List[str]:
         """
