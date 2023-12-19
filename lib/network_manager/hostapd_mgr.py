@@ -496,6 +496,8 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
         Initializes the HostapdManager, inheriting from RunCommand and HostapdConfigGenerator.
         """
         super().__init__()
+        RunCommand.__init__(self)
+        HostapdConfigGenerator.__init__(self)
 
     def start(self) -> bool:
         """
@@ -564,7 +566,7 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
                 file.write("\n".join(config_lines))
 
             # Restart the hostapd service to apply the new configuration
-            restart_result = self.restart()
+            restart_result = self.start()
 
             return restart_result
 
