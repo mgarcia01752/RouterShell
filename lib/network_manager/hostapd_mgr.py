@@ -93,6 +93,43 @@ class HostapdConfigGenerator():
         """
         self.config.append(f'ssid={ssid}')
 
+    def add_channel(self, channel: int):
+        """
+        Add channel configuration to the Hostapd configuration.
+
+        Args:
+            channel (int): The channel number to set.
+        """
+        self.config.append(f'channel={channel}')
+
+    def add_hw_mode(self, mode: str):
+        """
+        Add operation mode configuration to the Hostapd configuration.
+
+        Args:
+            mode (str): The operation mode to set (e.g., 'a', 'b', 'g', 'ad').
+        """
+        valid_modes = ['a', 'b', 'g', 'ad']
+
+        if mode in valid_modes:
+            self.config.append(f'hw_mode={mode}')
+        else:
+            print(f"Invalid operation mode: {mode}. Use one of {valid_modes}")
+
+    def add_auth_algs(self, value: int):
+        """
+        Set the allowed authentication algorithms in the Hostapd configuration.
+
+        Args:
+            value (int): Bit-field of allowed authentication algorithms.
+                         Bit 0 = Open System Authentication
+                         Bit 1 = Shared Key Authentication (requires WEP)
+        """
+        if 0 <= value <= 3:
+            self.config.append(f'auth_algs={value}')
+        else:
+            print("Invalid value for auth_algs. Use a bit-field value between 0 and 3.")
+
     def add_wpa(self, wpa_version: int):
         """
         Add WPA version configuration to the BSS.
