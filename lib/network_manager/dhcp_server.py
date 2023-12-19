@@ -12,7 +12,7 @@ from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.common.inet import InetServiceLayer, InetVersion
 from lib.network_manager.common.run_commands import RunCommand
-from lib.network_manager.network_manager import NetworkManager
+from lib.network_manager.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq import Action, DNSMasqDeploy, DNSMasqInterfaceService
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator

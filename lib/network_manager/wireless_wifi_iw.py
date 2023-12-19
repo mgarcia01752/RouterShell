@@ -1,8 +1,8 @@
 from enum import Enum
 import logging
-from lib.network_manager.hostapd_config_gen import HostapdIEEE802Config
+from lib.network_manager.hostapd_mgr import HostapdIEEE802Config
 
-from lib.network_manager.network_manager import NetworkManager
+from lib.network_manager.network_mgr import NetworkManager
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 

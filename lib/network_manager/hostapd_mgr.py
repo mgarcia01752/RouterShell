@@ -1,4 +1,7 @@
 from enum import Enum
+from lib.common.constants import STATUS_NOK, STATUS_OK
+
+from lib.network_manager.common.run_commands import RunCommand
 
 class HostapdIEEE802Config(Enum):
     IEEE80211AC = "ieee80211ac"
@@ -10,7 +13,7 @@ class HostapdIEEE802Config(Enum):
     IEEE8021X = "ieee8021x"
     IEEE80211W = "ieee80211w"
 
-class HostapdConfigGenerator:
+class HostapdConfigGenerator():
     def __init__(self):
         """
         Initialize the HostapdConfigGenerator.
@@ -18,6 +21,15 @@ class HostapdConfigGenerator:
         The constructor sets up an empty list to store the Hostapd configuration lines.
         """
         self.config = []
+
+    def generate_config(self):
+        """
+        Generate the Hostapd configuration.
+
+        Returns:
+            List[str]: A list of configuration lines for the Hostapd configuration.
+        """
+        return self.config
 
     def add_wmm(self, value: int):
         """
@@ -441,11 +453,86 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'vlan_bridge={vlan_bridge}')
 
-    def generate_config(self):
+class HostapdManager(RunCommand, HostapdConfigGenerator):
+    def __init__(self):
         """
-        Generate the Hostapd configuration.
+        Initializes the HostapdManager, inheriting from RunCommand and HostapdConfigGenerator.
+        """
+        super().__init__()
+
+    def start(self) -> bool:
+        """
+        Start the hostapd service.
 
         Returns:
-            List[str]: A list of configuration lines for the Hostapd configuration.
+            bool: STATUS_OK if the service starts successfully, STATUS_NOK otherwise.
         """
-        return self.config
+        try:
+            # Run the 'service hostapd start' command
+            result = self.run_command(["service", "hostapd", "start"])
+            return STATUS_OK if result.exit_code == STATUS_OK else STATUS_NOK
+
+        except Exception as e:
+            # Log and handle the exception
+            self.log.error(f"Failed to start hostapd service: {e}")
+            return STATUS_NOK
+
+    def restart(self) -> bool:
+        """
+        Restart the hostapd service.
+
+        Returns:
+            bool: STATUS_OK if the service restarts successfully, STATUS_NOK otherwise.
+        """
+        try:
+            # Run the 'service hostapd restart' command
+            result = self.run_command(["service", "hostapd", "restart"])
+            return STATUS_OK if result.exit_code == STATUS_OK else STATUS_NOK
+
+        except Exception as e:
+            # Log and handle the exception
+            self.log.error(f"Failed to restart hostapd service: {e}")
+            return STATUS_NOK
+
+    def stop(self) -> bool:
+        """
+        Stop the hostapd service.
+
+        Returns:
+            bool: STATUS_OK if the service stops successfully, STATUS_NOK otherwise.
+        """
+        try:
+            # Run the 'service hostapd stop' command
+            result = self.run_command(["service", "hostapd", "stop"])
+            return STATUS_OK if result.exit_code == STATUS_OK else STATUS_NOK
+
+        except Exception as e:
+            # Log and handle the exception
+            self.log.error(f"Failed to stop hostapd service: {e}")
+            return STATUS_NOK
+
+    def load(self) -> bool:
+        """
+        Load the Hostapd configuration.
+
+        Returns:
+            bool: STATUS_OK if the configuration is loaded successfully, STATUS_NOK otherwise.
+        """
+        try:
+            # Generate Hostapd configuration
+            config_lines = self.generate_config()
+
+            # Write the configuration to the hostapd.conf file
+            with open("/etc/hostapd/hostapd.conf", "w") as file:
+                file.write("\n".join(config_lines))
+
+            # Restart the hostapd service to apply the new configuration
+            restart_result = self.restart()
+
+            return restart_result
+
+        except Exception as e:
+            # Log and handle the exception
+            self.log.error(f"Failed to load Hostapd configuration: {e}")
+            return STATUS_NOK
+

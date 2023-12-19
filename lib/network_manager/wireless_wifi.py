@@ -5,9 +5,9 @@ from typing import List
 import jc
 from lib.db.wifi_db import WifiDB
 from lib.network_manager.common.run_commands import RunCommand
-from lib.network_manager.hostapd_config_gen import HostapdIEEE802Config
+from lib.network_manager.hostapd_mgr import HostapdIEEE802Config
 
-from lib.network_manager.network_manager import NetworkManager
+from lib.network_manager.network_mgr import NetworkManager
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 

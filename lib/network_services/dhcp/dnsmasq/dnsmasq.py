@@ -4,7 +4,7 @@ import os
 from shutil import copy
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase
-from lib.network_manager.network_manager import NetworkManager
+from lib.network_manager.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS

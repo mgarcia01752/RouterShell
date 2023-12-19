@@ -6,7 +6,7 @@ from datetime import datetime
 from lib.cli.show.router_configuration import RouterConfiguration
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.common import STATUS_OK, STATUS_NOK, CONFIG_DIR
+from lib.common.common import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 class InvalidCopyMode(Exception):
     def __init__(self, message):
@@ -41,17 +41,17 @@ class CopyMode:
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
         if copy_type == CopyType.DEST_START_UP:
-            config_file = os.path.join(CONFIG_DIR, "startup-config.cfg")
+            config_file = os.path.join(ROUTER_CONFIG_DIR, "startup-config.cfg")
             
         elif copy_type == CopyType.DEST_BACK_UP:
-            config_file = os.path.join(CONFIG_DIR, f"startup-config-backup-{timestamp}.cfg")
+            config_file = os.path.join(ROUTER_CONFIG_DIR, f"startup-config-backup-{timestamp}.cfg")
             
         elif copy_type == CopyType.DEST_FILE:
             if not destination:
                 self.log.error("Destination filename not specified")
                 return STATUS_NOK
             
-            config_file = os.path.join(CONFIG_DIR, destination)
+            config_file = os.path.join(ROUTER_CONFIG_DIR, destination)
 
         else:
             self.log.error("Invalid copy type specified")
