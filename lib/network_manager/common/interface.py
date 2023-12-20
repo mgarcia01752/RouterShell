@@ -1,4 +1,5 @@
 from enum import Enum
+import re
 import logging
 
 from lib.common.common import Common
@@ -31,6 +32,52 @@ class InterfaceLayer(PhyServiceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().INTERFACE)
         
-    def get_interface_type(self, interface_name:str) -> InterfaceType:
-        return InterfaceType.ETHERNET
+
+def get_interface_type(self, interface_name: str) -> InterfaceType:
+    """
+    Determines the type of a network interface using information from the 'nmcli dev show' command.
+
+    Args:
+        interface_name (str): The name of the network interface.
+
+    Returns:
+        InterfaceType: An enumeration representing the type of the network interface.
+    """
+    try:
+        output = self.run(["nmcli", "dev", "show"])
+
+        if output.exit_code:
+            self.log.error(f"Error executing 'nmcli': {output.stderr}")
+            return InterfaceType.UNKNOWN
+
+        if re.search(r"\bGENERAL\.TYPE:\s*wifi\b", output.stdout):
+            return InterfaceType.WIRELESS_WIFI
+
+        elif re.search(r"\bGENERAL\.TYPE:\s*gsm\b", output.stdout):
+            return InterfaceType.WIRELESS_CELL
+
+        elif re.search(r"\bGENERAL\.TYPE:\s*ethernet\b", output.stdout):
+            return InterfaceType.ETHERNET
+
+        elif re.search(r"\bGENERAL\.TYPE:\s*vlan\b", output.stdout):
+            return InterfaceType.VLAN
+
+        elif re.search(r"\bGENERAL\.TYPE:\s*bridge\b", output.stdout):
+            return InterfaceType.BRIDGE
+
+        elif re.search(r"\bGENERAL\.TYPE:\s*tun\b", output.stdout):
+            return InterfaceType.VIRTUAL
+
+        elif re.search(r"\bGENERAL\.TYPE:\s*loopback\b", output.stdout):
+            return InterfaceType.LOOPBACK
+
+        else:
+            return InterfaceType.UNKNOWN
+
+    except InterfaceLayerFoundError as e:
+        self.log.error(f"An error occurred: {e}")
+        return InterfaceType.UNKNOWN
+
+            
+
         
