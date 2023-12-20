@@ -3,7 +3,10 @@ import logging
 import os
 import shutil
 from datetime import datetime
+
+from cmd2 import Cmd
 from lib.cli.show.router_configuration import RouterConfiguration
+from lib.common.constants import ROUTER_CONFIG
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
@@ -27,6 +30,24 @@ class CopyMode:
     def copy_database(self) -> bool:
         STATUS_OK
     
+    def copy_start_config_to_run_config(self, cmd:Cmd) -> bool:
+        try:
+            print("copy_start_config_to_run_config")
+            with open(ROUTER_CONFIG, 'r') as file:
+                lines = file.readlines()
+
+            print(lines)
+            
+            for line in lines:
+                print(line)
+                cmd._read_command_line(line)
+
+            return STATUS_OK
+        
+        except FileNotFoundError:
+            self.log.error(f"Error: File '{ROUTER_CONFIG}' not found.")
+            return STATUS_NOK
+
     def copy_running_config(self, copy_type: CopyType = CopyType.DEST_START_UP, destination: str = None) -> bool:
         """
         Copy the running configuration to the specified destination.

@@ -1,7 +1,10 @@
 STATUS_OK = False
 STATUS_NOK = True
 
+import os
+
 ROUTER_CONFIG_DIR = 'config'
+ROUTER_CONFIG = os.path.join(ROUTER_CONFIG_DIR, 'startup-config.cfg')
 
 DNSMASQ_LEASE_FILE_PATH = "/var/lib/misc/dnsmasq.leases"
 

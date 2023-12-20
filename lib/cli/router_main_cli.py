@@ -3,6 +3,7 @@ import readline
 import signal
 import logging
 import cmd2
+from cmd2 import Statement
 
 from lib.cli.base.clear_mode import ClearMode
 from lib.cli.common.router_prompt import RouterPrompt
@@ -10,7 +11,7 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show.show_mode import ShowMode
 from lib.cli.config.config_mode import ConfigureMode
-from lib.common.constants import STATUS_OK
+from lib.common.constants import ROUTER_CONFIG, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.system.copy_mode import CopyMode, CopyType
 from lib.system.system_start_up import SystemStartUp
@@ -46,7 +47,7 @@ class RouterCLI(cmd2.Cmd,
         
         # Define a custom intro message
         intro = "Welcome to the Router CLI!\n"
-        
+                
     def preloop(self):
         """Perform preloop setup."""
         # Install a hook to catch control characters (e.g., Ctrl+C)
@@ -85,7 +86,7 @@ class RouterCLI(cmd2.Cmd,
         return False
 
     def complete_copy(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
-        configure_commands = ['running-config', 'start-config', 'file']
+        configure_commands = ['running-config', 'startup-config', 'file']
         return [cmd for cmd in configure_commands if cmd.startswith(text)]
 
     def do_copy(self, line: str) -> None:
@@ -95,7 +96,7 @@ class RouterCLI(cmd2.Cmd,
         parser = argparse.ArgumentParser(
             description="Copy Command",
             epilog="Available suboptions:\n"
-                    "   copy running-config start-config        copy running configuration to startup configuration.\n"
+                    "   copy running-config startup-config        copy running configuration to startup configuration.\n"
                     "   copy running-config file <file-name>    copy running configuration to destination file \n"
                     "\n"
                     "Use <suboption> --help to get help for specific suboptions."
@@ -112,6 +113,13 @@ class RouterCLI(cmd2.Cmd,
 
         running_config_parser.add_argument("file", nargs="?", const=True, default=False,
                                             help="Specify the destination file name.")
+        
+        startup_config_parser = subparsers.add_parser("startup-config",
+                                                    help="Copy start-up to running-configuration ")
+        
+        startup_config_parser.add_argument("dest_run_config",
+                                            help="Specify the type of destination file.",
+                                            choices=['running-config'])
 
         args = parser.parse_args(line.split())
         subcommand = args.subcommand
@@ -119,7 +127,7 @@ class RouterCLI(cmd2.Cmd,
         if subcommand == "running-config":
             destination_file_type = args.destination_file_type
 
-            if destination_file_type == 'start-config':
+            if destination_file_type == 'startup-config':
 
                 result = CopyMode().copy_running_config()
                 if result == STATUS_OK:
@@ -138,7 +146,19 @@ class RouterCLI(cmd2.Cmd,
 
             else:
                 self.poutput("Invalid destination file type specified.")
-
+                
+        elif subcommand == "startup-config":
+            self.log.info('Copy start-up config to running-config (Not Implemented (Copy-Paste))')
+        
+            with open(ROUTER_CONFIG, 'r') as file:
+                
+                for line in file.readlines():
+                    print(line.strip())
+            
+            print('; +-------------------------------------------------------------------------------------+')
+            print('; | copy startup-config running-config not implemented yet -> Copy/Paste output for now |')
+            print('; +-------------------------------------------------------------------------------------+')
+             
         else:
             self.poutput("Invalid subcommand.")
 
