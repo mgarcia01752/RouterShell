@@ -67,7 +67,7 @@ class PhyServiceLayer(RunCommand):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().PHY)
-        
+            
     def set_duplex(self, interface_name: str, duplex: Duplex):
         """
         Set the duplex mode of a network interface.

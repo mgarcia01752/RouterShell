@@ -142,7 +142,6 @@ class RouterCLI(cmd2.Cmd,
         else:
             self.poutput("Invalid subcommand.")
 
-
     def complete_show(self, text: str, line: str, begidx: int, endidx: int) -> list[str]:
         """
         Tab completion for the 'configure' command.

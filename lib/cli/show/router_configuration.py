@@ -7,7 +7,7 @@ from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
-from lib.network_manager.network_mgr import InterfaceType
+from lib.network_manager.common.interface import InterfaceType
 from lib.system.system_config import SystemConfig
 
 class RouterConfiguration:

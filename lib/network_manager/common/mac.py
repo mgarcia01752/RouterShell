@@ -7,6 +7,7 @@ from typing import Tuple
 from tabulate import tabulate 
 
 from lib.common.common import Common
+from lib.network_manager.common.interface import InterfaceLayer
 from lib.network_manager.common.phy import PhyServiceLayer
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -20,7 +21,7 @@ class MacServiceLayerFoundError(Exception):
         self.message = message
         super().__init__(self.message)
 
-class MacServiceLayer(PhyServiceLayer):
+class MacServiceLayer(InterfaceLayer):
     """
     A class for configuring network settings using iproute2.
     """

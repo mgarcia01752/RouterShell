@@ -9,8 +9,9 @@ from lib.network_manager.arp import Arp, Encapsulate
 
 from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
 from lib.network_manager.dhcp_client import DHCPClient, DHCPVersion
+from lib.network_manager.network_mgr import NetworkManager
 from lib.network_manager.vlan import Vlan
-from lib.network_manager.network_mgr import InterfaceType, NetworkManager
+from lib.network_manager.common.interface import InterfaceType 
 from lib.network_manager.nat import Nat, NATDirection
 from lib.network_manager.common.phy import Duplex, Speed, State
 

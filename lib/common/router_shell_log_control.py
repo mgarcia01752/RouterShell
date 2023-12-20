@@ -92,6 +92,7 @@ class RouterShellLoggingGlobalSettings():
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     MAC                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     PHY                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     RUN                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSCTL                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
