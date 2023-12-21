@@ -81,7 +81,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error decoding JSON: {e}")
             return []
 
-    def get_interface_type(self, interface_name:str) -> InterfaceType:
+    def get_interface_type_(self, interface_name:str) -> InterfaceType:
         """
             Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
@@ -165,6 +165,11 @@ class Interface(NetworkManager, InterfaceDatabase):
         if self.add_db_interface(interface_name, ifType):
             self.log.error(f"Unable to add interface: {interface_name} to DB")
             return STATUS_NOK
+        
+        if ifType != InterfaceType.ETHERNET:
+            self.update_db_ifSpeed(interface_name, None)
+            self.update_db_duplex(interface_name, None)
+        
         return STATUS_OK
         
     def update_interface_mac(self, interface_name: str, mac: Optional[str] = None) -> bool:
@@ -263,11 +268,20 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if successful, STATUS_NOK otherwise.
         """
+        
+        if duplex == Duplex.NONE:
+            
+            if self.update_db_duplex(interface_name, duplex.value):
+                self.log.error(f"Unable to update interface: {interface_name} to duplex: {duplex.value}")
+                return STATUS_NOK
+            
+            return STATUS_OK            
+        
         if self.set_duplex(interface_name, duplex):
             print(f"Invalid duplex mode ({duplex.value}). Use 'auto', 'half', or 'full'.")
             return STATUS_NOK
         
-        if self.update_db_duplex_status(interface_name, duplex.value):
+        if self.update_db_duplex(interface_name, duplex.value):
             self.log.error(f"Unable to update interface: {interface_name} to duplex: {duplex.value}")
             return STATUS_NOK
             
@@ -288,11 +302,16 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
 
         self.log.debug(f"update_interface_speed() -> interface: {interface_name} Speed: {speed}")
-
+        
+        if speed == Speed.NONE:
+            if self.update_db_ifSpeed(interface_name, speed.value):
+                return STATUS_NOK
+            return STATUS_OK
+        
         if speed == Speed.AUTO_NEGOTIATE:
             self.set_speed(interface_name, Speed.AUTO_NEGOTIATE, Speed.AUTO_NEGOTIATE)
             self.update_db_ifSpeed(interface_name, Speed.AUTO_NEGOTIATE.value)
-            0
+            
         elif speed in {Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000}:
             self.set_speed(interface_name, speed)
             self.update_db_ifSpeed(interface_name, speed.value)

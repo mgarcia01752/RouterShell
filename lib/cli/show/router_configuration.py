@@ -253,11 +253,11 @@ class RouterConfiguration:
         """
         cmd_lines = []
 
-        ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
+        interface = self.rcdb.get_interface_name_list()
 
         interface_cmd_lines = []
 
-        for if_name in ethernet_interfaces:
+        for if_name in interface:
             
             start_temp_interface_cmd_lines = []
             temp_interface_cmd_lines = []

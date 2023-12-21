@@ -48,7 +48,7 @@ class InterfaceDatabase:
         """
         return cls.rsdb.interface_exists(interface_name)
 
-    def add_db_interface(cls, interface_name: str, interface_type: str, shutdown_status: bool = True) -> bool:
+    def add_db_interface(cls, interface_name: str, interface_type: InterfaceType, shutdown_status: bool = True) -> bool:
         """
         Add an interface to the database.
 
@@ -98,7 +98,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_shutdown(interface_name, shutdown_status)
         return result.status
 
-    def update_db_duplex_status(cls, interface_name: str, duplex: str) -> bool:
+    def update_db_duplex(cls, interface_name: str, duplex: str) -> bool:
         """
         Update the duplex status of an interface in the 'Interfaces' table.
 
@@ -139,7 +139,7 @@ class InterfaceDatabase:
 
         Args:
             interface_name (str): The name of the interface to update.
-            speed (str): The speed setting (e.g., '10', '100', '1000', '10000', 'auto').
+            speed (str): The speed setting (e.g., '10', '100', '1000', '10000', 'auto', None).
 
         Returns:
             bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.

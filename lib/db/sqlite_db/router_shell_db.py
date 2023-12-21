@@ -2249,7 +2249,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error checking if interface exists: %s", e)
             return Result(status=False, row_id=0)
 
-    def insert_interface(self, if_name, interface_type, shutdown_status=True) -> Result:
+    def insert_interface(self, if_name, interface_type:InterfaceType, shutdown_status=True) -> Result:
         """
         Insert data into the 'Interfaces' table.
 
@@ -3765,26 +3765,32 @@ class RouterShellDB(metaclass=Singleton):
 
         Note:
         - The method inserts default Wi-Fi access security group settings associated with the specified wireless Wi-Fi policy.
-        - If the insertion is successful, `status` is set to True, `row_id` contains the inserted settings' ID, and `reason` indicates success.
-        - If the insertion fails, `status` is set to False, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
+        - If the insertion is successful, `status` is set to STATUS_OK, `row_id` contains the inserted settings' ID, and `reason` indicates success.
+        - If the insertion fails, `status` is set to STATUS_NOK, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
         """
         try:
-            # Check if the wireless Wi-Fi policy exists
+            
             policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
+            
             if not policy_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+                return Result(status=STATUS_NOK, 
+                              row_id=self.ROW_ID_NOT_FOUND, 
+                              reason=policy_exist_result.reason)
 
-            # Define the SQL query to insert the default Wi-Fi access security group settings.
             query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK) VALUES (?)"
             cursor = self.connection.cursor()
             cursor.execute(query, (policy_exist_result.row_id,))
             self.connection.commit()
             row_id = cursor.lastrowid
 
-            return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted default Wi-Fi access security group settings for policy '{wireless_wifi_policy}' successfully.")
+            return Result(status=STATUS_OK, 
+                          row_id=row_id, 
+                          reason=f"Inserted default Wi-Fi access security group settings for policy '{wireless_wifi_policy}' successfully.")
 
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
+            return Result(status=STATUS_NOK, 
+                          row_id=self.ROW_ID_NOT_FOUND, 
+                          reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
     def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
         """
@@ -3983,6 +3989,36 @@ class RouterShellDB(metaclass=Singleton):
 
                             ROUTER-CONFIGURATION-INTERFACE
     '''
+
+    def select_interfaces(self) -> List[Result]:
+        """
+        Select a list of interface names based on the specified interface type.
+
+        Args:
+            interface_type (InterfaceType): The type of interface to filter by.
+
+        Returns:
+            List[Result]: A list of Result objects containing the interface names.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT Interfaces.ID, Interfaces.InterfaceName
+                FROM Interfaces
+                ''')
+
+            result_list = []
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                result_list.append(Result(status=STATUS_OK, row_id=row[0], result={'InterfaceName': row[1]}))
+            
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface names by interface type: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
         
     def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
         """

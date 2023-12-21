@@ -31,6 +31,12 @@ class Duplex(Enum):
     This mode is typically used for high-speed connections where there is a dedicated channel 
     for both sending and receiving data. It minimizes collisions and improves network performance.
     """
+    
+    NONE = None
+    """
+    NONE: Interface that does not support a specific duplex
+    Example: (wireless, loopback, vlan, bridges, only ethernet interfaces)
+    """       
 
 class Speed(Enum):
     MBPS_10 = 10
@@ -58,6 +64,12 @@ class Speed(Enum):
     AUTO-NEGOTIATE: In auto-negotiation mode, the device negotiates with its link partner to determine the 
     best speed and duplex mode to use within the limits supported by both devices.
     """
+    
+    NONE = None
+    """
+    NONE: Interface that does not support a specific speed
+    Example (wireless, loopback, vlan, bridges, only ethernet interfaces)
+    """   
         
 class PhyServiceLayer(RunCommand):
     """

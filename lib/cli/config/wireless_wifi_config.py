@@ -213,7 +213,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         subparsers = parser.add_subparsers(dest="subcommand")
 
-        channel_parser = subparsers.add_parser("configure", help="Configure the channel")
+        channel_parser = subparsers.add_parser("channel", help="Configure the channel")
         channel_parser.add_argument("channel_number", choices=WifiChannel.display_list(), help="The channel number")
 
         try:
