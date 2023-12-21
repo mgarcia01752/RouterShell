@@ -6,7 +6,7 @@ from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.network_mgr import InterfaceType
+from lib.network_manager.common.interface import InterfaceType
 
 class RouterConfigurationDatabase:
 
@@ -21,7 +21,7 @@ class RouterConfigurationDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()
             
-    def get_interface_name_list(cls, interface_type: InterfaceType) -> List[str]:
+    def get_interface_name_list(cls, interface_type: InterfaceType = InterfaceType.UNKNOWN) -> List[str]:
         """
         Get a list of interface names based on the specified interface type.
 
@@ -33,7 +33,10 @@ class RouterConfigurationDatabase:
         """
         interface_list = []
 
-        interface_result_list = cls.rsdb.select_interfaces_by_interface_type(interface_type)
+        if interface_type == InterfaceType.UNKNOWN:
+            interface_result_list = cls.rsdb.select_interfaces()
+        else:
+            interface_result_list = cls.rsdb.select_interfaces_by_interface_type(interface_type)
 
         for interface in interface_result_list:
             cls.log.debug(f"get_interface_name_list() -> {interface}")

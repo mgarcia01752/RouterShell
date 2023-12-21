@@ -1,13 +1,9 @@
-<<<<<<< HEAD
-=======
 
 ; RouterShell Configuration
 
 clear router-db
 yes
 
-
->>>>>>> adding-updating-interface-wifi-hostapd
 enable
 configure terminal
 
@@ -21,9 +17,12 @@ The use of this system may be monitored and recorded for administrative and secu
 monitoring and is advised that if such monitoring revels possible evidence of criminal activity, [CORPORATION] may provide the evidence of such activity to the 
 law enforcement officials. All users must comply with [CORPORATION] corporate security instructions regarding the protection of [CORPORATION] information.
 ^
+rename if enx00249b119cef if-alias Gig0
+rename if enx9cebe81be18a if-alias Gig1
+rename if wlx80afca061616 if-alias wlan0
 
 wireless wifi home-wifi
- ssid Guest-WiFi pass-phrase password wpa-mode WPA2
+ ssid Guest-WiFi pass-phrase password wpa-mode 2
  channel 6
  mode any
 end
@@ -38,6 +37,17 @@ dhcp dhcp-wifi-home-office
  subnet 172.16.10.0/24
  pool  172.16.10.2 172.16.10.254 255.255.255.0
  option routers 172.16.10.1
+end
+
+interface wlan0
+ ip address 172.16.10.1/24
+ wireless wifi policy home-wifi
+ duplex auto
+ speed auto
+ ip proxy-arp
+ ip drop-gratuitous-arp
+ ip dhcp-server pool dhcp-wifi-home-office
+ no shutdown
 end
 
 interface Gig0
@@ -55,15 +65,6 @@ interface Gig1
  speed auto
  ip proxy-arp
  ip drop-gratuitous-arp
- no shutdown
-end
-
-interface wlan0
- ip address 172.16.10.1/24
- wireless wifi policy home-wifi
- ip proxy-arp
- ip drop-gratuitous-arp
- ip dhcp-server pool dhcp-wifi-home-office
  no shutdown
 end
 

@@ -7,7 +7,7 @@ from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
-from lib.network_manager.network_mgr import InterfaceType
+from lib.network_manager.common.interface import InterfaceType
 from lib.system.system_config import SystemConfig
 
 class RouterConfiguration:
@@ -253,11 +253,11 @@ class RouterConfiguration:
         """
         cmd_lines = []
 
-        ethernet_interfaces = self.rcdb.get_interface_name_list(InterfaceType.ETHERNET)
+        interface = self.rcdb.get_interface_name_list()
 
         interface_cmd_lines = []
 
-        for if_name in ethernet_interfaces:
+        for if_name in interface:
             
             start_temp_interface_cmd_lines = []
             temp_interface_cmd_lines = []

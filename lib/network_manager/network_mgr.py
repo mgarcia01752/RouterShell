@@ -18,18 +18,7 @@ class InterfaceNotFoundError(Exception):
         self.message = message
         super().__init__(self.message)
 
-class InterfaceType(Enum):
-    DEFAULT = 'if' 
-    PHYSICAL = 'phy'
-    ETHERNET = 'eth'
-    VLAN = 'vlan'
-    LOOPBACK = 'loopback'
-    VIRTUAL = 'vir'
-    BRIDGE = 'br'
-    WIRELESS_WIFI = 'wifi'
-    WIRELESS_CELL = 'cell'
-    UNKNOWN = 'UNKNOWN'
-        
+
 class NetworkManager(InetServiceLayer):
 
     def __init__(self):

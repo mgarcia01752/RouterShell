@@ -34,9 +34,12 @@ class InterfaceConfig(cmd2.Cmd,
         GlobalUserCommand.__init__(self)
         Interface.__init__(self)
         
-        self.log.debug(f"InterfaceConfig() -> ({if_config_interface_name})")
+        self.log.debug(f"InterfaceConfig() - ifType: {ifType} -> ifName: {if_config_interface_name}")
         
-        if ifType in [member.value for member in InterfaceType]:
+        if ifType in (member.value for member in (InterfaceType.LOOPBACK, InterfaceType.VLAN)):
+
+            self.interface_type = InterfaceType.LOOPBACK
+            
             self.PROMPT_CMD_ALIAS = ifType
             self.log.debug(f"Interface Type is {ifType} - Type-> {InterfaceType.LOOPBACK.value}")
             
@@ -50,31 +53,35 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.debug(f"Creating Loopback {if_config_interface_name}")
                     if self.create_loopback(if_config_interface_name):
                         return None
+                    
                     else:
                         self.log.debug(f"Adding Loopback to DB")
-                        self.add_interface_entry(if_config_interface_name, ifType)
+                        self.add_interface_entry(if_config_interface_name, InterfaceType.LOOPBACK)
+                
                 else:
                     self.log.debug(f"Not Creating Loopback {if_config_interface_name}")
         else:
-            self.PROMPT_CMD_ALIAS = InterfaceType.DEFAULT.value
-        
-        if not self.does_interface_exist(if_config_interface_name):
-            print(f"Interface {if_config_interface_name} does not exists.")
-            RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
-            self.do_end()
-        
-        else:
-            RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
-            '''
-                TODO:   Need a way to auto detect or verify the interface type
-                        Right now, all interfaces are ethernet, except loopback
-            '''
-            if self.add_interface_entry(if_config_interface_name, InterfaceType.ETHERNET):
-                self.log.debug(f"Unable to add interface: {if_config_interface_name} to DB")
+                    
+            if not self.does_interface_exist(if_config_interface_name):
+                            
+                print(f"Interface {if_config_interface_name} does not exists.")
+                RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
+                
+                self.do_end()
+
+            self.log.debug(f"interface is not a loopback or vlan....")
             
+            self.interface_type = self.get_interface_type(if_config_interface_name)
+            
+            if self.add_interface_entry(if_config_interface_name, self.interface_type):
+                self.log.debug(f"Unable to add interface: {if_config_interface_name} to DB")
+
+        self.PROMPT_CMD_ALIAS = self.interface_type.value
+        RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, )
+         
         self.ifName = if_config_interface_name
         self.prompt = self.set_prompt()
-        self.log.debug(f"InterfaceConfig() - ifType: {ifType} -> ifName: {if_config_interface_name}")
+        
         
     def do_help(self, args=None):
         print("mac\t\t\t\tmac address")
@@ -354,6 +361,11 @@ class InterfaceConfig(cmd2.Cmd,
             print("Usage: duplex <auto | half | full>")
             return
 
+        if self.interface_type != InterfaceType.ETHERNET:
+            self.update_interface_duplex(self.ifName, Duplex.NONE)
+            print("interface must be of ethernet type")
+            return
+        
         duplex_values = {d.value: d for d in Duplex}
         
         args = args.lower()
@@ -378,6 +390,11 @@ class InterfaceConfig(cmd2.Cmd,
             print("Usage: speed <10 | 100 | 1000 | 10000 | auto>")
             return
 
+        if self.interface_type != InterfaceType.ETHERNET:
+            self.update_interface_speed(self.ifName, Speed.NONE)
+            print("interface must be of ethernet type")
+            return
+        
         self.log.debug(f"do_speed() -> ARGS: {args}")
         
         speed_values = {str(s.value): s for s in Speed}

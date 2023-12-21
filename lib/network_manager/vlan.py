@@ -8,7 +8,9 @@ from lib.network_manager.bridge import Bridge
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.network_mgr import InterfaceType, NetworkManager
+from lib.network_manager.common.interface import InterfaceType
+from lib.network_manager.network_mgr import NetworkManager
+
 class Vlan(NetworkManager):
 
     VLAN_PREFIX_ID = "Vlan"
