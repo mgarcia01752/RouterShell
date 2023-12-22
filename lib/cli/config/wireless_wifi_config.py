@@ -201,8 +201,11 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
                 self.log.error(f"Failed to {hw_add_update} hardware-mode: '{mode_option}' to wifi-policy '{self.wifi_policy_name}'")
 
     def do_channel(self, args, negate=False):
+        
         self.log.debug(f"do_channel() - args: {args}")
+        
         args = f'channel  {args}'
+        
         parser = argparse.ArgumentParser(
             description="Configure Channel",
             epilog="Usage:\n"
@@ -214,6 +217,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         subparsers = parser.add_subparsers(dest="subcommand")
 
         channel_parser = subparsers.add_parser("channel", help="Configure the channel")
+        
         channel_parser.add_argument("channel_number", choices=WifiChannel.display_list(), help="The channel number")
 
         try:
@@ -225,10 +229,13 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             return
 
         if args.subcommand == "channel":
-            hw_add_update = 'update' if negate else 'add'
-             
-            if self.add_channel(WifiChannel[args.channel_number]):
-                self.log.error(f"Failed to {hw_add_update} channel: '{args.channel_number}' to wifi-policy '{self.wifi_policy_name}'")
+            
+            channel_add_update = 'update' if negate else 'add'
+            
+            
+                         
+            if self.add_channel(WifiChannel[int(args.channel_number)]):
+                self.log.error(f"Failed to {channel_add_update} channel: '{args.channel_number}' to wifi-policy '{self.wifi_policy_name}'")
 
     def do_ieee80211(self, args: str, negate: bool = False):
         parser = argparse.ArgumentParser(

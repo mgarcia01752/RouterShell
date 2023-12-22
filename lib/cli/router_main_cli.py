@@ -109,7 +109,7 @@ class RouterCLI(cmd2.Cmd,
         
         running_config_parser.add_argument("destination_file_type",
                                             help="Specify the type of destination file.",
-                                            choices=['start-config', 'file'])
+                                            choices=['startup-config', 'file'])
 
         running_config_parser.add_argument("file", nargs="?", const=True, default=False,
                                             help="Specify the destination file name.")
