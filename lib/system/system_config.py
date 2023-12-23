@@ -2,7 +2,7 @@ import logging
 import textwrap
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK, Common
 from lib.db.sqlite_db.router_shell_db import RouterShellDB
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand
@@ -87,6 +87,11 @@ class SystemConfig(RunCommand):
         Returns:
             bool: STATUS_OK if the hostname is set successfully, STATUS_NOK otherwise.
         """
+        
+        if not Common.is_valid_hostname(hostname):
+            self.log.debug(f'Invalid hostname format: {hostname}')
+            return STATUS_NOK        
+        
         result = self.run(['hostnamectl', 'set-hostname', hostname])
         if result.exit_code:
             self.log.error(f'Unable to set hostname: {hostname}. Reason: {result.stderr}')

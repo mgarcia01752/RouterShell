@@ -179,5 +179,32 @@ class Common():
         else:
             return "N/A" 
 
+    @staticmethod
+    def is_valid_hostname(hostname: str) -> bool:
+        """
+        Check if a hostname is valid based on DNS standards.
+
+        Args:
+            hostname (str): The hostname to be validated.
+
+        Returns:
+            bool: True if the hostname is valid, False otherwise.
+        """
+        if not hostname or len(hostname) > 255:
+            return False
+
+        # Check if the hostname contains only valid characters
+        if not re.match("^[a-zA-Z0-9.-]+$", hostname):
+            return False
+
+        # Check if the hostname does not start or end with a hyphen
+        if hostname.startswith("-") or hostname.endswith("-"):
+            return False
+
+        # Check if there are no consecutive periods (..)
+        if ".." in hostname:
+            return False
+
+        return True
 
 

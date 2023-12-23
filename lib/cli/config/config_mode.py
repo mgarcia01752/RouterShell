@@ -12,6 +12,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.cli.config.wireless_cell_config import WirelessCellPolicyConfig
 from lib.cli.config.wireless_wifi_config import WirelessWifiPolicyConfig
+from lib.common.common import Common
 from lib.network_manager.interface import Interface
 from lib.network_manager.bridge import Bridge
 from lib.cli.common.router_prompt import RouterPrompt
@@ -419,18 +420,23 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         else:
             print(f"Invalid command: {line}")
             
-    def do_hostname(self, line) -> None:
+    def do_hostname(self, line: str) -> None:
         """
-        Set the hostname
+        Set the hostname.
+
+        Args:
+            line (str): The command line input containing the new hostname.
+
+        Note:
+            This method sets the hostname using SystemConfig and updates the prompt accordingly.
+            Prints an error message if the 'hostname' command input is invalid.
         """
         args = line.split()
+        hostname = args[0] if args else ""
 
-        if len(args) > 1:
-            raise ValueError("The 'hostname' command accepts only one argument.")
-        
-        SystemConfig().set_hostname(args[0])
-        
-        self.prompt = self.set_prompt()
-        
-        print(f"HOstnaem:-new-prompt: {self.prompt}")
-              
+        if SystemConfig().set_hostname(hostname) == STATUS_OK:
+            self.prompt = self.set_prompt()
+            
+        else:
+            print(f"Error: Failed to set the hostname: {hostname}.")
+            
