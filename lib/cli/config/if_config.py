@@ -82,15 +82,7 @@ class InterfaceConfig(cmd2.Cmd,
          
         self.ifName = if_config_interface_name
         self.prompt = self.set_prompt()
-        
-        
-    def do_help(self, args=None):
-        print("mac\t\t\t\tmac address")
-        print("ip\t\t\t\tip")
-        print("ipv6\t\t\t\tipv6")
-        print("duplex\t\t\t\tduplex")
-        print("speed\t\t\t\tspeed")
-        
+                
     def _exit_init(self):
         '''Exit for __init__()'''
         return False
