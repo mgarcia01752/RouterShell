@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check if the script is run as root
-if [ "$EUID" -ne 0 ]; then
+if [ "$EUID" -eq 0 ]; then
     # Check if pip3 is installed
     if ! command -v pip3 &>/dev/null; then
         echo "pip3 is not installed. Please install it before running this script."
@@ -14,7 +14,7 @@ if [ "$EUID" -ne 0 ]; then
         if pip3 show "$package" &>/dev/null; then
             echo
         else
-            pip3 install "$package"
+            apt install -y python3-"${package}"
             echo "$package installed successfully."
         fi
     done
