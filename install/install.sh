@@ -63,7 +63,7 @@ case "$package_manager" in
                                     iw              \
                                     openssl         \
                                     python3         \
-                                    pip             \
+                                    python3-pip     \
                                     dnsmasq         \
                                     nmcli
         ;;
