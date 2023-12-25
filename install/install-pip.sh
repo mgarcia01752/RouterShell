@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Check if the script is run as root
 if [ "$EUID" -ne 0 ]; then
     # Check if pip3 is installed

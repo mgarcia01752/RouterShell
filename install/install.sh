@@ -64,8 +64,7 @@ case "$package_manager" in
                                     openssl         \
                                     python3         \
                                     python3-pip     \
-                                    dnsmasq         \
-                                    nmcli
+                                    dnsmasq
         ;;
     *)
         echo "Unsupported package manager for additional setup steps."
