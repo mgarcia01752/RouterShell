@@ -73,6 +73,23 @@ case "$package_manager" in
         ;;
 esac
 
+# Check if pip3 is installed
+if ! command -v pip3 &>/dev/null; then
+    echo "pip3 is not installed. Please install it before running this script."
+    exit 1
+fi
+
+# Install Python packages if not running as root
+pip3_packages=("tabulate" "prettytable" "argcomplete" "cmd2" "bs4")
+for package in "${pip3_packages[@]}"; do
+    if pip3 show "$package" &>/dev/null; then
+        echo
+    else
+        apt install -y python3-"${package}"
+        echo "$package installed successfully."
+    fi
+done
+
 # Get the absolute path to the project's root directory
 ROUTERSHELL_PROJECT_ROOT="${PWD}"
 
