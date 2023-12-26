@@ -165,6 +165,8 @@ class InterfaceConfig(cmd2.Cmd,
                 self.log.error(f"Failed to {action_description} IP: {ipv6_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
             else:
                 self.log.debug(f"{action_description} IP: {ipv6_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                
+            
             
         elif args.subcommand == "dhcp-client":
             self.log.debug(f"Enable DHCPv6 Client")

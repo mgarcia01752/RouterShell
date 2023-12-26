@@ -4132,7 +4132,10 @@ class RouterShellDB(metaclass=Singleton):
             
             cursor.execute('''
                 SELECT DISTINCT
-                    'ip address ' || InterfaceIpAddress.IpAddress || CASE WHEN InterfaceIpAddress.SecondaryIp THEN ' secondary' ELSE '' END AS IpAddress
+                    CASE
+                        WHEN InterfaceIpAddress.IpAddress LIKE '%:%' THEN 'ipv6 address '
+                        ELSE 'ip address '
+                    END || InterfaceIpAddress.IpAddress || CASE WHEN InterfaceIpAddress.SecondaryIp THEN ' secondary' ELSE '' END AS IpAddress
                 FROM
                     Interfaces
                 LEFT JOIN InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interface_FK
