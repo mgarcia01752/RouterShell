@@ -2,9 +2,9 @@ import json
 import logging
 import os
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
-from git import List
+
 from lib.common.constants import DNSMASQ_LEASE_FILE_PATH
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
