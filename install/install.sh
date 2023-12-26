@@ -64,6 +64,7 @@ case "$package_manager" in
                                     openssl         \
                                     python3         \
                                     python3-pip     \
+                                    jc              \
                                     dnsmasq
         ;;
     *)

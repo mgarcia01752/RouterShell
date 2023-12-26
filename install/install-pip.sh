@@ -9,7 +9,7 @@ if [ "$EUID" -eq 0 ]; then
     fi
 
     # Install Python packages if not running as root
-    pip3_packages=("tabulate" "prettytable" "argcomplete" "cmd2" "jc" "bs4")
+    pip3_packages=("tabulate" "prettytable" "argcomplete" "cmd2" "bs4")
     for package in "${pip3_packages[@]}"; do
         if pip3 show "$package" &>/dev/null; then
             echo
