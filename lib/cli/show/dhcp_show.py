@@ -1,5 +1,5 @@
 import logging
-from git import List
+from typing import List
 from tabulate import tabulate
 from lib.common.common import Common
 from lib.common.constants import STATUS_OK
