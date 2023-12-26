@@ -101,3 +101,5 @@ sudo mkfs.ext4 "${ssd_device}1"  # You can add the size here if needed, e.g., 28
 udisksctl unmount --block-device "$ssd_device" && udisksctl eject --block-device "$ssd_device"
 
 echo "Single partition on $ssd_device created successfully, formatted, and ejected."
+
+lsblk "${ssd_device}"

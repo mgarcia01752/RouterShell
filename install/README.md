@@ -1,4 +1,5 @@
-Certainly, here's a sample README file outlining installation steps for your RouterShell project:
+
+
 
 ```markdown
 # RouterShell Installation Guide
@@ -9,6 +10,10 @@ This guide provides step-by-step instructions for installing and uninstalling Ro
 
 - You must have sudo privileges to run some installation steps.
 - Make sure your Linux system is connected to the internet to download required packages.
+
+## Tested
+   Ubuntu 22.x, 23.x
+   RedHat 
 
 ## Installation
 
