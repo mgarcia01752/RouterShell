@@ -3,10 +3,15 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.common.constants import STATUS_OK, STATUS_NOK
 from typing import List, Union
 
+from lib.network_manager.dhcp_server import DHCPv6Modes
+
 class DNSMasqConfigurator:
     '''
     For the latest DNSmasq configuration:
     https://thekelleys.org.uk/dnsmasq/docs/dnsmasq.conf.example
+    
+    https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html
+    
     '''
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -286,9 +291,9 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'domain={domain},{start_ip},{end_ip}')
 
-    def enable_dhcp_server(self, range_start: str, range_end: str, lease_time: int):
+    def add_dhcp4_range(self, range_start: str, range_end: str, lease_time: int):
         '''
-        Enable a DHCP server in the DNSMasq configuration.
+        Add a DHCP server range in the DNSMasq configuration for IPv4.
 
         Args:
             range_start (str): The start IP address of the DHCP range.
@@ -298,9 +303,9 @@ class DNSMasqConfigurator:
         self.config.append(
             f'dhcp-range={range_start},{range_end},{lease_time}')
 
-    def enable_dhcp_server_with_netmask(self, range_start: str, range_end: str, netmask: str, lease_time: int):
+    def add_dhcp4_range_with_netmask(self, range_start: str, range_end: str, netmask: str, lease_time: int):
         '''
-        Enable a DHCP server with netmask in the DNSMasq configuration.
+        Add a DHCP server range with netmask in the DNSMasq configuration for IPv4.
 
         Args:
             range_start (str): The start IP address of the DHCP range.
@@ -311,9 +316,9 @@ class DNSMasqConfigurator:
         self.config.append(
             f'dhcp-range={range_start},{range_end},{netmask},{lease_time}')
 
-    def enable_dhcp_server_with_tag(self, tag: str, range_start: str, range_end: str, lease_time: int):
+    def add_dhcp4_range_with_tag(self, tag: str, range_start: str, range_end: str, lease_time: int):
         '''
-        Enable a DHCP server with a tag in the DNSMasq configuration.
+        Add a DHCP server range with a tag in the DNSMasq configuration for IPv4.
 
         Args:
             tag (str): The tag to associate with the DHCP range.
@@ -324,22 +329,50 @@ class DNSMasqConfigurator:
         self.config.append(
             f'dhcp-range=set:{tag},{range_start},{range_end},{lease_time}')
 
-    def enable_dhcp_server_for_tag(self, tag: str, range_start: str, range_end: str, lease_time: int):
+    def add_dhcp6_range(self, range_start: str, range_end: str, lease_time: int, mode: DHCPv6Modes):
         '''
-        Enable a DHCP server for a tag in the DNSMasq configuration.
+        Add a DHCPv6 server range in the DNSMasq configuration.
 
         Args:
-            tag (str): The tag to set the DHCP range for.
-            range_start (str): The start IP address of the DHCP range.
-            range_end (str): The end IP address of the DHCP range.
-            lease_time (int): The lease time for DHCP leases.
+            range_start (str): The start IPv6 address of the DHCPv6 range.
+            range_end (str): The end IPv6 address of the DHCPv6 range.
+            lease_time (int): The lease time for DHCPv6 leases.
+            mode (DHCPv6Modes): The DHCPv6 mode to configure.
         '''
         self.config.append(
-            f'dhcp-range=set:tag,{range_start},{range_end},{lease_time}')
+            f'dhcp-range={range_start},{range_end},{lease_time},constructor:{self.interface},{mode.value}')
 
-    def enable_tftp_server(self, root_directory: str):
+    def add_dhcp6_range_with_prefix_len(self, range_start: str, range_end: str, prefix_len: int, lease_time: int, mode: DHCPv6Modes):
         '''
-        Enable a TFTP server in the DNSMasq configuration.
+        Add a DHCPv6 server range with prefix length in the DNSMasq configuration.
+
+        Args:
+            range_start (str): The start IPv6 address of the DHCPv6 range.
+            range_end (str): The end IPv6 address of the DHCPv6 range.
+            prefix_len (int): The prefix length for the DHCPv6 range.
+            lease_time (int): The lease time for DHCPv6 leases.
+            mode (DHCPv6Modes): The DHCPv6 mode to configure.
+        '''
+        self.config.append(
+            f'dhcp-range={range_start},{range_end},constructor:{self.interface},{prefix_len},{lease_time},{mode.value}')
+
+    def add_dhcp6_range_with_tag(self, tag: str, range_start: str, range_end: str, lease_time: int, mode: DHCPv6Modes):
+        '''
+        Add a DHCPv6 server range with a tag in the DNSMasq configuration.
+
+        Args:
+            tag (str): The tag to associate with the DHCPv6 range.
+            range_start (str): The start IPv6 address of the DHCPv6 range.
+            range_end (str): The end IPv6 address of the DHCPv6 range.
+            lease_time (int): The lease time for DHCPv6 leases.
+            mode (DHCPv6Modes): The DHCPv6 mode to configure.
+        '''
+        self.config.append(
+            f'dhcp-range=set:{tag},{range_start},{range_end},{lease_time},constructor:{self.interface},{mode.value}')
+
+    def set_tftp_server(self, root_directory: str):
+        '''
+        Set a TFTP server in the DNSMasq configuration.
 
         Args:
             root_directory (str): The root directory for TFTP.

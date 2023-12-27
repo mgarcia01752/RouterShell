@@ -47,13 +47,15 @@ end
 ## IPv6
 
 ```shell
+clear router-db
+yes
+
 cls
 configure terminal
 
 dhcp dhcpv6-home-office
-    subnet fd00:abcd:1234::0\64
-    pool fd00:abcd:1234::100 fd00:abcd:1234::1ff \64
-    option routers fd00:abcd:1234::1
+    subnet fd00:abcd:1234::0/64
+    pool fd00:abcd:1234::100 fd00:abcd:1234::1ff /64
 end
 
 interface Gig0
@@ -66,7 +68,6 @@ end
 
 - Creates an IPv6 DHCP pool for the subnet `fd00:abcd:1234::0/64`.
 - Defines a pool of addresses from `fd00:abcd:1234::100` to `fd00:abcd:1234::1ff`.
-- Specifies the default gateway (`option routers`) as `fd00:abcd:1234::1`.
 - Associates the DHCP pool with the Gig0 interface.
 
 ## Dual-Stack

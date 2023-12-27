@@ -117,13 +117,31 @@ class DHCPOptionLookup:
     }
 
     '''https://kea.readthedocs.io/en/latest/arm/dhcp6-srv.html#id2'''
+    
     dhcpv6_option_lookup = {
+        1: {"Name": "client-id", "Type": "binary", "Array": False},
+        2: {"Name": "server-id", "Type": "binary", "Array": False},
+        3: {"Name": "ia-na", "Type": "record (uint32, iaaddr)", "Array": True},
+        4: {"Name": "ia-ta", "Type": "empty", "Array": False},
+        5: {"Name": "iaaddr", "Type": "record (uint32, ipv6-address)", "Array": True},
+        6: {"Name": "oro", "Type": "uint16", "Array": True},
         7: {"Name": "preference", "Type": "uint8", "Array": False},
+        8: {"Name": "elapsed-time", "Type": "uint16", "Array": False},
+        9: {"Name": "relay-msg", "Type": "record (ipv6-address, binary)", "Array": False},
+        11: {"Name": "auth", "Type": "binary", "Array": False},
         12: {"Name": "unicast", "Type": "ipv6-address", "Array": False},
+        13: {"Name": "status-code", "Type": "record (uint16, string)", "Array": False},
+        14: {"Name": "rapid-commit", "Type": "empty", "Array": False},
+        15: {"Name": "user-class", "Type": "string", "Array": False},
+        16: {"Name": "vendor-class", "Type": "string", "Array": False},
+        17: {"Name": "vendor-opts", "Type": "binary", "Array": False},
+        18: {"Name": "interface-id", "Type": "string", "Array": False},
         21: {"Name": "sip-server-dns", "Type": "fqdn", "Array": True},
         22: {"Name": "sip-server-addr", "Type": "ipv6-address", "Array": True},
         23: {"Name": "dns-servers", "Type": "ipv6-address", "Array": True},
         24: {"Name": "domain-search", "Type": "fqdn", "Array": True},
+        25: {"Name": "ia-pd", "Type": "record (uint32, iaprefix)", "Array": True},
+        26: {"Name": "iaprefix", "Type": "record (uint32, uint8, ipv6-prefix)", "Array": True},
         27: {"Name": "nis-servers", "Type": "ipv6-address", "Array": True},
         28: {"Name": "nisp-servers", "Type": "ipv6-address", "Array": True},
         29: {"Name": "nis-domain-name", "Type": "fqdn", "Array": True},
@@ -177,6 +195,7 @@ class DHCPOptionLookup:
         143: {"Name": "ipv6-address-andsf", "Type": "ipv6-address", "Array": True},
         144: {"Name": "v6-dnr", "Type": "record (uint16, uint16, fqdn, binary)", "Array": False},
     }
+
 
     def lookup_dhcpv4_option(self, option_code:str):
         """

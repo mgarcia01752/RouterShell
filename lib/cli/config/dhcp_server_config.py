@@ -44,7 +44,6 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         self.dhcp_pool_factory = DhcpPoolFactory(dhcp_pool_name)
                 
-            
     def isGlobalMode(self) -> bool:
         return self.dhcp_pool_name == self.GLOBAL_CONFIG_MODE
     
@@ -117,7 +116,7 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         # Handle the 'pools' command logic here
         self.log.debug(f"Configuring IP pool with start IP: {inet_start}, end IP: {inet_end}, and subnet mask: {inet_subnet_cidr}")
-        self.dhcp_pool_factory.add_inet_pool(inet_start, inet_end, inet_subnet_cidr)
+        self.dhcp_pool_factory.add_inet_pool_range(inet_start, inet_end, inet_subnet_cidr)
         
     def do_reservations(self, args: str):
         '''
@@ -193,6 +192,6 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         self.dhcp_pool_factory.add_option(dhcp_option, dhcp_value)
     
-    def do_commit(self):
-        pass
+    def do_commit(self) -> bool:
+        return STATUS_OK
     

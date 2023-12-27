@@ -394,15 +394,10 @@ class InetServiceLayer(MacServiceLayer):
         """
         try:
             network = ipaddress.ip_network(inet_subnet_cidr, strict=False)
-
-            if network.version == 4 or network.version == 6:
-                return True
-            else:
-                return False
-            
+            return network.version in {4, 6}
         except (ipaddress.AddressValueError, ValueError):
-            
             return False
+
 
     def get_inet_subnet_inet_version(self, inet_subnet_cidr: str) -> InetVersion:
         """

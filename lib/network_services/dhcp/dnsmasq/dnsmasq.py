@@ -209,7 +209,7 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         for entry in dhcp_pool_ranges:
             range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
-            self.d_masq_if_config.enable_dhcp_server_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
+            self.d_masq_if_config.add_dhcp4_range_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
 
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)

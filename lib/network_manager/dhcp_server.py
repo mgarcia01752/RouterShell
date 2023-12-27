@@ -1,8 +1,8 @@
-import json
+from enum import Enum
 import logging
 import os
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 from lib.common.constants import DNSMASQ_LEASE_FILE_PATH
@@ -21,6 +21,31 @@ class InvalidDhcpServer(Exception):
     def __init__(self, message):
         super().__init__(message)
 
+class DHCPv6Modes(Enum):
+
+    '''
+        For IPv6, the mode may be some combination of ra-only, slaac, ra-names, ra-stateless, ra-advrouter, off-link.
+
+        ra-only tells dnsmasq to offer Router Advertisement only on this subnet, and not DHCP.
+
+        slaac tells dnsmasq to offer Router Advertisement on this subnet and to set the A bit in the router advertisement, so that the client will use SLAAC addresses. When used with a DHCP range or static DHCP address this results in the client having both a DHCP-assigned and a SLAAC address.
+
+        ra-stateless sends router advertisements with the O and A bits set, and provides a stateless DHCP service. The client will use a SLAAC address, and use DHCP for other configuration information.
+
+        ra-names enables a mode which gives DNS names to dual-stack hosts which do SLAAC for IPv6. Dnsmasq uses the host's IPv4 lease to derive the name, network segment and MAC address and assumes that the host will also have an IPv6 address calculated using the SLAAC algorithm, on the same network segment. The address is pinged, and if a reply is received, an AAAA record is added to the DNS for this IPv6 address. Note that this is only happens for directly-connected networks, (not one doing DHCP via a relay) and it will not work if a host is using privacy extensions. ra-names can be combined with ra-stateless and slaac.
+
+        ra-advrouter enables a mode where router address(es) rather than prefix(es) are included in the advertisements. This is described in RFC-3775 section 7.2 and is used in mobile IPv6. In this mode the interval option is also included, as described in RFC-3775 section 7.3.
+
+        off-link tells dnsmasq to advertise the prefix without the on-link (aka L) bit set.    
+    '''
+    
+    RA_ONLY = 'ra-only'
+    RA_NAMES = 'ra-names'
+    RA_STATELESS = 'ra-stateless'
+    RA_ADV_ROUTER = 'ra-advrouter'
+    SLAAC = 'slaac'
+    OFF_LINK = 'off-link'
+    
 class DHCPServer(NetworkManager):
 
     def __init__(self):
@@ -218,8 +243,7 @@ class DHCPServer(NetworkManager):
         return STATUS_OK
 
 class DhcpPoolFactory():
-    '''
-    '''
+
     def __init__(self, dhcp_pool_name: str):
         """
         Initialize the DhcpPoolFactory instance.
@@ -248,7 +272,7 @@ class DhcpPoolFactory():
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_inet_subnet_cidr = self.dhcp_srv_obj.get_dhcp_pool_subnet(dhcp_pool_name)
         self.log.debug(f"Create DhcpPoolFactory({dhcp_pool_name} , {self.dhcp_pool_inet_subnet_cidr}) ")
-         
+        
     def status(self) -> bool:
         """
         Get the status of the DhcpPoolFactory.
@@ -276,7 +300,7 @@ class DhcpPoolFactory():
         
         return self.dhcp_srv_obj.add_dhcp_pool_subnet(self.dhcp_pool_name, inet_subnet_cidr)
         
-    def add_inet_pool(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
+    def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
         """
         Add an IP address range to the DHCP pool.
 
@@ -352,7 +376,6 @@ class DhcpPoolFactory():
             return DHCPVersion.DHCP_V4
         else:
             return DHCPVersion.DHCP_V6
-
 
 class DhcpServerManager(RunCommand):
 
