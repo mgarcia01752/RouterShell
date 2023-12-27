@@ -56,6 +56,7 @@ configure terminal
 dhcp dhcpv6-home-office
     subnet fd00:abcd:1234::0/64
     pool fd00:abcd:1234::100 fd00:abcd:1234::1ff /64
+    mode slaac
 end
 
 interface Gig0

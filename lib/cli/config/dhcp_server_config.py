@@ -14,6 +14,7 @@ from lib.cli.common.cmd2_global import Cmd2GlobalSettings as cgs
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
 
 class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     
@@ -191,7 +192,46 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug(f"Adding DHCP option to global configuration: {args}")
 
         self.dhcp_pool_factory.add_option(dhcp_option, dhcp_value)
-    
+
+    def do_mode(self, args:str, negate=False):
+        '''
+        Set the DHCPv6 Mode.
+
+        Args:
+            args (List[str]): List of arguments.
+            negate (bool): Whether to negate the mode.
+
+        Example:
+            Use 'mode <[slaac | ra-only | ra-names | ra-stateless | ra-advrouter | off-link]>'
+            to set the DHCPv6 mode.
+        '''
+
+        self.log.debug(f"do_mode() -> args: {args}")
+
+        parser = argparse.ArgumentParser(
+            description="Set the DHCPv6 Mode",
+            epilog="Example: Use 'mode <[slaac | ra-only | ra-names | ra-stateless | ra-advrouter | off-link]>' to set the DHCPv6 mode."
+        )
+
+        # Define the argument directly without subcommands
+        parser.add_argument('mode', choices=['ra-only', 'slaac', 'ra-names', 'ra-stateless', 'ra-advrouter', 'off-link'],
+                            help='Set the DHCPv6 mode.')
+
+        try:
+            if not isinstance(args, list):
+                args = parser.parse_args(args.split())
+            else:
+                args = parser.parse_args(args)
+        except SystemExit:
+            return     
+
+        if self.dhcp_pool_factory.get_subnet_inet_version() == DHCPVersion.DHCP_V4:
+            print('DHCP mode is reserved for a DHCPv6 subnet')
+            return
+
+        self.dhcp_pool_factory.add_dhcp_mode(DHCPv6Modes.get_key(args.mode))
+
+
     def do_commit(self) -> bool:
         return STATUS_OK
     
