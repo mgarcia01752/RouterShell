@@ -288,11 +288,16 @@ class RouterConfigurationDatabase:
                     for key, value in data.result.items():
                         combined_data.update({f"{key}-{str(next(cls.counter))}": value})
 
-                dhcp_server_option_results = cls.rsdb.select_global_dhcp_server_subnet_option_pool(pool_name)
-                for data in dhcp_server_option_results:
+                dhcp_server_option_subnet_results = cls.rsdb.select_global_dhcp_server_subnet_option_pool(pool_name)
+                for data in dhcp_server_option_subnet_results:
                     for key, value in data.result.items():
                         combined_data.update({f"{key}-{str(next(cls.counter))}": value})
 
+                dhcp_server_option_results = cls.rsdb.select_global_dhcpv6_server_options(pool_name)
+                for data in dhcp_server_option_results:
+                    for key, value in data.result.items():
+                        combined_data.update({f"{key}-{str(next(cls.counter))}": value})                
+                
                 config_data.append(combined_data)
 
         else:

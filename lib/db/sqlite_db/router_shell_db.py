@@ -4438,7 +4438,7 @@ class RouterShellDB(metaclass=Singleton):
 
             query = """
                 SELECT DISTINCT
-                    'pool ' || ' ' || DHCPSubnetPools.InetAddressStart || ' ' || DHCPSubnetPools.InetAddressEnd || ' ' || DHCPSubnetPools.InetSubnet AS DhcpServerIpAddrPool
+                    'pool ' || DHCPSubnetPools.InetAddressStart || ' ' || DHCPSubnetPools.InetAddressEnd || ' ' || DHCPSubnetPools.InetSubnet AS DhcpServerIpAddrPool
                 
                 FROM DHCPServer
                 
@@ -4561,6 +4561,51 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             error_message = f"Failed to retrieve global DHCP server subnet option pool configurations. Error: {str(e)}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
+    def select_global_dhcpv6_server_options(self, dhcp_pool_name: str) -> List[Result]:
+        """
+        Retrieve distinct 'mode_description' values for a specified DHCP pool name.
+
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool for which to retrieve options.
+
+        Returns:
+            List[Result]: A list of Result objects representing the outcomes of the operation.
+        """
+        try:
+            query = """
+                SELECT DISTINCT
+                    'mode ' || DHCPv6ServerOption.Mode AS mode_description
+                    
+                FROM DHCPServer
+                
+                LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK
+                LEFT JOIN DHCPVersionServerOptions ON DHCPSubnet.ID = DHCPVersionServerOptions.DHCPSubnet_FK
+                LEFT JOIN DHCPv6ServerOption ON DHCPVersionServerOptions.ID = DHCPv6ServerOption.DHCPVersionServerOptions_FK
+                
+                WHERE DHCPServer.DhcpPoolname = ?;
+            """
+            cursor = self.connection.cursor()
+            cursor.execute(query, (dhcp_pool_name,))
+
+            rows = cursor.fetchall()
+
+            results = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=0,
+                    reason=f"Retrieved global DHCPv6 server subnet option pool configuration for pool '{dhcp_pool_name}' successfully",
+                    result={'Mode': row[0]},
+                )
+                for row in rows
+            ]
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve global DHCPv6 server subnet option pool configurations. Error: {str(e)}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
