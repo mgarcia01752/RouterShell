@@ -159,10 +159,53 @@ DROP TABLE IF EXISTS DHCPv6ServerOption;
 CREATE TABLE IF NOT EXISTS DHCPv6ServerOption (
     ID INTEGER PRIMARY KEY NOT NULL,
     DHCPVersionServerOptions_FK INT,
-    Mode TEXT DEFAULT 'slaac',      -- ra-only, slaac, ra-names, ra-stateless, ra-advrouter, off-link
     Constructor TEXT,               -- (Interface Name) Apply IPv6 Range to an interface
+    Mode TEXT DEFAULT 'slaac',      -- ra-only, slaac, ra-names, ra-stateless, ra-advrouter, off-link    
     CONSTRAINT FK_DHCPv6ServerOption_DHCPVersionServerOptions FOREIGN KEY (DHCPVersionServerOptions_FK) REFERENCES DHCPVersionServerOptions(ID) ON DELETE CASCADE
 );
+
+
+DROP TRIGGER IF EXISTS insert_dhcp_option_ipv6;
+
+CREATE TRIGGER  IF NOT EXISTS insert_dhcp_option_ipv6
+    AFTER INSERT ON DHCPSubnet
+    WHEN NEW.InetSubnet LIKE '%:%'
+
+BEGIN
+
+    INSERT INTO DHCPVersionServerOptions (DHCPSubnet_FK) VALUES (NEW.ID);
+
+    INSERT INTO DHCPv6ServerOption (DHCPVersionServerOptions_FK) VALUES ((SELECT ID FROM DHCPVersionServerOptions ORDER BY ID DESC LIMIT 1));
+
+    UPDATE DHCPv6ServerOption
+        SET DHCPVersionServerOptions_FK = (SELECT ID FROM DHCPVersionServerOptions ORDER BY ID DESC LIMIT 1)
+        WHERE ID = (SELECT ID FROM DHCPv6ServerOption ORDER BY ID DESC LIMIT 1);
+
+    UPDATE DHCPVersionServerOptions 
+        SET DHCPv6ServerOption_FK = (SELECT ID FROM DHCPv6ServerOption ORDER BY ID DESC LIMIT 1)
+        WHERE ID = (SELECT ID FROM DHCPVersionServerOptions ORDER BY ID DESC LIMIT 1);
+END;
+
+DROP TRIGGER IF EXISTS insert_dhcp_option_ipv4;
+
+CREATE TRIGGER IF NOT EXISTS insert_dhcp_option_ipv4
+    AFTER INSERT ON DHCPSubnet
+    WHEN NEW.InetSubnet LIKE '%.%'
+
+BEGIN
+
+    INSERT INTO DHCPVersionServerOptions (DHCPSubnet_FK) VALUES (NEW.ID);
+
+    INSERT INTO DHCPv4ServerOption (DHCPVersionServerOptions_FK) VALUES ((SELECT ID FROM DHCPVersionServerOptions ORDER BY ID DESC LIMIT 1));
+
+    UPDATE DHCPv4ServerOption
+        SET DHCPVersionServerOptions_FK = (SELECT ID FROM DHCPVersionServerOptions ORDER BY ID DESC LIMIT 1)
+        WHERE ID = (SELECT ID FROM DHCPv4ServerOption ORDER BY ID DESC LIMIT 1);
+
+    UPDATE DHCPVersionServerOptions 
+        SET DHCPv4ServerOption_FK = (SELECT ID FROM DHCPv4ServerOption ORDER BY ID DESC LIMIT 1)
+        WHERE ID = (SELECT ID FROM DHCPVersionServerOptions ORDER BY ID DESC LIMIT 1);
+END;
 
 DROP TABLE IF EXISTS DHCPSubnetPools;
 CREATE TABLE IF NOT EXISTS DHCPSubnetPools (

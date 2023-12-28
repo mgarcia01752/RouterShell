@@ -50,7 +50,7 @@ end
 clear router-db
 yes
 
-cls
+
 configure terminal
 
 dhcp dhcpv6-home-office
