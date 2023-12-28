@@ -4577,7 +4577,8 @@ class RouterShellDB(metaclass=Singleton):
         try:
             query = """
                 SELECT DISTINCT
-                    'mode ' || DHCPv6ServerOption.Mode AS mode_description
+                    'mode ' || DHCPv6ServerOption.Mode AS Mode,
+                    'constructor ' || DHCPv6ServerOption.Constructor AS Constructor
                     
                 FROM DHCPServer
                 
@@ -4597,7 +4598,9 @@ class RouterShellDB(metaclass=Singleton):
                     status=STATUS_OK,
                     row_id=0,
                     reason=f"Retrieved global DHCPv6 server subnet option pool configuration for pool '{dhcp_pool_name}' successfully",
-                    result={'Mode': row[0]},
+                    result={'Mode': row[0], 
+                            'Constructor':row[1],
+                            },
                 )
                 for row in rows
             ]
