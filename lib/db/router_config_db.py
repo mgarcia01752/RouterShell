@@ -260,9 +260,9 @@ class RouterConfigurationDatabase:
 
         Returns:
             Tuple[bool, List[Dict]]: A tuple containing a boolean status and a list of dictionaries representing DHCP server configuration data.
-                - The boolean status is True (STATUS_OK) if the retrieval is successful, and False (STATUS_NOK) otherwise.
-                - The list includes dictionaries for each type of data, making it easy to distinguish between pool details,
-                reservations, and subnet options.
+            - The boolean status is STATUS_OK if the retrieval is successful, and STATUS_NOK otherwise.
+            - The list includes dictionaries for each type of data, making it easy to distinguish between pool details,
+              reservations, and subnet options.
 
         Note:
         - The returned list includes dictionaries for each type of data, providing a structured format for the DHCP server configuration.
