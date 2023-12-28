@@ -4566,7 +4566,7 @@ class RouterShellDB(metaclass=Singleton):
 
     def select_global_dhcpv6_server_options(self, dhcp_pool_name: str) -> List[Result]:
         """
-        Retrieve distinct 'mode_description' values for a specified DHCP pool name.
+        Retrieve DHCP Server Options for a specified DHCP pool name.
 
         Parameters:
             dhcp_pool_name (str): The name of the DHCP pool for which to retrieve options.
