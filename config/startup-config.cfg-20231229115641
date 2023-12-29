@@ -1,7 +1,12 @@
+cls
 
 ; RouterShell Configuration
 
 enable
+
+clear router-db 
+yes
+
 configure terminal
 
 hostname dev01
@@ -14,13 +19,14 @@ The use of this system may be monitored and recorded for administrative and secu
 monitoring and is advised that if such monitoring revels possible evidence of criminal activity, [CORPORATION] may provide the evidence of such activity to the 
 law enforcement officials. All users must comply with [CORPORATION] corporate security instructions regarding the protection of [CORPORATION] information.
 ^
-rename if enx8cae4cdb5f8e if-alias Gig0
-rename if enx9cebe81be18a if-alias Gig1
+rename if enx8cae4cdb5f8e if-alias Gig1
+rename if enx9cebe81be18a if-alias Gig0
+
 
 dhcp dhcpv4-home-office
  subnet 172.16.0.0/24
  pool 172.16.0.50 172.16.0.254 255.255.255.0
- reservations hw-address 00:00:00:00:00:01 ip-address 172.16.0.2
+ reservations hw-address 00:00:00:00:00:01 ip-address 172.16.0.2 
  option routers 172.16.0.1
 end
 
@@ -33,17 +39,15 @@ end
 interface Gig0
  ip address 172.16.0.1/24
  ipv6 address fd00:abcd:1234::1/64 secondary
- ip dhcp-server pool dhcpv4-home-office
  duplex auto
  speed auto
  ip proxy-arp
  ip drop-gratuitous-arp
+ ip dhcp-server pool dhcpv4-home-office
  no shutdown
 end
 
 interface Gig1
- ip dhcp-client
- ipv6 dhcp-client
  duplex auto
  speed auto
  ip proxy-arp

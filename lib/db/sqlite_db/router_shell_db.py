@@ -4268,8 +4268,8 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute(f'''
                 SELECT DISTINCT
                     CASE
-                        WHEN DHCPClient.DHCPVersion = '{DHCPVersion.DHCP_V4}' THEN 'ip dhcp-client'
-                        WHEN DHCPClient.DHCPVersion = '{DHCPVersion.DHCP_V6}' THEN 'ipv6 dhcp-client'
+                        WHEN DHCPClient.DHCPVersion = '{DHCPVersion.DHCP_V4.value}' THEN 'ip dhcp-client'
+                        WHEN DHCPClient.DHCPVersion = '{DHCPVersion.DHCP_V6.value}' THEN 'ipv6 dhcp-client'
                         ELSE NULL  -- Handle other cases as needed
                     END AS DhcpClientVersion
                 
