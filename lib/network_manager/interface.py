@@ -163,7 +163,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         """
         if self.add_db_interface(interface_name, ifType):
-            self.log.error(f"Unable to add interface: {interface_name} to DB")
+            self.log.debug(f"Unable to add interface: {interface_name} to DB")
             return STATUS_NOK
         
         if ifType != InterfaceType.ETHERNET:
@@ -679,13 +679,32 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error decoding JSON: {e}")
             return None
             
-    def _update_interface_db_from_os_settings(self, interface_name:str = None) -> bool:
-        # TODO
-        # if interface_name == None, then update all interfaces found on the system
-        
-        # DB Tables to be updated
-        # Interfaces
-        # InterfaceSubOptions
-        # InterfaceStaticArp
-        # InterfaceIpAddress
-        pass
+    def update_interface_db_from_os(self, interface_name: str = None) -> bool:
+        """
+        Update the database with information about network interfaces found by the operating system.
+
+        This method iterates through all network interfaces discovered by the operating system,
+        checks the database to ensure that each interface is not already defined. If not defined,
+        it creates an entry with basic configuration. Otherwise, it skips the interface.
+
+        Args:
+            interface_name (str, optional): The name of a specific network interface to update.
+
+        Returns:
+            bool: STATUS_OK if the update process is successful, STATUS_NOK otherwise.
+        """
+        for if_name in self.get_network_interfaces():
+            
+            if interface_name is not None and if_name != interface_name or not self.db_lookup_interface_exists(if_name):
+                self.log.debug(f"Unknown interface: {if_name}")
+                continue
+                
+            if_type = self.get_interface_type(if_name)
+
+            if if_type != InterfaceType.UNKNOWN:
+                self.log.debug(f"Adding Interface: {if_name} -> if-type: {if_type.name} to DB")
+                self.add_interface_entry(if_name, if_type)
+                self.update_shutdown(if_name, State.UP)
+
+        return STATUS_OK
+

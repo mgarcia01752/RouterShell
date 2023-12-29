@@ -35,13 +35,6 @@ class InterfaceDatabase:
             You can use this method to determine whether a specific interface exists in the database.
             For instance, you might check if 'GigabitEthernet0/1' exists.
 
-        Usage:
-            result = interface_exists('GigabitEthernet0/1')
-            if result.status:
-                print(f"Interface with name '{interface_name}' exists in the database.")
-            else:
-                print(f"Interface with name '{interface_name}' does not exist.")
-
         Note:
             - The 'Result' object returned indicates the status of the interface existence.
             - 'status' True means the interface exists, and 'status' False means it does not.
