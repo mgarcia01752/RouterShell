@@ -4231,9 +4231,10 @@ class RouterShellDB(metaclass=Singleton):
                 SELECT DISTINCT
                     CASE
                         WHEN DHCPClient.DHCPVersion = 'DHCPv4' THEN 'ip dhcp-client'
-                        ELSE 'ipv6 dhcp-client'
+                        WHEN DHCPClient.DHCPVersion = 'DHCPv6' THEN 'ipv6 dhcp-client'
+                        ELSE NULL  -- Handle other cases as needed
                     END AS DhcpClientVersion
-
+                
                 FROM Interfaces
                 
                 LEFT JOIN DHCPClient ON Interfaces.ID = DHCPClient.Interface_FK
