@@ -332,7 +332,7 @@ class DhcpPoolFactory():
             self.log.error(f"Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
-        if not MacServiceLayer().is_valid_mac_address(hw_address) or not MacServiceLayer().is_valid_duid_ll(hw_address):
+        if not MacServiceLayer().is_valid_mac_address(hw_address) and not MacServiceLayer().is_valid_duid_ll(hw_address):
             self.log.error(f'Invalid hw-address: {hw_address}')    
             return STATUS_NOK
         

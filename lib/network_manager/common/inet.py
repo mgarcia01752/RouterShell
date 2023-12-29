@@ -497,12 +497,10 @@ class InetServiceLayer(MacServiceLayer):
             subnet = ipaddress.ip_network(subnet_cidr)
             inet_address = ipaddress.ip_address(inet)
 
-            for subnet_segment in ipaddress.summarize_address_range(inet_address):
-                if subnet.overlaps(subnet_segment):
-                    return True
-
-            return False
-        
+            # Check if the IP address is within the subnet
+            return inet_address in subnet
+            
         except ValueError as e:
-            # Handle invalid input format
+            # Log or handle the specific error message
             return False
+
