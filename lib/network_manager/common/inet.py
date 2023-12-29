@@ -2,6 +2,7 @@ from enum import Enum
 import ipaddress
 import json
 import logging
+from typing import Tuple, Union
 
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -423,3 +424,57 @@ class InetServiceLayer(MacServiceLayer):
                 return InetVersion.IPv6
             except ValueError:
                 return InetVersion.UNKNOWN
+
+    @staticmethod
+    def validate_subnet_format(subnet: str) -> bool:
+        """
+        Validate the format of an IPv4 or IPv6 subnet.
+
+        Args:
+            subnet (str): The subnet in CIDR notation.
+
+        Returns:
+            True if valid, otherwise False
+        Example:
+            subnet = "172.16.0.0/24"
+            subnet = "fd00:1::/64"
+        
+        """
+        try:
+            ipaddress.ip_network(subnet)
+            return True, None
+
+        except ValueError as e:
+            return False
+
+    @staticmethod
+    def validate_inet_ranges(subnet_cidr: str, pool_start: str, pool_end: str) -> bool:
+        """
+        Validate if the specified IP address range in the DHCP pool falls within both the subnet and the pool subnet.
+
+        This method checks if the IP address range specified in the DHCP pool falls within the given subnet and considers
+        the pool subnet as well. It iterates over subnets within the pool range subnet using 
+        `ipaddress.summarize_address_range` and checks if any part of the pool range overlaps with the specified subnet.
+
+        Args:
+            subnet_cidr (str): The subnet CIDR of the DHCP pool.
+            pool_start (str): The starting IP address of the DHCP pool.
+            pool_end (str): The ending IP address of the DHCP pool.
+
+        Returns:
+            bool: True if the DHCP pool range is valid within both the subnet and the pool subnet, False otherwise.
+        """
+        try:
+            subnet = ipaddress.ip_network(subnet_cidr)
+            pool_start_address = ipaddress.ip_address(pool_start)
+            pool_end_address = ipaddress.ip_address(pool_end)
+
+            for subnet_segment in ipaddress.summarize_address_range(pool_start_address, pool_end_address):
+                if not subnet.overlaps(subnet_segment):
+                    return False
+
+            return True
+        
+        except ValueError as e:
+            return False
+

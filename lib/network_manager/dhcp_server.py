@@ -1,4 +1,5 @@
 from enum import Enum
+import ipaddress
 import logging
 import os
 
@@ -273,7 +274,13 @@ class DhcpPoolFactory():
 
         Returns:
             bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
-        """        
+        """     
+        
+        if not InetServiceLayer.validate_subnet_format(inet_subnet_cidr):
+            self.log.error(f'Invalid subnet: {inet_subnet_cidr}')
+            self._update_status(False)
+            return STATUS_NOK
+           
         if not self.status():
             self.log.error(f"Unable to add DHCP Pool subnet - ERROR: DhcpPoolFactory()")
             return STATUS_NOK        
@@ -281,7 +288,8 @@ class DhcpPoolFactory():
         self.dhcp_pool_inet_subnet_cidr = inet_subnet_cidr
         
         return self.dhcp_srv_obj.add_dhcp_pool_subnet(self.dhcp_pool_name, inet_subnet_cidr)
-        
+
+
     def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
         """
         Add an IP address range to the DHCP pool.
@@ -297,12 +305,17 @@ class DhcpPoolFactory():
         if not self.status():
             self.log.error(f"Unable to add DHCP pool - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
-        
 
-        return self.dhcp_srv_obj.add_dhcp_pool_subnet_inet_range(self.dhcp_pool_name,
-                                                                 self.dhcp_pool_inet_subnet_cidr,
-                                                                 inet_start, inet_end, inet_subnet_cidr)
-    
+        if not InetServiceLayer.validate_inet_ranges(self.dhcp_pool_inet_subnet_cidr, inet_start, inet_end):
+            self.log.error(f'Invalid IP Range [{self.dhcp_pool_inet_subnet_cidr} ->{inet_start} - {inet_end}]')
+            return STATUS_NOK
+
+        return self.dhcp_srv_obj.add_dhcp_pool_subnet_inet_range(
+            self.dhcp_pool_name,
+            self.dhcp_pool_inet_subnet_cidr,
+            inet_start, inet_end, inet_subnet_cidr
+        )
+
     def add_reservation(self, hw_address: str, inet_address: str) -> bool:
         """
         Add a reservation to the DHCP pool.
@@ -359,13 +372,45 @@ class DhcpPoolFactory():
         else:
             return DHCPVersion.DHCP_V6
 
-    def add_dhcp_mode(self, mode:DHCPv6Modes) -> bool:
-        
+    def add_dhcp_mode(self, mode: DHCPv6Modes) -> bool:
+        """
+        Update the DHCP mode for DHCPv6 subnets.
+
+        This method allows updating the DHCP mode for DHCPv6 subnets. It checks the current status of the DHCP server,
+        ensures it is in a valid state using `self.status()`, and then validates the DHCP version. If the DHCP version is 
+        DHCPv4, it logs a debug message indicating that DHCP mode is reserved for DHCPv6 subnets and returns STATUS_NOK.
+
+        Args:
+            mode (DHCPv6Modes): The desired DHCP mode for DHCPv6 subnets.
+
+        Returns:
+            bool: STATUS_OK if the DHCP mode was updated successfully, STATUS_NOK otherwise.
+        """
+        if not self.status():
+            self.log.error(f"Unable to update DHCP Mode - ERROR: DhcpPoolFactory()")
+            return STATUS_NOK
+
         if self.get_subnet_inet_version() == DHCPVersion.DHCP_V4:
             self.log.debug(f'DHCP Mode is reserved for DHCPv6 subnet')
             return STATUS_NOK
-        
+
         return STATUS_OK
+
+    def _update_status(self, status: bool):
+        """
+        Update the status of the DhcpPoolFactory.
+
+        This method is used to update the status of the DhcpPoolFactory. It takes a boolean parameter 'status' indicating
+        whether the factory is in a valid state.
+
+        Args:
+            status (bool): The new status of the DhcpPoolFactory. True if the factory is in a valid state, False otherwise.
+
+        Returns:
+            None
+        """
+        self.factory_status = status
+
 
 class DhcpServerManager(RunCommand):
 

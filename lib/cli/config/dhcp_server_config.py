@@ -78,7 +78,8 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         inet_subnet_cidr = args.inet_subnet_cidr
         self.log.debug(f"Configuring subnet with INET Subnet: {inet_subnet_cidr}")
-        self.dhcp_pool_factory.add_pool_subnet(inet_subnet_cidr)
+        if self.dhcp_pool_factory.add_pool_subnet(inet_subnet_cidr):
+            print(f"Invalid IP subnet: {inet_subnet_cidr}")
         
     def do_pool(self, args: str):
         '''
@@ -117,7 +118,8 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         # Handle the 'pools' command logic here
         self.log.debug(f"Configuring IP pool with start IP: {inet_start}, end IP: {inet_end}, and subnet mask: {inet_subnet_cidr}")
-        self.dhcp_pool_factory.add_inet_pool_range(inet_start, inet_end, inet_subnet_cidr)
+        if self.dhcp_pool_factory.add_inet_pool_range(inet_start, inet_end, inet_subnet_cidr):
+            print('Invalid IP pool range, IP address outside of pool subnet.')
         
     def do_reservations(self, args: str):
         '''
@@ -230,7 +232,6 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             return
 
         self.dhcp_pool_factory.add_dhcp_mode(DHCPv6Modes.get_key(args.mode))
-
 
     def do_commit(self) -> bool:
         return STATUS_OK
