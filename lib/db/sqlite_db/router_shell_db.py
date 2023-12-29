@@ -4137,7 +4137,6 @@ class RouterShellDB(metaclass=Singleton):
                     CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
                     'bridge group '         || Bridges.BridgeName AS BridgeGroup,
                     'ip nat '               || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
-                    'ip dhcp-server pool '  || DHCPServer.DhcpPoolname as DhcpServerPool,
                     CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
                 
                 FROM Interfaces
@@ -4148,7 +4147,6 @@ class RouterShellDB(metaclass=Singleton):
                 LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
                 LEFT JOIN NatDirections ON Interfaces.ID = NatDirections.Interface_FK
                 LEFT JOIN Nats ON Nats.ID = NatDirections.NAT_FK
-                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interface_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
@@ -4167,8 +4165,7 @@ class RouterShellDB(metaclass=Singleton):
                     'DropGratuitousArp': result[6],
                     'BridgeGroup': result[7],
                     'NatInterafaceDirection': result[8],
-                    'DhcpServerPool': result[9],
-                    'Shutdown': result[10],
+                    'Shutdown': result[9],
                 }
                 return Result(status=STATUS_OK, row_id=None, result=sql_result_dict)
             else:
@@ -4178,6 +4175,44 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting interface information: {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
+
+    def select_interface_ip_dhcp_server_policies(self, interface_name: str) -> List[Result]:
+        """
+        Retrieve DHCP server pool information associated with a specific interface.
+
+        Parameters:
+            interface_name (str): The name of the interface for which to retrieve DHCP server pool information.
+
+        Returns:
+            List[Result]: A list of Result objects representing the outcomes of the operation.
+                Each Result object contains either the DHCP server pool information or an error message.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'ip dhcp-server pool ' || DHCPServer.DhcpPoolname as DhcpServerPool
+
+                FROM Interfaces
+                
+                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interface_FK
+                
+                WHERE Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+            
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for result in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=id, result={'DhcpServerPool': result[0]}))
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface information: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
     def select_interface_ip_address_configuration(self, interface_name:str) -> List[Result]:
         """

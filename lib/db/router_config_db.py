@@ -95,6 +95,32 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, ip_config_list
 
+    def get_interface_dhcp_server_polices(cls, interface_name: str) -> Tuple[bool, List[Dict[str, str]]]:
+        """
+        Retrieve DHCP server policies for a specific interface.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            Tuple[bool, List[Dict[str, str]]]: 
+                A tuple containing a boolean indicating the success of the operation
+                    and a list of dictionaries with DHCP server policies data.
+                If the operation is successful, the boolean will be True, and the list
+                    will contain dictionaries with DHCP server policy details.
+                If there is an error, the boolean will be False, and the list will be empty.
+        """
+        if_dhcp_serv_policy_result = cls.rsdb.select_interface_ip_dhcp_server_policies(interface_name)
+
+        if any(result.status for result in if_dhcp_serv_policy_result):
+            error_messages = [result.reason for result in if_dhcp_serv_policy_result if result.status]
+            cls.log.debug(f"Error retrieving DHCP server policies, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        dhcp_server_policies = [result.result for result in if_dhcp_serv_policy_result]
+
+        return STATUS_OK, dhcp_server_policies
+
     def get_interface_ip_static_arp_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
         """
         Retrieve IP static ARP configuration for a specific interface.
