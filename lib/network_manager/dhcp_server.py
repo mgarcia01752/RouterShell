@@ -12,6 +12,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.common.inet import InetServiceLayer, InetVersion
+from lib.network_manager.common.mac import MacServiceLayer
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
@@ -331,8 +332,12 @@ class DhcpPoolFactory():
             self.log.error(f"Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
+        if not MacServiceLayer().is_valid_mac_address(hw_address) or not MacServiceLayer().is_valid_duid_ll(hw_address):
+            self.log.error(f'Invalid hw-address: {hw_address}')    
+            return STATUS_NOK
+        
         if not InetServiceLayer.validate_inet_range(self.dhcp_pool_inet_subnet_cidr, inet_address):
-            self.log.error(f'IP address not part of pool subnet [{self.dhcp_pool_inet_subnet_cidr} ->{inet_address}]')
+            self.log.error(f'IP address not part of pool subnet [{self.dhcp_pool_inet_subnet_cidr} -> {inet_address}]')
             return STATUS_NOK
 
         return self.dhcp_srv_obj.add_dhcp_pool_reservation(self.dhcp_pool_name,

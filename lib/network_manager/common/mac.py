@@ -182,7 +182,6 @@ class MacServiceLayer(InterfaceLayer):
             raise ValueError("Invalid address_type. Use 'UA', 'LA', 'MC', or 'SA'.")
 
         return ':'.join(map(lambda x: format(x, '02x'), mac))
-
     
     def get_arp(self, args=None):
         try:
@@ -209,3 +208,16 @@ class MacServiceLayer(InterfaceLayer):
                 print(f"Error executing 'ip neighbor show' command: {output.stderr}")
         except Exception as e:
             print(f"Error: {e}")
+
+    def is_valid_duid_ll(self, duid):
+        """
+        Validate if the provided string is a valid DUID-LL (Link-layer address) in DHCPv6.
+
+        Args:
+            duid (str): The DHCP Unique Identifier to be validated.
+
+        Returns:
+            bool: True if the provided string is a valid DUID-LL, False otherwise.
+        """
+        duid_ll_pattern = re.compile(r'^00:01:[0-9a-fA-F:]+$')
+        return bool(duid_ll_pattern.match(duid))

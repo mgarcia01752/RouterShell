@@ -167,7 +167,8 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         # Handle the 'reservations' command logic here
         self.log.debug(f"Configuring reservation for client with {mac_or_duid}: {client_identifier}, IP address: {ip_address}, and hostname: {hostname}")
-        self.dhcp_pool_factory.add_reservation(client_identifier, ip_address)
+        if self.dhcp_pool_factory.add_reservation(client_identifier, ip_address):
+            print('IP address outside of pool subnet.')
 
     def do_option(self, args:str, negate=False):
         '''args: dhcp_option dhcp_value'''
