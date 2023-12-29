@@ -5,6 +5,7 @@ from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
 
 class DHCPServerDatabase:
     """
@@ -186,6 +187,18 @@ class DHCPServerDatabase:
         """
         return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate).status
 
+    def update_dhcp_pool_mode(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
+        """
+        Update the DHCP version mode for a specific DHCP pool.
+
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool.
+            mode (DHCPv6Modes): The DHCP version mode to set.
+
+        Returns:
+            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+        """
+        return RSDB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, mode.value).status
 
     '''
                                 DHCP-DNSMasq - Configuration Building

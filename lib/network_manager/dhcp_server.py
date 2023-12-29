@@ -226,6 +226,32 @@ class DHCPServer(NetworkManager):
         
         return STATUS_OK
 
+    def update_dhcp_pool_mode(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
+        """
+        Update the DHCP version mode for a specific DHCP pool.
+
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool.
+            mode (DHCPv6Modes): The DHCP version mode to set.
+
+        Returns:
+            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+
+        This method checks if the specified DHCP pool exists. If the pool exists, it proceeds to update
+        the DHCP version mode for that pool using the provided mode. If the update is successful,
+        the method returns True; otherwise, it returns False.
+
+        Note:
+        - The DHCP pool's existence is verified using the `dhcp_pool_name_exists` method.
+        - The actual update is performed by calling the `add_dhcp_subnet_option_db` method from the `DSD` class.
+
+        """
+        if not self.dhcp_pool_name_exists(dhcp_pool_name):
+            self.log.critical(f"Unable to update DHCP pool mode. DHCP pool name '{dhcp_pool_name}' does not exist.")
+            return STATUS_NOK
+
+        return DSD().add_dhcp_subnet_option_db(dhcp_pool_name, mode)
+
 class DhcpPoolFactory():
 
     def __init__(self, dhcp_pool_name: str):

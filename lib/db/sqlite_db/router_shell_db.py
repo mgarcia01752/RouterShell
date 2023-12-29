@@ -1734,6 +1734,44 @@ class RouterShellDB(metaclass=Singleton):
             error_msg = f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'. Error: {str(e)}"
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_msg)
 
+    def update_dhcp_pool_dhcp_version_mode(self, dhcp_pool_name: str, mode: str) -> Result:
+        """
+        Update the DHCP version mode for a specific DHCP pool.
+
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool.
+            mode (str): The DHCP version mode to set.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+        """
+        try:
+            query = """
+                UPDATE DHCPv6ServerOption
+                SET Mode = ?
+                WHERE DHCPv6ServerOption.DHCPVersionServerOptions_FK IN (
+                    SELECT DHCPVersionServerOptions.ID
+                    FROM DHCPVersionServerOptions
+                    JOIN DHCPSubnet ON DHCPVersionServerOptions.DHCPSubnet_FK = DHCPSubnet.ID
+                    JOIN DHCPServer ON DHCPSubnet.DHCPServer_FK = DHCPServer.ID
+                    JOIN Interfaces ON DHCPServer.Interface_FK = Interfaces.ID
+                    WHERE DHCPServer.DhcpPoolname = ?
+                );
+            """
+
+            cursor = self.connection.cursor()
+            cursor.execute(query, (mode, dhcp_pool_name,))
+            self.connection.commit()
+
+            if cursor.rowcount > 0:
+                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Updated DHCP version mode for DHCP pool '{dhcp_pool_name}' to '{mode}' successfully.")
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update DHCP version mode for DHCP pool '{dhcp_pool_name}' to '{mode}'.")
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to update DHCP version mode. Error: {str(e)}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
     def delete_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> Result:
         """
@@ -4227,11 +4265,11 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute('''
+            cursor.execute(f'''
                 SELECT DISTINCT
                     CASE
-                        WHEN DHCPClient.DHCPVersion = 'DHCPv4' THEN 'ip dhcp-client'
-                        WHEN DHCPClient.DHCPVersion = 'DHCPv6' THEN 'ipv6 dhcp-client'
+                        WHEN DHCPClient.DHCPVersion = '{DHCPVersion.DHCP_V4}' THEN 'ip dhcp-client'
+                        WHEN DHCPClient.DHCPVersion = '{DHCPVersion.DHCP_V6}' THEN 'ipv6 dhcp-client'
                         ELSE NULL  -- Handle other cases as needed
                     END AS DhcpClientVersion
                 
@@ -4255,8 +4293,7 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting interface information: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-
-    
+        
     def select_interface_ip_address_configuration(self, interface_name:str) -> List[Result]:
         """
         Select distinct IP addresses for a specific interface.
