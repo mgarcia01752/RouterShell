@@ -257,39 +257,41 @@ class RouterConfiguration:
 
         interface_cmd_lines = []
 
-        for if_name in interface:
+        for interface_name in interface:
             
             start_temp_interface_cmd_lines = []
             temp_interface_cmd_lines = []
             
-            self.log.debug(f'Interface: {if_name}')
+            self.log.debug(f'Interface: {interface_name}')
 
-            status, if_config = self.rcdb.get_interface_configuration(if_name)
+            status, if_config = self.rcdb.get_interface_configuration(interface_name)
 
             if status:
-                self.log.debug(f"Unable to get config for interface: {if_name}")
+                self.log.debug(f"Unable to get config for interface: {interface_name}")
                 continue
             
-            status, if_ip_addr_config = self.rcdb.get_interface_ip_address_configuration(if_name)
-            
-            status, if_ip_static_arp_config = self.rcdb.get_interface_ip_static_arp_configuration(if_name)
-
             start_temp_interface_cmd_lines.extend(' ' * indent + line if i != 0 and i != len(if_config.values()) - 1 else line
                                                     for i, line in enumerate(filter(None, if_config.values())))
-
-            for ip_addr_config in if_ip_addr_config:
-                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ip_addr_config.values()))
-
-            for ds_pol_config in if_ip_static_arp_config:
-                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ds_pol_config.values()))
             
-            status, if_ds_pol_config = self.rcdb.get_interface_dhcp_server_polices(if_name)
-            for ds_pol_config in if_ds_pol_config:
-                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, ds_pol_config.values()))
+            status, if_dhcp_client_config = self.rcdb.get_interface_dhcp_client_configuration(interface_name)
+            for _config_line in if_dhcp_client_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))            
+            
+            status, if_ip_addr_config = self.rcdb.get_interface_ip_address_configuration(interface_name)
+            for _config_line in if_ip_addr_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
+
+            status, if_ip_static_arp_config = self.rcdb.get_interface_ip_static_arp_configuration(interface_name)
+            for _config_line in if_ip_static_arp_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
+            
+            status, if_ds_pol_config = self.rcdb.get_interface_dhcp_server_polices(interface_name)
+            for _config_line in if_ds_pol_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
                             
-            status, if_wifi_config = self.rcdb.get_interface_wifi_configuration(if_name)
-            for wifi_config in if_wifi_config:
-                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, wifi_config.values()))                
+            status, if_wifi_config = self.rcdb.get_interface_wifi_configuration(interface_name)
+            for _config_line in if_wifi_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))                
 
             start_temp_interface_cmd_lines[1:1] = temp_interface_cmd_lines
 

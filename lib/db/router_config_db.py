@@ -67,6 +67,33 @@ class RouterConfigurationDatabase:
         
         return if_result.status, if_result.result
 
+    def get_interface_dhcp_client_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+        """
+        Retrieve DHCP client configuration information associated with a specific interface.
+
+        Parameters:
+            interface_name (str): The name of the interface for which to retrieve DHCP client configuration information.
+
+        Returns:
+            Tuple[bool, List[dict]]: A tuple containing a boolean indicating the success of the operation (True for success, False for failure)
+                and a list of dictionaries representing the DHCP client configuration information.
+                Each dictionary contains the DHCP client version information.
+
+        Example:
+            - (STATUS_OK, [{'DhcpClientVersion': 'ip dhcp-client'}, {'DhcpClientVersion': 'ipv6 dhcp-client '}])
+            - (STATUS_NOK, [])  # In case of an error
+        """
+        sql_result = cls.rsdb.select_interface_dhcp_client_configuration(interface_name)
+
+        if any(result.status for result in sql_result):
+            error_messages = [result.reason for result in sql_result if result.status]
+            cls.log.debug(f"Error retrieving interface {interface_name} DHCP client status. Skipping. Error messages: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        dhcp_config_list = [result.result for result in sql_result]
+
+        return STATUS_OK, dhcp_config_list
+        
     def get_interface_ip_address_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
         """
         Retrieve IP address configuration for a specific interface.
