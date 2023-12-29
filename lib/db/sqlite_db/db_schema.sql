@@ -23,6 +23,15 @@ CREATE TABLE IF NOT EXISTS Interfaces (
     Description VARCHAR(100)
 );
 
+DROP TABLE IF EXISTS RenameInterface;
+CREATE TABLE IF NOT EXISTS RenameInterface (
+    ID INTEGER PRIMARY KEY NOT NULL,
+    BusInfo VARCHAR(30) UNIQUE,
+    InitialInterface VARCHAR(50) UNIQUE,
+    AliasInterface VARCHAR(50) UNIQUE, 
+    CONSTRAINT FK_RenameInterface_Interfaces FOREIGN KEY (AliasInterface) REFERENCES Interfaces(InterfaceName) ON DELETE CASCADE
+);
+
 DROP TABLE IF EXISTS InterfaceSubOptions;
 CREATE TABLE IF NOT EXISTS InterfaceSubOptions (
     ID INTEGER PRIMARY KEY NOT NULL,
@@ -256,14 +265,6 @@ CREATE TABLE IF NOT EXISTS FirewallRules (
     Protocol VARCHAR(10),                   -- Protocol (e.g., TCP, UDP, ICMP, any)
     Action VARCHAR(10),                     -- Action (allow, deny)
     CONSTRAINT FK_FirewallRules_FWPolicies FOREIGN KEY (FirewallPolicy_FK) REFERENCES FirewallPolicies(ID) ON DELETE CASCADE
-);
-
-DROP TABLE IF EXISTS RenameInterface;
-CREATE TABLE IF NOT EXISTS RenameInterface (
-    ID INTEGER PRIMARY KEY NOT NULL,
-    BusInfo VARCHAR(30) UNIQUE,
-    InitialInterface VARCHAR(50) UNIQUE,
-    AliasInterface VARCHAR(50) UNIQUE
 );
 
 DROP TABLE IF EXISTS WifiInterface;

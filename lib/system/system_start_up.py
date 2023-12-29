@@ -7,7 +7,6 @@ from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.interface import Interface
 
-
 class Service(enum.Enum):
     START = 'start'
     RESTART = 'restart'

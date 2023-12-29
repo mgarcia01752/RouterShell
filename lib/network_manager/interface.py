@@ -459,6 +459,8 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
             return STATUS_NOK
         
+        
+        
         return STATUS_OK        
 
     def update_interface_proxy_arp(self, interface_name: str, negate: bool = False) -> bool:
@@ -694,7 +696,6 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
         return self.update_db_description(interface_name, description)
 
-         
     def update_interface_db_from_os(self, interface_name: str = None) -> bool:
         """
         Update the database with information about network interfaces found by the operating system.

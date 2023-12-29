@@ -397,6 +397,9 @@ class InterfaceDatabase:
 
         return alias_result.status and alias_result.result == alias_interface_name
 
+    def update_db_interface_name(cls, old_interface_name:str, new_interface_name:str) -> bool:
+        return cls.rsdb.update_interface_name(old_interface_name, new_interface_name)
+
     def update_db_description(cls, interface_name:str, description:str) -> bool:
         """
         Update the description of an interface in the database.

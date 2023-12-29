@@ -2586,8 +2586,22 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
-    def update_interface_description(self, interface_name, description:str) -> Result:
-        
+    def update_interface_description(self, interface_name: str, description: str) -> Result:
+        """
+        Update the description of a network interface in the database.
+
+        This method allows you to update the user-defined description of a specific network interface in the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            description (str): The new description to assign to the network interface.
+
+        Returns:
+            Result: An instance of the Result class indicating the status of the update.
+                - status (bool): True if the description is successfully updated, False otherwise.
+                - row_id (int): The row ID of the updated interface in the database.
+                - reason (str, optional): A descriptive message indicating the reason for failure, if any.
+        """
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
@@ -2595,21 +2609,62 @@ class RouterShellDB(metaclass=Singleton):
 
         try:
             cursor = self.connection.cursor()
-            
+
             cursor.execute(
                 "UPDATE Interfaces SET Description = ? WHERE InterfaceName = ?",
                 (description, interface_name)
             )
-            
+
             self.connection.commit()
-            
+
             self.log.debug(f"Description: ({description}) updated for interface: {interface_name}")
-            
+
             return Result(status=STATUS_OK, row_id=existing_result.row_id)
-        
+
         except sqlite3.Error as e:
-            self.log.error(f"Error updating shutdown status for interface {interface_name}: {e}")
-            return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")       
+            self.log.error(f"Error updating description for interface {interface_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
+    
+
+    def update_interface_name(self, existing_interface_name: str, new_interface_name: str) -> Result:
+        """
+        Update the name of a network interface in the database.
+
+        This method allows you to update the name of a specific network interface in the database.
+
+        Args:
+            existing_interface_name (str): The current name of the network interface.
+            new_interface_name (str): The new name to assign to the network interface.
+
+        Returns:
+            Result: An instance of the Result class indicating the status of the update.
+                - status (bool): True if the name is successfully updated, False otherwise.
+                - row_id (int): The row ID of the updated interface in the database.
+                - reason (str, optional): A descriptive message indicating the reason for failure, if any.
+        """
+        existing_result = self.interface_exists(existing_interface_name)
+
+        if not existing_result.status:
+            return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {existing_interface_name} does not exist")
+
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute(
+                "UPDATE Interfaces SET InterfaceName = ? WHERE InterfaceName = ?",
+                (new_interface_name, existing_interface_name)
+            )
+
+            self.connection.commit()
+
+            self.log.debug(f"Interface name updated: {existing_interface_name} -> {new_interface_name}")
+
+            return Result(status=STATUS_OK, row_id=existing_result.row_id, result={'InterfaceName':new_interface_name})
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error updating interface name for {existing_interface_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
+
         
     '''
                     INTERFACE-IP-ADDRESS DATABASE
@@ -3055,8 +3110,10 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute("SELECT ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
             row_id = cursor.fetchone()[0]
 
-            return Result(status=STATUS_OK, row_id=row_id)
-        
+            self.update_interface_name(initial_interface, alias_interface)
+                        
+            return Result(status=STATUS_OK, row_id=row_id, reason="Alias set successfully")
+            
         except sqlite3.Error as e:
             # Handle database-related errors and return the Result instance with the error details
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
