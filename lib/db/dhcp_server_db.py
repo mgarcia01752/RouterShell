@@ -4,6 +4,7 @@ from typing import Dict, List
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
 class DHCPServerDatabase:
     """
@@ -17,6 +18,34 @@ class DHCPServerDatabase:
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_SERVER_DB)
+
+    def dhcp_pool_name_dhcp_version_db(self, dhcp_pool_name: str) -> DHCPVersion:
+        """
+        Retrieve the DHCP version for a specified DHCP pool name from the database.
+
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool for which to retrieve the version.
+
+        Returns:
+            DHCPVersion: An enum representing the DHCP version ('DHCP_V4', 'DHCP_V6', or 'UNKNOWN').
+
+        Example:
+            dhcp_version = your_instance.dhcp_pool_name_dhcp_version_db('your_dhcp_pool_name')
+            print(f"The DHCP version for pool 'your_dhcp_pool_name' is {dhcp_version}")
+        """
+        try:
+            sql_result = RSDB().dhcp_pool_dhcp_version(dhcp_pool_name)
+
+            if sql_result.status == STATUS_OK:
+                if sql_result.result.get('DHCPVersion') == DHCPVersion.DHCP_V4.value:
+                    return DHCPVersion.DHCP_V4
+                elif sql_result.result.get('DHCPVersion') == DHCPVersion.DHCP_V6.value:
+                    return DHCPVersion.DHCP_V6
+            return DHCPVersion.UNKNOWN
+
+        except Exception as e:
+            self.log.error(f"Failed to retrieve DHCP version for '{dhcp_pool_name}'. Error: {str(e)}")
+            return DHCPVersion.UNKNOWN
 
     def dhcp_pool_name_exists_db(self, dhcp_pool_name: str) -> bool:
         """
@@ -144,7 +173,7 @@ class DHCPServerDatabase:
         """
         return RSDB().insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
 
-    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str) -> bool:
+    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str, negate: bool=False) -> bool:
         """
         Update the interface associated with a DHCP pool in the database.
 
@@ -155,7 +184,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name).status
+        return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate).status
 
 
     '''
@@ -164,7 +193,7 @@ class DHCPServerDatabase:
 
     def get_global_options(self) -> List[List]:
         return []
-
+    
     def get_dhcp_poll_interfaces_db(self, dhcp_pool_name: str) -> List[Dict]:
         """
         Retrieve the interfaces associated with a DHCP pool name from the database.

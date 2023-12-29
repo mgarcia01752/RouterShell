@@ -92,7 +92,7 @@ class DHCPClient(RunCommand):
 
     def get_flow_log(self) -> List[str]:
         """
-        Retrieve DHCP client flow logs (DORA/SARR) from the system journal.
+        Retrieve DHCP client flow logs (DORA/SAAR) from the system journal.
 
         Returns:
             List[str]: A list of DHCP client flow log entries.
@@ -127,6 +127,7 @@ class DHCPClient(RunCommand):
         if result.exit_code:
             self.log.error(f"Unable to disable DHCPv4 client on interface: {interface_name}")
             return STATUS_NOK
+        
         return STATUS_OK
 
     def _enable_dhcpv6(self, interface_name: str) -> bool:
@@ -145,6 +146,7 @@ class DHCPClient(RunCommand):
         if result.exit_code:
             self.log.error(f"Unable to disable DHCPv6 client on interface: {interface_name}")
             return STATUS_NOK
+        
         return STATUS_OK
 
     def _disable_dhcpv4(self, interface_name: str) -> bool:
@@ -162,6 +164,7 @@ class DHCPClient(RunCommand):
         if result.exit_code:
             self.log.error(f"Unable to disable DHCPv4 client on interface: {interface_name}")
             return STATUS_NOK
+        
         return STATUS_OK
 
     def _disable_dhcpv6(self, interface_name: str) -> bool:
@@ -180,4 +183,5 @@ class DHCPClient(RunCommand):
         if result.exit_code:
             self.log.error(f"Unable to disable DHCPv6 client on interface: {interface_name}")
             return STATUS_NOK
+        
         return STATUS_OK

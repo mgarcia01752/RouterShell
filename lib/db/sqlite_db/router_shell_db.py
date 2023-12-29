@@ -9,6 +9,7 @@ from lib.network_manager.common.interface import InterfaceType
 
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
 class Result:
     """
@@ -1677,21 +1678,26 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking DHCP option existence: {str(e)}")
 
-    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str) -> Result:
+    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str, negate: bool = False) -> Result:
         """
-        Updates the interface associated with a specific DHCP pool name in the DHCPServer table.
+        Update the interface associated with a specific DHCP pool name in the DHCPServer table.
 
-        Args:
-            dhcp_pool_name (str): The name of the DHCP pool to update.
-            interface_name (str): The new interface name to associate with the DHCP pool.
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool.
+            interface_name (str): The name of the interface to associate with the DHCP pool.
+            negate (bool, optional): If True, removes the association between the DHCP pool and any interface.
+                                    If False (default), associates the DHCP pool with the specified interface.
 
         Returns:
             Result: A Result object representing the outcome of the operation.
 
         Note:
-        - 'status' attribute in the returned Result object will be STATUS_OK for successful updates, and STATUS_NOK for failed ones.
-        - 'row_id' represents the unique identifier of the updated row if the update is successful, or ROW_ID_NOT_FOUND if it fails.
-        - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
+            - 'status' attribute in the returned Result object will be STATUS_OK for successful updates,
+                and STATUS_NOK for failed ones.
+            - 'row_id' represents the unique identifier of the updated row if the update is successful,
+                or ROW_ID_NOT_FOUND if it fails.
+            - 'reason' in the Result object provides additional information about the operation,
+                which is particularly useful for error messages.
         """
         try:
             # Check if the DHCP pool name exists
@@ -1708,17 +1714,26 @@ class RouterShellDB(metaclass=Singleton):
             # The DHCP pool name exists, and the interface exists, proceed to update the interface
             query = "UPDATE DHCPServer SET Interface_FK = ? WHERE DhcpPoolname = ?"
             cursor = self.connection.cursor()
-            cursor.execute(query, (interface_exist_result.row_id, dhcp_pool_name))
+
+            if negate:
+                cursor.execute(query, (None, dhcp_pool_name))
+            else:
+                cursor.execute(query, (interface_exist_result.row_id, dhcp_pool_name))
+
             self.connection.commit()
-            
+
             # Check if any rows were updated
             if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Updated interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}' successfully.")
+                success_msg = f"Updated interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}' successfully."
+                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=success_msg)
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'.")
-        
+                failure_msg = f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'."
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=failure_msg)
+
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'. Error: {str(e)}")
+            error_msg = f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'. Error: {str(e)}"
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_msg)
+
 
     def delete_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> Result:
         """
@@ -1922,6 +1937,53 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP subnet information. Error: {str(e)}")
+
+    def dhcp_pool_dhcp_version(self, dhcp_pool_name: str) -> Result:
+        """
+        Retrieve the DHCP version for a specified DHCP pool.
+
+        Parameters:
+            dhcp_pool_name (str): The name of the DHCP pool for which to retrieve the version.
+
+        Returns:
+            Result: A Result object representing the outcome of the operation.
+            - If successful, status is STATUS_OK, and 'DHCPVersion' in the result dictionary
+                contains the DHCP version ('DHCPv6', 'DHCPv4', or 'UNKNOWN').
+            - If unsuccessful, status is STATUS_NOK, and the 'reason' field provides an error message.
+
+        """
+        try:
+            query = f"""
+                SELECT DHCPServer.DhcpPoolname,
+                    CASE
+                        WHEN DHCPv6ServerOption.ID IS NOT NULL THEN '{DHCPVersion.DHCP_V6.value}'
+                        WHEN DHCPv4ServerOption.ID IS NOT NULL THEN '{DHCPVersion.DHCP_V4.value}'
+                        ELSE 'Unknown'
+                    END AS DHCPVersion
+                FROM DHCPServer
+                LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK
+                LEFT JOIN DHCPVersionServerOptions ON DHCPSubnet.ID = DHCPVersionServerOptions.DHCPSubnet_FK
+                LEFT JOIN DHCPv6ServerOption ON DHCPVersionServerOptions.ID = DHCPv6ServerOption.DHCPVersionServerOptions_FK
+                LEFT JOIN DHCPv4ServerOption ON DHCPVersionServerOptions.ID = DHCPv4ServerOption.DHCPVersionServerOptions_FK
+                WHERE DHCPServer.DhcpPoolname = ?;
+            """
+            
+            cursor = self.connection.cursor()
+            cursor.execute(query, (dhcp_pool_name,))
+
+            result = cursor.fetchone()
+
+            if result is not None:
+                dhcp_version = result[1]
+                result_data = {'DHCPVersion': dhcp_version}
+                return Result(status=STATUS_OK, row_id=None, result=result_data)
+            else:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"DHCP version for pool '{dhcp_pool_name}' not found.")
+
+        except sqlite3.Error as e:
+            error_message = f"Failed to retrieve DHCP version. Error: {str(e)}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message, result={'DHCPVersion':DHCPVersion.UNKNOWN})
 
     '''
                         DHCP-SERVER CONFIGURATION BUILDING

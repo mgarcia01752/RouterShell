@@ -3,10 +3,11 @@ import logging
 import os
 from shutil import copy
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.strings import StringFormats
 from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_mgr import NetworkManager
-from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup
-from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
+from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
 class DNSMasqExitCode(Enum):
@@ -207,9 +208,18 @@ class DNSMasqInterfaceService(DNSMasqService):
         for interface_name in interface_names:
             self.d_masq_if_config.set_listen_interfaces(list(interface_name.values()))
 
-        for entry in dhcp_pool_ranges:
-            range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
-            self.d_masq_if_config.add_dhcp4_range_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
+        if self.dhcp_srv_db.dhcp_pool_name_dhcp_version_db(self.dhcp_pool_name) == DHCPVersion.DHCP_V4:
+            for entry in dhcp_pool_ranges:
+                range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
+                self.d_masq_if_config.add_dhcp4_range_with_netmask(range_start, range_end, netmask, self.DEFAULT_LEASE_TIME)
+        
+        else:
+            for entry in dhcp_pool_ranges:
+                
+                StringFormats.modify_dict_value(entry, 'inet_subnet', '/', '')
+                
+                range_start, range_end, netmask = entry['inet_start'], entry['inet_end'], entry['inet_subnet']
+                self.d_masq_if_config.add_dhcp6_range_with_prefix_len(range_start, range_end, int(netmask), self.DEFAULT_LEASE_TIME, DHCPv6Modes.SLAAC)            
 
         # Get DHCP pool options and add them to DNSMasq
         dhcp_pool_options = self.dhcp_srv_db.get_dhcp_pool_options_db(self.dhcp_pool_name)

@@ -115,7 +115,7 @@ class InterfaceConfig(cmd2.Cmd,
             print("Usage: mac [auto | <mac address>]")
         
     def complete_ipv6(self, text, line, begidx, endidx):
-        completions = ['address', 'dhcp']
+        completions = ['address', 'dhcp-client']
         return [comp for comp in completions if comp.startswith(text)]
     
     def do_ipv6(self, args, negate=False):
@@ -166,8 +166,6 @@ class InterfaceConfig(cmd2.Cmd,
             else:
                 self.log.debug(f"{action_description} IP: {ipv6_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
                 
-            
-            
         elif args.subcommand == "dhcp-client":
             self.log.debug(f"Enable DHCPv6 Client")
             if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V6, negate):
@@ -340,8 +338,8 @@ class InterfaceConfig(cmd2.Cmd,
         elif args.subcommand == "dhcp-server":
             pool_name = args.pool_name
             '''[no] [ip dhcp-server] pool <dhcp-pool-name>'''
-            self.log.debug(f"Enable DHCPv4 Server")
-            DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName)
+            self.log.debug(f"Enable DHCPv4/6 Server")
+            DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
 
     def complete_speed(self, text, line, begidx, endidx):
         completions = ['half', 'full', 'auto']        

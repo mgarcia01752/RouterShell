@@ -177,7 +177,7 @@ class DHCPServer(NetworkManager):
 
         return DSD().add_dhcp_subnet_option_db(inet_subnet_cidr, dhcp_option, value)
 
-    def add_dhcp_pool_to_interface(self, dhcp_pool_name: str, interface_name: str) -> bool:
+    def add_dhcp_pool_to_interface(self, dhcp_pool_name: str, interface_name: str, negate:bool=False) -> bool:
         """
         Adds a DHCP pool to an interface.
 
@@ -199,9 +199,16 @@ class DHCPServer(NetworkManager):
         
         self.log.debug(f"add_dhcp_pool_to_interface() {dhcp_pool_name} -> {dhcp_pool_subnet}")
         
-        DSD().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name)
+        DSD().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate)
 
         DMIS = DNSMasqInterfaceService(dhcp_pool_name, dhcp_pool_subnet)
+        
+        if negate:
+            if DMIS.clear_configurations():
+                self.log.error(f"Unable to remove DHCP Policy: {dhcp_pool_name} from router")
+                return STATUS_NOK
+            
+            return STATUS_OK
         
         if DMIS.build_interface_configuration():
             self.log.error(f"Unable to build DNSMasq Configuration")
@@ -380,7 +387,6 @@ class DhcpServerManager(RunCommand):
                 - 'expires': The expiration timestamp of the lease.
         """        
         try:
-
             leases_path = DNSMASQ_LEASE_FILE_PATH
 
             if os.path.exists(leases_path):
@@ -392,6 +398,7 @@ class DhcpServerManager(RunCommand):
                 for lease_raw in leases_raw:
                     lease_info = lease_raw.split()
                     if len(lease_info) >= 5:
+                        if "duid" not in lease_raw.lower():
                             lease_dict = {
                                 "ip_address": lease_info[2],
                                 "mac_address": lease_info[1],
@@ -400,7 +407,6 @@ class DhcpServerManager(RunCommand):
                             }
                             leases.append(lease_dict)
                             self.log.debug(f"Processed lease entry: {lease_dict}")
-
                     else:
                         lease_dict = {
                             "malformed_entry": lease_raw.strip(),
@@ -417,7 +423,7 @@ class DhcpServerManager(RunCommand):
         except Exception as e:
             self.log.error(f"Error retrieving DHCP leases: {e}")
             return []
-
+        
     def status(self) -> bool:
         """
         Get the status of dnsmasq.

@@ -92,9 +92,10 @@ end
 interface Gig0
     ip address 172.16.0.1/24
     ip address fd00:abcd:1234::1/64 secondary
-    ip dhcp-server pool-name dhcpv4-home-office
-    ip dhcp-server pool-name dhcpv6-home-office
+    ip dhcp-server pool dhcpv4-home-office
+    ip dhcp-server pool dhcpv6-home-office
 end
+
 ```
 
 ### Explanation:

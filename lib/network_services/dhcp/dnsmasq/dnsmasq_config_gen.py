@@ -9,17 +9,17 @@ class DHCPv6Modes(Enum):
     '''
         For IPv6, the mode may be some combination of ra-only, slaac, ra-names, ra-stateless, ra-advrouter, off-link.
 
-        ra-only tells dnsmasq to offer Router Advertisement only on this subnet, and not DHCP.
+        - `ra-only` tells dnsmasq to offer Router Advertisement only on this subnet, and not DHCP.
 
-        slaac tells dnsmasq to offer Router Advertisement on this subnet and to set the A bit in the router advertisement, so that the client will use SLAAC addresses. When used with a DHCP range or static DHCP address this results in the client having both a DHCP-assigned and a SLAAC address.
+        - `slaac` tells dnsmasq to offer Router Advertisement on this subnet and to set the A bit in the router advertisement, so that the client will use SLAAC addresses. When used with a DHCP range or static DHCP address this results in the client having both a DHCP-assigned and a SLAAC address.
 
-        ra-stateless sends router advertisements with the O and A bits set, and provides a stateless DHCP service. The client will use a SLAAC address, and use DHCP for other configuration information.
+        - `ra-stateless` sends router advertisements with the O and A bits set, and provides a stateless DHCP service. The client will use a SLAAC address, and use DHCP for other configuration information.
 
-        ra-names enables a mode which gives DNS names to dual-stack hosts which do SLAAC for IPv6. Dnsmasq uses the host's IPv4 lease to derive the name, network segment and MAC address and assumes that the host will also have an IPv6 address calculated using the SLAAC algorithm, on the same network segment. The address is pinged, and if a reply is received, an AAAA record is added to the DNS for this IPv6 address. Note that this is only happens for directly-connected networks, (not one doing DHCP via a relay) and it will not work if a host is using privacy extensions. ra-names can be combined with ra-stateless and slaac.
+        - `ra-names` enables a mode which gives DNS names to dual-stack hosts which do SLAAC for IPv6. Dnsmasq uses the host's IPv4 lease to derive the name, network segment and MAC address and assumes that the host will also have an IPv6 address calculated using the SLAAC algorithm, on the same network segment. The address is pinged, and if a reply is received, an AAAA record is added to the DNS for this IPv6 address. Note that this is only happens for directly-connected networks, (not one doing DHCP via a relay) and it will not work if a host is using privacy extensions. ra-names can be combined with ra-stateless and slaac.
 
-        ra-advrouter enables a mode where router address(es) rather than prefix(es) are included in the advertisements. This is described in RFC-3775 section 7.2 and is used in mobile IPv6. In this mode the interval option is also included, as described in RFC-3775 section 7.3.
+        - `ra-advrouter` enables a mode where router address(es) rather than prefix(es) are included in the advertisements. This is described in RFC-3775 section 7.2 and is used in mobile IPv6. In this mode the interval option is also included, as described in RFC-3775 section 7.3.
 
-        off-link tells dnsmasq to advertise the prefix without the on-link (aka L) bit set.    
+        - `off-link` tells dnsmasq to advertise the prefix without the on-link (aka L) bit set.    
     '''
     
     RA_ONLY = 'ra-only'
@@ -387,7 +387,7 @@ class DNSMasqConfigurator:
             mode (DHCPv6Modes): The DHCPv6 mode to configure.
         '''
         self.config.append(
-            f'dhcp-range={range_start},{range_end},constructor:{self.interface},{prefix_len},{lease_time},{mode.value}')
+            f'dhcp-range={range_start},{range_end},{mode.value},{prefix_len},{lease_time}')
 
     def add_dhcp6_range_with_tag(self, tag: str, range_start: str, range_end: str, lease_time: int, mode: DHCPv6Modes):
         '''
