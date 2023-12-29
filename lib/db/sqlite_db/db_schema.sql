@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS SystemConfiguration;
 CREATE TABLE IF NOT EXISTS SystemConfiguration (
     ID INTEGER PRIMARY KEY NOT NULL,
-    BannerMotd TEXT DEFAULT '^^',
+    BannerMotd TEXT DEFAULT '',
     Hostname VARCHAR(255)
 );
 INSERT INTO SystemConfiguration DEFAULT VALUES;

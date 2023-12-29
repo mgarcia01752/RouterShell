@@ -678,7 +678,23 @@ class Interface(NetworkManager, InterfaceDatabase):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
             return None
-            
+
+    def update_interface_description(self, interface_name: str, description: str) -> bool:
+        """
+        Update the description of a network interface in the database.
+
+        This method allows you to update the user-defined description of a specific network interface in the database.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            description (str): The new description to assign to the network interface.
+
+        Returns:
+            bool: STATUS_OK if the description is successfully updated, STATUS_NOK otherwise.
+        """
+        return self.update_db_description(interface_name, description)
+
+         
     def update_interface_db_from_os(self, interface_name: str = None) -> bool:
         """
         Update the database with information about network interfaces found by the operating system.
@@ -704,6 +720,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             if if_type != InterfaceType.UNKNOWN:
                 self.log.debug(f"Adding Interface: {if_name} -> if-type: {if_type.name} to DB")
                 self.add_interface_entry(if_name, if_type)
+                self.update_interface_description(if_name,f'Interface Type: {if_type.name}')
                 self.update_shutdown(if_name, State.UP)
 
         return STATUS_OK

@@ -45,7 +45,6 @@ class SystemService(RunCommand):
         
         return STATUS_OK
 
-
     def hostapd(self, service: Service) -> bool:
         # Assuming the actual service name is "hostapd"
         return self.control_service(service, "start")
@@ -54,19 +53,14 @@ class SystemService(RunCommand):
         # Assuming the actual service name is "dnsmasq"
         return self.control_service(service, "restart")
 
-    
-class SystemStartUp(RunCommand):
+class SystemStartUp(Interface):
     def __init__(self):
         super().__init__()
+        Interface.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
         
-        # Check to see if there is no DB
-        # Auto ADD basic interface configuration
-        
-        
-        Interface() 
-
+        self.update_interface_db_from_os() 
 
 class SystemShutDown(RunCommand):
     
