@@ -316,7 +316,6 @@ class DhcpPoolFactory():
         
         return self.dhcp_srv_obj.add_dhcp_pool_subnet(self.dhcp_pool_name, inet_subnet_cidr)
 
-
     def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
         """
         Add an IP address range to the DHCP pool.
@@ -429,8 +428,8 @@ class DhcpPoolFactory():
             self.log.debug(f'DHCP Mode is reserved for DHCPv6 subnet')
             return STATUS_NOK
 
-        return STATUS_OK
-
+        return self.dhcp_srv_obj.update_dhcp_pool_mode(self.dhcp_pool_name, mode)
+        
     def _update_status(self, status: bool):
         """
         Update the status of the DhcpPoolFactory.
