@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import List
 from lib.network_manager.dhcp_client import DHCPVersion
 
 from lib.network_manager.nat import Nat, NATDirection
@@ -381,6 +382,23 @@ class InterfaceDatabase:
         
         return cls.rsdb.update_interface_alias(bus_info, initial_interface_name, alias_interface_name).status
 
+    def get_interface_aliases(cls) -> List[dict]:
+        """
+        Get a list of dictionaries representing interface aliases from the InterfaceAlias table.
+
+        Returns:
+            List[dict]: A list of dictionaries containing interface alias information.
+                Each dictionary includes the following key-value pairs:
+                - 'InterfaceName' (str): The name of the primary network interface.
+                - 'AliasInterface' (str): The alias name associated with the primary network interface.
+        """
+        result_list = cls.rsdb.select_interface_aliases()
+
+        aliases_data = [{'InterfaceName': result.result['InterfaceName'], 'AliasInterface': result.result['AliasInterface']} 
+                        for result in result_list if result.status == STATUS_OK]
+
+        return aliases_data
+
     def db_lookup_interface_alias_exist(cls, initial_interface_name: str, alias_interface_name: str) -> bool:
         """
         Check if an alias exists for the given initial interface and alias name.
@@ -392,13 +410,25 @@ class InterfaceDatabase:
         Returns:
             bool: True if an alias exists for the initial interface with the provided alias name, False otherwise.
         """
-
         alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
 
         return alias_result.status and alias_result.result == alias_interface_name
 
     def update_db_interface_name(cls, old_interface_name:str, new_interface_name:str) -> bool:
-        return cls.rsdb.update_interface_name(old_interface_name, new_interface_name)
+        """
+        Update the database with a new name for a network interface.
+
+        This class method delegates the task of updating the interface name to the underlying
+        network interface manager's 'update_interface_name' method.
+
+        Args:
+            old_interface_name (str): The current name of the network interface to be updated.
+            new_interface_name (str): The new name to assign to the network interface.
+
+        Returns:
+            bool: True if the update process is successful, False otherwise.
+        """        
+        return cls.rsdb.update_interface_name(old_interface_name, new_interface_name).status
 
     def update_db_description(cls, interface_name:str, description:str) -> bool:
         """
@@ -412,4 +442,20 @@ class InterfaceDatabase:
             bool: STATUS_OK if the update operation is successful, STATUS_NOK otherwise.
         """        
         result = cls.rsdb.update_interface_description(interface_name, description)
-        return result.status   
+        return result.status
+
+    def get_db_interface_names(cls) -> List[str]:
+        """
+        Get a list of all interface names from the database.
+
+        Returns:
+            List[str]: A list containing the names of all interfaces in the database.
+        """
+        results = cls.rsdb.select_interfaces()
+
+        interfaces = []
+
+        for result in results:
+            interfaces.append(result.result['InterfaceName'])
+
+        return interfaces

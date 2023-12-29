@@ -3,7 +3,6 @@ import readline
 import signal
 import logging
 import cmd2
-from cmd2 import Statement
 
 from lib.cli.base.clear_mode import ClearMode
 from lib.cli.common.router_prompt import RouterPrompt
@@ -11,10 +10,9 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show.show_mode import ShowMode
 from lib.cli.config.config_mode import ConfigureMode
-from lib.common.constants import ROUTER_CONFIG, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.system.copy_mode import CopyMode, CopyType
 from lib.system.system_start_up import SystemStartUp
+from lib.common.constants import ROUTER_CONFIG, STATUS_OK
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,28 +23,24 @@ logging.basicConfig(
     ]
 )
 
-class RouterCLI(cmd2.Cmd, 
-                GlobalUserCommand, 
-                GlobalPrivCommand, 
-                RouterPrompt):
-    """Router Command-Line Interface"""
+class RouterCLI(cmd2.Cmd, GlobalUserCommand, GlobalPrivCommand, RouterPrompt):
 
     def __init__(self):
         super().__init__()
+        SystemStartUp()
         RouterPrompt.__init__(self, ExecMode.USER_MODE)
         GlobalUserCommand.__init__(self)
         GlobalPrivCommand.__init__(self)
-        
-                       
+                               
         self.log = logging.getLogger(self.__class__.__name__)
         
         self.set_prompt()
         self.prompt = self.get_prompt()
 
-        SystemStartUp()
+        
         
         # Define a custom intro message
-        intro = "Welcome to the Router CLI!\n"
+        self.intro = "Welcome to the Router CLI!\n"
                 
     def preloop(self):
         """Perform preloop setup."""

@@ -34,7 +34,6 @@ class SystemService(RunCommand):
             self.log.error("Unknown service type")
             return STATUS_NOK
 
-        # Use subprocess to execute the service control command based on the action
         command = ["sudo", "service", service_name, action]
 
         if self.run(command).exit_code:
@@ -55,11 +54,16 @@ class SystemService(RunCommand):
 class SystemStartUp(Interface):
     def __init__(self):
         super().__init__()
-        Interface.__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
         
-        self.update_interface_db_from_os() 
+        # Check if there are no interfaces in the database
+        if not self.get_interface_via_db():
+            # Update the database with interfaces found by the operating system
+            self.update_interface_db_from_os()
+            
+        # Rename interfaces via the operating system based on aliases in the database
+        self.update_rename_interface_via_os() 
 
 class SystemShutDown(RunCommand):
     

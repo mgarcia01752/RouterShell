@@ -2,7 +2,7 @@ import ipaddress
 import json
 import logging
 import re
-from typing import Optional
+from typing import List, Optional
 
 from lib.db.interface_db import InterfaceDatabase
 from lib.network_manager.arp import Arp, Encapsulate
@@ -77,11 +77,12 @@ class Interface(NetworkManager, InterfaceDatabase):
             # Filter out interfaces based on your criteria (e.g., excluding bridges)
             interface_list = [iface["ifname"] for iface in interfaces if "BROADCAST,MULTICAST" not in iface.get("flags", [])]
             return interface_list
+        
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
             return []
 
-    def get_interface_type_(self, interface_name:str) -> InterfaceType:
+    def get_interface_type(self, interface_name:str) -> InterfaceType:
         """
             Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
@@ -459,9 +460,31 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
             return STATUS_NOK
         
-        
-        
         return STATUS_OK        
+
+    def update_rename_interface_via_os(self) -> bool:
+        """
+        Update and rename network interfaces via the operating system.
+
+        This method iterates through the list of interface aliases and uses the '_rename_os_interface' method
+        to update and rename each network interface via the operating system.
+
+        Returns:
+            bool: STATUS_OK if the update and rename process is successful for all interfaces, STATUS_NOK otherwise.
+        """
+        for alias in self.get_interface_aliases():
+            original_name = alias['InterfaceName']
+            alias_name = alias['AliasInterface']
+            
+            self.log.debug(f'orig-interface: {original_name} -> new-interface: {alias_name}')
+
+            if self._rename_os_interface(original_name, alias_name):
+                self.log.error(f"Failed to update and rename interface: {original_name} to {alias_name}")
+                return STATUS_NOK
+
+            self.log.debug(f"Interface {original_name} successfully updated and renamed to {alias_name}")
+
+        return STATUS_OK
 
     def update_interface_proxy_arp(self, interface_name: str, negate: bool = False) -> bool:
         """
@@ -726,3 +749,34 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
+    def _rename_os_interface(self, initial_interface_name: str, alias_interface_name: str) -> bool:
+        """
+        Rename the operating system network interface.
+
+        This method uses the 'ip' command to rename the specified network interface.
+        
+        Args:
+            initial_interface_name (str): The current name of the network interface.
+            alias_interface_name (str): The new name to assign to the network interface.
+
+        Returns:
+            bool: STATUS_OK if the renaming process is successful, STATUS_NOK otherwise.
+        """
+        result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
+
+        if result.exit_code:
+            self.log.error(f"Error renaming interface: {initial_interface_name} to {alias_interface_name}")
+            return STATUS_NOK
+
+        self.log.debug(f"Interface {initial_interface_name} successfully renamed to {alias_interface_name}")
+        
+        return STATUS_OK
+
+    def get_interface_via_db(self) -> List[str]:
+        """
+        Get a list of all interface names from DB.
+
+        Returns:
+            List[str]: A list containing the names of all interfaces.
+        """
+        return self.get_db_interface_names()

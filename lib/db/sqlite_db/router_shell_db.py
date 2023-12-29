@@ -3,7 +3,7 @@ import logging
 import os
 from typing import Dict, List
 
-from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK, ROUTER_SHELL_DB
 from lib.common.singleton import Singleton
 from lib.network_manager.common.interface import InterfaceType
 
@@ -63,23 +63,18 @@ class Result:
 
 class RouterShellDB(metaclass=Singleton):
     
-    connection = None
-    
+    connection = None    
     connection_created = False
 
-    ROUTER_SHELL_DB = 'routershell.db'
-    ROUTER_SHELL_SQL_STARTUP = 'db_schema.sql'
     ROW_ID_NOT_FOUND = 0
     FK_NOT_FOUND = -1
 
     def __init__(self):
-        """
-        Initialize the RouterShellDB instance.
-        """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_SHELL_DB)
-        self.db_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_DB)
-        self.sql_file_path = os.path.join(os.path.dirname(__file__), self.ROUTER_SHELL_SQL_STARTUP)
+        
+        self.db_file_path = os.path.join(os.path.dirname(__file__), ROUTER_SHELL_DB)
+        self.sql_file_path = os.path.join(os.path.dirname(__file__), ROUTER_SHELL_SQL_STARTUP)
 
         self.log.debug(f"__init__() -> db-connection: {self.connection} -> db-connection-created: {self.connection_created}")
         
@@ -138,7 +133,7 @@ class RouterShellDB(metaclass=Singleton):
             try:
                 self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
                 
-                self.log.debug(f"Connected to DB {self.ROUTER_SHELL_DB}")
+                self.log.debug(f"Connected to DB {ROUTER_SHELL_DB}")
                 return STATUS_OK
 
             except sqlite3.Error as e:
@@ -169,7 +164,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             if os.path.exists(self.db_file_path):
                 os.remove(self.db_file_path)
-                self.log.debug(f"Removed existing database file: {self.ROUTER_SHELL_DB}")
+                self.log.debug(f"Removed existing database file: {ROUTER_SHELL_DB}")
         
         except Exception as e:
             self.log.error(f"Error while removing the existing database file: {e}")
@@ -3149,6 +3144,35 @@ class RouterShellDB(metaclass=Singleton):
         
         except sqlite3.Error as e:
             return Result(status=False, row_id=None, reason=str(e))
+
+    def select_interface_aliases(self) -> List[Result]:
+        """
+        Select all interface aliases from the InterfaceAlias table.
+
+        Returns:
+            List[Result]: A list of Result objects representing the entries in the InterfaceAlias table.
+                Each Result object contains:
+                - status (bool): True if the selection is successful, False otherwise.
+                - data (Dict, optional): A dictionary containing the selected data if successful.
+                - reason (str, optional): A descriptive message indicating the reason for failure, if any.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute("SELECT InitialInterface, AliasInterface FROM RenameInterface")
+            rows = cursor.fetchall()
+
+            result_list = []
+            for row in rows:
+                interface_name = row[0]
+                alias_name = row[1]
+                result_list.append(Result(status=STATUS_OK, row_id=0, result={'InterfaceName': interface_name, 'AliasInterface': alias_name}))
+
+            return result_list
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error selecting interface aliases: {e}")
+            return [Result(status=STATUS_NOK, reason=f"{e}")]
 
 
     '''
