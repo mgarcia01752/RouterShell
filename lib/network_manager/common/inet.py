@@ -478,3 +478,31 @@ class InetServiceLayer(MacServiceLayer):
         except ValueError as e:
             return False
 
+    @staticmethod
+    def validate_inet_range(subnet_cidr: str, inet: str) -> bool:
+        """
+        Validate if the specified IP address falls within the given subnet.
+
+        This method checks if the provided IP address falls within the specified subnet. It uses the `ipaddress` module
+        to validate the IP address format and then checks if the IP address is within the given subnet.
+
+        Args:
+            subnet_cidr (str): The subnet CIDR to validate against.
+            inet (str): The IP address to be validated.
+
+        Returns:
+            bool: True if the provided IP address is within the specified subnet, False otherwise.
+        """
+        try:
+            subnet = ipaddress.ip_network(subnet_cidr)
+            inet_address = ipaddress.ip_address(inet)
+
+            for subnet_segment in ipaddress.summarize_address_range(inet_address):
+                if subnet.overlaps(subnet_segment):
+                    return True
+
+            return False
+        
+        except ValueError as e:
+            # Handle invalid input format
+            return False

@@ -331,6 +331,10 @@ class DhcpPoolFactory():
             self.log.error(f"Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
+        if not InetServiceLayer.validate_inet_range(self.dhcp_pool_inet_subnet_cidr, inet_address):
+            self.log.error(f'IP address not part of pool subnet [{self.dhcp_pool_inet_subnet_cidr} ->{inet_address}]')
+            return STATUS_NOK
+
         return self.dhcp_srv_obj.add_dhcp_pool_reservation(self.dhcp_pool_name,
                                                            self.dhcp_pool_inet_subnet_cidr,
                                                            hw_address, inet_address)
