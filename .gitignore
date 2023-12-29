@@ -1,6 +1,9 @@
 # databases - sqlite
 *.db
 
+#RouterShell Configurations
+config/*.cfg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
