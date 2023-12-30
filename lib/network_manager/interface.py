@@ -142,13 +142,14 @@ class Interface(NetworkManager, InterfaceDatabase):
         try:
             result = self.run(command, suppress_error=True)
 
-            if result.exit_code == 0:
-                return True
-            else:
-                self.log.debug(f"does_interface_exist return a non-zero: {result.exit_code}")
+            if result.exit_code:
+                self.log.debug(f"does_interface_exist() return a non-zero: {result.exit_code}")
                 return False
+                
+            return True
+            
         except Exception as e:
-            print(f"Error: {e}")
+            self.log.error(f"{e}")
             return False
 
     def add_interface_entry(self, interface_name: str, ifType: InterfaceType) -> bool:
@@ -462,12 +463,15 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK        
 
-    def update_rename_interface_via_os(self) -> bool:
+    def update_rename_interface_via_os(self, reverse=False) -> bool:
         """
         Update and rename network interfaces via the operating system.
 
         This method iterates through the list of interface aliases and uses the '_rename_os_interface' method
         to update and rename each network interface via the operating system.
+
+        Args:
+            reverse (bool, optional): If True, reverses the renaming process, restoring original names.
 
         Returns:
             bool: STATUS_OK if the update and rename process is successful for all interfaces, STATUS_NOK otherwise.
@@ -475,9 +479,14 @@ class Interface(NetworkManager, InterfaceDatabase):
         for alias in self.get_interface_aliases():
             original_name = alias['InterfaceName']
             alias_name = alias['AliasInterface']
-            
+
             self.log.debug(f'orig-interface: {original_name} -> new-interface: {alias_name}')
 
+            # Reverse the names if the 'reverse' flag is True
+            if reverse:
+                original_name, alias_name = alias_name, original_name
+
+            # Attempt to update and rename the interface
             if self._rename_os_interface(original_name, alias_name):
                 self.log.error(f"Failed to update and rename interface: {original_name} to {alias_name}")
                 return STATUS_NOK
@@ -765,7 +774,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
 
         if result.exit_code:
-            self.log.error(f"Error renaming interface: {initial_interface_name} to {alias_interface_name}")
+            self.log.debug(f"Error renaming interface: {initial_interface_name} to {alias_interface_name}")
             return STATUS_NOK
 
         self.log.debug(f"Interface {initial_interface_name} successfully renamed to {alias_interface_name}")
@@ -780,3 +789,25 @@ class Interface(NetworkManager, InterfaceDatabase):
             List[str]: A list containing the names of all interfaces.
         """
         return self.get_db_interface_names()
+    
+    def flush_interfaces(self, interface_name: str = None) -> bool:
+        """
+        Flush network interfaces, removing any configurations.
+
+        This method iterates through the list of network interfaces and uses the 'flush_interface' method
+        to remove configurations. If a specific interface name is provided, only that interface is flushed.
+
+        Args:
+            interface_name (str, optional): The name of the specific network interface to flush.
+
+        Returns:
+            bool: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
+        """
+        if interface_name:
+            self.flush_interface(interface_name)
+        else:
+            for if_name in self.get_interface_via_db():
+                self.flush_interface(if_name)
+
+        return STATUS_OK
+

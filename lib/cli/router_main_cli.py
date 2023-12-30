@@ -37,8 +37,6 @@ class RouterCLI(cmd2.Cmd, GlobalUserCommand, GlobalPrivCommand, RouterPrompt):
         self.set_prompt()
         self.prompt = self.get_prompt()
 
-        
-        
         # Define a custom intro message
         self.intro = "Welcome to the Router CLI!\n"
                 

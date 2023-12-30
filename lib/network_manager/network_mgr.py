@@ -57,40 +57,28 @@ class NetworkManager(InetServiceLayer):
             print(f"Error: {e}")
             return 'STATUS_NOK'
 
-    def flush_interface(self, interface_name: str):
+    def flush_interface(self, interface_name: str) -> bool:
         """
-        Flush the configuration of a network interface, removing all IP addresses.
+        Flush the configuration of a specific network interface.
 
-        This method checks if the specified network interface exists using the
-        'is_valid_interface' method and then flushes its configuration, effectively
-        removing all assigned IP addresses and resetting the interface.
+        This method uses the 'ip addr flush' command to remove all configurations from the specified network interface.
 
         Args:
             interface_name (str): The name of the network interface to flush.
 
-        Raises:
-            InterfaceNotFoundError: If the specified interface does not exist.
-
         Returns:
-            None
+            bool: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
         """
         self.log.debug(f"flush_interface() -> interface_name: {interface_name}")
-        
-        try:
-            if not self.net_mgr_interface_exist(interface_name):
-                raise InterfaceNotFoundError(f"Interface '{interface_name}' not found.")
 
-            self.log.debug(f"flush_interface() -> interface_name: {interface_name}")
-            
-            # Construct the command to flush the interface
-            cmd = ['ip', 'addr', 'flush', 'dev', f"{interface_name}"]
+        if not self.net_mgr_interface_exist(interface_name):
+            return STATUS_NOK
 
-            self.log.debug(f"flush_interface() -> cmd: {cmd}")
-            
-            # Execute the command to flush the interface
-            self.run(cmd)
-        except InterfaceNotFoundError as e:
-            raise e
+        if self.run(['ip', 'addr', 'flush', 'dev', f"{interface_name}"], suppress_error=True):
+            self.log.debug(f'Unable to flush interface: {interface_name}')
+            return STATUS_NOK
+
+        return STATUS_OK
 
     def get_interfaces(self, args=None):
         """

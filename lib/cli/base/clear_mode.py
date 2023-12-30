@@ -76,8 +76,7 @@ class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             
             if self.get_exec_mode() != ExecMode.PRIV_MODE:
                 print(f"Unable to clear router-db, must be in Privilege Mode")
-                # return            
-            
+                       
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':
                 RSDB().reset_database()

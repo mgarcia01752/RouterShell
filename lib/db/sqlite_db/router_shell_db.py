@@ -11,6 +11,7 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
+
 class Result:
     """
     Represents the result of an operation in the database.
@@ -158,6 +159,10 @@ class RouterShellDB(metaclass=Singleton):
         """
         self.log.debug("reset_database")
         
+        # Reset some OS hardware and network features
+        from lib.system.system_start_up import SystemReset
+        SystemReset().database()        
+        
         if self.connection:
             self.connection.close()
         
@@ -169,7 +174,7 @@ class RouterShellDB(metaclass=Singleton):
         except Exception as e:
             self.log.error(f"Error while removing the existing database file: {e}")
             return STATUS_NOK
-    
+        
         return self.create_database()
 
     '''
@@ -3174,11 +3179,9 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"Error selecting interface aliases: {e}")
             return [Result(status=STATUS_NOK, reason=f"{e}")]
 
-
     '''
                         WIRELESS-POLICY-WIFI
     '''
-
     def wifi_policy_exist(self, wireless_wifi_policy: str) -> Result:
         """
         Check if a wireless Wi-Fi policy exists in the database.

@@ -187,7 +187,7 @@ class DHCPServerDatabase:
         """
         return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate).status
 
-    def update_dhcp_pool_mode(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
+    def update_dhcp_pool_mode_db(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
         """
         Update the DHCP version mode for a specific DHCP pool.
 
@@ -198,7 +198,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
-        return RSDB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, mode.value).status
+        return RSDB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, str(mode.value)).status
 
     '''
                                 DHCP-DNSMasq - Configuration Building

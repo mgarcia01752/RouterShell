@@ -250,7 +250,7 @@ class DHCPServer(NetworkManager):
             self.log.critical(f"Unable to update DHCP pool mode. DHCP pool name '{dhcp_pool_name}' does not exist.")
             return STATUS_NOK
 
-        return DSD().add_dhcp_subnet_option_db(dhcp_pool_name, mode)
+        return DSD().update_dhcp_pool_mode_db(dhcp_pool_name, mode)
 
 class DhcpPoolFactory():
 
