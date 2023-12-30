@@ -3,4 +3,4 @@
 from lib.network_manager.interface import Interface
 
 
-Interface().update_rename_interface_via_os()
+print(Interface().get_interface_type_via_db('wlan0'))

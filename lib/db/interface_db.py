@@ -459,3 +459,42 @@ class InterfaceDatabase:
             interfaces.append(result.result['InterfaceName'])
 
         return interfaces
+
+    def get_interface_details(cls) -> List[dict]:
+        """
+        Get details for all interfaces grouped by Interface, Properties, and Alias.
+
+        Returns:
+            List[dict]: A list of dictionaries containing interface details.
+        """
+        results = cls.rsdb.select_interface_details()
+
+        interface_details_list = []
+
+        for result in results:
+            interface_dict = {
+                'Interfaces': {
+                    'InterfaceName': result.result.get('InterfaceName', ''),
+                    'Description': result.result.get('Description', ''),
+                    'ShutDownStatus': result.result.get('ShutdownStatus', ''),
+                    
+                    'Properties': {
+                        'InterfaceType': result.result.get('InterfaceType', ''),
+                        'MacAddress': result.result.get('MacAddress', ''),
+                        'Duplex': result.result.get('Duplex', ''),
+                        'Speed': result.result.get('Speed', ''),
+                        'ProxyArp': result.result.get('ProxyArp', ''),
+                        'DropGratArp': result.result.get('DropGratuitousArp', ''),
+                    },
+                    
+                    'Alias': {
+                        'InitialInterface': result.result.get('InitialInterface', ''),
+                        'AliasInterface': result.result.get('AliasInterface', ''),
+                    }
+                }
+            }
+         
+            interface_details_list.append(interface_dict)
+
+        return interface_details_list
+        

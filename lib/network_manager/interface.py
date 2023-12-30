@@ -153,7 +153,28 @@ class Interface(NetworkManager, InterfaceDatabase):
             return InterfaceType.ETHERNET
         
         return self.get_interface_type_via_iproute(interface_name)
-                 
+
+    def get_interface_type_via_db(self, interface_name) -> InterfaceType:
+        """
+        Get the interface type for a specified interface name from the database.
+
+        Args:
+            interface_name (str): The name of the interface.
+
+        Returns:
+            InterfaceType: The type of the interface.
+        """
+        interface_details = self.get_interface_details()
+
+        for if_dict in interface_details:
+            if if_dict['Interfaces']['InterfaceName'] == interface_name:                
+                interface_type_str = if_dict['Interfaces']['Properties']['InterfaceType']
+                for interface_enum in InterfaceType:
+                    if interface_type_str == interface_enum.value:
+                        return interface_enum
+
+        return InterfaceType.UNKNOWN
+
     def does_interface_exist(self, interface_name: str) -> bool:
         """
         Determine if a network interface with the specified name exists on the current system.
@@ -737,7 +758,6 @@ class Interface(NetworkManager, InterfaceDatabase):
         except (json.JSONDecodeError, AttributeError) as e:
             print(f"Error decoding JSON: {e}")
             return None
-
 
     def update_interface_description(self, interface_name: str, description: str) -> bool:
         """

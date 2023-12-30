@@ -675,7 +675,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error inserting VLAN interface: %s", e)
             return Result(status=STATUS_NOK, row_id=None, reason=str(e))
 
-
     def show_vlans(self):
         try:
 
@@ -2273,6 +2272,82 @@ class RouterShellDB(metaclass=Singleton):
                         INTERFACE DATABASE
     '''
 
+    def select_interface_details(self, interface_name: str = None) -> List[Result]:
+        """
+        Select details for the specified interface or all interfaces.
+
+        Args:
+            interface_name (str, optional): The name of the interface to retrieve details for.
+                If None, details for all interfaces will be retrieved.
+
+        Returns:
+            List[Result]: A list of Result objects containing the interface details.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            query = '''
+                SELECT
+                    Interfaces.ID AS InterfaceID,
+                    Interfaces.InterfaceName,
+                    Interfaces.InterfaceType,
+                    Interfaces.ShutdownStatus,
+                    Interfaces.Description,
+                    InterfaceSubOptions.MacAddress,
+                    InterfaceSubOptions.Duplex,
+                    InterfaceSubOptions.Speed,
+                    InterfaceSubOptions.ProxyArp,
+                    InterfaceSubOptions.DropGratuitousArp,
+                    RenameInterface.BusInfo,
+                    RenameInterface.InitialInterface,
+                    RenameInterface.AliasInterface
+                FROM
+                    Interfaces
+                JOIN
+                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
+                LEFT JOIN
+                    RenameInterface ON Interfaces.InterfaceName = RenameInterface.AliasInterface
+            '''
+
+            parameters = ""
+
+            if interface_name is not None:
+                query += ' WHERE Interfaces.InterfaceName = ?;'
+                parameters = (interface_name,)  # Use a tuple for parameters
+
+            cursor.execute(query, parameters)
+
+            result_list = []
+            rows = cursor.fetchall()
+
+            for row in rows:
+                result_list.append(Result(
+                    status=STATUS_OK,
+                    row_id=row[0],
+                    result={
+                        'InterfaceID': row[0],
+                        'InterfaceName': row[1],
+                        'InterfaceType': row[2],
+                        'ShutdownStatus': row[3],
+                        'Description': row[4],
+                        'MacAddress': row[5],
+                        'Duplex': row[6],
+                        'Speed': row[7],
+                        'ProxyArp': row[8],
+                        'DropGratuitousArp': row[9],
+                        'BusInfo': row[10],
+                        'InitialInterface': row[11],
+                        'AliasInterface': row[12],
+                    }
+                ))
+
+            return result_list
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface details: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
     def select_interface_type(self, if_name: str) -> InterfaceType:
         """
         Retrieve the type of an interface by its name.
@@ -2623,7 +2698,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"Error updating description for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
     
-
     def update_interface_name(self, existing_interface_name: str, new_interface_name: str) -> Result:
         """
         Update the name of a network interface in the database.
@@ -2662,7 +2736,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             self.log.error(f"Error updating interface name for {existing_interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
-
         
     '''
                     INTERFACE-IP-ADDRESS DATABASE

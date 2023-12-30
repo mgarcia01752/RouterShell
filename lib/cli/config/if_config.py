@@ -62,20 +62,22 @@ class InterfaceConfig(cmd2.Cmd,
                     self.log.debug(f"Not Creating Loopback {if_config_interface_name}")
         else:
                     
-            if not self.does_interface_exist(if_config_interface_name):
-                            
+            if not self.does_interface_exist(if_config_interface_name):             
                 print(f"Interface {if_config_interface_name} does not exists.")
                 RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
-                
                 self.do_end()
 
-            self.log.debug(f"interface is not a loopback or vlan....")
+            self.log.debug(f"interface: {if_config_interface_name} is not a loopback or vlan....")
             
-            self.interface_type = self.get_interface_type_via_iproute(if_config_interface_name)
-            self.log.debug(f'Interface: {if_config_interface_name} -> Type: {self.interface_type}')
+            if if_config_interface_name in self.get_interface_via_db():
+                self.interface_type = self.get_interface_type_via_db(if_config_interface_name)    
             
-            if self.add_interface_entry(if_config_interface_name, self.interface_type):
-                self.log.debug(f"Unable to add interface: {if_config_interface_name} to DB")
+            else:
+                self.interface_type = self.get_interface_type_via_iproute(if_config_interface_name)
+                self.log.debug(f'Interface: {if_config_interface_name} -> Type: {self.interface_type}')
+                
+                if self.add_interface_entry(if_config_interface_name, self.interface_type):
+                    self.log.debug(f"Unable to add interface: {if_config_interface_name} to DB")
 
         self.PROMPT_CMD_ALIAS = self.interface_type.value
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
