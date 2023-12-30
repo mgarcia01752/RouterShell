@@ -232,7 +232,7 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             print('DHCP mode is reserved for a DHCPv6 subnet')
             return
 
-        self.dhcp_pool_factory.add_dhcp_mode(DHCPv6Modes.get_key(args.mode))
+        self.dhcp_pool_factory.add_dhcp_mode(DHCPv6Modes.get_mode(args.mode))
 
     def do_commit(self) -> bool:
         return STATUS_OK

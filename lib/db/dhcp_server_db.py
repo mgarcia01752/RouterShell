@@ -198,7 +198,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
-        return RSDB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, str(mode.value)).status
+        return RSDB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, mode.value).status
 
     '''
                                 DHCP-DNSMasq - Configuration Building

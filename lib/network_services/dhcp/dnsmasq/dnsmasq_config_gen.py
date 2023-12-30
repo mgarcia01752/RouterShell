@@ -35,7 +35,17 @@ class DHCPv6Modes(Enum):
         for key, member in cls.__members__.items():
             if member.value == value:
                 return key
+            
         raise ValueError(f"No key found for value '{value}' in DHCPv6Modes enum.")
+    
+    @classmethod
+    def get_mode(cls, value):
+        """Get the enum member for a given value in the enum."""
+        for member in cls:
+            if member.value == value:
+                return member
+
+        raise ValueError(f"No mode found for value '{value}' in DHCPv6Modes enum.")
 
 
 class DNSMasqConfigurator:

@@ -427,7 +427,7 @@ class DhcpPoolFactory():
         if self.get_subnet_inet_version() == DHCPVersion.DHCP_V4:
             self.log.debug(f'DHCP Mode is reserved for DHCPv6 subnet')
             return STATUS_NOK
-
+        
         return self.dhcp_srv_obj.update_dhcp_pool_mode(self.dhcp_pool_name, mode)
         
     def _update_status(self, status: bool):
