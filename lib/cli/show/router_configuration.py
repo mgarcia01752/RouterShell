@@ -362,17 +362,19 @@ class RouterConfiguration:
                 
                 temp_cmd_line = []
                 
+                self.log.debug(f'Wifi-Config: {config_data}')
+                
                 temp_cmd_line.append(config_data.get('WifiPolicyName'))
 
-                # WifiSecurityPolicy list after the start of the wifi-policy-name start
                 wifi_sec_policy_list = config_data.get('WifiSecurityPolicy')
 
                 if isinstance(wifi_sec_policy_list, list):
+                    
                     for item in wifi_sec_policy_list:
+                        # TODO Add a check for None Values and exit properly
                         ssid_line = " ".join(item.values())
                         temp_cmd_line.append(indent * ' ' + ssid_line)
                         
-                # Append the following at the end of the config list
                 temp_cmd_line.append(indent * ' ' + f"{config_data.get('Channel')}")
                 temp_cmd_line.append(indent * ' ' + f"{config_data.get('HardwareMode')}")
 

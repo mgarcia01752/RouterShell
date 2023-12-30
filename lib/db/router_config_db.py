@@ -390,6 +390,7 @@ class RouterConfigurationDatabase:
         config_data = {}
 
         if all(result.status == STATUS_OK for result in wifi_policy_result):
+            
             for wp_result in wifi_policy_result:
                 wifi_policy = wp_result.result.get('WifiPolicyName')
 
@@ -417,5 +418,3 @@ class RouterConfigurationDatabase:
         cls.log.debug(f'{config_data}')
 
         return STATUS_OK if config_data else STATUS_NOK, config_data
-
-

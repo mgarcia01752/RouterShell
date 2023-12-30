@@ -3356,10 +3356,10 @@ class RouterShellDB(metaclass=Singleton):
             for row in rows:
                 id, policy_name, channel, hardware_mode = row
                 results.append(Result(
-                    status=STATUS_OK,
-                    row_id=id,
-                    reason=f"Retrieved information for wireless WiFi policy '{policy_name}'",
-                    result={"WifiPolicyName": policy_name, "Channel": channel, "HardwareMode": hardware_mode}
+                        status=STATUS_OK,
+                        row_id=id,
+                        reason=f"Retrieved information for wireless WiFi policy '{policy_name}'",
+                        result={"WifiPolicyName": policy_name, "Channel": channel, "HardwareMode": hardware_mode}
                 ))
 
             return results

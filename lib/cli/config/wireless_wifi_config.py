@@ -60,8 +60,8 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
             print(f"Command '{self.command}' not recognized.")
 
     def complete_ssid(self, text, line, begidx, endidx):
-        completions = ['ssid', 'pass-phrase']
-        completions.extend(WPAVersion.display_list())
+        completions = ['ssid', 'pass-phrase', 'wpa-mode']
+        completions.extend(WPAVersion.display_list(False))
         return [comp for comp in completions if comp.startswith(text)]
 
     def do_ssid(self, args, negate=False):

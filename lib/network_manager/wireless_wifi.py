@@ -27,11 +27,21 @@ class WPAVersion(Enum):
     UNKNOWN = -1
 
     @classmethod
-    def display_list(cls):
+    def display_list(cls, return_values=True):
         """
         Returns a list of known WPA versions.
+
+        Args:
+            return_values (bool): If True, returns version values; if False, returns version names.
+
+        Returns:
+            list: A list of known WPA versions.
         """
-        return [version.value for version in cls if version != cls.UNKNOWN]
+        if return_values:
+            return [version.value for version in cls if version != cls.UNKNOWN]
+        else:
+            return [version.name for version in cls if version != cls.UNKNOWN]
+
     
 class WPAkeyManagement(Enum):
     """
