@@ -233,13 +233,11 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute("SELECT BannerMotd FROM SystemConfiguration WHERE ID = 1")
             result = cursor.fetchone()
 
-            if result is not None:
-                banner_motd = result[0]
-                self.log.debug("Select operation: BannerMotd retrieved successfully from the 'SystemConfiguration' table.")
-                return Result(status=STATUS_OK, row_id=1, result={'BannerMotd': banner_motd})
-            else:
+            if not result:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
-
+            
+            return Result(status=STATUS_OK, row_id=1, result={'BannerMotd': result[0]})
+        
         except sqlite3.Error as e:
             self.log.error("Error selecting BannerMotd: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))

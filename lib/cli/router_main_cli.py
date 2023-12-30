@@ -11,6 +11,7 @@ from lib.cli.base.global_operation import GlobalUserCommand, GlobalPrivCommand
 from lib.cli.show.show_mode import ShowMode
 from lib.cli.config.config_mode import ConfigureMode
 from lib.system.copy_mode import CopyMode, CopyType
+from lib.system.system_config import SystemConfig
 from lib.system.system_start_up import SystemStartUp
 from lib.common.constants import ROUTER_CONFIG, STATUS_OK
 
@@ -36,10 +37,13 @@ class RouterCLI(cmd2.Cmd, GlobalUserCommand, GlobalPrivCommand, RouterPrompt):
         
         self.set_prompt()
         self.prompt = self.get_prompt()
+        
+        self.intro_message()
 
-        # Define a custom intro message
-        self.intro = "Welcome to the Router CLI!\n"
-                
+    def intro_message(self):
+        banner_motd = SystemConfig().get_banner()
+        self.intro = f"\n{banner_motd}\n" if banner_motd else "Welcome to the Router CLI!\n"
+    
     def preloop(self):
         """Perform preloop setup."""
         # Install a hook to catch control characters (e.g., Ctrl+C)

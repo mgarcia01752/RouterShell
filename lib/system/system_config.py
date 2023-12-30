@@ -32,13 +32,13 @@ class SystemConfig(RunCommand):
             str: The formatted banner text with lines limited to the specified maximum length.
         """
         result, banner_text = self.sys_db.get_banner_motd()
-
+                
         if result:
             return ""
         
         if max_line_length:
             return textwrap.fill(banner_text, width=max_line_length)
-        
+
         return banner_text
             
     def set_banner(self, banner_motd: str) -> bool:
