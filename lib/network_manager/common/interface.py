@@ -50,7 +50,7 @@ class InterfaceLayer(PhyServiceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().INTERFACE)
         
-    def get_interface_type(self, interface_name: str) -> InterfaceType:
+    def get_interface_type_via_iproute(self, interface_name: str) -> InterfaceType:
         """
         Determines the type of a network interface using information from the 'nmcli dev show' command.
 

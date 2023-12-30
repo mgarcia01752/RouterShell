@@ -71,7 +71,7 @@ class InterfaceConfig(cmd2.Cmd,
 
             self.log.debug(f"interface is not a loopback or vlan....")
             
-            self.interface_type = self.get_interface_type(if_config_interface_name)
+            self.interface_type = self.get_interface_type_via_iproute(if_config_interface_name)
             self.log.debug(f'Interface: {if_config_interface_name} -> Type: {self.interface_type}')
             
             if self.add_interface_entry(if_config_interface_name, self.interface_type):

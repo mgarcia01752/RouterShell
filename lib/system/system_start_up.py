@@ -51,20 +51,15 @@ class SystemService(RunCommand):
         # Assuming the actual service name is "dnsmasq"
         return self.control_service(service, "restart")
 
-
-
 class SystemStartUp(Interface):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
         
-        # Check if there are no interfaces in the database
         if not self.get_interface_via_db():
-            # Update the database with interfaces found by the operating system
             self.update_interface_db_from_os()
             
-        # Rename interfaces via the operating system based on aliases in the database
         self.update_rename_interface_via_os() 
 
 class SystemShutDown(RunCommand):

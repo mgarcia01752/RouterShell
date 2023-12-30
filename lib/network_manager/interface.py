@@ -2,7 +2,7 @@ import ipaddress
 import json
 import logging
 import re
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from lib.db.interface_db import InterfaceDatabase
 from lib.network_manager.arp import Arp, Encapsulate
@@ -82,7 +82,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error decoding JSON: {e}")
             return []
 
-    def get_interface_type(self, interface_name:str) -> InterfaceType:
+    def get_interface_type_via_iproute(self, interface_name:str) -> InterfaceType:
         """
             Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
@@ -94,7 +94,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                     Returns 'None' if the interface is not found.
         """
 
-        result = self.run(['ip', 'link', 'show' , interface_name])
+        result = self.run(['ip', 'link', 'show' , interface_name], suppress_error=True)
         self.log.debug(f"get_interface_type() -> sdtout: {result.stdout}")
         
         if result.exit_code:
@@ -106,20 +106,54 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         for line in lines:
             self.log.debug(f"Line {line}")
-            # Check if it's a physical interface
+
             if 'link/ether' in line:
                 return InterfaceType.ETHERNET
-            # Check if it's a virtual interface
+
             elif 'link/tun' in line or 'link/tap' in line:
                 return InterfaceType.VIRTUAL
-            # Check if it's a VLAN interface
+
             elif 'vlan' in line:
                 return InterfaceType.VLAN
+
             elif 'bridge' in line:
                 return InterfaceType.BRIDGE
+
+            elif 'link/loopback' in line:
+                return InterfaceType.LOOPBACK
             
         return InterfaceType.UNKNOWN
 
+    def get_interface_type(self, interface_name: str) -> InterfaceType:
+        """
+        Get the type of a network interface using lshw.
+
+        This method retrieves information about the network interface using lshw and determines its type based on the
+        capabilities and configuration.
+
+        Args:
+            interface_name (str): The name of the network interface.
+
+        Returns:
+            InterfaceType: An enumeration representing the type of the network interface.
+        """
+        interface_info = self.get_interface_info(interface_name)
+        
+        if not interface_info:
+            if_type =  self.get_interface_type_via_iproute(interface_name)
+            return if_type
+        
+        elif interface_info.get('capabilities', {}).get('wireless'):
+            return InterfaceType.WIRELESS_WIFI
+        
+        elif interface_info.get('capabilities', {}).get('tp'):
+            return InterfaceType.ETHERNET
+        
+        elif interface_info.get('configuration', {}).get('duplex'):
+            return InterfaceType.ETHERNET
+        
+        return self.get_interface_type_via_iproute(interface_name)
+                 
     def does_interface_exist(self, interface_name: str) -> bool:
         """
         Determine if a network interface with the specified name exists on the current system.
@@ -136,11 +170,8 @@ class Interface(NetworkManager, InterfaceDatabase):
             - True: The interface exists.
             - False: otherwise
         """
-
-        command = ['ip', 'link', 'show', interface_name]
-
         try:
-            result = self.run(command, suppress_error=True)
+            result = self.run(['ip', 'link', 'show', interface_name], suppress_error=True)
 
             if result.exit_code:
                 self.log.debug(f"does_interface_exist() return a non-zero: {result.exit_code}")
@@ -338,8 +369,6 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        
-        # Determine the value of 'shutdown' based on 'state'
         shutdown = state != State.UP
         
         if self.update_db_shutdown_status(interface_name, shutdown):
@@ -380,12 +409,14 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: True if the loopback interface was created successfully, False otherwise.
         """
-        result = self.run(['ip', 'link', 'add', 'name', interface_name , 'type', 'dummy'])
+        result = self.run(['ip', 'link', 'add', 'name', interface_name , 'type', 'dummy'], suppress_error=True)
+        
         if result.exit_code:
-            self.log.error("Error creating loopback -> {interface_name}")
+            self.log.error(f'Error creating loopback -> {interface_name}')
             return STATUS_NOK
         
-        self.log.debug(f"Created {interface_name} Loopback")
+        self.log.debug(f'Created {interface_name} Loopback')
+        
         return STATUS_OK
     
     def update_interface_vlan(self, interface_name:str, vlan_id:int=1000) -> bool:
@@ -402,7 +433,6 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
         self.log.debug(f"set_vlan() -> interface_name: {interface_name} vlan_id: {vlan_id}")
 
-        # Check to see if the interface is part of a bridge to assign the VLAN to the bridge
         brName = Bridge().get_assigned_bridge_from_interface(interface_name)
 
         if brName:
@@ -438,7 +468,6 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the interface was successfully renamed, STATUS_NOK otherwise.
         """
-                
         self.log.debug(f"rename_interface() -> if: {initial_interface_name} -> alias-if: {alias_interface_name}")
         
         if not self.does_interface_exist(initial_interface_name):
@@ -482,11 +511,9 @@ class Interface(NetworkManager, InterfaceDatabase):
 
             self.log.debug(f'orig-interface: {original_name} -> new-interface: {alias_name}')
 
-            # Reverse the names if the 'reverse' flag is True
             if reverse:
                 original_name, alias_name = alias_name, original_name
 
-            # Attempt to update and rename the interface
             if self._rename_os_interface(original_name, alias_name):
                 self.log.error(f"Failed to update and rename interface: {original_name} to {alias_name}")
                 return STATUS_NOK
@@ -681,37 +708,36 @@ class Interface(NetworkManager, InterfaceDatabase):
 
     def get_interface_info(self, interface_name: str) -> dict:
         """
-        Retrieve detailed information about a specific network interface.
+        Retrieve information about network interfaces using lshw.
 
-        Parameters:
-        - interface_name (str): The logical name of the network interface.
+        Args:
+            interface_name (str): The name of the network interface to retrieve information for.
 
         Returns:
-        - dict: Detailed information about the specified network interface, or None if not found.
+            dict or None: A dictionary containing information about the network interface if successful,
+                          None otherwise.
         """
         try:
-            command = ['lshw', '-c', 'network', '-json']
-            result = self.run(command)
+            result = self.run(['lshw', '-c', 'network', '-json'], suppress_error=True)
 
-            if result:
-                # Parse JSON output
+            if result.exit_code == 0:
                 output_json = json.loads(result.stdout)
 
-                # Find the specified interface in the JSON output
                 for interface in output_json:
                     if interface.get('logicalname') == interface_name:
                         return interface
 
-                # Interface not found
+                self.log.debug(f"No information found for interface: {interface_name}")
                 return None
+            
             else:
-                # Handle the case where the command failed
-                print("Error running lshw command.")
+                self.log.debug(f"Error running lshw command. Exit code: {result.exit_code}")
                 return None
 
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, AttributeError) as e:
             print(f"Error decoding JSON: {e}")
             return None
+
 
     def update_interface_description(self, interface_name: str, description: str) -> bool:
         """
@@ -747,9 +773,9 @@ class Interface(NetworkManager, InterfaceDatabase):
             if interface_name is not None and if_name != interface_name or not self.db_lookup_interface_exists(if_name):
                 self.log.debug(f"Unknown interface: {if_name}")
                 continue
-                
+            
             if_type = self.get_interface_type(if_name)
-
+                       
             if if_type != InterfaceType.UNKNOWN:
                 self.log.debug(f"Adding Interface: {if_name} -> if-type: {if_type.name} to DB")
                 self.add_interface_entry(if_name, if_type)
