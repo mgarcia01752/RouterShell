@@ -462,11 +462,37 @@ class InterfaceDatabase:
 
     def get_interface_details(cls) -> List[dict]:
         """
-        Get details for all interfaces grouped by Interface, Properties, and Alias.
+        Retrieve comprehensive details for all network interfaces defined in the DB.
 
         Returns:
             List[dict]: A list of dictionaries containing interface details.
+
+        Description:
+            This method fetches detailed information for all network interfaces stored in the database.
+            The information is organized into a list of dictionaries, each representing the details for an individual interface.
+
+        Structure of Each Dictionary:
+            {
+                'Interfaces': {
+                    'InterfaceName': str,
+                    'ShutdownStatus': str,
+                    'Description': str,
+                },
+                'Properties': {
+                    'InterfaceType': str,
+                    'MacAddress': str,
+                    'Duplex': str,
+                    'Speed': str,
+                    'ProxyArp': str,
+                    'DropGratArp': str,
+                },
+                'Alias': {
+                    'InitialInterface': str,
+                    'AliasInterface': str,
+                }
+            }
         """
+        
         results = cls.rsdb.select_interface_details()
 
         interface_details_list = []
