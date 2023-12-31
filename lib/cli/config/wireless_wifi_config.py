@@ -10,7 +10,7 @@ from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-from lib.network_manager.wireless_wifi import HardwareMode, Pairwise, WPAVersion, WPAkeyManagement, WifiChannel, WifiPolicy
+from lib.network_manager.wireless_wifi import HardwareMode, Pairwise, WPAVersion, WPAkeyManagement, WifiAccessPoint, WifiChannel, WifiPolicy
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -29,7 +29,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI_POLICY_CONFIG)
+        self.log.setLevel(RSLGS().WIFI_POLICY_CONFIG)
         self.log.debug(f"__init__ > arg -> {wifi_policy_name} -> negate={negate}")
         self.debug = Cmd2GlobalSettings().DEBUG_WIFI_CONFIG
 
@@ -285,6 +285,6 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
 
         if not self.security_access_group_entry_exist(self.wifi_policy_name):
             self.add_security_access_group_default(self.wifi_policy_name)
-            
+        
         super().do_end()
         

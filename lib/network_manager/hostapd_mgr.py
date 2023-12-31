@@ -1,5 +1,6 @@
 from enum import Enum
-from lib.common.constants import STATUS_NOK, STATUS_OK
+import os
+from lib.common.constants import HOSTAPD_CONF_DIR, STATUS_NOK, STATUS_OK
 
 from lib.network_manager.common.run_commands import RunCommand
 
@@ -491,29 +492,39 @@ class HostapdConfigGenerator():
         self.config.append(f'vlan_bridge={vlan_bridge}')
 
 class HostapdManager(RunCommand, HostapdConfigGenerator):
-    def __init__(self):
+    """
+    HostapdManager class for managing hostapd service and configuration.
+
+    This class inherits from RunCommand and HostapdConfigGenerator.
+
+    Attributes:
+        HOSTAPD_CONF_DIR (str): Directory for hostapd configuration files.
+
+    """
+
+    def __init__(self, hostapd_filename:str):
         """
-        Initializes the HostapdManager, inheriting from RunCommand and HostapdConfigGenerator.
+        Initializes the HostapdManager.
+
+        Inherits from RunCommand and HostapdConfigGenerator.
         """
         super().__init__()
-        RunCommand.__init__(self)
-        HostapdConfigGenerator.__init__(self)
+        
+        self.hostapd_filename = f'{hostapd_filename}'
 
     def start(self) -> bool:
         """
         Start the hostapd service.
 
         Returns:
-            bool: STATUS_OK if the service starts successfully, STATUS_NOK otherwise.
+            bool: True if the service starts successfully, False otherwise.
         """
         try:
-            # Run the 'service hostapd start' command
             result = self.run_command(["service", "hostapd", "start"])
             return STATUS_OK if result.exit_code == STATUS_OK else STATUS_NOK
 
         except Exception as e:
-            # Log and handle the exception
-            self.log.error(f"Failed to start hostapd service: {e}")
+            self.log.exception(f"Failed to start hostapd service: {e}")
             return STATUS_NOK
 
     def restart(self) -> bool:
@@ -521,16 +532,14 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
         Restart the hostapd service.
 
         Returns:
-            bool: STATUS_OK if the service restarts successfully, STATUS_NOK otherwise.
+            bool: True if the service restarts successfully, False otherwise.
         """
         try:
-            # Run the 'service hostapd restart' command
             result = self.run_command(["service", "hostapd", "restart"])
             return STATUS_OK if result.exit_code == STATUS_OK else STATUS_NOK
 
         except Exception as e:
-            # Log and handle the exception
-            self.log.error(f"Failed to restart hostapd service: {e}")
+            self.log.exception(f"Failed to restart hostapd service: {e}")
             return STATUS_NOK
 
     def stop(self) -> bool:
@@ -538,40 +547,94 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
         Stop the hostapd service.
 
         Returns:
-            bool: STATUS_OK if the service stops successfully, STATUS_NOK otherwise.
+            bool: True if the service stops successfully, False otherwise.
         """
         try:
-            # Run the 'service hostapd stop' command
             result = self.run_command(["service", "hostapd", "stop"])
             return STATUS_OK if result.exit_code == STATUS_OK else STATUS_NOK
 
         except Exception as e:
-            # Log and handle the exception
-            self.log.error(f"Failed to stop hostapd service: {e}")
+            self.log.exception(f"Failed to stop hostapd service: {e}")
             return STATUS_NOK
 
-    def load(self) -> bool:
+    def write_hostapd_config(self) -> bool:
+        """
+        Write the Hostapd configuration to a file.
+
+        Returns:
+            bool: True if the configuration is written successfully, False otherwise.
+        """
+        try:
+            config_lines = self.generate_config()
+
+            with open(f'{HOSTAPD_CONF_DIR}/{self.hostapd_filename}', "w") as file:
+                file.write("\n".join(config_lines))
+
+            return STATUS_OK
+
+        except Exception as e:
+            self.log.exception(f"Failed to write Hostapd configuration: {e}")
+            return STATUS_NOK
+
+    def restart_with_new_config(self, hostapd_config_fn: str) -> bool:
+        """
+        Restart the hostapd service with a new configuration.
+
+        Args:
+            hostapd_config_fn (str): Filename for the hostapd configuration.
+
+        Returns:
+            bool: True if the service restarts successfully, False otherwise.
+        """
+        try:
+            restart_result = self.restart()
+
+            if restart_result != STATUS_OK:
+                self.log.error("Failed to restart hostapd service after configuration update.")
+                return STATUS_NOK
+
+            return STATUS_OK
+
+        except Exception as e:
+            self.log.exception(f"Failed to restart hostapd service: {e}")
+            return STATUS_NOK
+
+    def load(self, hostapd_config_fn: str) -> bool:
         """
         Load the Hostapd configuration.
 
+        Args:
+            hostapd_config_fn (str): Filename for the hostapd configuration.
+
         Returns:
-            bool: STATUS_OK if the configuration is loaded successfully, STATUS_NOK otherwise.
+            bool: True if the configuration is loaded successfully, False otherwise.
         """
-        try:
-            # Generate Hostapd configuration
-            config_lines = self.generate_config()
+        cmd = ['hostapd', '-B', f'{HOSTAPD_CONF_DIR}/{hostapd_config_fn}']
+        result = self.run(cmd, suppress_error=True)
 
-            # Write the configuration to the hostapd.conf file
-            with open("/etc/hostapd/hostapd.conf", "w") as file:
-                file.write("\n".join(config_lines))
-
-            # Restart the hostapd service to apply the new configuration
-            restart_result = self.start()
-
-            return restart_result
-
-        except Exception as e:
-            # Log and handle the exception
-            self.log.error(f"Failed to load Hostapd configuration: {e}")
+        if result.exit_code:
+            self.log.error(f'Unable to load hostapd config: {hostapd_config_fn}')
             return STATUS_NOK
 
+        return STATUS_OK
+
+    def delete_hostapd_config(self) -> bool:
+        """
+        Remove the Hostapd configuration file.
+
+        Returns:
+        - bool: STATUS_OK if the file is deleted successfully, STATUS_NOK otherwise.
+        """
+        try:
+
+            if os.path.exists(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}'):
+                os.remove(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}')
+                self.log.info(f"Hostapd configuration file '{self.hostapd_file_name}' deleted successfully.")
+                return STATUS_OK
+            else:
+                self.log.warning(f"Hostapd configuration file '{self.hostapd_file_name}' not found.")
+                return STATUS_NOK
+
+        except Exception as e:
+            self.log.error(f"Failed to delete Hostapd configuration file: {e}")
+            return STATUS_NOK

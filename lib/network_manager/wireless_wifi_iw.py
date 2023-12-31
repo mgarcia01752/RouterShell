@@ -106,7 +106,7 @@ class Wifi(NetworkManager):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI)
+        self.log.setLevel(RSLGS().WIFI)
 
     def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
         return True 

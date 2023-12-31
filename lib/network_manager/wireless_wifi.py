@@ -1,15 +1,16 @@
 from enum import Enum
 import logging
+import os
 from typing import List
 
 import jc
 from lib.db.wifi_db import WifiDB
 from lib.network_manager.common.run_commands import RunCommand
-from lib.network_manager.hostapd_mgr import HostapdIEEE802Config
+from lib.network_manager.hostapd_mgr import HostapdIEEE802Config, HostapdManager
 
 from lib.network_manager.network_mgr import NetworkManager
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.constants import STATUS_OK, STATUS_NOK
+from lib.common.constants import HOSTAPD_CONF_DIR, HOSTAPD_CONF_FILE, STATUS_OK, STATUS_NOK
 
 class WPAVersion(Enum):
     """
@@ -41,7 +42,6 @@ class WPAVersion(Enum):
             return [version.value for version in cls if version != cls.UNKNOWN]
         else:
             return [version.name for version in cls if version != cls.UNKNOWN]
-
     
 class WPAkeyManagement(Enum):
     """
@@ -244,7 +244,7 @@ class WifiPolicy():
 
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI_POLICY)
+        self.log.setLevel(RSLGS().WIFI_POLICY)
         self.log.debug(f"WifiPolicy() -> Wifi-Policy: {wifi_policy_name} -> Negate: {negate}")
         
         self.wifi_db = WifiDB()
@@ -399,7 +399,7 @@ class WifiInterface():
             interface_name (str): The name of the wireless interface.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI_INTERFACE)
+        self.log.setLevel(RSLGS().WIFI_INTERFACE)
         self.log.debug(f"WifiInterface() -> interface: {wifi_interface_name}")
         
         self.wifi_interface_name = wifi_interface_name
@@ -466,7 +466,6 @@ class WifiInterface():
             self.log.error(f"Error parsing scan results: {e}")
             return []
 
-        
     def update_policy_to_wifi_interface(self, wifi_policy_name: str) -> bool:
         """
         Update the Wi-Fi policy for the wireless interface.
@@ -526,7 +525,7 @@ class Wifi(NetworkManager):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI)
+        self.log.setLevel(RSLGS().WIFI)
 
     def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
         return True 
@@ -713,3 +712,22 @@ class Wifi(NetworkManager):
 
     def set_ieee80211(self, ieee802_support:HostapdIEEE802Config, negate=False) -> bool:
         return STATUS_OK
+
+class WifiAccessPoint(HostapdManager):
+    def __init__(self, interface_name: str, wifi_policy_name: str):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().WIFI_ACCESS_POINT)
+        
+        self.interface_name = interface_name
+        self.wifi_policy_name = wifi_policy_name
+
+        self.hostapd_file_name = f'{interface_name}_{wifi_policy_name}_{HOSTAPD_CONF_FILE}'
+        
+        HostapdManager().__init__(self.hostapd_file_name)
+        
+
+
+    
+        
+        

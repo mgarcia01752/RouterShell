@@ -19,7 +19,7 @@ class WifiDB:
     
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WL_WIFI_DB)
+        self.log.setLevel(RSLGS().WIFI_DB)
             
     def wifi_policy_exist(self, wifi_policy_name: str) -> bool:
         """
