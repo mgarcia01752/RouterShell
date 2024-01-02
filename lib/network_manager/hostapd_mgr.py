@@ -526,6 +526,13 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
         except Exception as e:
             self.log.exception(f"Failed to start hostapd service: {e}")
             return STATUS_NOK
+    
+    def enable_hostapd_cli(self, enable=True) -> bool:
+        '''
+        ctrl_interface=/var/run/hostapd
+        ctrl_interface_group=0
+        '''
+        return STATUS_OK
 
     def restart(self) -> bool:
         """
@@ -576,6 +583,27 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
             self.log.exception(f"Failed to write Hostapd configuration: {e}")
             return STATUS_NOK
 
+    def delete_hostapd_config(self) -> bool:
+        """
+        Remove the Hostapd configuration file.
+
+        Returns:
+        - bool: STATUS_OK if the file is deleted successfully, STATUS_NOK otherwise.
+        """
+        try:
+
+            if os.path.exists(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}'):
+                os.remove(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}')
+                self.log.info(f"Hostapd configuration file '{self.hostapd_file_name}' deleted successfully.")
+                return STATUS_OK
+            else:
+                self.log.warning(f"Hostapd configuration file '{self.hostapd_file_name}' not found.")
+                return STATUS_NOK
+
+        except Exception as e:
+            self.log.error(f"Failed to delete Hostapd configuration file: {e}")
+            return STATUS_NOK
+  
     def restart_with_new_config(self, hostapd_config_fn: str) -> bool:
         """
         Restart the hostapd service with a new configuration.
@@ -618,23 +646,4 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
 
         return STATUS_OK
 
-    def delete_hostapd_config(self) -> bool:
-        """
-        Remove the Hostapd configuration file.
-
-        Returns:
-        - bool: STATUS_OK if the file is deleted successfully, STATUS_NOK otherwise.
-        """
-        try:
-
-            if os.path.exists(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}'):
-                os.remove(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}')
-                self.log.info(f"Hostapd configuration file '{self.hostapd_file_name}' deleted successfully.")
-                return STATUS_OK
-            else:
-                self.log.warning(f"Hostapd configuration file '{self.hostapd_file_name}' not found.")
-                return STATUS_NOK
-
-        except Exception as e:
-            self.log.error(f"Failed to delete Hostapd configuration file: {e}")
-            return STATUS_NOK
+      

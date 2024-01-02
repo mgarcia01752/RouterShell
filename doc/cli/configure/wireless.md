@@ -50,11 +50,15 @@ This command allows you to assign a user-friendly alias to a WiFi interface, mak
 
 ## Configure WiFi Interface
 
+# Create a virtual interface for 2.4GHz with a unique name
+# sudo iw dev wlx80afca061616 interface add wlan0_2.4GHz type managed
+
+
 To configure a WiFi interface, follow these steps:
 
 ```shell
 interface <wifi-interface | wifi-interface-alias>
-    [no] wireless wifi-policy <wifi-policy-name>
+    [no] wireless wifi-policy <wifi-policy-name> vif <virtual-wifi_interface | auto>
 
     ; Apply mode to wifi-interface, this will overwrite wifi-policy mode setting
     [no] mode [ a | b | g | ad | ax | {any}]
