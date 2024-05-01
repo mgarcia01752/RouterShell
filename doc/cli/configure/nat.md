@@ -28,7 +28,7 @@ configure terminal
 Create a NAT pool with a specific name using the following command:
 
 ```config
-nat pool <nat-pool-name>
+ip nat pool <nat-pool-name>
 ```
 
 ## 3. Configuring Outside Interface <a name="configuring-outside-interface"></a>

@@ -97,11 +97,17 @@ class RouterConfiguration:
             cmd_lines = []
 
             cmd_lines.extend(self._get_global_rename_interface_config())
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(self._get_global_bridge_config())
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(self._get_global_vlan_config())
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(self._get_global_nat_config())
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(self._get_global_wifi_policy())
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(self._get_global_dhcp_server_config())
+            cmd_lines.extend([self.LINE_BREAK])
 
             return cmd_lines
 
