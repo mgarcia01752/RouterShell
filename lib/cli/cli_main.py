@@ -1,5 +1,3 @@
-#! /usr/bin/python3
-
 from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -7,7 +5,7 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers import PythonLexer
 
-# Define a set of commands and their descriptions
+
 COMMANDS = {
     'show': 'Display information',
     'configure': 'Enter configuration mode',
