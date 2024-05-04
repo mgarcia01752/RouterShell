@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! python3
 
 from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
