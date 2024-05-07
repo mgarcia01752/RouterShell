@@ -60,7 +60,7 @@ class SystemStartUp(Interface):
         if not self.get_interface_via_db():
             self.update_interface_db_from_os()
             
-        self.update_rename_interface_via_os() 
+        self.update_rename_interface_via_os()
 
 class SystemShutDown(RunCommand):
     
