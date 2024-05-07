@@ -4,7 +4,6 @@ import os
 import shutil
 from datetime import datetime
 
-from cmd2 import Cmd
 from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.constants import ROUTER_CONFIG
 
@@ -30,7 +29,7 @@ class CopyMode:
     def copy_database(self) -> bool:
         STATUS_OK
     
-    def copy_start_config_to_run_config(self, cmd:Cmd) -> bool:
+    def copy_start_config_to_run_config(self, temp_arg) -> bool:
         try:
             print("copy_start_config_to_run_config")
             with open(ROUTER_CONFIG, 'r') as file:
