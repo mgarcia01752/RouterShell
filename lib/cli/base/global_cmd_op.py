@@ -5,29 +5,55 @@ import os
 from bs4 import Comment
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
-
 from lib.network_manager.network_mgr import NetworkManager
 
 class Global(NetworkManager):
-    
-    def __init__(self):
+    """
+    Class representing global commands.
+    Inherits from NetworkManager.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initializes Global instance.
+        """
         self.CLASS_NAME = self.__class__.__name__.lower()
-        pass
-    
-    def execute(self, subcommand=None):
-        if (subcommand):
+
+    def execute(self, subcommand: str = None) -> None:
+        """
+        Executes a subcommand.
+
+        Args:
+            subcommand (str, optional): Subcommand to execute. Defaults to None.
+        """
+        if subcommand:
             getattr(self, f"{self.CLASS_NAME}_{subcommand}")()
 
-    def class_methods(self):
-        return  [attr for attr in dir(self) if attr.startswith(f'{self.CLASS_NAME}') 
-                 and inspect.ismethod(getattr(self, attr))]
-  
-    def get_command_list(self):
-            elements = self.class_methods()
-            prefix_length = len(self.CLASS_NAME) + 1
-            return [element[prefix_length:] if element.startswith(f"{self.CLASS_NAME}_") else element for element in elements]
+    def class_methods(self) -> list:
+        """
+        Get a list of class methods.
 
-    def help(self):
+        Returns:
+            list: List of class methods.
+        """
+        return [attr for attr in dir(self) if attr.startswith(f'{self.CLASS_NAME}') 
+                and inspect.ismethod(getattr(self, attr))]
+  
+    def get_command_list(self) -> list:
+        """
+        Get a list of available commands.
+
+        Returns:
+            list: List of available commands.
+        """
+        elements = self.class_methods()
+        prefix_length = len(self.CLASS_NAME) + 1
+        return [element[prefix_length:] if element.startswith(f"{self.CLASS_NAME}_") else element for element in elements]
+
+    def help(self) -> None:
+        """
+        Display help for available commands.
+        """
         for method_name in self.class_methods():
             method = getattr(self, method_name)
             method_name_stripped = method_name.lstrip('_')
