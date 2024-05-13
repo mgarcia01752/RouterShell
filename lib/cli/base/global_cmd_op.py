@@ -70,7 +70,7 @@ class Global(NetworkManager):
     def global_clock(self, args=None):
         """clock\t\t\tShow clock"""
         
-        print(Comment.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
+        print(Common.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
         return False
     
     def global_reload(self, args=None):

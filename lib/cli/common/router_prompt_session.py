@@ -5,20 +5,38 @@ from prompt_toolkit import print_formatted_text as print
 from common.common import Common
 from typing import Type
 
+from lib.cli.base.exec_priv_mode import ExecMode
+
 class RouterPromptSession:
     """
     Class for managing router prompt session.
     """
+    USER_MODE_PROMPT = '>'
+    PRIV_MODE_PROMPT = '#'
+  
+    PROMPT_PARTS_CMD = 0
+    PROMPT_PARTS_IF = 1
+    PROMPT_MAX_LENGTH = 2
 
-    def __init__(self) -> None:
+    DEF_PREFIX_START = ""
+    DEF_START_HOSTNAME = "Router"
+    DEF_CONFIG_MODE_PROMPT = 'config'
+    DEF_NO_CONFIG_MODE_PROMPT = None
+    PREFIX_SEP = ':'
+    
+    def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None) -> None:
         """
         Initializes RouterPromptSession instance.
         """
+        self.execute_mode = exec_mode
         self.top_level_commands = {}
         self.completer = WordCompleter([])
         self.history = InMemoryHistory()
         self.hostname = Common.getHostName()
-
+        
+        if (Common.getHostName() is None):
+            self.hostname = self.DEF_START_HOSTNAME
+        
     def rs_prompt(self) -> str:
         """
         Displays router prompt and returns user input.
