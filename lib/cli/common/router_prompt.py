@@ -1,4 +1,3 @@
-from prompt_toolkit import PromptSession
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import *
@@ -32,9 +31,6 @@ class RouterPrompt:
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_PROMPT)
-
-        #Main Prompt for RouterShell
-        self.prompt = PromptSession()
         
         self._prompt_dict = {
                     'Hostname' : self.DEF_START_HOSTNAME,
