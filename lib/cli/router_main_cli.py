@@ -1,4 +1,4 @@
-from lib.cli.common.router_prompt_session import RouterPromptSession
+from lib.cli.common.router_prompt_session import RouterPrompt
 from system.system_config import SystemConfig
 from system.system_start_up import SystemStartUp
 from common.constants import ROUTER_CONFIG, STATUS_OK
@@ -14,12 +14,12 @@ logging.basicConfig(
     ]
 )
 
-class RouterCLI(RouterPromptSession):
+class RouterCLI(RouterPrompt):
 
     def __init__(self):
         super().__init__()
         SystemStartUp()
-        RouterPromptSession.__init__(self)
+        RouterPrompt.__init__(self)
         self.register_top_level_commands(Global())
 
         self.log = logging.getLogger(self.__class__.__name__)
