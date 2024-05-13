@@ -1,11 +1,12 @@
+import logging
 import subprocess
 import inspect
 import os
 
-from bs4 import Comment
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 from lib.network_manager.network_mgr import NetworkManager
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class Global(NetworkManager):
     """
@@ -19,15 +20,20 @@ class Global(NetworkManager):
         """
         self.CLASS_NAME = self.__class__.__name__.lower()
 
-    def execute(self, subcommand: str = None) -> None:
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().GLOBAL_MODE)
+
+    def execute(self, subcommand: list) -> None:
         """
         Executes a subcommand.
 
         Args:
             subcommand (str, optional): Subcommand to execute. Defaults to None.
         """
+        # Check its a list
+        self.log.debug(f'execute: {subcommand}')
         if subcommand:
-            getattr(self, f"{self.CLASS_NAME}_{subcommand}")()
+            getattr(self, f"{self.CLASS_NAME}_{subcommand[0]}")(subcommand[1:])
 
     def class_methods(self) -> list:
         """
@@ -79,7 +85,7 @@ class Global(NetworkManager):
         return False
 
     def global_reboot(self, args=None):
-        """reload\t\t\tReboot"""
+        """reboot\t\t\tReboot"""
         return False
 
     def global_version(self, args=None):
@@ -92,6 +98,11 @@ class Global(NetworkManager):
     
     def global_ping(self, args=None):
         """ping\t\t\tping"""
+        self.log.debug(f'ping: {args}')
+        
+        if isinstance(args, list):
+            args = args[0]
+        
         try:
             # Split the input args=None into individual arguments
             args = args.split()

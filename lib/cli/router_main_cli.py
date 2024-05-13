@@ -1,9 +1,12 @@
+import logging
+
 from lib.cli.common.router_prompt_session import RouterPrompt
+from lib.cli.show.show import Show
 from system.system_config import SystemConfig
 from system.system_start_up import SystemStartUp
 from common.constants import ROUTER_CONFIG, STATUS_OK
 from lib.cli.base.global_cmd_op import Global
-import logging
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,8 +24,10 @@ class RouterCLI(RouterPrompt):
         SystemStartUp()
         RouterPrompt.__init__(self)
         self.register_top_level_commands(Global())
+        self.register_top_level_commands(Show())
 
         self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().ROUTERCLI)
         
         self.intro_message()
 
@@ -34,14 +39,15 @@ class RouterCLI(RouterPrompt):
         print(self.intro)
         while True:
             try:
-                user_input = self.rs_prompt()
-                command = user_input.strip().lower()
-
-                if command == '?':
+                command = self.rs_prompt()
+                self.log.debug(f'run-cmd: {command}')
+                
+                if command[0] == '?':
                     self.show_help()
                     
-                elif command in self.top_level_commands:
-                    self.top_level_commands[command].execute(command)
+                elif command[0] in self.top_level_commands:
+                    self.log.debug(f'run-cmd: {command}')
+                    self.top_level_commands[command[0]].execute(command)
                 
                 else:
                     print(f"Command '{command}' not found.")
@@ -53,3 +59,7 @@ class RouterCLI(RouterPrompt):
         print("Global Commands")
         print("------------------------------------------")         
         print(Global().help())
+        print()
+        print("Show Commands")
+        print("------------------------------------------")         
+        print(Show().help())        

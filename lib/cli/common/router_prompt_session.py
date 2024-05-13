@@ -55,14 +55,23 @@ class RouterPrompt:
         
         self.set_prompt()
         
-    def rs_prompt(self) -> str:
+    def rs_prompt(self, split: bool = True) -> list:
         """
         Displays router prompt and returns user input.
 
+        Args:
+            split (bool, optional): Whether to split the input or not. Defaults to False.
+
         Returns:
-            str: User input from the prompt.
+            str or list: User input from the prompt. If split is True, returns a list of words.
         """
-        return prompt(f'{self.get_prompt()}', completer=self.completer, history=self.history)
+        _ = prompt(f'{self.get_prompt()}', completer=self.completer, history=self.history)
+        
+        if not split:
+            return _
+        
+        return _.split(' ')
+
 
     def register_top_level_commands(self, class_name: Type) -> None:
         """
