@@ -1,10 +1,10 @@
+import subprocess
+import inspect
 import os
 
 from bs4 import Comment
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
-import subprocess
-import inspect
 
 from lib.network_manager.network_mgr import NetworkManager
 
@@ -50,6 +50,10 @@ class Global(NetworkManager):
     def global_reload(self, args=None):
         """reload\t\t\tReboot"""
         self.global_reboot(args=None)
+        return False
+
+    def global_reboot(self, args=None):
+        """reload\t\t\tReboot"""
         return False
 
     def global_version(self, args=None):

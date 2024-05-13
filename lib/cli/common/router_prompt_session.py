@@ -2,6 +2,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import print_formatted_text as print
+from common.common import Common
 
 class RouterPromptSession:
     
@@ -9,7 +10,7 @@ class RouterPromptSession:
         self.top_level_commands = {}
         self.completer = WordCompleter([])
         self.history = InMemoryHistory()
-        self.hostname = "Router"
+        self.hostname = Common.getHostName()
 
     def rs_prompt(self):
         return prompt(f'{self.hostname}> ', completer=self.completer, history=self.history)
