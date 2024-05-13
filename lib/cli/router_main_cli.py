@@ -31,6 +31,7 @@ class RouterCLI(RouterPrompt):
         self.intro = f"\n{banner_motd}\n" if banner_motd else "Welcome to the Router CLI!\n"
 
     def run(self):
+        print(self.intro)
         while True:
             try:
                 user_input = self.rs_prompt()
