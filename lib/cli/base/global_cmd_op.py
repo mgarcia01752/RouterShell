@@ -90,14 +90,11 @@ class Global(NetworkManager):
 
     def global_version(self, args=None):
         """version\t\t\tGet version"""
-        if len(args=None.split()) < 1:
-            print("Takes no arguments")
-            return False
         print("v1.0")
         return False
     
     def global_ping(self, args=None):
-        """ping\t\t\tping"""
+        """ping\t\t\tping <IPv4 address>"""
         self.log.debug(f'ping: {args}')
         
         if isinstance(args, list):

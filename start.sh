@@ -15,8 +15,8 @@ sudo chown "$current_user":"$current_user" /tmp/log
 # Check if there are any arguments
 if [ "$#" -eq 0 ]; then
     # No arguments provided, run main.py
-    src/main.py
+    ${ROUTERSHELL_PROJECT_ROOT}/src/main.py
 else
     # Arguments provided, run test.py
-    src/test.py "$@"
+    ${ROUTERSHELL_PROJECT_ROOT}/src/test.py "$@"
 fi
