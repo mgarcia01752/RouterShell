@@ -25,15 +25,27 @@ class Show():
         self._generate_command_dict()
         
         
-    def execute(self, subcommand: str = None) -> None:
+    def execute(self, subcommand: list = None) -> bool:
         """
         Executes a subcommand.
 
         Args:
-            subcommand (str, optional): Subcommand to execute. Defaults to None.
+            subcommand (list, optional): Subcommand to execute. Defaults to None.
+        
+        Returns:
+            bool: Status indicating whether the execution was successful.
         """
         if subcommand:
-            getattr(self, f"{self.CLASS_NAME}_{subcommand}")()
+            self.log.debug(f'Subcommand: {subcommand}')
+
+            if len(subcommand) > 1 and subcommand[0] == self.CLASS_NAME:
+                getattr(self, f"{self.CLASS_NAME}_{subcommand[1]}")()
+            else:
+                self.log.error('Invalid subcommand format')
+                return STATUS_NOK
+        
+        return STATUS_OK
+
 
     def class_methods(self) -> list:
         """

@@ -38,6 +38,7 @@ class RouterCLI(RouterPrompt):
     def run(self):
         print(self.intro)
         while True:
+
             try:
                 command = self.rs_prompt()
                 self.log.debug(f'run-cmd: {command}')
@@ -45,9 +46,9 @@ class RouterCLI(RouterPrompt):
                 if command[0] == '?':
                     self.show_help()
                     
-                elif command[0] in self.top_level_commands:
+                elif command[1] in self.top_level_commands:
                     self.log.debug(f'run-cmd: {command}')
-                    self.top_level_commands[command[0]].execute(command)
+                    self.top_level_commands[command[1]].execute(command)
                 
                 else:
                     print(f"Command '{command}' not found.")

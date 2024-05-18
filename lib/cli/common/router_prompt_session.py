@@ -46,10 +46,10 @@ class RouterPrompt:
         
         '''Start Prompt Router>'''
         self._prompt_dict = {
-                    'Hostname' : self.DEF_START_HOSTNAME,
-                    'ConfigMode' : self.DEF_NO_CONFIG_MODE_PROMPT,
-                    'ExecModePrompt' : self.USER_MODE_PROMPT
-                   }
+            'Hostname' : self.DEF_START_HOSTNAME,
+            'ConfigMode' : self.DEF_NO_CONFIG_MODE_PROMPT,
+            'ExecModePrompt' : self.USER_MODE_PROMPT
+        }
         
         if (Common.getHostName() is None):
             self.hostname = self.DEF_START_HOSTNAME
@@ -87,7 +87,6 @@ class RouterPrompt:
             self.log.debug(f'Top-Level-Cmd: {cmd} -> Class: {class_name}')
         
         self.completer = NestedCompleter.from_nested_dict(class_name.get_command_dict())
-
 
     def set_prompt(self) -> str:
         '''
@@ -174,4 +173,3 @@ class RouterPrompt:
             str: The prompt hostname.
         """
         return self._prompt_dict['Hostname']
-
