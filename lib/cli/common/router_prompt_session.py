@@ -3,6 +3,7 @@ import logging
 from prompt_toolkit import prompt
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
 from common.common import Common
 from typing import Type
@@ -72,7 +73,6 @@ class RouterPrompt:
         
         return _.split(' ')
 
-
     def register_top_level_commands(self, class_name: Type) -> None:
         """
         Registers top-level commands for the router prompt session.
@@ -84,8 +84,10 @@ class RouterPrompt:
 
         for cmd in cmd_list:
             self.top_level_commands[cmd] = class_name
+            self.log.debug(f'Top-Level-Cmd: {cmd} -> Class: {class_name}')
         
-        self.completer = WordCompleter(list(self.top_level_commands.keys()))
+        self.completer = NestedCompleter.from_nested_dict(class_name.get_command_dict())
+
 
     def set_prompt(self) -> str:
         '''

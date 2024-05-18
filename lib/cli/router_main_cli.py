@@ -59,7 +59,4 @@ class RouterCLI(RouterPrompt):
         print("Global Commands")
         print("------------------------------------------")         
         print(Global().help())
-        print()
-        print("Show Commands")
-        print("------------------------------------------")         
-        print(Show().help())        
+        print()     

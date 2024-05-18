@@ -22,7 +22,35 @@ class Global(NetworkManager):
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().GLOBAL_MODE)
+        
+        self._generate_command_dict()
+ 
+    def _generate_command_dict(self) -> dict:
+        """
+        Generate a nested dictionary for command completion based on class methods.
 
+        Returns:
+            dict: Nested dictionary for command completion.
+        """
+        self._nested_dict = {}
+
+        commands = self.get_command_list()
+        self.log.debug(f'Class Commands: {commands}')
+
+        for cmd in commands:
+            parts = cmd.split('_')
+            current_level = self._nested_dict
+            for part in parts:
+                if part not in current_level:
+                    current_level[part] = {None}
+                current_level = current_level[part]
+
+        self.log.debug(f'Nested-Cmds: {self._nested_dict}')
+        return self._nested_dict
+   
+    def get_command_dict(self):
+        return self._nested_dict
+    
     def execute(self, subcommand: list) -> None:
         """
         Executes a subcommand.

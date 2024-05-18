@@ -11,7 +11,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 
 class Show():
 
-    def __init__(self) -> None:
+    def __init__(self, args: str=None) -> None:
         """
         Initializes Global instance.
         """
@@ -19,7 +19,12 @@ class Show():
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SHOW_MODE)
-
+        
+        self.log.debug(f'ARGS: {args}')
+        
+        self._generate_command_dict()
+        
+        
     def execute(self, subcommand: str = None) -> None:
         """
         Executes a subcommand.
@@ -50,6 +55,33 @@ class Show():
         elements = self.class_methods()
         prefix_length = len(self.CLASS_NAME) + 1
         return [element[prefix_length:] if element.startswith(f"{self.CLASS_NAME}_") else element for element in elements]
+
+    def _generate_command_dict(self) -> dict:
+        """
+        Generate a nested dictionary for command completion based on class methods.
+
+        Returns:
+            dict: Nested dictionary for command completion.
+        """
+        commands = self.get_command_list()
+        self._nested_dict = {self.CLASS_NAME: {}}
+
+        for cmd in commands:
+            parts = cmd.split('_')
+            current_level = self._nested_dict[self.CLASS_NAME]
+            for part in parts:
+                self.log.debug(f'Part: {part} -> {parts}')
+                if part not in current_level:
+                    current_level[part] = {None}
+                current_level = current_level[part]
+
+        self.log.debug(f'Nested-Cmds: {self._nested_dict}')
+        
+        return self._nested_dict
+
+    
+    def get_command_dict(self):
+        return self._nested_dict
 
     def help(self) -> None:
         """
