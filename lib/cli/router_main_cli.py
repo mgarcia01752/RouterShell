@@ -23,8 +23,9 @@ class RouterCLI(RouterPrompt):
         super().__init__()
         SystemStartUp()
         RouterPrompt.__init__(self)
-        self.register_top_level_commands(Global())
-        self.register_top_level_commands(Show())
+        
+        self.register_top_lvl_cmds(Global())
+        self.register_top_lvl_cmds(Show())
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTERCLI)
@@ -37,21 +38,23 @@ class RouterCLI(RouterPrompt):
 
     def run(self):
         print(self.intro)
+        
+        self.log.debug(self._register_top_lvl_cmds)
+        
         while True:
-
+            
             try:
                 command = self.rs_prompt()
                 self.log.debug(f'run-cmd: {command}')
                 
                 if command[0] == '?':
                     self.show_help()
-                    
-                elif command[1] in self.top_level_commands:
-                    self.log.debug(f'run-cmd: {command}')
-                    self.top_level_commands[command[1]].execute(command)
+                
+                elif self.get_top_level_cmd_object(command).execute(command[1:]) == STATUS_OK:
+                    pass
                 
                 else:
-                    print(f"Command '{command}' not found.")
+                    print(f"Command {command} not found.")
             
             except KeyboardInterrupt:
                 continue

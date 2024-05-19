@@ -4,25 +4,87 @@ import inspect
 import os
 
 from lib.cli.base.exec_priv_mode import ExecMode
-from lib.cli.common.CommandClassInterface import CmdInterface, CmdPrompt
+from lib.cli.common.CommandClassInterface import CmdInterface
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 from lib.network_manager.network_mgr import NetworkManager
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-class Global(CmdPrompt, NetworkManager):
+class Global(NetworkManager):
     """
     Class representing global commands.
+    Inherits from NetworkManager.
     """
 
     def __init__(self) -> None:
         """
         Initializes Global instance.
         """
-        super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
-        
+        self.CLASS_NAME = self.__class__.__name__.lower()
+
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().GLOBAL_MODE)
         
+        self._generate_command_dict()
+ 
+    def _generate_command_dict(self) -> dict:
+        """
+        Generate a nested dictionary for command completion based on class methods.
+
+        Returns:
+            dict: Nested dictionary for command completion.
+        """
+        self._nested_dict = {}
+
+        commands = self.get_command_list()
+        self.log.debug(f'Class Commands: {commands}')
+
+        for cmd in commands:
+            parts = cmd.split('_')
+            current_level = self._nested_dict
+            for part in parts:
+                if part not in current_level:
+                    current_level[part] = {None}
+                current_level = current_level[part]
+
+        self.log.debug(f'Nested-Cmds: {self._nested_dict}')
+        return self._nested_dict
+   
+    def get_command_dict(self):
+        return self._nested_dict
+    
+    def execute(self, subcommand: list) -> None:
+        """
+        Executes a subcommand.
+
+        Args:
+            subcommand (str, optional): Subcommand to execute. Defaults to None.
+        """
+        # Check its a list
+        self.log.debug(f'execute: {subcommand}')
+        if subcommand:
+            getattr(self, f"{self.CLASS_NAME}_{subcommand[0]}")(subcommand[1:])
+
+    def class_methods(self) -> list:
+        """
+        Get a list of class methods.
+
+        Returns:
+            list: List of class methods.
+        """
+        return [attr for attr in dir(self) if attr.startswith(f'{self.CLASS_NAME}') 
+                and inspect.ismethod(getattr(self, attr))]
+  
+    def get_command_list(self) -> list:
+        """
+        Get a list of available commands.
+
+        Returns:
+            list: List of available commands.
+        """
+        elements = self.class_methods()
+        prefix_length = len(self.CLASS_NAME) + 1
+        return [element[prefix_length:] if element.startswith(f"{self.CLASS_NAME}_") else element for element in elements]
+
     def help(self) -> None:
         """
         Display help for available commands.

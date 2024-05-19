@@ -6,8 +6,9 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
 from common.common import Common
-from typing import Type
+from typing import List, Union
 
+from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_OK
@@ -25,7 +26,7 @@ class RouterPrompt:
     PROMPT_MAX_LENGTH = 2
 
     DEF_PREFIX_START = ""
-    DEF_START_HOSTNAME = "Router"
+    DEF_START_HOSTNAME = "RouterShell"
     DEF_CONFIG_MODE_PROMPT = 'config'
     DEF_NO_CONFIG_MODE_PROMPT = None
     PREFIX_SEP = ':'
@@ -37,9 +38,11 @@ class RouterPrompt:
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_PROMPT)
-                
+        
+        self._register_top_lvl_cmds = {}
+        self._command_dict_completer = {}
+        
         self.execute_mode = exec_mode
-        self.top_level_commands = {}
         self.completer = WordCompleter([])
         self.history = InMemoryHistory()
         self.hostname = Common.getHostName()
@@ -54,14 +57,14 @@ class RouterPrompt:
         if (Common.getHostName() is None):
             self.hostname = self.DEF_START_HOSTNAME
         
-        self.set_prompt()
+        self.update_prompt()
         
     def rs_prompt(self, split: bool = True) -> list:
         """
         Displays router prompt and returns user input.
 
         Args:
-            split (bool, optional): Whether to split the input or not. Defaults to False.
+            split (bool, optional): Whether to split the output. Defaults to False.
 
         Returns:
             str or list: User input from the prompt. If split is True, returns a list of words.
@@ -73,32 +76,42 @@ class RouterPrompt:
         
         return _.split(' ')
 
-    def register_top_level_commands(self, class_name: Type) -> None:
+    def register_top_lvl_cmds(self, class_name: CmdPrompt) -> bool:
         """
-        Registers top-level commands for the router prompt session.
+        Register top-level commands for the router prompt session.
 
         Args:
             class_name (Type): Class containing top-level commands.
+            class_nested_cmds (bool, optional): Whether the commands are nested or not. Defaults to False.
+        
+        Returns:
+            bool: Status indicating whether the registration was successful.
         """
         cmd_list = class_name.get_command_list()
 
         for cmd in cmd_list:
-            self.top_level_commands[cmd] = class_name
-            self.log.debug(f'Top-Level-Cmd: {cmd} -> Class: {class_name}')
-        
-        self.completer = NestedCompleter.from_nested_dict(class_name.get_command_dict())
+            
+            if not class_name.isGlobal():
+                cmd = class_name.getClassStartCmd() + '_' + cmd
+            
+            self.log.debug(f'Top-Level-Cmd: {cmd}\tClass: {class_name}')
+                        
+            self._register_top_lvl_cmds[cmd] = class_name
+            
+            self._command_dict_completer.update(class_name.get_command_dict())
+            
+        self.completer = NestedCompleter.from_nested_dict(self._command_dict_completer)
 
-    def set_prompt(self) -> str:
+        return STATUS_OK
+
+    def update_prompt(self) -> str:
         '''
-        Set the router command prompt based on the current configuration mode and optional interface name.
-
-        Args:
-            interface_name (str, optional): The interface name when in CONFIG_MODE. Defaults to None.
+        Update the router command prompt based on the current configuration mode and optional interface name.
 
         Returns:
             str: The formatted command prompt string.
         '''
-        self.log.debug(f"set_prompt() -> Execute-Mode: {self.execute_mode}")
+        self.log.debug(f"update_prompt() -> Execute-Mode: {self.execute_mode}")
         
         self.update_prompt_hostname()        
         self.prompt_parts = [self._prompt_dict['Hostname']]
@@ -173,3 +186,27 @@ class RouterPrompt:
             str: The prompt hostname.
         """
         return self._prompt_dict['Hostname']
+
+    def get_top_level_cmd_object(self, cmd: List[str]) -> Union[CmdPrompt, None]:
+        """
+        Retrieve the top-level command object.
+
+        Args:
+            cmd (List[str]): List of command parts to search for.
+
+        Returns:
+            Union[CmdPrompt, None]: The command object if found, else None.
+        """
+        self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" for key, value in self._register_top_lvl_cmds.items()]))
+
+        # Check to see if key exists exactly
+        if cmd[0] in self._register_top_lvl_cmds:
+            self.log.debug(f'Command Found: {cmd[0]}')
+            return self._register_top_lvl_cmds[cmd[0]]
+        
+        combined_cmd = '_'.join(cmd[:2])
+        if combined_cmd in self._register_top_lvl_cmds:
+            self.log.debug(f'Command Found: {combined_cmd}')
+            return self._register_top_lvl_cmds[combined_cmd]
+                
+        return None
