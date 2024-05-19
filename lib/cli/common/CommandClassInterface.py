@@ -102,6 +102,41 @@ class CmdPrompt(CmdInterface):
         self.log.setLevel(RSLGS().CMD_PROMPT)
         
         self._generate_command_dict()
+
+    def _generate_command_dict(self) -> dict:
+        """
+        Generate a nested dictionary for command completion based on class methods.
+
+        Returns:
+            dict: Nested dictionary for command completion.
+        """
+        commands = self.get_command_list()
+        
+        if not self.isGlobal():
+            self._nested_dict = {self.CLASS_NAME: {}}
+
+        for cmd in commands:
+            
+            parts = cmd.split('_')
+            self.log.debug(f'cmd-parts: {parts}')
+            
+            if not self.isGlobal():
+                nest_dict_key_value = self._nested_dict[self.CLASS_NAME]
+                
+            else:
+                nest_dict_key_value = self._nested_dict
+                
+            self.log.debug(f'cmd-parts: {nest_dict_key_value}')
+            
+            for part in parts:
+                self.log.debug(f'Part: {part} -> {parts}')
+                if part not in nest_dict_key_value:
+                    nest_dict_key_value[part] = {None}
+                nest_dict_key_value = nest_dict_key_value[part]
+
+        self.log.debug(f'Nested-Cmds: {self._nested_dict}')
+        
+        return self._nested_dict
         
     def getClassStartCmd(self) -> str:
         """
@@ -123,8 +158,11 @@ class CmdPrompt(CmdInterface):
         Returns:
             bool: STATUS_OK indicating the execution was successful, else STATUS_NOK.
         """
-        if subcommand is None:
+        if not subcommand:
+            self.log.error(f'SubCommand Not Found')
             return STATUS_NOK
+        
+        self.log.debug(f'SubCmd: {subcommand}')
         
         in_class_method = f'{self.getClassStartCmd()}_{subcommand[0]}'
         self.log.debug(f'Subcommand: {subcommand} - InClassSearch: {in_class_method}')
@@ -159,40 +197,6 @@ class CmdPrompt(CmdInterface):
         elements = self.class_methods()
         prefix_length = len(self.CLASS_NAME) + 1
         return [element[prefix_length:] if element.startswith(f"{self.CLASS_NAME}_") else element for element in elements]
-
-    def _generate_command_dict(self) -> dict:
-        """
-        Generate a nested dictionary for command completion based on class methods.
-
-        Returns:
-            dict: Nested dictionary for command completion.
-        """
-        commands = self.get_command_list()
-        
-        if not self.isGlobal():
-            self._nested_dict = {self.CLASS_NAME: {}}
-
-        for cmd in commands:
-            parts = cmd.split('_')
-            self.log.debug(f'cmd-parts: {parts}')
-            
-            if not self.isGlobal():
-                nest_dict_key_value = self._nested_dict[self.CLASS_NAME]
-                
-            else:
-                nest_dict_key_value = self._nested_dict
-                
-            self.log.debug(f'cmd-parts: {nest_dict_key_value}')
-            
-            for part in parts:
-                self.log.debug(f'Part: {part} -> {parts}')
-                if part not in nest_dict_key_value:
-                    nest_dict_key_value[part] = {None}
-                nest_dict_key_value = nest_dict_key_value[part]
-
-        self.log.debug(f'Nested-Cmds: {self._nested_dict}')
-        
-        return self._nested_dict
 
     def get_command_dict(self):
         """

@@ -58,6 +58,13 @@ class RouterPrompt:
             self.hostname = self.DEF_START_HOSTNAME
         
         self.update_prompt()
+    
+    def _print_top_lvl_cmds(self):
+        """
+        Print the top-level commands with each key-value pair on a new line.
+        """
+        formatted_cmds = "\n".join([f"{key}\t\t\t{value}" for key, value in self._register_top_lvl_cmds.items()])
+        self.log.debug(f"TOP-LVL-CMD:\n{formatted_cmds}")
         
     def rs_prompt(self, split: bool = True) -> list:
         """
@@ -201,12 +208,14 @@ class RouterPrompt:
 
         # Check to see if key exists exactly
         if cmd[0] in self._register_top_lvl_cmds:
-            self.log.debug(f'Command Found: {cmd[0]}')
+            self.log.debug(f'Command Found (Global): {cmd[0]}')
             return self._register_top_lvl_cmds[cmd[0]]
         
         combined_cmd = '_'.join(cmd[:2])
         if combined_cmd in self._register_top_lvl_cmds:
-            self.log.debug(f'Command Found: {combined_cmd}')
+            self.log.debug(f'Command Found (Non-Global): {combined_cmd}')
             return self._register_top_lvl_cmds[combined_cmd]
-                
+        
+        self.log.debug(f'cmd: {cmd} - No Match!!!')
+        
         return None

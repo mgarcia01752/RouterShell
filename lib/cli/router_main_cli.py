@@ -39,7 +39,7 @@ class RouterCLI(RouterPrompt):
     def run(self):
         print(self.intro)
         
-        self.log.debug(self._register_top_lvl_cmds)
+        self._print_top_lvl_cmds()
         
         while True:
             
@@ -50,8 +50,13 @@ class RouterCLI(RouterPrompt):
                 if command[0] == '?':
                     self.show_help()
                 
-                elif self.get_top_level_cmd_object(command).execute(command[1:]) == STATUS_OK:
-                    pass
+                cmd_args = command[1:]
+                if len(command) == 1:
+                    self.log.debug(f'cmd-length == 1 -> {command}')
+                    cmd_args = command
+                 
+                if self.get_top_level_cmd_object(command).execute(cmd_args) == STATUS_OK:
+                    self.log.debug(f'Command: {command} -> args: {cmd_args} - Executed!!!')
                 
                 else:
                     print(f"Command {command} not found.")
