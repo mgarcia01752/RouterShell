@@ -5,9 +5,9 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
-from common.common import Common
 from typing import List, Union
 
+from common.common import Common
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.base.exec_priv_mode import ExecMode
