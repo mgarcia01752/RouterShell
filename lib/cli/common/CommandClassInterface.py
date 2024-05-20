@@ -164,6 +164,10 @@ class CmdPrompt(CmdInterface):
         
         self.log.debug(f'SubCmd: {subcommand}')
         
+        if subcommand[0] == '?':
+            self.help()
+            return STATUS_OK
+        
         in_class_method = f'{self.getClassStartCmd()}_{subcommand[0]}'
         self.log.debug(f'Subcommand: {subcommand} - InClassSearch: {in_class_method}')
 

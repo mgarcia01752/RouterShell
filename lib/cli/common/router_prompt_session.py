@@ -40,7 +40,7 @@ class RouterPrompt:
         self.log.setLevel(RSLGS().ROUTER_PROMPT)
         
         self._register_top_lvl_cmds = {}
-        self._command_dict_completer = {}
+        self._command_dict_completer = {'enable':{None}}
         
         self.execute_mode = exec_mode
         self.completer = WordCompleter([])
@@ -77,6 +77,11 @@ class RouterPrompt:
             str or list: User input from the prompt. If split is True, returns a list of words.
         """
         _ = prompt(f'{self.get_prompt()}', completer=self.completer, history=self.history)
+        
+        if _.split(' ')[0] == 'enable':
+            self.execute_mode = ExecMode.PRIV_MODE
+            self.update_prompt()
+            return ''
         
         if not split:
             return _
@@ -170,6 +175,7 @@ class RouterPrompt:
             None
         '''
         self.execute_mode = execute_mode
+        self.update_prompt()
 
     def get_exec_mode(self) -> ExecMode:
         return self.execute_mode
@@ -204,7 +210,8 @@ class RouterPrompt:
         Returns:
             Union[CmdPrompt, None]: The command object if found, else None.
         """
-        self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" for key, value in self._register_top_lvl_cmds.items()]))
+        self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" \
+            for key, value in self._register_top_lvl_cmds.items()]))
 
         # Check to see if key exists exactly
         if cmd[0] in self._register_top_lvl_cmds:

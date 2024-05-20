@@ -36,31 +36,38 @@ class RouterCLI(RouterPrompt):
         banner_motd = SystemConfig().get_banner()
         self.intro = f"\n{banner_motd}\n" if banner_motd else "Welcome to the Router CLI!\n"
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Run the command prompt interface, processing user input in a loop.
+        """
         print(self.intro)
         
         self._print_top_lvl_cmds()
         
         while True:
-            
             try:
                 command = self.rs_prompt()
                 self.log.debug(f'run-cmd: {command}')
-                
+
+                if not command or not command[0]:
+                    continue
+
                 if command[0] == '?':
                     self.show_help()
+                    continue
                 
-                cmd_args = command[1:]
-                if len(command) == 1:
-                    self.log.debug(f'cmd-length == 1 -> {command}')
-                    cmd_args = command
-                 
-                if self.get_top_level_cmd_object(command).execute(cmd_args) == STATUS_OK:
-                    self.log.debug(f'Command: {command} -> args: {cmd_args} - Executed!!!')
+                cmd_args = command[1:] if len(command) > 1 else command
+
+                top_level_cmd_obj = self.get_top_level_cmd_object(command)
                 
+                if top_level_cmd_obj:
+                    
+                    if top_level_cmd_obj.execute(cmd_args) == STATUS_OK:
+                        self.log.debug(f'Command: {command} -> args: {cmd_args} - Executed!!!')
+                    
                 else:
                     print(f"Command {command} not found.")
-            
+
             except KeyboardInterrupt:
                 continue
 
