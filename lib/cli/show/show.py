@@ -34,9 +34,9 @@ class Show(CmdPrompt):
         BridgeShow().bridge(args)
 
     #@CmdPrompt.register_command('dhcp', subcommands=['client', 'up', 'down', 'left', 'right'])
-    @CmdPrompt.register_command('dhcp', subcommands=['client', 'up'])
-    @CmdPrompt.register_command('dhcp', subcommands=['client', 'down'])
-    @CmdPrompt.register_command('dhcp', subcommands=['client', 'left'])
-    @CmdPrompt.register_command('dhcp', subcommands=['client', 'right'])
+    @CmdPrompt.register_command(subcommands=['client', 'up'])
+    @CmdPrompt.register_command(subcommands=['client', 'down'])
+    @CmdPrompt.register_command(subcommands=['client', 'left'])
+    @CmdPrompt.register_command(subcommands=['client', 'right'])
     def show_dhcp(self, args=None):
         pass

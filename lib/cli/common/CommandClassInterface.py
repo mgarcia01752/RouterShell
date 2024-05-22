@@ -2,6 +2,7 @@ import inspect
 import logging
 
 from abc import ABC, abstractmethod
+import re
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
@@ -223,14 +224,26 @@ class CmdPrompt(CmdInterface):
         pass
 
     @classmethod
-    def register_command(self, base_class_command, subcommands: list = None):
+    def register_command(cls, subcommands: list = None):
         
         def decorator(func):
+            
+            method_name = func.__name__
+
+            if not bool(re.search(r'\b[a-zA-Z]+_[a-zA-Z]+\b', method_name)):
+                logging.fatal(f'Method Call ({method_name}) does not contain a \'_\' ')
+                exit()
+
+            command_parts = method_name.split('_')
+            
+            print(f'Target Method : {method_name} -> Parts: {command_parts}')
+            
             logging.debug('-----------------------------------------------------------------')
             logging.debug(f'Start -> {CmdPrompt._nested_dict}')
             
             # Accessing class methods using self
-            class_start_cmd = 'show'
+            class_start_cmd = command_parts[0]
+            base_cmd = command_parts[1]
 
             # Check if the class name is the leading dict member
             if class_start_cmd not in CmdPrompt._nested_dict.keys():
@@ -241,18 +254,21 @@ class CmdPrompt(CmdInterface):
             logging.debug(f'\nregister_command-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {subcommands}')
 
             # Get the class base commands
-            if base_class_command not in current_level:
-                logging.debug(f'Create cmd key: {base_class_command}')
-                current_level[base_class_command] = {}
+            if base_cmd not in current_level:
+                logging.debug(f'Create cmd key: {base_cmd}')
+                current_level[base_cmd] = {}
 
             if subcommands:
                 logging.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {subcommands}')
-                CmdPrompt._insert_sub_command(current_level[base_class_command], subcommands)
+                CmdPrompt._insert_sub_command(current_level[base_cmd], subcommands)
 
             logging.debug(f'End -> {CmdPrompt._nested_dict}')
             logging.debug("")
             
-            # No need for a wrapper if it just calls the original function
+            def wrapper(*args, **kwargs):
+                print(f'Executing {func.__name__} with arguments: {args}, {kwargs}')
+                return func(*args, **kwargs)
+            
             return func
 
         return decorator
