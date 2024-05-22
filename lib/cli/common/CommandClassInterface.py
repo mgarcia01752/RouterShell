@@ -250,7 +250,7 @@ class CmdPrompt(CmdInterface):
                 CmdPrompt._insert_sub_command(current_level[base_class_command], subcommands)
 
             logging.debug(f'End -> {CmdPrompt._nested_dict}')
-            logging.debug()
+            logging.debug("")
             
             # No need for a wrapper if it just calls the original function
             return func
@@ -283,7 +283,7 @@ class CmdPrompt(CmdInterface):
                 # Recurse with the new dictionary level
                 CmdPrompt._insert_sub_command(cmd_dict[sub_cmd], sub_cmd_list[1:])
                 
-        print(f'Updated cmd_dict: {cmd_dict}')
+        logging.debug(f'Updated cmd_dict: {cmd_dict}')
         return cmd_dict
 
 
