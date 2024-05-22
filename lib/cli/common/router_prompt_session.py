@@ -40,10 +40,10 @@ class RouterPrompt:
         self.log.setLevel(RSLGS().ROUTER_PROMPT)
         
         self._register_top_lvl_cmds = {}
-        self._command_dict_completer = {'enable':{None}}
+        self._command_dict_completer = {'enable':{}}
         
         self.execute_mode = exec_mode
-        self.completer = WordCompleter([])
+        self.completer = NestedCompleter([])
         self.history = InMemoryHistory()
         self.hostname = Common.getHostName()
         

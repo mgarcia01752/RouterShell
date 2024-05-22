@@ -86,6 +86,9 @@ class CmdPrompt(CmdInterface):
     Implementation of command prompt interface.
     """
 
+    _nested_dict = {}
+    
+    
     def __init__(self, global_commands: bool, exec_mode: ExecMode) -> None:
         """
         Initializes command prompt instance.
@@ -96,12 +99,11 @@ class CmdPrompt(CmdInterface):
         """
         self.CLASS_NAME = self.__class__.__name__.lower()
         self.IS_GLOBAL = global_commands
-        self._nested_dict = {}
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CMD_PROMPT)
         
-        self._generate_command_dict()
+        # self._generate_command_dict()
 
     def _generate_command_dict(self) -> dict:
         """
@@ -113,7 +115,7 @@ class CmdPrompt(CmdInterface):
         commands = self.get_command_list()
         
         if not self.isGlobal():
-            self._nested_dict = {self.CLASS_NAME: {}}
+            CmdPrompt._nested_dict = {self.CLASS_NAME: {}}
 
         for cmd in commands:
             
@@ -121,22 +123,22 @@ class CmdPrompt(CmdInterface):
             self.log.debug(f'cmd-parts: {parts}')
             
             if not self.isGlobal():
-                nest_dict_key_value = self._nested_dict[self.CLASS_NAME]
+                nest_dict_key_value = CmdPrompt._nested_dict[self.CLASS_NAME]
                 
             else:
-                nest_dict_key_value = self._nested_dict
+                nest_dict_key_value = CmdPrompt._nested_dict
                 
             self.log.debug(f'cmd-parts: {nest_dict_key_value}')
             
             for part in parts:
                 self.log.debug(f'Part: {part} -> {parts}')
                 if part not in nest_dict_key_value:
-                    nest_dict_key_value[part] = {None}
+                    nest_dict_key_value[part] = {}
                 nest_dict_key_value = nest_dict_key_value[part]
 
-        self.log.debug(f'Nested-Cmds: {self._nested_dict}')
+        self.log.debug(f'Nested-Cmds: {CmdPrompt._nested_dict}')
         
-        return self._nested_dict
+        return CmdPrompt._nested_dict
         
     def getClassStartCmd(self) -> str:
         """
@@ -209,13 +211,124 @@ class CmdPrompt(CmdInterface):
         Returns:
             dict: Nested dictionary of available commands.
         """
-        return self._nested_dict
+        return CmdPrompt._nested_dict
     
     def isGlobal(self) -> bool:
         return self.IS_GLOBAL
     
-    def help() -> None:
+    def help(self) -> None:
         """
         Display help for available commands.
         """
         pass
+
+
+    @classmethod
+    def register_command(self, base_class_command, subcommands: list = None):
+        
+        def decorator(func):
+            print('-----------------------------------------------------------------')
+            print(f'Start -> {CmdPrompt._nested_dict}')
+            
+            # Accessing class methods using self
+            class_start_cmd = 'show'
+
+            # Check if the class name is the leading dict member
+            if class_start_cmd not in CmdPrompt._nested_dict.keys():
+                print(f'Create top key: {class_start_cmd}')
+                CmdPrompt._nested_dict[class_start_cmd] = {}
+
+            current_level = CmdPrompt._nested_dict[class_start_cmd]
+            print(f'\nregister_command-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {subcommands}')
+
+            # Get the class base commands
+            if base_class_command not in current_level:
+                print(f'Create cmd key: {base_class_command}')
+                current_level[base_class_command] = {}
+
+            if subcommands:
+                print(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {subcommands}')
+                CmdPrompt._insert_sub_command(current_level[base_class_command], subcommands)
+
+            print(f'End -> {CmdPrompt._nested_dict}')
+            print()
+            
+            # No need for a wrapper if it just calls the original function
+            return func
+
+        return decorator
+
+    @staticmethod
+    def _insert_sub_command_TMP(cmd_dict: dict, sub_cmd_list: list) -> dict:
+        
+        print(f'insert_sub_command-Start ({cmd_dict} -> {sub_cmd_list})')
+
+        for sub_cmd in sub_cmd_list:
+            
+            print(f'insert_sub_command -> {cmd_dict} -> {sub_cmd_list} -> {sub_cmd}')
+            
+            if sub_cmd not in cmd_dict:
+                
+                print(f'Create sub_cmd key: {sub_cmd}')
+                
+                temp = {}
+                temp[sub_cmd] = temp
+                
+                if cmd_dict:
+                    print(f'Inserting -> {temp} into: {cmd_dict}')
+                    cmd_dict[next(iter(cmd_dict))] = temp
+                    
+                else:
+                    cmd_dict = temp
+                
+                print(f'insert_sub_command(Update-Next) -> {cmd_dict} -> curr-sub-cmd: ({sub_cmd}) -> new-cmd-list: {sub_cmd_list[1:]}')
+                
+                CmdPrompt._insert_sub_command(temp, sub_cmd_list[1:])
+                
+                print(f'insert_sub_command(Updated) -> {cmd_dict}')
+                
+            else:
+                
+                print(f'insert_sub_command ({sub_cmd} found in keys) -> {cmd_dict} -> {sub_cmd_list[1:]} -> {sub_cmd} -> {cmd_dict[sub_cmd]}')
+                
+                CmdPrompt._insert_sub_command(cmd_dict, sub_cmd_list[1:])
+                
+                return cmd_dict
+            
+            return cmd_dict
+        
+        print (f'insert_sub_command-END -> {cmd_dict}')
+        print(f'-----------------------------------------------------------------\n')
+        return cmd_dict
+    
+    @staticmethod
+    def _insert_sub_command(cmd_dict: dict, sub_cmd_list: list) -> dict:
+        print('----------------------------------------------------------------')
+        print(f'insert_sub_command-Start ({cmd_dict} -> {sub_cmd_list})')
+
+        if sub_cmd_list:
+            # Get the first entry
+            sub_cmd = sub_cmd_list[0]
+
+            # Check if sub-cmd is a key, if so, we access the key to insert the next sub-cmd
+            if sub_cmd in cmd_dict:
+                print(f'Extending ({sub_cmd}) in {cmd_dict}')
+                tmp_cmd_dict = cmd_dict[sub_cmd]
+                CmdPrompt._insert_sub_command(tmp_cmd_dict, sub_cmd_list[1:])
+            else:
+                print(f'Adding ({sub_cmd}) in {cmd_dict}')
+
+                # Create a new dictionary for the new sub-command
+                cmd_dict[sub_cmd] = {}
+
+                print(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
+                
+                # Recurse with the new dictionary level
+                CmdPrompt._insert_sub_command(cmd_dict[sub_cmd], sub_cmd_list[1:])
+                
+        print(f'Updated cmd_dict: {cmd_dict}')
+        return cmd_dict  # Optionally return the updated dictionary for verification
+
+
+    def get_command_registry(self):
+        return CmdPrompt._nested_dict
