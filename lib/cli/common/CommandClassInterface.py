@@ -1,10 +1,9 @@
 import inspect
 import logging
+import re
 
 from abc import ABC, abstractmethod
-import re
-import time
-from typing import List
+from typing import Dict, List, Optional
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
@@ -228,8 +227,17 @@ class CmdPrompt(CmdInterface):
         pass
 
     @classmethod
-    def register_sub_commands(cls, subcommands: list = None, help: str = None):
-        
+    def register_sub_commands(cls, subcommands: Optional[List[str]] = None, help: Optional[str] = None):
+        """
+        Decorator function for registering sub-commands along with their help messages.
+
+        Args:
+            subcommands (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
+            help (Optional[str]): The help message associated with the sub-commands. Defaults to None.
+
+        Returns:
+            Callable: The decorator function.
+        """  
         def decorator(func):
             
             method_name = func.__name__
@@ -325,8 +333,30 @@ class CmdPrompt(CmdInterface):
         return str_hash
     
     @classmethod
-    def get_help(cls, cmd_list_hash:str) -> str:
-        return CmdPrompt._help_dict[cmd_list_hash]
+    def get_help(cls, cmd_list_hash: str) -> str:
+        """
+        Get the help message associated with the given command list hash.
 
-    def get_command_registry(self):
-        return CmdPrompt._nested_dict
+        Args:
+            cmd_list_hash (str): The hash value of the command list.
+
+        Returns:
+            str: The help message associated with the command list hash, or an error message if the hash is not found.
+        """
+        try:
+            return cls._help_dict[cmd_list_hash]
+        except KeyError:
+            return f"Error: Help message for hash '{cmd_list_hash}' not found."
+
+    def get_command_registry(self) -> Dict[str, dict]:
+        """
+        Get the command registry containing nested dictionaries of available commands.
+
+        Returns:
+            Dict[str, dict]: The nested dictionary of available commands.
+        """
+        try:
+            return self._nested_dict
+        except AttributeError:
+            # Handle case where _nested_dict is not found
+            return {}
