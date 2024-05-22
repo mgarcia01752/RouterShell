@@ -3,9 +3,12 @@ import logging
 
 from abc import ABC, abstractmethod
 import re
+import time
+from typing import List
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.strings import StringFormats
 
 class CmdInterface(ABC):
     """
@@ -88,6 +91,7 @@ class CmdPrompt(CmdInterface):
     """
 
     _nested_dict = {}
+    _help_dict = {}
     
     
     def __init__(self, global_commands: bool, exec_mode: ExecMode) -> None:
@@ -224,7 +228,7 @@ class CmdPrompt(CmdInterface):
         pass
 
     @classmethod
-    def register_command(cls, subcommands: list = None):
+    def register_sub_commands(cls, subcommands: list = None, help: str = None):
         
         def decorator(func):
             
@@ -249,7 +253,7 @@ class CmdPrompt(CmdInterface):
                 CmdPrompt._nested_dict[class_start_cmd] = {}
 
             current_level = CmdPrompt._nested_dict[class_start_cmd]
-            logging.debug(f'\nregister_command-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {subcommands}')
+            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {subcommands}')
 
             # Get the class base commands
             if base_cmd not in current_level:
@@ -259,6 +263,11 @@ class CmdPrompt(CmdInterface):
             if subcommands:
                 logging.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {subcommands}')
                 CmdPrompt._insert_sub_command(current_level[base_cmd], subcommands)
+            
+            if help: 
+                cmd_sub_cmd_list = [base_cmd] + subcommands
+                CmdPrompt._update_help_dict(cmd_sub_cmd_list, help)
+
 
             logging.debug(f'End -> {CmdPrompt._nested_dict}')
             logging.debug("")
@@ -282,17 +291,16 @@ class CmdPrompt(CmdInterface):
 
             # Check if sub-cmd is a key, if so, we access the key to insert the next sub-cmd
             if sub_cmd in cmd_dict:
-                logging.debug(f'Extending ({sub_cmd}) in {cmd_dict}')
+                logging.info(f'Appending ({sub_cmd}) in {cmd_dict}')
                 tmp_cmd_dict = cmd_dict[sub_cmd]
                 CmdPrompt._insert_sub_command(tmp_cmd_dict, sub_cmd_list[1:])
                 
             else:
-                logging.debug(f'Adding ({sub_cmd}) in {cmd_dict}')
+                logging.info(f'Adding ({sub_cmd}) in {cmd_dict}')
 
-                # Create a new dictionary for the new sub-command
                 cmd_dict[sub_cmd] = {}
-
-                logging.debug(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
+                
+                logging.info(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
                 
                 # Recurse with the new dictionary level
                 CmdPrompt._insert_sub_command(cmd_dict[sub_cmd], sub_cmd_list[1:])
@@ -300,6 +308,25 @@ class CmdPrompt(CmdInterface):
         logging.debug(f'Updated cmd_dict: {cmd_dict}')
         return cmd_dict
 
+    @classmethod
+    def _update_help_dict(cls, cmd_list: List[str], msg: str) -> str:
+        """
+        Update the help dictionary with a message for the given command list.
+
+        Args:
+            cmd_list (List[str]): The list of command strings.
+            msg (str): The message to be associated with the command list.
+
+        Returns:
+            str: The hash value used as the key in the help dictionary.
+        """
+        str_hash = StringFormats.generate_hash_from_list(cmd_list)
+        cls._help_dict[str_hash] = msg
+        return str_hash
+    
+    @classmethod
+    def get_help(cls, cmd_list_hash:str) -> str:
+        return CmdPrompt._help_dict[cmd_list_hash]
 
     def get_command_registry(self):
         return CmdPrompt._nested_dict

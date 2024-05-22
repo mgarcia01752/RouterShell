@@ -1,4 +1,5 @@
-from typing import Dict, Optional
+import hashlib
+from typing import Dict, List, Optional
 
 from lib.common.constants import STATUS_OK, STATUS_NOK
 
@@ -35,4 +36,24 @@ class StringFormats:
         
         return STATUS_NOK  # Return False to indicate failure
 
+    @staticmethod
+    def generate_hash_from_list(data: List[str]) -> str:
+        """
+        Generate a hash value from a list of strings.
 
+        Args:
+            data (List[str]): The list of strings to be hashed.
+
+        Returns:
+            str: The hexadecimal representation of the generated hash value.
+        """
+        # Concatenate all strings in the list
+        combined_data = ''.join(data)
+
+        # Generate a hash using SHA-256 algorithm
+        hash_object = hashlib.sha256(combined_data.encode())
+
+        # Get the hexadecimal representation of the hash
+        hashed_result = hash_object.hexdigest()
+
+        return hashed_result
