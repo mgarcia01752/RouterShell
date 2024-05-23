@@ -21,6 +21,8 @@ class ConfigMode(ConfigurePrompt):
         
     def start(self) -> bool:
 
+        self._print_top_lvl_cmds()
+        print(f'\n\n')
         print(self.intro())
                 
         while True:
