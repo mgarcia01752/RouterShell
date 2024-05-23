@@ -6,7 +6,7 @@ from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.config_mode import ConfigMode
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-class Configure(CmdPrompt):
+class Configure(CmdPrompt, ConfigMode):
 
     def __init__(self, args: str=None) -> None:
         """
