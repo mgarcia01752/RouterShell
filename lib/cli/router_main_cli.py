@@ -1,6 +1,7 @@
 import logging
 
-from lib.cli.common.router_prompt_session import RouterPrompt
+from lib.cli.common.router_prompt import RouterPrompt
+from lib.cli.config.config import Configure
 from lib.cli.show.show import Show
 from system.system_config import SystemConfig
 from system.system_start_up import SystemStartUp
@@ -26,6 +27,7 @@ class RouterCLI(RouterPrompt):
         
         self.register_top_lvl_cmds(Global())
         self.register_top_lvl_cmds(Show())
+        self.register_top_lvl_cmds(Configure())
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTERCLI)

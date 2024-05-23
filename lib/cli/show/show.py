@@ -194,5 +194,4 @@ class Show(CmdPrompt):
 
         elif 'vlan-db' in args:
             print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
-                           
-                                   
+                                                             

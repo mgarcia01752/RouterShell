@@ -1,12 +1,23 @@
-from lib.cli.base.exec_priv_mode import ExecMode, ExecException
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.constants import *
-from lib.system.system_config import SystemConfig
 import logging
 
-class RouterPrompt:
-    '''CMD prompt formatter'''
+from prompt_toolkit import prompt
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit import print_formatted_text as print
+from typing import List, Union
 
+from common.common import Common
+from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.base.exec_priv_mode import ExecMode
+from lib.common.constants import STATUS_OK
+from lib.system.system_config import SystemConfig
+
+class RouterPrompt:
+    """
+    Class for managing router prompt session.
+    """
     USER_MODE_PROMPT = '>'
     PRIV_MODE_PROMPT = '#'
   
@@ -15,64 +26,107 @@ class RouterPrompt:
     PROMPT_MAX_LENGTH = 2
 
     DEF_PREFIX_START = ""
-    DEF_START_HOSTNAME = "Router"
+    DEF_START_HOSTNAME = "RouterShell"
     DEF_CONFIG_MODE_PROMPT = 'config'
     DEF_NO_CONFIG_MODE_PROMPT = None
     PREFIX_SEP = ':'
     
-    def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None):
-        '''
-        Initialize a RouterPrompt object with the specified configuration mode and sub-command name.
-
-        Args:
-            config_mode (CliMode): The CLI privilege mode (e.g., USER_MODE, CONFIG_MODE).
-            sub_cmd_name (str, optional): The sub-command name when in CONFIG_MODE. Defaults to None.
-        '''
-
+    def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None) -> None:
+        """
+        Initializes RouterPromptSession instance.
+        """
+        
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_PROMPT)
         
-        self._prompt_dict = {
-                    'Hostname' : self.DEF_START_HOSTNAME,
-                    'ConfigMode' : self.DEF_NO_CONFIG_MODE_PROMPT,
-                    'ExecModePrompt' : self.USER_MODE_PROMPT
-                   }
+        self._register_top_lvl_cmds = {}
+        self._command_dict_completer = {'enable':{}}
         
-        self.SUB_CMD_START = sub_cmd_name
         self.execute_mode = exec_mode
+        self.completer = NestedCompleter([])
+        self.history = InMemoryHistory()
+        self.hostname = Common.getHostName()
         
-        self.update_prompt_hostname()
+        '''Start Prompt Router>'''
+        self._prompt_dict = {
+            'Hostname' : self.DEF_START_HOSTNAME,
+            'ConfigMode' : self.DEF_NO_CONFIG_MODE_PROMPT,
+            'ExecModePrompt' : self.USER_MODE_PROMPT
+        }
         
-        self._prompt_dict['Hostname'] = self.get_prompt_hostname()
+        if (Common.getHostName() is None):
+            self.hostname = self.DEF_START_HOSTNAME
 
-        if self.execute_mode is ExecMode.USER_MODE:
-            self.log.debug("User Mode")
-            self._prompt_dict['ConfigMode'] = self.DEF_NO_CONFIG_MODE_PROMPT
-            self._prompt_dict['ExecModePrompt'] = self.USER_MODE_PROMPT
-            self.log.debug(f"User Mode - Prompt-Parts {self._prompt_dict}")
+        self.update_prompt()
+    
+    def _print_top_lvl_cmds(self):
+        """
+        Print the top-level commands with each key-value pair on a new line.
+        """
+        formatted_cmds = "\n".join([f"{key}\t\t\t{value}" for key, value in self._register_top_lvl_cmds.items()])
+        self.log.debug(f"TOP-LVL-CMD:\n{formatted_cmds}")
+        
+    def rs_prompt(self, split: bool = True) -> list:
+        """
+        Displays router prompt and returns user input.
+
+        Args:
+            split (bool, optional): Whether to split the output. Defaults to False.
+
+        Returns:
+            str or list: User input from the prompt. If split is True, returns a list of words.
+        """
+        _ = prompt(f'{self.get_prompt()}', completer=self.completer, history=self.history)
+        
+        if _.split(' ')[0] == 'enable':
+            self.execute_mode = ExecMode.PRIV_MODE
+            self.update_prompt()
+            return ''
+        
+        if not split:
+            return _
+        
+        return _.split(' ')
+
+    def register_top_lvl_cmds(self, class_name: CmdPrompt) -> bool:
+        """
+        Register top-level commands for the router prompt session.
+
+        Args:
+            class_name (Type): Class containing top-level commands.
+            class_nested_cmds (bool, optional): Whether the commands are nested or not. Defaults to False.
+        
+        Returns:
+            bool: Status indicating whether the registration was successful.
+        """
+        cmd_list = class_name.get_command_list()
+
+        for cmd in cmd_list:
             
-        elif self.execute_mode is ExecMode.PRIV_MODE:
-            self.log.debug("Privilege Mode")
-            self._prompt_dict['ConfigMode'] = self.DEF_NO_CONFIG_MODE_PROMPT
-            self._prompt_dict['ExecModePrompt'] = self.PRIV_MODE_PROMPT
-            self.log.debug(f"Privilege Mode - Prompt-Parts {self._prompt_dict}")       
+            if not class_name.isGlobal():
+                cmd = class_name.getClassStartCmd() + '_' + cmd
             
-        elif self.execute_mode is ExecMode.CONFIG_MODE:
-            self.log.debug("Config Mode")
-            self._prompt_dict['ConfigMode'] = self.DEF_CONFIG_MODE_PROMPT
-            self._prompt_dict['ExecModePrompt'] = self.PRIV_MODE_PROMPT
-            self.log.debug(f"Config Mode - Prompt-Parts {self._prompt_dict}")
-        
-        self.set_prompt()
+            self.log.debug(f'Top-Level-Cmd: {cmd}\tClass: {class_name}')
+                        
+            self._register_top_lvl_cmds[cmd] = class_name
+            
+            self._command_dict_completer.update(class_name.get_command_dict())
+            
+        self.completer = NestedCompleter.from_nested_dict(self._command_dict_completer)
 
-    def set_prompt(self) -> str:
+        return STATUS_OK
 
-        self.log.debug(f"set_prompt() -> Execute-Mode: {self.execute_mode}")
+    def update_prompt(self) -> str:
+        '''
+        Update the router command prompt based on the current configuration mode and optional interface name.
+
+        Returns:
+            str: The formatted command prompt string.
+        '''
+        self.log.debug(f"update_prompt() -> Execute-Mode: {self.execute_mode}")
         
         self.update_prompt_hostname()        
         self.prompt_parts = [self._prompt_dict['Hostname']]
-        
-        self.current_prompt = self.DEF_START_HOSTNAME
                 
         if self.execute_mode is ExecMode.USER_MODE:
             self.log.debug("User-Mode")
@@ -121,6 +175,7 @@ class RouterPrompt:
             None
         '''
         self.execute_mode = execute_mode
+        self.update_prompt()
 
     def get_exec_mode(self) -> ExecMode:
         return self.execute_mode
@@ -145,4 +200,29 @@ class RouterPrompt:
         """
         return self._prompt_dict['Hostname']
 
+    def get_top_level_cmd_object(self, cmd: List[str]) -> Union[CmdPrompt, None]:
+        """
+        Retrieve the top-level command object.
 
+        Args:
+            cmd (List[str]): List of command parts to search for.
+
+        Returns:
+            Union[CmdPrompt, None]: The command object if found, else None.
+        """
+        self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" \
+            for key, value in self._register_top_lvl_cmds.items()]))
+
+        # Check to see if key exists exactly
+        if cmd[0] in self._register_top_lvl_cmds:
+            self.log.debug(f'Command Found (Global): {cmd[0]}')
+            return self._register_top_lvl_cmds[cmd[0]]
+        
+        combined_cmd = '_'.join(cmd[:2])
+        if combined_cmd in self._register_top_lvl_cmds:
+            self.log.debug(f'Command Found (Non-Global): {combined_cmd}')
+            return self._register_top_lvl_cmds[combined_cmd]
+        
+        self.log.debug(f'cmd: {cmd} - No Match!!!')
+        
+        return None
