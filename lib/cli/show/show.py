@@ -9,6 +9,7 @@ from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.strings import StringFormats
+from lib.hardware.hardware_detection import HardwareDetection
 
 class Show(CmdPrompt):
 
@@ -99,4 +100,21 @@ class Show(CmdPrompt):
         
         pass
     
-
+    @CmdPrompt.register_sub_commands(sub_cmds=['cpu'])
+    @CmdPrompt.register_sub_commands(sub_cmds=['network'])
+    def show_hardware(self, args: List) -> None:
+        """hardware\t\t\tDisplay information about hardware."""
+        
+        self.log.debug(f'show_hardware: {args}')
+        
+        if '?'in args:
+            str_hash = StringFormats.generate_hash_from_list(args[:-1])
+            print(CmdPrompt.get_help(str_hash))
+        
+        elif 'cpu' in args:
+            print(HardwareDetection().hardware_cpu())
+            return
+            
+        elif 'network' in args:
+            print(HardwareDetection().hardware_network())
+            return
