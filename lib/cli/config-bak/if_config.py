@@ -28,7 +28,6 @@ class InterfaceConfig(cmd2.Cmd,
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().IF_CONFIG)
-        self.debug = CGS().DEBUG_IF_CONFIG
         
         GlobalUserCommand.__init__(self)
         Interface.__init__(self)
