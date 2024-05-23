@@ -314,7 +314,7 @@ class RouterPrompt:
 
         cmd_args = command[1:] if len(command) > 1 else command
 
-        if not self._execute_command(command[0], cmd_args):
+        if self._execute_command(command[0], cmd_args):
             print(f"Command {command[0]} not found.")
         else:
             self.log.debug(f'Command: {command[0]} -> args: {cmd_args} - Executed!!!')

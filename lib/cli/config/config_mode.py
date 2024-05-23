@@ -1,5 +1,6 @@
 import logging
 from lib.cli.base.global_cmd_op import Global
+from lib.cli.config.config_cmds import ConfigCmd
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
@@ -10,6 +11,7 @@ class ConfigMode(ConfigurePrompt):
         super().__init__()
 
         self.register_top_lvl_cmds(Global())
+        self.register_top_lvl_cmds(ConfigCmd())
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CONFIGURE_PROMPT)

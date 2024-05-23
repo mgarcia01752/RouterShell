@@ -88,11 +88,13 @@ class CmdPrompt(CmdInterface):
     """
     Implementation of command prompt interface.
     """
-
+    # Statics
     _nested_dict = {}
     _help_dict = {}
     
-    def __init__(self, global_commands: bool, exec_mode: ExecMode) -> None:
+    def __init__(self, global_commands: bool, 
+                 exec_mode: ExecMode
+                 ) -> None:
         """
         Initializes command prompt instance.
 
