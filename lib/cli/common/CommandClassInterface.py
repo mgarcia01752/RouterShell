@@ -131,8 +131,8 @@ class CmdPrompt(CmdInterface):
         if not commands:
             self.log.error(f'Command(s) Not Found')
             return STATUS_NOK
-        
-        self.log.debug(f'execute() -> Commands: {commands}')
+                
+        self.log.info(f'execute() -> Commands: {commands}')
         
         if not self.isGlobal():
             commands = commands[1:]
@@ -141,12 +141,15 @@ class CmdPrompt(CmdInterface):
             self.help()
             return STATUS_OK
         
+        in_class_method_args = {}
         in_class_method = f'{self.getClassStartCmd()}_{commands[0]}'
-        self.log.debug(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method}')
-
+        
+        if commands[1:]:
+            in_class_method_args = commands[1:]
+                        
         if  hasattr(self, in_class_method) and callable(getattr(self, in_class_method)):
-            self.log.debug(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method} - FOUND!!!')
-            getattr(self, in_class_method)(commands)
+            self.log.info(f'execute() -> InClassSearch: {in_class_method} -> Args: {commands} - FOUND!!!')
+            getattr(self, in_class_method)(in_class_method_args)
         
         else:
             self.log.error('Invalid command format.')
@@ -206,8 +209,7 @@ class CmdPrompt(CmdInterface):
         except KeyError as e:
             self.log.error(f"Error accessing command dictionary: {e}")
             return {}
-
-            
+      
     def isGlobal(self) -> bool:
         return self.IS_GLOBAL
     

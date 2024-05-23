@@ -179,7 +179,8 @@ class Show(CmdPrompt):
             
         else:
             NatShow().getNatTable()
-     
+
+    @CmdPrompt.register_sub_commands()     
     def show_db(self, args: List) -> None:
 
         if '?'in args:

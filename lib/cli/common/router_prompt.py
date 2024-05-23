@@ -227,6 +227,8 @@ class RouterPrompt:
         Returns:
             Union[CmdPrompt, None]: The command object if found, else None.
         """
+        self.log.info(f'get_top_level_cmd_object() -> cmds: {cmd}')
+        
         self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" \
             for key, value in self._register_top_lvl_cmds.items()]))
 
@@ -332,7 +334,7 @@ class RouterPrompt:
         Returns:
             bool: True if the command was executed successfully, False otherwise.
         """
-        self.log.info(f'cmd: {cmd} -> args: {args}')
+        self.log.info(f'_execute_commands() -> cmd: {cmd} -> args: {args}')
         
         try:
             cmd_object = self.get_top_level_cmd_object([cmd])
