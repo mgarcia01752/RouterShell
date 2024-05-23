@@ -60,6 +60,8 @@ class RouterShellLoggingGlobalSettings():
     DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
+    INTERFACE_CONFIG            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
     INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     

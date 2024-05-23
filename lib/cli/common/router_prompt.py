@@ -1,6 +1,6 @@
 import logging
 
-from prompt_toolkit import PromptSession, prompt
+from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
@@ -62,6 +62,9 @@ class RouterPrompt:
             self.hostname = self.DEF_START_HOSTNAME
 
         self.update_prompt()
+
+    def intro(self) -> str:
+        return ""
          
     def rs_prompt(self, split: bool = True) -> list:
         """

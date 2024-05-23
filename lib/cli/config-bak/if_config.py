@@ -4,7 +4,6 @@ import logging
 
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 
 from lib.network_manager.dhcp_client import DHCPVersion
 from lib.network_manager.dhcp_server import DHCPServer
