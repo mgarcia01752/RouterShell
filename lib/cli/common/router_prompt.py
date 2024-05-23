@@ -1,10 +1,10 @@
 import logging
 
-from prompt_toolkit import prompt
+from prompt_toolkit import PromptSession, prompt
 from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
+
 from typing import List, Union
 
 from common.common import Common
@@ -38,27 +38,31 @@ class RouterPrompt:
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_PROMPT)
-        
+         
         self._register_top_lvl_cmds = {}
         self._command_dict_completer = {'enable':{}}
         
         self.execute_mode = exec_mode
-        self.completer = NestedCompleter([])
+        self.SUB_CMD_START = sub_cmd_name
+        
+        self.completer = NestedCompleter.from_nested_dict({'FAKE':{}})
         self.history = InMemoryHistory()
+        self.session = PromptSession(completer=self.completer, history=self.history)
+
         self.hostname = Common.getHostName()
         
         '''Start Prompt Router>'''
         self._prompt_dict = {
             'Hostname' : self.DEF_START_HOSTNAME,
-            'ConfigMode' : self.DEF_NO_CONFIG_MODE_PROMPT,
+            'ConfigMode' : self.DEF_CONFIG_MODE_PROMPT,
             'ExecModePrompt' : self.USER_MODE_PROMPT
         }
-        
+
         if (Common.getHostName() is None):
             self.hostname = self.DEF_START_HOSTNAME
 
         self.update_prompt()
-    
+        
     def _print_top_lvl_cmds(self):
         """
         Print the top-level commands with each key-value pair on a new line.
@@ -76,7 +80,9 @@ class RouterPrompt:
         Returns:
             str or list: User input from the prompt. If split is True, returns a list of words.
         """
-        _ = prompt(f'{self.get_prompt()}', completer=self.completer, history=self.history)
+        self.update_prompt()
+        
+        _ = self.session.prompt(f'{self.get_prompt()}',completer=self.completer, complete_in_thread=False)
         
         if _.split(' ')[0] == 'enable':
             self.execute_mode = ExecMode.PRIV_MODE
@@ -100,18 +106,23 @@ class RouterPrompt:
             bool: Status indicating whether the registration was successful.
         """
         cmd_list = class_name.get_command_list()
-
+        due_to_global = True
+        
         for cmd in cmd_list:
-            
+
             if not class_name.isGlobal():
                 cmd = class_name.getClassStartCmd() + '_' + cmd
+                due_to_global = False
             
             self.log.debug(f'Top-Level-Cmd: {cmd}\tClass: {class_name}')
                         
             self._register_top_lvl_cmds[cmd] = class_name
             
-            self._command_dict_completer.update(class_name.get_command_dict())
+            cmd_dict = class_name.get_command_dict(skip_top_key=due_to_global)
             
+            self._command_dict_completer.update(cmd_dict)
+        
+        # This populates the tab completions    
         self.completer = NestedCompleter.from_nested_dict(self._command_dict_completer)
 
         return STATUS_OK
@@ -226,3 +237,9 @@ class RouterPrompt:
         self.log.debug(f'cmd: {cmd} - No Match!!!')
         
         return None
+
+    def clear_completer(self):
+        """
+        Clear the current completer, removing all suggestions.
+        """
+        self.session.completer = None

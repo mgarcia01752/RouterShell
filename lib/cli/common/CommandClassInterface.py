@@ -92,7 +92,6 @@ class CmdPrompt(CmdInterface):
     _nested_dict = {}
     _help_dict = {}
     
-    
     def __init__(self, global_commands: bool, exec_mode: ExecMode) -> None:
         """
         Initializes command prompt instance.
@@ -171,15 +170,39 @@ class CmdPrompt(CmdInterface):
         prefix_length = len(self.CLASS_NAME) + 1
         return [element[prefix_length:] if element.startswith(f"{self.CLASS_NAME}_") else element for element in elements]
 
-    def get_command_dict(self):
+    def get_command_dict(self, skip_top_key: bool=False) -> dict:
         """
         Get a nested dictionary of available commands.
 
+        This method retrieves a nested dictionary of commands associated 
+        with the current class name from the CmdPrompt's nested dictionary.
+
         Returns:
-            dict: Nested dictionary of available commands.
+            dict: A nested dictionary containing available commands for the class.
+                If the class name is not found, an empty dictionary is returned.
+
+        Raises:
+            KeyError: If CmdPrompt._nested_dict is not defined or not a dictionary.
         """
-        return CmdPrompt._nested_dict
-    
+        if (skip_top_key):
+            self.log.debug(f'Provide only the Values from Class: {self.CLASS_NAME}')
+            return CmdPrompt._nested_dict[self.CLASS_NAME]
+        
+        try:
+            if not isinstance(CmdPrompt._nested_dict, dict):
+                raise KeyError("CmdPrompt._nested_dict is not a dictionary.")
+            
+            if self.CLASS_NAME in CmdPrompt._nested_dict:
+                return {self.CLASS_NAME: CmdPrompt._nested_dict[self.CLASS_NAME]}
+            
+            else:
+                return {}
+        
+        except KeyError as e:
+            self.log.error(f"Error accessing command dictionary: {e}")
+            return {}
+
+            
     def isGlobal(self) -> bool:
         return self.IS_GLOBAL
     
@@ -205,7 +228,7 @@ class CmdPrompt(CmdInterface):
             
             method_name = func.__name__
 
-            if not bool(re.search(r'\b[a-zA-Z]+_[a-zA-Z]+\b', method_name)):
+            if not bool(re.search(r'\b[a-zA-Z]+_[a-zA-Z0-9]+\b', method_name)):
                 logging.fatal(f'Method Call ({method_name}) does not contain a \'_\' ')
                 exit()
 
@@ -238,7 +261,6 @@ class CmdPrompt(CmdInterface):
             if help: 
                 cmd_sub_cmd_list = [base_cmd] + sub_cmds
                 CmdPrompt._update_help_dict(cmd_sub_cmd_list, help)
-
 
             logging.debug(f'End -> {CmdPrompt._nested_dict}')
             logging.debug("")
@@ -321,5 +343,4 @@ class CmdPrompt(CmdInterface):
         try:
             return self._nested_dict
         except AttributeError:
-            # Handle case where _nested_dict is not found
             return {}

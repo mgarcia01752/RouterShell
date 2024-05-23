@@ -6,7 +6,6 @@ from lib.db.nat_db import NatDB
 from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_mgr import NetworkManager
 
@@ -26,7 +25,6 @@ class Nat(NetworkManager):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().NAT)
-        self.debug = CGS().DEBUG_NAT
         self.sysctl = SysCtl()
 
     def enable_ip_forwarding(self, negate: bool = False) -> bool:

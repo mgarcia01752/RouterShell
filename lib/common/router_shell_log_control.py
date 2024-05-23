@@ -29,8 +29,8 @@ class RouterShellLoggingGlobalSettings():
 
     COPY_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
-    CONFIGURE_MODE              = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
-    CONFIGURE_PROMPT            = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    CONFIGURE_MODE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    CONFIGURE_PROMPT            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     CLEAR_MODE                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     

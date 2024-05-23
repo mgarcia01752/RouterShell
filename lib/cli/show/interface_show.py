@@ -4,8 +4,6 @@ import logging
 from tabulate import tabulate
 from lib.network_manager.interface import Interface
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.cli.common.cmd2_global import Cmd2GlobalSettings as CGS
-
 
 class InterfaceShow(Interface):
     
@@ -13,7 +11,6 @@ class InterfaceShow(Interface):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().IF_SHOW)
-        self.debug = CGS.DEBUG_SHOW_INTERFACE
         self.arg = arg
     
     def show_interface_statistics(self, interface_name=None):

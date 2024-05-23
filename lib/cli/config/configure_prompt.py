@@ -6,13 +6,14 @@ from lib.cli.common.router_prompt import RouterPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 
+
 class ConfigurePrompt(RouterPrompt):
 
-    def __init__(self, exec_mode: ExecMode = ExecMode.PRIV_MODE, sub_cmd_name: str = 'config'):
-        super().__init__(exec_mode, sub_cmd_name)
-        
+    def __init__(self, exec_mode: ExecMode = ExecMode.CONFIG_MODE, sub_cmd_name: str = None):
+        RouterPrompt.__init__(self, exec_mode)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ROUTERCLI)
+        self.log.setLevel(RSLGS().CONFIGURE_PROMPT)
+
 
         
 

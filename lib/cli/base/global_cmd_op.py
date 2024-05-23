@@ -31,35 +31,42 @@ class Global(CmdPrompt, NetworkManager):
             method = getattr(self, method_name)
             method_name_stripped = method_name.lstrip('_')
             print(f"{method.__doc__}")
-            
+
+    @CmdPrompt.register_sub_commands()         
     def global_end(self, args=None):
         """end\t\t\tend configuration"""
         raise SystemExit
-                
+
+    @CmdPrompt.register_sub_commands()             
     def global_cls(self, args=None):
         """cls\t\t\tClear Screen"""
         print("\033[2J\033[H")       
 
+    @CmdPrompt.register_sub_commands()     
     def global_clock(self, args=None):
         """clock\t\t\tShow clock"""
         
         print(Common.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
         return False
-    
+
+    @CmdPrompt.register_sub_commands() 
     def global_reload(self, args=None):
         """reload\t\t\tReboot"""
         self.global_reboot(args=None)
         return False
 
+    @CmdPrompt.register_sub_commands() 
     def global_reboot(self, args=None):
         """reboot\t\t\tReboot"""
         return False
 
+    @CmdPrompt.register_sub_commands() 
     def global_version(self, args=None):
         """version\t\t\tGet version"""
         print("v1.0")
         return False
-    
+
+    @CmdPrompt.register_sub_commands()
     def global_ping(self, args=None):
         """ping\t\t\tping <IPv4 address>"""
         self.log.debug(f'ping: {args}')
@@ -96,11 +103,13 @@ class Global(CmdPrompt, NetworkManager):
         except Exception as e:
             print(f"Error: {e}")
             return False  # Command execution failed
-    
+
+    @CmdPrompt.register_sub_commands()
     def global_ping6(self, args=None):
         """ping6\t\t\tping6"""
         return False
-        
+
+    @CmdPrompt.register_sub_commands()        
     def global_traceroute(self, args=None):
         """traceroute\t\ttraceroute"""
         try:
