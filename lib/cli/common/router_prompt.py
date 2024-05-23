@@ -11,7 +11,7 @@ from common.common import Common
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.base.exec_priv_mode import ExecMode
-from lib.common.constants import STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.string_formats import StringFormats
 from lib.system.system_config import SystemConfig
 
@@ -260,11 +260,12 @@ class RouterPrompt:
         Returns:
             bool: True if the prompt exits normally, False if interrupted.
         """
-        self._print_top_lvl_cmds()
+        self._DEBUG_print_top_lvl_cmds()
 
         while True:
             try:
                 command = self._get_command()
+                
                 if not command:
                     continue
 
@@ -274,11 +275,12 @@ class RouterPrompt:
             except KeyboardInterrupt:
                 self.log.debug('Keyboard interrupt received, continuing...')
                 continue
+            
             except EOFError:
                 self.log.debug('EOFError received, exiting...')
                 break
 
-        return True
+        return STATUS_OK
 
     def _get_command(self) -> list:
         """
@@ -291,37 +293,35 @@ class RouterPrompt:
         self.log.debug(f'start-cmd: {command}')
         return command
 
-    def _process_command(self, command: list) -> bool:
+    def _process_command(self, commands: list) -> bool:
         """
         Process the user command.
 
         Args:
-            command (list): The user command split into components.
+            commands (list): The user command split into components.
 
         Returns:
-            bool: True if the loop should exit, False otherwise.
+            bool: STATUS_OK if the loop should exit, STATUS_NOK otherwise.
         """
-        if not command or not command[0]:
+        if not commands or not commands[0]:
             self.log.debug('No command input')
-            return False
+            return STATUS_OK
 
-        if '?' in command[0]:
-            self.help()
-            return False
+        # TODO Need to provide and overload method
+        if 'end' in commands[0]:
+            return STATUS_NOK
 
-        if 'end' in command[0]:
-            return True
-
-        cmd_args = command[1:] if len(command) > 1 else command
-
-        if self._execute_command(command[0], cmd_args):
-            print(f"Command {command[0]} not found.")
+        if '?' in commands[0]:
+            return STATUS_OK
+        
+        if self._execute_commands(commands[0], commands):
+            print(f"Command {commands[0]} not found.")
         else:
-            self.log.debug(f'Command: {command[0]} -> args: {cmd_args} - Executed!!!')
+            self.log.debug(f'Command: {commands} Executed!!!')
 
-        return False
+        return STATUS_OK
 
-    def _execute_command(self, cmd: str, args: list) -> bool:
+    def _execute_commands(self, cmd: str, args: list) -> bool:
         """
         Execute the given command with its arguments.
 
@@ -332,14 +332,18 @@ class RouterPrompt:
         Returns:
             bool: True if the command was executed successfully, False otherwise.
         """
+        self.log.info(f'cmd: {cmd} -> args: {args}')
+        
         try:
             cmd_object = self.get_top_level_cmd_object([cmd])
+                        
             return cmd_object.execute(args)
+        
         except Exception as e:
             self.log.debug(f'Error executing command {cmd}: {e}')
             return False
             
-    def _print_top_lvl_cmds(self):
+    def _DEBUG_print_top_lvl_cmds(self):
         """
         Print the top-level commands with each key-value pair on a new line.
         """

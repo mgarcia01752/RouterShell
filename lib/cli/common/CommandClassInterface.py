@@ -118,35 +118,38 @@ class CmdPrompt(CmdInterface):
         self.log.debug(f'Class Name String lower: {self.CLASS_NAME}')
         return self.CLASS_NAME
             
-    def execute(self, subcommand: list = None) -> bool:
+    def execute(self, commands: list) -> bool:
         """
         Execute a subcommand.
 
         Args:
-            subcommand (list, optional): Subcommand to execute. Defaults to None.
+            commands (list): Commands to execute. Defaults.
         
         Returns:
             bool: STATUS_OK indicating the execution was successful, else STATUS_NOK.
         """
-        if not subcommand:
-            self.log.error(f'SubCommand Not Found')
+        if not commands:
+            self.log.error(f'Command(s) Not Found')
             return STATUS_NOK
         
-        self.log.debug(f'SubCmd: {subcommand}')
+        self.log.info(f'execute() -> Commands: {commands}')
         
-        if subcommand[0] == '?':
+        if not self.isGlobal():
+            commands = commands[1:]
+        
+        if commands[0] == '?':
             self.help()
             return STATUS_OK
         
-        in_class_method = f'{self.getClassStartCmd()}_{subcommand[0]}'
-        self.log.debug(f'Subcommand: {subcommand} - InClassSearch: {in_class_method}')
+        in_class_method = f'{self.getClassStartCmd()}_{commands[0]}'
+        self.log.info(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method}')
 
         if  hasattr(self, in_class_method) and callable(getattr(self, in_class_method)):
-            self.log.debug(f'Subcommand: {subcommand} - InClassSearch: {in_class_method} - FOUND!!!')
-            getattr(self, in_class_method)(subcommand)
+            self.log.info(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method} - FOUND!!!')
+            getattr(self, in_class_method)(commands)
         
         else:
-            self.log.error('Invalid subcommand format')
+            self.log.error('Invalid command format.')
             return STATUS_NOK
         
         return STATUS_OK
