@@ -132,7 +132,7 @@ class CmdPrompt(CmdInterface):
             self.log.error(f'Command(s) Not Found')
             return STATUS_NOK
                 
-        self.log.info(f'execute() -> Commands: {commands}')
+        self.log.debug(f'execute() -> Commands: {commands}')
         
         if not self.isGlobal():
             commands = commands[1:]
@@ -148,7 +148,7 @@ class CmdPrompt(CmdInterface):
             in_class_method_args = commands[1:]
                         
         if  hasattr(self, in_class_method) and callable(getattr(self, in_class_method)):
-            self.log.info(f'execute() -> InClassSearch: {in_class_method} -> Args: {commands} - FOUND!!!')
+            self.log.debug(f'execute() -> InClassSearch: {in_class_method} -> Args: {commands} - FOUND!!!')
             getattr(self, in_class_method)(in_class_method_args)
         
         else:
