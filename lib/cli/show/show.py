@@ -8,6 +8,7 @@ from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
+from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.strings import StringFormats
 from lib.hardware.hardware_detection import HardwareDetection
@@ -147,4 +148,15 @@ class Show(CmdPrompt):
             RouteShow().route()
             pass
         
-         
+    @CmdPrompt.register_sub_commands(sub_cmds=['configurtion'])      
+    def show_running(self, args: List) -> None:
+
+        self.log.debug(f'show_running: {args}')
+
+        if '?'in args:
+            str_hash = StringFormats.generate_hash_from_list(args[:-1])
+            print(CmdPrompt.get_help(str_hash))
+
+        else:
+            for line in RouterConfiguration().get_running_configuration():
+                print(line)      
