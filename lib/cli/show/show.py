@@ -7,6 +7,7 @@ from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
 from lib.cli.show.interface_show import InterfaceShow
+from lib.cli.show.ip_route_show import RouteShow
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.strings import StringFormats
 from lib.hardware.hardware_detection import HardwareDetection
@@ -118,3 +119,32 @@ class Show(CmdPrompt):
         elif 'network' in args:
             print(HardwareDetection().hardware_network())
             return
+
+    @CmdPrompt.register_sub_commands()
+    def show_ip(self, args: List) -> None:
+        """ip\t\t\t\tDisplay information about IP addresses."""
+        
+        self.log.debug(f'show_ip: {args}')
+        
+        if '?'in args:
+            str_hash = StringFormats.generate_hash_from_list(args[:-1])
+            print(CmdPrompt.get_help(str_hash))
+        
+        else:
+            print('Not Working Yet')
+            pass   
+    
+    @CmdPrompt.register_sub_commands()    
+    def show_route(self, args: List) -> None:
+        
+        self.log.debug(f'show_route: {args}')
+        
+        if '?'in args:
+            str_hash = StringFormats.generate_hash_from_list(args[:-1])
+            print(CmdPrompt.get_help(str_hash))
+        
+        else:
+            RouteShow().route()
+            pass
+        
+         
