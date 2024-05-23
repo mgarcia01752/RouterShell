@@ -37,6 +37,11 @@ class Global(CmdPrompt, NetworkManager):
         """end\t\t\tend configuration"""
         raise SystemExit
 
+    @CmdPrompt.register_sub_commands()  
+    def global_exit(self, args=None):
+        """exit\t\t\texit from current mode"""
+        raise SystemExit
+    
     @CmdPrompt.register_sub_commands()             
     def global_cls(self, args=None):
         """cls\t\t\tClear Screen"""
