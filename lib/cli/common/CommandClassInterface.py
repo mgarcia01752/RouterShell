@@ -132,7 +132,7 @@ class CmdPrompt(CmdInterface):
             self.log.error(f'Command(s) Not Found')
             return STATUS_NOK
         
-        self.log.info(f'execute() -> Commands: {commands}')
+        self.log.debug(f'execute() -> Commands: {commands}')
         
         if not self.isGlobal():
             commands = commands[1:]
@@ -142,10 +142,10 @@ class CmdPrompt(CmdInterface):
             return STATUS_OK
         
         in_class_method = f'{self.getClassStartCmd()}_{commands[0]}'
-        self.log.info(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method}')
+        self.log.debug(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method}')
 
         if  hasattr(self, in_class_method) and callable(getattr(self, in_class_method)):
-            self.log.info(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method} - FOUND!!!')
+            self.log.debug(f'execute() -> Commands: {commands} - InClassSearch: {in_class_method} - FOUND!!!')
             getattr(self, in_class_method)(commands)
         
         else:
@@ -289,16 +289,16 @@ class CmdPrompt(CmdInterface):
 
             # Check if sub-cmd is a key, if so, we access the key to insert the next sub-cmd
             if sub_cmd in cmd_dict:
-                logging.info(f'Appending ({sub_cmd}) in {cmd_dict}')
+                logging.debug(f'Appending ({sub_cmd}) in {cmd_dict}')
                 tmp_cmd_dict = cmd_dict[sub_cmd]
                 CmdPrompt._insert_sub_command(tmp_cmd_dict, sub_cmd_list[1:])
                 
             else:
-                logging.info(f'Adding ({sub_cmd}) in {cmd_dict}')
+                logging.debug(f'Adding ({sub_cmd}) in {cmd_dict}')
 
                 cmd_dict[sub_cmd] = {}
                 
-                logging.info(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
+                logging.debug(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
                 
                 # Recurse with the new dictionary level
                 CmdPrompt._insert_sub_command(cmd_dict[sub_cmd], sub_cmd_list[1:])
