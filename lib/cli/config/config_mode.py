@@ -19,38 +19,6 @@ class ConfigMode(ConfigurePrompt):
     def intro(self) -> str:
         return f'Starting Configuration Mode....'
         
-    def start(self) -> bool:
-
-        self._print_top_lvl_cmds()
-        print(f'\n\n')
-        print(self.intro())
-                
-        while True:
-            try:
-                command = self.rs_prompt()
-                self.log.debug(f'start-cmd: {command}')
-
-                if not command or not command[0]:
-                    self.log.debug(f'No command input')
-                    continue
-
-                if '?' in command[0]:
-                    self.help()
-                    continue
-                
-                if 'end' in command[0]:
-                    break
-                
-                cmd_args = command[1:] if len(command) > 1 else command
-
-                if self.get_top_level_cmd_object(command).execute(cmd_args):
-                        print(f"Command {command} not found.")
-                            
-                self.log.debug(f'Command: {command} -> args: {cmd_args} - Executed!!!')
-                    
-            except KeyboardInterrupt:
-                continue
-    
     def help(self):
-        pass 
+        return 'No Help'
       

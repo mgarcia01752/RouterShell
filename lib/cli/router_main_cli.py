@@ -40,7 +40,7 @@ class RouterCLI(RouterPrompt):
 
     def run(self) -> None:
         """
-        Run the command prompt interface, processing user input in a loop.
+        Run is a custom command instead of using RouterPrompt.start()
         """
         print(self.intro)
         

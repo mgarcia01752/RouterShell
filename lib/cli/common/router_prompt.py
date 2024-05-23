@@ -243,3 +243,93 @@ class RouterPrompt:
         Clear the current completer, removing all suggestions.
         """
         self.session.completer = None
+        
+    def start(self) -> bool:
+        """
+        Start the command prompt.
+
+        This method initializes the command prompt interface, printing top-level
+        commands and introduction, and enters a loop to process user commands.
+
+        Returns:
+            bool: True if the prompt exits normally, False if interrupted.
+        """
+        self._print_top_lvl_cmds()
+
+        while True:
+            try:
+                command = self._get_command()
+                if not command:
+                    continue
+
+                if self._process_command(command):
+                    break
+
+            except KeyboardInterrupt:
+                self.log.debug('Keyboard interrupt received, continuing...')
+                continue
+            except EOFError:
+                self.log.debug('EOFError received, exiting...')
+                break
+
+        return True
+
+    def _get_command(self) -> list:
+        """
+        Get the user command from the prompt.
+
+        Returns:
+            list: The user command split into components.
+        """
+        command = self.rs_prompt()
+        self.log.debug(f'start-cmd: {command}')
+        return command
+
+    def _process_command(self, command: list) -> bool:
+        """
+        Process the user command.
+
+        Args:
+            command (list): The user command split into components.
+
+        Returns:
+            bool: True if the loop should exit, False otherwise.
+        """
+        if not command or not command[0]:
+            self.log.debug('No command input')
+            return False
+
+        if '?' in command[0]:
+            self.help()
+            return False
+
+        if 'end' in command[0]:
+            return True
+
+        cmd_args = command[1:] if len(command) > 1 else command
+
+        if not self._execute_command(command[0], cmd_args):
+            print(f"Command {command[0]} not found.")
+        else:
+            self.log.debug(f'Command: {command[0]} -> args: {cmd_args} - Executed!!!')
+
+        return False
+
+    def _execute_command(self, cmd: str, args: list) -> bool:
+        """
+        Execute the given command with its arguments.
+
+        Args:
+            cmd (str): The command to execute.
+            args (list): The arguments for the command.
+
+        Returns:
+            bool: True if the command was executed successfully, False otherwise.
+        """
+        try:
+            cmd_object = self.get_top_level_cmd_object([cmd])
+            return cmd_object.execute(args)
+        except Exception as e:
+            self.log.debug(f'Error executing command {cmd}: {e}')
+            return False
+            
