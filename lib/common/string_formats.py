@@ -1,4 +1,5 @@
 import hashlib
+import re
 from typing import Dict, List, Optional
 
 from lib.common.constants import STATUS_OK, STATUS_NOK
@@ -57,3 +58,16 @@ class StringFormats:
         hashed_result = hash_object.hexdigest()
 
         return hashed_result
+
+    @staticmethod
+    def reduce_ws(text: str) -> str:
+        """
+        Reduces excessive whitespace in a string to a single space.
+
+        Args:
+            text (str): The input string with potentially excessive whitespace.
+
+        Returns:
+            str: The modified string with reduced whitespace.
+        """
+        return re.sub(r'\s+', ' ', text)

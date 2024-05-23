@@ -3,7 +3,7 @@ import logging
 import os
 from shutil import copy
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.strings import StringFormats
+from lib.common.string_formats import StringFormats
 from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion

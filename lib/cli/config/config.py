@@ -6,15 +6,13 @@ from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.config_mode import ConfigMode
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-class Configure(CmdPrompt, ConfigMode):
+class Configure(CmdPrompt):
 
     def __init__(self, args: str=None) -> None:
         """
         Initializes Global instance.
         """
         super().__init__(global_commands=False, exec_mode=ExecMode.PRIV_MODE)
-        
-        self.cm = ConfigMode()
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CONFIGURE_MODE)
@@ -31,5 +29,5 @@ class Configure(CmdPrompt, ConfigMode):
     @CmdPrompt.register_sub_commands()
     def configure_terminal(self, args: List):
         self.log.debug(f'Entering into configure mode')
-        self.cm.start()
+        ConfigMode().start()
         pass

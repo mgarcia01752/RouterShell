@@ -5,13 +5,14 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
 
-from typing import List, Union
+from typing import Any, List, Union
 
 from common.common import Common
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_OK
+from lib.common.string_formats import StringFormats
 from lib.system.system_config import SystemConfig
 
 class RouterPrompt:
@@ -66,7 +67,10 @@ class RouterPrompt:
     def intro(self) -> str:
         return ""
          
-    def rs_prompt(self, split: bool = True) -> list:
+    def rs_prompt(self, 
+                  split: bool=True, 
+                  ws_trim_lead: bool=True,
+                  ws_reduce: bool=True) -> List|Any:
         """
         Displays router prompt and returns user input.
 
@@ -80,6 +84,12 @@ class RouterPrompt:
         
         _ = self.session.prompt(f'{self.get_prompt()}',completer=self.completer, complete_in_thread=False)
         
+        if ws_trim_lead:
+            _.lstrip()
+            
+        if ws_reduce:
+            _ = StringFormats.reduce_ws(_)
+        
         if _.split(' ')[0] == 'enable':
             self.execute_mode = ExecMode.PRIV_MODE
             self.update_prompt()
@@ -87,7 +97,7 @@ class RouterPrompt:
         
         if not split:
             return _
-        
+                    
         return _.split(' ')
 
     def register_top_lvl_cmds(self, class_name: CmdPrompt) -> bool:
