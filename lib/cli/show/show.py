@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import List
 
@@ -8,10 +9,14 @@ from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
+from lib.cli.show.nat_show import NatShow
 from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.strings import StringFormats
+from lib.db.interface_db import InterfaceDatabase
+from lib.db.vlan_db import VLANDatabase
 from lib.hardware.hardware_detection import HardwareDetection
+from lib.db.nat_db import NatDB
 
 class Show(CmdPrompt):
 
@@ -157,6 +162,37 @@ class Show(CmdPrompt):
             str_hash = StringFormats.generate_hash_from_list(args[:-1])
             print(CmdPrompt.get_help(str_hash))
 
-        else:
+        elif 'configuration' in args:
             for line in RouterConfiguration().get_running_configuration():
-                print(line)      
+                print(line)
+            
+        pass
+                
+    @CmdPrompt.register_sub_commands()      
+    def show_nat(self, args: List) -> None:
+
+        self.log.debug(f'show_running: {args}')
+
+        if '?'in args:
+            str_hash = StringFormats.generate_hash_from_list(args[:-1])
+            print(CmdPrompt.get_help(str_hash))
+            
+        else:
+            NatShow().getNatTable()
+     
+    def show_db(self, args: List) -> None:
+
+        if '?'in args:
+            str_hash = StringFormats.generate_hash_from_list(args[:-1])
+            print(CmdPrompt.get_help(str_hash))
+                    
+        elif 'nat-db' in args:
+            print(NatDB().to_json())
+        
+        elif 'if-db' in args:
+            print(f"{json.dumps(InterfaceDatabase.to_json(), indent=4)}")
+
+        elif 'vlan-db' in args:
+            print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
+                           
+                                   
