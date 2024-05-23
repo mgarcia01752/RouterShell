@@ -62,14 +62,7 @@ class RouterPrompt:
             self.hostname = self.DEF_START_HOSTNAME
 
         self.update_prompt()
-        
-    def _print_top_lvl_cmds(self):
-        """
-        Print the top-level commands with each key-value pair on a new line.
-        """
-        formatted_cmds = "\n".join([f"{key}\t\t\t{value}" for key, value in self._register_top_lvl_cmds.items()])
-        self.log.debug(f"TOP-LVL-CMD:\n{formatted_cmds}")
-        
+         
     def rs_prompt(self, split: bool = True) -> list:
         """
         Displays router prompt and returns user input.
@@ -333,3 +326,10 @@ class RouterPrompt:
             self.log.debug(f'Error executing command {cmd}: {e}')
             return False
             
+    def _print_top_lvl_cmds(self):
+        """
+        Print the top-level commands with each key-value pair on a new line.
+        """
+        formatted_cmds = "\n".join([f"{key}\t\t\t{value}" for key, value in self._register_top_lvl_cmds.items()])
+        self.log.debug(f"TOP-LVL-CMD:\n{formatted_cmds}")
+                   
