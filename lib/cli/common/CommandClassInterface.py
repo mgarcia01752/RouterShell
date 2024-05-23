@@ -106,44 +106,7 @@ class CmdPrompt(CmdInterface):
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CMD_PROMPT)
-        
-        # self._generate_command_dict()
-
-    def _generate_command_dict(self) -> dict:
-        """
-        Generate a nested dictionary for command completion based on class methods.
-
-        Returns:
-            dict: Nested dictionary for command completion.
-        """
-        commands = self.get_command_list()
-        
-        if not self.isGlobal():
-            CmdPrompt._nested_dict = {self.CLASS_NAME: {}}
-
-        for cmd in commands:
-            
-            parts = cmd.split('_')
-            self.log.debug(f'cmd-parts: {parts}')
-            
-            if not self.isGlobal():
-                nest_dict_key_value = CmdPrompt._nested_dict[self.CLASS_NAME]
                 
-            else:
-                nest_dict_key_value = CmdPrompt._nested_dict
-                
-            self.log.debug(f'cmd-parts: {nest_dict_key_value}')
-            
-            for part in parts:
-                self.log.debug(f'Part: {part} -> {parts}')
-                if part not in nest_dict_key_value:
-                    nest_dict_key_value[part] = {}
-                nest_dict_key_value = nest_dict_key_value[part]
-
-        self.log.debug(f'Nested-Cmds: {CmdPrompt._nested_dict}')
-        
-        return CmdPrompt._nested_dict
-        
     def getClassStartCmd(self) -> str:
         """
         Get the class start command.
@@ -227,12 +190,12 @@ class CmdPrompt(CmdInterface):
         pass
 
     @classmethod
-    def register_sub_commands(cls, subcommands: Optional[List[str]] = None, help: Optional[str] = None):
+    def register_sub_commands(cls, sub_cmds: Optional[List[str]] = None, help: Optional[str] = None):
         """
         Decorator function for registering sub-commands along with their help messages.
 
         Args:
-            subcommands (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
+            sub_cmds (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
             help (Optional[str]): The help message associated with the sub-commands. Defaults to None.
 
         Returns:
@@ -261,19 +224,19 @@ class CmdPrompt(CmdInterface):
                 CmdPrompt._nested_dict[class_start_cmd] = {}
 
             current_level = CmdPrompt._nested_dict[class_start_cmd]
-            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {subcommands}')
+            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {sub_cmds}')
 
             # Get the class base commands
             if base_cmd not in current_level:
                 logging.debug(f'Create cmd key: {base_cmd}')
                 current_level[base_cmd] = {}
 
-            if subcommands:
-                logging.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {subcommands}')
-                CmdPrompt._insert_sub_command(current_level[base_cmd], subcommands)
+            if sub_cmds:
+                logging.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {sub_cmds}')
+                CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmds)
             
             if help: 
-                cmd_sub_cmd_list = [base_cmd] + subcommands
+                cmd_sub_cmd_list = [base_cmd] + sub_cmds
                 CmdPrompt._update_help_dict(cmd_sub_cmd_list, help)
 
 
@@ -346,7 +309,7 @@ class CmdPrompt(CmdInterface):
         try:
             return cls._help_dict[cmd_list_hash]
         except KeyError:
-            return f"Error: Help message for hash '{cmd_list_hash}' not found."
+            return f"Error: No Help"
 
     def get_command_registry(self) -> Dict[str, dict]:
         """
