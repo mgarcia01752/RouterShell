@@ -15,7 +15,7 @@ class Test(CmdPrompt):
         super().__init__(global_commands=False, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SHOW_MODE)
+        self.log.setLevel(RSLGS().TEST_DEFAULT)
                
     def test_help(self, args: List=None) -> None:
         """
@@ -26,8 +26,8 @@ class Test(CmdPrompt):
             print(f"{method.__doc__}")
         pass
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['next'])         
-    def test_port(self, args: List=None) -> None:
-        print(f'test_port -> {args}')
+    @CmdPrompt.register_sub_commands(sub_cmds=['sub-command'])         
+    def test_cmd(self, args: List=None) -> None:
+        self.log.debug(f'test_cmd -> {args}')
         pass
    

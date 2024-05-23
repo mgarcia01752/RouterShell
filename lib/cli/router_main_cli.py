@@ -54,22 +54,17 @@ class RouterCLI(RouterPrompt):
                 if not command or not command[0]:
                     continue
 
-                if command[0] == '?':
+                if '?' in command[0]:
                     self.show_help()
                     continue
                 
                 cmd_args = command[1:] if len(command) > 1 else command
 
-                top_level_cmd_obj = self.get_top_level_cmd_object(command)
-                
-                if top_level_cmd_obj:
+                if self.get_top_level_cmd_object(command).execute(cmd_args):
+                        print(f"Command {command} not found.")
+                            
+                self.log.debug(f'Command: {command} -> args: {cmd_args} - Executed!!!')
                     
-                    if top_level_cmd_obj.execute(cmd_args) == STATUS_OK:
-                        self.log.debug(f'Command: {command} -> args: {cmd_args} - Executed!!!')
-                    
-                else:
-                    print(f"Command {command} not found.")
-
             except KeyboardInterrupt:
                 continue
 

@@ -15,6 +15,8 @@ class RouterShellLoggingGlobalSettings():
     
     GLOBAL_DEBUG = False
     
+    TEST_DEFAULT                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
     GLOBAL_MODE                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ROUTER_SHELL_DB             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 

@@ -31,6 +31,5 @@ class Configure(CmdPrompt):
     @CmdPrompt.register_sub_commands()
     def configure_terminal(self, args: List):
         self.log.debug(f'Entering into configure mode')
-        self.cm.clear_completer()
         self.cm.start()
         pass
