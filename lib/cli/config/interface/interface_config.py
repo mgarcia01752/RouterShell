@@ -29,13 +29,13 @@ class InterfaceConfig(ConfigurePrompt, IfConfig):
         Raises:
             InterfaceConfigError: If the interface_name is empty.
         """
-        super().__init__()
+        super().__init__(sub_cmd_name='if')
 
         if not ifName:
             raise InterfaceConfigError("InterfaceConfig interface_name cannot be empty.")
 
         self.ifName = ifName
-        IfConfig.__init__(ifName)
+        IfConfig().__init__(ifName=ifName)
         
         self.register_top_lvl_cmds(IfConfig())
         

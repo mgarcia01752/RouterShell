@@ -34,7 +34,7 @@ class ConfigCmd(CmdPrompt):
         
         self.log.info(f'ConfigCmd_interface -> {args}')
         
-        InterfaceConfig(args[0]).start()
+        InterfaceConfig(ifName=args[0]).start()
         
         return STATUS_OK
    

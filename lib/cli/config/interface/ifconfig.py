@@ -21,7 +21,7 @@ class IfConfigError(Exception):
 
 class IfConfig(CmdPrompt, Interface):
 
-    def __init__(self, ifName: str, ifType: str=None) -> None:
+    def __init__(self, ifName: str=None, ifType: str=None) -> None:
         """
         Initializes Global instance.
         """
