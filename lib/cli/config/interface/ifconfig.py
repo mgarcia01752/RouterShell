@@ -9,16 +9,26 @@ from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.interface import Interface
 
+
+class IfConfigError(Exception):
+    """Custom exception for IfConfig errors."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f'IfConfigError: {self.message}'
+
 class IfConfig(CmdPrompt, Interface):
 
-    def __init__(self, args: str=None) -> None:
+    def __init__(self, ifName: str, ifType: str=None) -> None:
         """
         Initializes Global instance.
         """
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().TEST_DEFAULT)
+        self.log.setLevel(RSLGS().IF_CONFIG)
                
     def ifconfig_help(self, args: List=None) -> None:
         """
@@ -27,6 +37,7 @@ class IfConfig(CmdPrompt, Interface):
         for method_name in self.class_methods():
             method = getattr(self, method_name)
             print(f"{method.__doc__}")
+            
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(sub_cmds=['sub-command'])         

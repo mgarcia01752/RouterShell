@@ -4,6 +4,7 @@ from typing import List
 
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.cli.config.interface.interface_config import InterfaceConfig
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.interface import Interface
@@ -30,7 +31,10 @@ class ConfigCmd(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(extend_sub_cmds=Interface().get_network_interfaces())         
     def configcmd_interface(self, args: List=None) -> bool:
-        self.log.info(f'configcmd_interface -> {args}')
-        print(Interface().get_network_interfaces())
+        
+        self.log.info(f'ConfigCmd_interface -> {args}')
+        
+        InterfaceConfig(args[0]).start()
+        
         return STATUS_OK
    

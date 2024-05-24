@@ -1,4 +1,3 @@
-
 import logging
 from typing import List
 
@@ -6,7 +5,7 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-class Test(CmdPrompt):
+class TConfig(CmdPrompt):
 
     def __init__(self, args: str=None) -> None:
         """
@@ -17,7 +16,7 @@ class Test(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().TEST_DEFAULT)
                
-    def test_help(self, args: List=None) -> None:
+    def tconfig_help(self, args: List=None) -> None:
         """
         Display help for available commands.
         """
@@ -27,7 +26,7 @@ class Test(CmdPrompt):
         pass
     
     @CmdPrompt.register_sub_commands(sub_cmds=['sub-command'])         
-    def test_cmd(self, args: List=None) -> None:
-        self.log.debug(f'test_cmd -> {args}')
+    def tconfig_cmd(self, args: List=None) -> None:
+        self.log.debug(f'tconfig_cmd -> {args}')
         pass
    
