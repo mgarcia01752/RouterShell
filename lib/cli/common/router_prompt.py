@@ -159,6 +159,7 @@ class RouterPrompt:
      
         elif self.execute_mode is ExecMode.CONFIG_MODE:
             self.log.debug("Config-Mode")
+            self._prompt_dict['ExecModePrompt'] = self.PRIV_MODE_PROMPT
             self.current_prompt = f"{self._prompt_dict['Hostname']}({self._prompt_dict['ConfigMode']}){self._prompt_dict['ExecModePrompt']}"
                                  
             if self.SUB_CMD_START:
