@@ -81,7 +81,8 @@ class RunCommand:
 
             self.log.debug(f"run({exit_code}) -> cmd -> {cmd_str}")
 
-            self.log_command(cmd_str)
+            # TODO Need to fix this
+            #self.log_command(cmd_str)
 
             return RunResult(stdout, stderr, exit_code, command)
 

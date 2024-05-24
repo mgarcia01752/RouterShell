@@ -10,7 +10,6 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.network_manager.common.phy import State
 from lib.network_manager.interface import Interface
 
-
 class IfConfigError(Exception):
     """Custom exception for IfConfig errors."""
     def __init__(self, message: str):
@@ -39,18 +38,29 @@ class IfConfig(CmdPrompt, Interface):
             print(f"{method.__doc__}")
             
         return STATUS_OK
-    
-    @CmdPrompt.register_sub_commands(sub_cmds=['sub-command'])         
-    def ifconfig_cmd(self, args: List=None) -> None:
-        self.log.debug(f'test_cmd -> {args}')
-        return STATUS_OK
-        
+            
     @CmdPrompt.register_sub_commands() 
     def ifconfig_description(self, line:str, negate=False) -> bool:
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands()    
+    @CmdPrompt.register_sub_commands(sub_cmds=['auto'],     help='Auto assign mac address')
+    @CmdPrompt.register_sub_commands(sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
     def ifconfig_mac(self, args:str) -> bool:
+        
+        self.log.debug(f"ifconfig_mac() -> args: {args}")
+        
+        if len(args) == 1 and args[0] == "auto":
+            self.log.debug(f"ifconfig_mac() -> auto")
+            self.update_interface_mac(self.ifName)
+                            
+        elif len(args) == 2 and args[0] == "address":
+            mac = args[1]
+            self.log.debug(f"ifconfig_mac() -> address -> {mac}")
+            self.update_interface_mac(self.ifName, mac)
+            
+        else:
+            print("Usage: mac [auto | <mac address>]")
+            
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    

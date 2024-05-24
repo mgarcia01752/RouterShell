@@ -230,8 +230,8 @@ class RouterPrompt:
         """
         self.log.debug(f'get_top_level_cmd_object() -> cmds: {cmd}')
         
-        self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" \
-            for key, value in self._register_top_lvl_cmds.items()]))
+        #self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" \
+        #    for key, value in self._register_top_lvl_cmds.items()]))
 
         # Check for Global defined classes
         if cmd[0] in self._register_top_lvl_cmds:
@@ -352,6 +352,6 @@ class RouterPrompt:
         """
         Print the top-level commands with each key-value pair on a new line.
         """
-        formatted_cmds = "\n".join([f"{key}\t\t\t{value}" for key, value in self._register_top_lvl_cmds.items()])
-        self.log.debug(f"TOP-LVL-CMD:\n{formatted_cmds}")
+        # formatted_cmds = "\n".join([f"{key}\t\t\t{value}" for key, value in self._register_top_lvl_cmds.items()])
+        # self.log.debug(f"TOP-LVL-CMD:\n{formatted_cmds}")
                    

@@ -67,6 +67,7 @@ class MacServiceLayer(InterfaceLayer):
 
             self.log.debug(f"Changed MAC address of {interface_name} to {mac_address}")
             return STATUS_OK
+        
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             return STATUS_NOK

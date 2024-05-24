@@ -495,7 +495,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Interface: {initial_interface_name} does not exists")
             return STATUS_NOK        
 
-        bus_info = self.get_interface_info(initial_interface_name)['businfo']
+        bus_info = self.get_interface_debug(initial_interface_name)['businfo']
         
         result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
                 
@@ -727,7 +727,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def get_interface_info(self, interface_name: str) -> dict:
+    def get_interface_debug(self, interface_name: str) -> dict:
         """
         Retrieve information about network interfaces using lshw.
 
