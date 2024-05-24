@@ -88,6 +88,12 @@ class CmdPrompt(CmdInterface):
     """
     Implementation of command prompt interface.
     """
+    
+    logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    log = logging.getLogger(__name__)
+    
     # Statics
     _nested_dict = {}
     _help_dict = {}
@@ -236,13 +242,13 @@ class CmdPrompt(CmdInterface):
             method_name = func.__name__
 
             if not bool(re.search(r'\b[a-zA-Z]+_[a-zA-Z0-9]+\b', method_name)):
-                logging.fatal(f'Method Call ({method_name}) does not contain a \'_\' ')
+                CmdPrompt.log.fatal(f'Method Call ({method_name}) does not contain a \'_\' ')
                 exit()
 
             command_parts = method_name.split('_')
             
-            logging.debug('-----------------------------------------------------------------')
-            logging.debug(f'Start -> {CmdPrompt._nested_dict}')
+            CmdPrompt.log.debug('-----------------------------------------------------------------')
+            CmdPrompt.log.debug(f'Start -> {CmdPrompt._nested_dict}')
             
             # Accessing class methods using self
             class_start_cmd = command_parts[0]
@@ -258,19 +264,19 @@ class CmdPrompt(CmdInterface):
 
             # Get the class base commands
             if base_cmd not in current_level:
-                logging.debug(f'Create cmd key: {base_cmd}')
+                CmdPrompt.log.debug(f'Create cmd key: {base_cmd}')
                 current_level[base_cmd] = {}
 
             if sub_cmds:
-                logging.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {sub_cmds}')
+                CmdPrompt.log.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {sub_cmds}')
                 CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmds)
             
             if help: 
                 cmd_sub_cmd_list = [base_cmd] + sub_cmds
                 CmdPrompt._update_help_dict(cmd_sub_cmd_list, help)
 
-            logging.debug(f'End -> {CmdPrompt._nested_dict}')
-            logging.debug("")
+            CmdPrompt.log.debug(f'End -> {CmdPrompt._nested_dict}')
+            CmdPrompt.log.debug("")
             
             def wrapper(*args, **kwargs):
                 print(f'Executing {func.__name__} with arguments: {args}, {kwargs}')
@@ -291,21 +297,21 @@ class CmdPrompt(CmdInterface):
 
             # Check if sub-cmd is a key, if so, we access the key to insert the next sub-cmd
             if sub_cmd in cmd_dict:
-                logging.debug(f'Appending ({sub_cmd}) in {cmd_dict}')
+                CmdPrompt.log.debug(f'Appending ({sub_cmd}) in {cmd_dict}')
                 tmp_cmd_dict = cmd_dict[sub_cmd]
                 CmdPrompt._insert_sub_command(tmp_cmd_dict, sub_cmd_list[1:])
                 
             else:
-                logging.debug(f'Adding ({sub_cmd}) in {cmd_dict}')
+                CmdPrompt.log.debug(f'Adding ({sub_cmd}) in {cmd_dict}')
 
                 cmd_dict[sub_cmd] = {}
                 
-                logging.debug(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
+                CmdPrompt.log.debug(f'Inserting -> {cmd_dict[sub_cmd]} into: {cmd_dict}')
                 
                 # Recurse with the new dictionary level
                 CmdPrompt._insert_sub_command(cmd_dict[sub_cmd], sub_cmd_list[1:])
                 
-        logging.debug(f'Updated cmd_dict: {cmd_dict}')
+        CmdPrompt.log.debug(f'Updated cmd_dict: {cmd_dict}')
         return cmd_dict
 
     @classmethod

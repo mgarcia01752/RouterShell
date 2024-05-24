@@ -6,6 +6,7 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.interface import Interface
 
 class ConfigCmd(CmdPrompt):
 
@@ -27,8 +28,9 @@ class ConfigCmd(CmdPrompt):
             print(f"{method.__doc__}")
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['eno1'])         
+    @CmdPrompt.register_sub_commands(sub_cmds=Interface().get_network_interfaces())         
     def configcmd_interface(self, args: List=None) -> bool:
         self.log.info(f'configcmd_interface -> {args}')
+        print(Interface().get_network_interfaces())
         return STATUS_OK
    

@@ -4,6 +4,7 @@ from typing import List
 from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.config_mode import ConfigMode
+from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class Configure(CmdPrompt):
@@ -27,7 +28,7 @@ class Configure(CmdPrompt):
         pass
     
     @CmdPrompt.register_sub_commands()
-    def configure_terminal(self, args: List):
+    def configure_terminal(self, args: List) -> bool:
         self.log.debug(f'Entering into configure mode')
         ConfigMode().start()
-        pass
+        STATUS_OK

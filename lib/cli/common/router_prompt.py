@@ -232,17 +232,19 @@ class RouterPrompt:
         self.log.debug(f"TOP-LVL-CMD-SEARCH: ({cmd})\n" + "\n".join([f"{key} ----> {value}" \
             for key, value in self._register_top_lvl_cmds.items()]))
 
-        # Check to see if key exists exactly
+        # Check for Global defined classes
         if cmd[0] in self._register_top_lvl_cmds:
-            self.log.debug(f'Command Found (Global): {cmd[0]}')
+            self.log.debug(f'get_top_level_cmd_object() -> Command Found (Global): {cmd[0]}')
             return self._register_top_lvl_cmds[cmd[0]]
         
+        # Check for non-global classes
         combined_cmd = '_'.join(cmd[:2])
+        self.log.debug(f'get_top_level_cmd_object() -> combined_cmd: {combined_cmd}')
         if combined_cmd in self._register_top_lvl_cmds:
-            self.log.debug(f'Command Found (Non-Global): {combined_cmd}')
+            self.log.debug(f'get_top_level_cmd_object() -> Command Found (Non-Global): {combined_cmd}')
             return self._register_top_lvl_cmds[combined_cmd]
         
-        self.log.debug(f'cmd: {cmd} - No Match!!!')
+        self.log.error(f'get_top_level_cmd_object() -> cmd: {cmd} - No Match!!!')
         
         return None
 
