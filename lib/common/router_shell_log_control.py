@@ -61,9 +61,7 @@ class RouterShellLoggingGlobalSettings():
     DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INTERFACE_CONFIG            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
-    INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE_CONFIG            = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     IF_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -102,7 +100,7 @@ class RouterShellLoggingGlobalSettings():
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     MAC                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE                   = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     PHY                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     RUN                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSCTL                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

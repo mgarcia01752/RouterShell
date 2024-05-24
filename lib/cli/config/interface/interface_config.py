@@ -18,7 +18,7 @@ class InterfaceConfigError(Exception):
         return f'InterfaceConfigError: {self.message}'
    
 
-class InterfaceConfig(ConfigurePrompt, IfConfig):
+class InterfaceConfig(ConfigurePrompt):
     def __init__(self, ifName: str, ifType:str=None):
         """
         Initialize the InterfaceConfig class.
@@ -34,10 +34,7 @@ class InterfaceConfig(ConfigurePrompt, IfConfig):
         if not ifName:
             raise InterfaceConfigError("InterfaceConfig interface_name cannot be empty.")
 
-        self.ifName = ifName
-        IfConfig().__init__(ifName=ifName)
-        
-        self.register_top_lvl_cmds(IfConfig())
+        self.register_top_lvl_cmds(IfConfig(ifName=ifName))
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().INTERFACE_CONFIG)

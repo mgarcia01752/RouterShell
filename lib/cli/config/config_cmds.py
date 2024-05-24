@@ -12,9 +12,6 @@ from lib.network_manager.interface import Interface
 class ConfigCmd(CmdPrompt):
 
     def __init__(self, args: str=None) -> None:
-        """
-        Initializes Global instance.
-        """
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
@@ -32,7 +29,7 @@ class ConfigCmd(CmdPrompt):
     @CmdPrompt.register_sub_commands(extend_sub_cmds=Interface().get_network_interfaces())         
     def configcmd_interface(self, args: List=None) -> bool:
         
-        self.log.info(f'ConfigCmd_interface -> {args}')
+        self.log.debug(f'configcmd_interface -> {args}')
         
         InterfaceConfig(ifName=args[0]).start()
         
