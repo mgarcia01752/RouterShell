@@ -7,8 +7,12 @@ from lib.cli.base.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.arp import Encapsulate
 from lib.network_manager.common.phy import State
+from lib.network_manager.dhcp_client import DHCPVersion
+from lib.network_manager.dhcp_server import DHCPServer
 from lib.network_manager.interface import Interface
+from lib.network_manager.nat import NATDirection
 
 class IfConfigError(Exception):
     """Custom exception for IfConfig errors."""
@@ -67,8 +71,17 @@ class IfConfig(CmdPrompt, Interface):
     def ifconfig_ipv6(self, args, negate=False) -> bool:
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands()        
-    def ifconfig_ip(self, args, negate=False) -> bool:
+    @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'], help='set ')
+    @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'],  help='Enable drop-gratuitous-ARP')        
+    @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'],  help='Enable drop-gratuitous-ARP')
+    @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'],            help='Enable proxy ARP')
+    @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'],   help='Add/Del static ARP entry.')
+    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'inside', 'pool', 'acl'],     help='nat [inside|outside] pool <nat-pool-name> acl <acl-id> ')
+    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'outside', 'pool', 'acl'],    help='nat [inside|outside] pool <nat-pool-name> acl <acl-id> ')
+    def ifconfig_ip(self, args: List, negate=False) -> bool:
+
+        self.log.info(f'ifconfig_ip() -> {args}')
+  
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
