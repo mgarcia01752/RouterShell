@@ -9,6 +9,7 @@ from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.arp import Encapsulate
+from lib.network_manager.bridge import Bridge
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.dhcp_client import DHCPVersion
@@ -96,7 +97,6 @@ class IfConfig(CmdPrompt, Interface):
     
     @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'], help='set ')
     @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'],  help='Enable drop-gratuitous-ARP')        
-    @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'],  help='Enable drop-gratuitous-ARP')
     @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'],            help='Enable proxy ARP')
     @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'],   help='Add/Del static ARP entry.')
     @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'inside', 'pool', 'acl'],     help='nat [inside|outside] pool <nat-pool-name> acl <acl-id> ')
@@ -175,8 +175,20 @@ class IfConfig(CmdPrompt, Interface):
                     
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands()    
-    def ifconfig_bridge(self, args, negate=False) -> bool:
+    @CmdPrompt.register_sub_commands(sub_cmds=['group'])    
+    def ifconfig_bridge(self, args: Optional[str], negate=False) -> bool:
+        
+        if 'group' in args:
+            
+            bridge_name = args[1]
+            
+            if negate:
+                self.log.debug(f"do_bridge().group -> Deleting Bridge {bridge_name}")
+                Bridge().del_bridge_from_interface(self.ifName, args.bridge_name)
+            else:
+                self.log.debug(f"do_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self.ifName}")
+                Bridge().add_bridge_to_interface(self.ifName, bridge_name)
+        
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
@@ -203,16 +215,27 @@ class IfConfig(CmdPrompt, Interface):
         
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands()    
+    @CmdPrompt.register_sub_commands(sub_cmds=['access-vlan'])    
     def ifconfig_switchport(self, args=None, negate=False) -> bool:
-        return STATUS_OK
-    
+        if 'access-vlan' in args:
+            
+            vlan_id = args[1]
+            self.log.debug(f"Configuring switchport as access with VLAN ID: {vlan_id}")
+            
+            if self.update_interface_vlan(self.ifName, vlan_id):
+                self.log.error(f"Unable to add vlan id: {vlan_id}")
+            
+        else:
+            self.log.error("Unknown subcommand")
+            
+        return STATUS_OK        
+
     @CmdPrompt.register_sub_commands()    
     def ifconfig_wireless(self, args=None, negate:bool=False) -> bool:
-        return STATUS_OK
+       return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_sub_cmds=['shutdown', 'description'])    
-    def ifconfig_no(self, args: List):
+    @CmdPrompt.register_sub_commands(extend_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
+    def ifconfig_no(self, args: List) -> bool:
         
         self.log.debug(f"ifconfig_no() -> Line -> {args}")
 
