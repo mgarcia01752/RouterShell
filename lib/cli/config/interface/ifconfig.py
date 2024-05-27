@@ -61,7 +61,7 @@ class IfConfig(CmdPrompt, Interface):
         """
         if negate:
             self.log.info(f'Negating description on interface: {self.ifName}')
-            line = None
+            line = [""]
         
         if self.update_db_description(self.ifName, StringFormats.list_to_string(line)):
             print("Unable to add description to DB")

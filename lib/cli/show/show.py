@@ -153,7 +153,7 @@ class Show(CmdPrompt):
             RouteShow().route()
             pass
         
-    @CmdPrompt.register_sub_commands(sub_cmds=['configurtion'])      
+    @CmdPrompt.register_sub_commands(sub_cmds=['configuration'])      
     def show_running(self, args: List) -> None:
 
         self.log.debug(f'show_running: {args}')
