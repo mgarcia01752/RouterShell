@@ -1,6 +1,6 @@
 import hashlib
 import re
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from lib.common.constants import STATUS_OK, STATUS_NOK
 
@@ -71,3 +71,42 @@ class StringFormats:
             str: The modified string with reduced whitespace.
         """
         return re.sub(r'\s+', ' ', text)
+    
+    @staticmethod
+    def list_to_string(input_list: List[Any]) -> str:
+        """
+        Ensures that the input list is flattened and converts it to a single string.
+        
+        Args:
+            input_list (List[Any]): The list to be flattened and converted.
+        
+        Returns:
+            str: A string representation of the flattened list elements.
+        
+        Raises:
+            TypeError: If the input is not a list.
+        """
+        if not isinstance(input_list, list):
+            raise TypeError("Input is not a list")
+
+        flattened_list = StringFormats.flatten(input_list)
+        return ' '.join(map(str, flattened_list))
+
+    @staticmethod
+    def flatten(lst: List[Any]) -> List[Any]:
+        """
+        Recursively flattens a nested list.
+        
+        Args:
+            lst (List[Any]): The list to be flattened.
+        
+        Returns:
+            List[Any]: A flattened version of the input list.
+        """
+        flat_list = []
+        for item in lst:
+            if isinstance(item, list):
+                flat_list.extend(StringFormats.flatten(item))
+            else:
+                flat_list.append(item)
+        return flat_list

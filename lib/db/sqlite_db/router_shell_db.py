@@ -2675,11 +2675,14 @@ class RouterShellDB(metaclass=Singleton):
                 - row_id (int): The row ID of the updated interface in the database.
                 - reason (str, optional): A descriptive message indicating the reason for failure, if any.
         """
+        
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
             return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
-
+        
+        self.log.debug(f"Description: ({description}) UPDATING for interface: {interface_name}")
+        
         try:
             cursor = self.connection.cursor()
 
@@ -2690,7 +2693,7 @@ class RouterShellDB(metaclass=Singleton):
 
             self.connection.commit()
 
-            self.log.debug(f"Description: ({description}) updated for interface: {interface_name}")
+            self.log.debug(f"Description: ({description}) UPDATED for interface: {interface_name}")
 
             return Result(status=STATUS_OK, row_id=existing_result.row_id)
 

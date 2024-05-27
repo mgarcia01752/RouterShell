@@ -227,9 +227,9 @@ class CmdPrompt(CmdInterface):
 
     @classmethod
     def register_sub_commands(cls, 
-                            sub_cmds: Optional[List[str]] = None,
-                            extend_sub_cmds: Optional[List[str]] = None,  
-                            help: Optional[str] = None):
+                              sub_cmds: Optional[List[str]] = None,
+                              extend_sub_cmds: Optional[List[str]] = None,  
+                              help: Optional[str] = None):
         """
         Decorator function for registering sub-commands along with their help messages.
 

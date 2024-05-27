@@ -1,12 +1,13 @@
 
 import logging
-from typing import List
+from typing import List, Optional
 
 from lib.cli.base.exec_priv_mode import ExecMode
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.string_formats import StringFormats
 from lib.network_manager.arp import Encapsulate
 from lib.network_manager.common.phy import State
 from lib.network_manager.dhcp_client import DHCPVersion
@@ -44,7 +45,28 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def ifconfig_description(self, line:str, negate=False) -> bool:
+    def ifconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
+        """
+        Updates the interface configuration description in the database.
+        
+        Args:
+            line (Optional[str]): The description to be added. If None, the description will be empty.
+            negate (bool): If True, the line will be set to None.
+        
+        Returns:
+            bool: STATUS_OK indicating the operation was successful.
+        
+        Raises:
+            ValueError: If there is an issue updating the database description.
+        """
+        if negate:
+            self.log.info(f'Negating description on interface: {self.ifName}')
+            line = None
+        
+        if self.update_db_description(self.ifName, StringFormats.list_to_string(line)):
+            print("Unable to add description to DB")
+            raise ValueError("Failed to update the description in the database.")
+        
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(sub_cmds=['auto'],     help='Auto assign mac address')
@@ -128,7 +150,7 @@ class IfConfig(CmdPrompt, Interface):
     def ifconfig_wireless(self, args=None, negate:bool=False) -> bool:
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['shutdown'])    
+    @CmdPrompt.register_sub_commands(extend_sub_cmds=['shutdown', 'description'])    
     def ifconfig_no(self, args: List):
         
         self.log.debug(f"ifconfig_no() -> Line -> {args}")
@@ -156,7 +178,7 @@ class IfConfig(CmdPrompt, Interface):
             self.ifconfig_switchport(args[1:], negate=True)
         
         elif start_cmd == 'description':
-            self.log.debug(f"Remove description -> ({args})")
+            self.log.info(f"Remove description -> ({args})")
             self.ifconfig_description(args[1:], negate=True)
         
         else:
