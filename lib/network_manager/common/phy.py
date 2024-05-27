@@ -51,12 +51,17 @@ class Speed(Enum):
 
     MBPS_1000 = 1000
     """
-    1000 MBPS: Configures the interface to operate at a fixed speed of 1 gigabit per second (Mbps).
+    1000 MBPS: Configures the interface to operate at a fixed speed of 1 gigabit per second (Gbps).
     """
 
+    MBPS_2500 = 2500
+    """
+    2500 MBPS: Configures the interface to operate at a fixed speed of 2.5 gigabit per second (Gbps).
+    """
+        
     MBPS_10000 = 10000
     """
-    1000 MBPS: Configures the interface to operate at a fixed speed of 10 gigabits per second (Mbps).
+    1000 MBPS: Configures the interface to operate at a fixed speed of 10 gigabits per second (Gbps).
     """
 
     AUTO_NEGOTIATE = True

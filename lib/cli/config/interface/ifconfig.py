@@ -10,7 +10,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.string_formats import StringFormats
 from lib.network_manager.arp import Encapsulate
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.common.phy import Duplex, State
+from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.dhcp_client import DHCPVersion
 from lib.network_manager.dhcp_server import DHCPServer
 from lib.network_manager.interface import Interface
@@ -145,8 +145,34 @@ class IfConfig(CmdPrompt, Interface):
                     
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands()    
-    def ifconfig_speed(self, args) -> bool:
+    @CmdPrompt.register_sub_commands(extend_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
+    def ifconfig_speed(self, args: Optional[str]) -> bool:
+        args = StringFormats.list_to_string(args)
+        
+        if not args:
+            print("Usage: speed <10 | 100 | 1000 | 2500 | 10000 | auto>")
+            return
+
+        if self.interface_type != InterfaceType.ETHERNET:
+            self.update_interface_speed(self.ifName, Speed.NONE)
+            print("interface must be of ethernet type")
+            return
+        
+        self.log.debug(f"do_speed() -> ARGS: {args}")
+        
+        speed_values = {str(s.value): s for s in Speed}
+        args = args.lower()
+
+        if args == "auto":
+            self.update_interface_speed(self.ifName, Speed.AUTO_NEGOTIATE)
+
+        elif args in speed_values:
+            speed = speed_values[args]
+            self.update_interface_speed(self.ifName, speed)
+            
+        else:
+            print("Invalid speed value. Use '10', '100', '1000', '2500', '10000', or 'auto'.")
+                    
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
