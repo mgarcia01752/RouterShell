@@ -9,7 +9,8 @@ from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.arp import Encapsulate
-from lib.network_manager.common.phy import State
+from lib.network_manager.common.interface import InterfaceType
+from lib.network_manager.common.phy import Duplex, State
 from lib.network_manager.dhcp_client import DHCPVersion
 from lib.network_manager.dhcp_server import DHCPServer
 from lib.network_manager.interface import Interface
@@ -106,8 +107,42 @@ class IfConfig(CmdPrompt, Interface):
   
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands()    
-    def ifconfig_duplex(self, args) -> bool:
+    @CmdPrompt.register_sub_commands(extend_sub_cmds=['auto', 'half', 'full'])    
+    def ifconfig_duplex(self, args: Optional[str]) -> bool:
+        """
+        Updates the interface duplex mode based on the provided arguments.
+        
+        Args:
+            args (Optional[str]): The duplex mode argument, expected to be 'auto', 'half', or 'full'.
+        
+        Returns:
+            bool: STATUS_OK (True) indicating the operation was successful.
+        
+        Raises:
+            ValueError: If the duplex mode is invalid.
+        """
+        args = StringFormats.list_to_string(args)
+        
+        if not args:
+            print("Usage: duplex <auto | half | full>")
+            return
+
+        if self.interface_type != InterfaceType.ETHERNET:
+            self.update_interface_duplex(self.ifName, Duplex.NONE)
+            print("interface must be of ethernet type")
+            return
+        
+        duplex_values = {d.value: d for d in Duplex}
+        
+        args = args.lower()
+
+        if args in duplex_values:
+            duplex = duplex_values[args]
+            self.update_interface_duplex(self.ifName, duplex)
+                        
+        else:
+            print(f"Invalid duplex mode ({args}). Use 'auto', 'half', or 'full'.")
+                    
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
