@@ -18,7 +18,6 @@ class Common():
 
     @staticmethod
     def getHostName() -> str:
-        
         try:
             # Get the hostname of the computer
             hostname = socket.gethostname()
@@ -40,6 +39,20 @@ class Common():
 
         # Default to 'sudo reboot' if neither init system is found
         return 'sudo reboot'
+    
+    @staticmethod
+    def get_shutdown_command() -> str:
+
+        # Check if the /etc/init directory exists (indicating SysV init)
+        if os.path.exists('/etc/init'):
+            return 'sudo init 0'  # Use SysV init reboot command
+
+        # Check if the /run/systemd/system directory exists (indicating systemd)
+        if os.path.exists('/run/systemd/system'):
+            return 'sudo systemctl shutdown'  # Use systemd reboot command
+
+        # Default to 'sudo shutdown' if neither init system is found
+        return 'sudo shutdown'
     
     @staticmethod
     def getclock(line) -> str:

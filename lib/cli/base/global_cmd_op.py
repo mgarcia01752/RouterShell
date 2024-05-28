@@ -56,20 +56,24 @@ class Global(CmdPrompt, NetworkManager):
 
     @CmdPrompt.register_sub_commands() 
     def global_reload(self, args=None):
-        """reload\t\t\tReboot"""
         self.global_reboot(args=None)
-        return False
+        return STATUS_OK
 
     @CmdPrompt.register_sub_commands() 
     def global_reboot(self, args=None):
-        """reboot\t\t\tReboot"""
-        return False
+        self.run(Common.get_reboot_command())
+        return STATUS_OK
 
+    @CmdPrompt.register_sub_commands() 
+    def global_shutdown(self, args=None):
+        self.run(Common.get_shutdown_command())
+        return STATUS_OK    
+    
     @CmdPrompt.register_sub_commands() 
     def global_version(self, args=None):
         """version\t\t\tGet version"""
         print("v1.0")
-        return False
+        return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
     def global_ping(self, args=None):

@@ -95,7 +95,7 @@ class IfConfig(CmdPrompt, Interface):
     def ifconfig_ipv6(self, args, negate=False) -> bool:
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'], help='set ')
+    @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'], help='Set IPv4 address: xxx.xxx.xxx.xxx/xx')
     @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'],  help='Enable drop-gratuitous-ARP')        
     @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'],            help='Enable proxy ARP')
     @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'],   help='Add/Del static ARP entry.')
@@ -104,6 +104,69 @@ class IfConfig(CmdPrompt, Interface):
     def ifconfig_ip(self, args: List, negate=False) -> bool:
 
         self.log.info(f'ifconfig_ip() -> {args}')
+
+        if 'address' in args[0]:
+            ipv4_address_cidr = args[1]
+            is_secondary = False
+            is_secondary = True if is_secondary else False
+
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+
+            action_description = "Removing" if negate else "Setting"
+            result = self.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
+
+            if result:
+                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+            else:
+                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+
+        elif "proxy-arp" in args[0]:
+            '''[no] [ip proxy-arp]'''
+            self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
+            self.update_interface_proxy_arp(self.ifName, negate)
+                
+        elif "drop-gratuitous-arp" in args[0]:
+            '''[no] [ip drop-gratuitous-arp]'''
+            self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
+            self.update_interface_drop_gratuitous_arp(self.ifName, negate)
+
+        elif "static-arp" in args[0]:
+            '''[no] [ip static-arp ip-address mac-address arpa]'''
+            self.log.debug(f"Set static-arp on Interface {self.ifName}")
+            
+            ipv4_addr_arp = args[1]
+            mac_addr_arp = args[2]
+            encap_arp = Encapsulate.ARPA         
+                    
+            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
+            self.update_interface_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
+            
+        elif "nat" in args[0]:
+            '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
+            nat_direction = args.nat_direction_pool
+            nat_pool_name = args.pool_name
+                        
+            try:
+                nat_direction = NATDirection(nat_direction)
+            except ValueError:
+                print(f"Error: Invalid NAT direction '{nat_direction}'. Use 'inside' or 'outside'.")
+
+            self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction.value} -> Pool: {nat_pool_name}")
+
+            if self.set_nat_domain_status(self.ifName, nat_pool_name, nat_direction):
+                self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
+
+        elif "dhcp-client" in args[0]:
+            '''[no] [ip dhcp-client]'''
+            self.log.debug(f"Enable DHCPv4 Client")
+            if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V4, negate):
+                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
+
+        elif "dhcp-server" in args[0]:
+            pool_name = args.pool_name
+            '''[no] [ip dhcp-server] pool <dhcp-pool-name>'''
+            self.log.debug(f"Enable DHCPv4/6 Server")
+            DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
   
         return STATUS_OK
     
