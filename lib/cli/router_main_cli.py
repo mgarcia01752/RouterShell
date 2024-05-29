@@ -1,5 +1,6 @@
 import logging
 
+from lib.cli.base.clear_mode import ClearMode
 from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.config.config import Configure
 from lib.cli.show.show import Show
@@ -26,6 +27,7 @@ class RouterCLI(RouterPrompt):
         RouterPrompt.__init__(self)
         
         self.register_top_lvl_cmds(Global())
+        self.register_top_lvl_cmds(ClearMode())
         self.register_top_lvl_cmds(Show())
         self.register_top_lvl_cmds(Configure())
 

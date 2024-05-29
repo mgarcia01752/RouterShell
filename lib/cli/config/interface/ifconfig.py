@@ -170,7 +170,7 @@ class IfConfig(CmdPrompt, Interface):
   
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_sub_cmds=['auto', 'half', 'full'])    
+    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=['auto', 'half', 'full'])    
     def ifconfig_duplex(self, args: Optional[str]) -> bool:
         """
         Updates the interface duplex mode based on the provided arguments.
@@ -208,7 +208,7 @@ class IfConfig(CmdPrompt, Interface):
                     
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
+    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
     def ifconfig_speed(self, args: Optional[str]) -> bool:
         args = StringFormats.list_to_string(args)
         
@@ -297,7 +297,7 @@ class IfConfig(CmdPrompt, Interface):
     def ifconfig_wireless(self, args=None, negate:bool=False) -> bool:
        return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
+    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
     def ifconfig_no(self, args: List) -> bool:
         
         self.log.debug(f"ifconfig_no() -> Line -> {args}")

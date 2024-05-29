@@ -228,14 +228,16 @@ class CmdPrompt(CmdInterface):
     @classmethod
     def register_sub_commands(cls, 
                               sub_cmds: Optional[List[str]] = None,
-                              extend_sub_cmds: Optional[List[str]] = None,  
+                              extend_parallel_sub_cmds: Optional[List[str]] = None,
+                              append_parallel_sub_cmds: Optional[List[str]] = None,   
                               help: Optional[str] = None):
         """
         Decorator function for registering sub-commands along with their help messages.
 
         Args:
             sub_cmds (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
-            extend_sub_cmds (Optional[List[str]]): A list of additional sub-commands to extend the registration. Defaults to None.
+            extend_parallel_sub_cmds (Optional[List[str]]): A list of additional sub-commands to extend the registration. Defaults to None.
+            append_parallel_sub_cmds (Optional[List[str]]): A list of additional sub-commands to append the registration. Defaults to None.
             help (Optional[str]): The help message associated with the sub-commands. Defaults to None.
 
         Returns:
@@ -265,26 +267,36 @@ class CmdPrompt(CmdInterface):
                 CmdPrompt._nested_dict[class_start_cmd] = {}
 
             current_level = CmdPrompt._nested_dict[class_start_cmd]
-            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {sub_cmds} -> ExtSubCmd: {extend_sub_cmds}')
+            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {sub_cmds} -> ExtSubCmd: {extend_parallel_sub_cmds}')
 
             # Get the class base commands
             if base_cmd not in current_level:
                 CmdPrompt.log.debug(f'Create cmd key: {base_cmd}')
                 current_level[base_cmd] = {}
 
-            if sub_cmds and extend_sub_cmds:
+            if sub_cmds and extend_parallel_sub_cmds:
                 
-                ext_cmd_list = [sub_cmds] + [sub_cmds[:-1] + [e] for e in extend_sub_cmds]
+                append_cmd_list = [sub_cmds] + [sub_cmds[:-1] + [e] for e in extend_parallel_sub_cmds]
                                                              
-                CmdPrompt.log.debug(f'Extend sub cmds: {sub_cmds} -> {extend_sub_cmds} -> {ext_cmd_list}')
+                CmdPrompt.log.debug(f'Extend sub cmds: {sub_cmds} -> {extend_parallel_sub_cmds} -> {append_cmd_list}')
                 
-                for sub_cmd_set in ext_cmd_list:
+                for sub_cmd_set in append_cmd_list:
                     CmdPrompt.log.debug(f'Adding sub-cmd: {sub_cmd_set}')
                     CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmd_set)
-            
-            elif extend_sub_cmds:
+
+            elif sub_cmds and append_parallel_sub_cmds:
                 
-                for ext_sub_cmd_set in extend_sub_cmds:
+                append_cmd_list = [sub_cmds + [e] for e in append_parallel_sub_cmds]
+                                                             
+                CmdPrompt.log.debug(f'Append sub cmds: {sub_cmds} -> {append_parallel_sub_cmds} -> {append_cmd_list}')
+                
+                for sub_cmd_set in append_cmd_list:
+                    CmdPrompt.log.debug(f'Adding sub-cmd: {sub_cmd_set}')
+                    CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmd_set)
+
+            elif extend_parallel_sub_cmds:
+                
+                for ext_sub_cmd_set in extend_parallel_sub_cmds:
                     CmdPrompt.log.debug(f'Adding sub-cmd: {ext_sub_cmd_set}')
                     CmdPrompt._insert_sub_command(current_level[base_cmd], [ext_sub_cmd_set])               
             
