@@ -1,5 +1,6 @@
 import logging
 import argparse
+from typing import List
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.base.exec_priv_mode import ExecMode, ExecException
@@ -25,16 +26,10 @@ class ClearMode(CmdPrompt):
         self.log.debug(f"Entering Clear({arg})")
 
     @CmdPrompt.register_sub_commands(sub_cmds=['arp'], append_parallel_sub_cmds=Interface().get_network_interfaces())
-    #@CmdPrompt.register_sub_commands(sub_cmds=['router-db'])
-    def clearmode_clear(self, args):
-        """
-        Clear entries on router.
+    @CmdPrompt.register_sub_commands(sub_cmds=['router-db'])
+    def clearmode_clear(self, args: List):
 
-        Args:
-            args (str): Command arguments in the format "clear <command>".
-
-        """
-        self.log.debug(f"Entering clear({args})")
+        self.log.info(f"Entering clear({args})")
 
         parser = argparse.ArgumentParser(
             description="Clear entries on router",
@@ -51,24 +46,29 @@ class ClearMode(CmdPrompt):
         router_db_parser = subparsers.add_parser('router-db', help='Clear RouterShell DB')
 
         parsed_args = parser.parse_args(args)
+        print(f'ParseArgs: {parsed_args}')
 
         if parsed_args.subcommand == 'arp':
             interface = parsed_args.interface
-            self.log.info(f"Clear ARP cache command -> Clear Arp Interface: {interface}")
+            self.log.debug(f"Clear ARP cache command -> Clear Arp Interface: {interface}")
             Arp().arp_clear(interface)
-            return
+            return STATUS_OK
         
-        elif parsed_args.subcommand == 'router-db':
-            self.log.info(f"Clear RouterShell DB command, EXEC-MODE:({self.get_exec_mode()})")
+        if parsed_args.subcommand == 'router-db':
+            self.log.debug(f"Clear RouterShell DB command")
             
-            if self.get_exec_mode() != ExecMode.PRIV_MODE:
-                print(f"Unable to clear router-db, must be in Privilege Mode")
+            # TODO
+            # if self.get_exec_mode() != ExecMode.PRIV_MODE:
+            #    print(f"Unable to clear router-db, must be in Privilege Mode")
                        
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':
                 RSDB().reset_database()
             else:
                 print("Command canceled.")
+            
+            return STATUS_OK
 
         else:
-            pass
+            print(f'Invalid clear command: {parsed_args.subcommand}')
+            return STATUS_OK
