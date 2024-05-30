@@ -62,7 +62,13 @@ class Global(CmdPrompt, NetworkManager):
 
     @CmdPrompt.register_sub_commands() 
     def global_reboot(self, args=None):
-        self.run(Common.get_reboot_command())
+
+        confirmation = input("Are you sure you want to reboot? (yes/no): ")
+        if confirmation.lower() == 'yes':
+            reboot_command = Common.get_reboot_command()
+            print(f"Using reboot command: {reboot_command}")
+            os.system(reboot_command)
+        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands() 
@@ -166,7 +172,7 @@ class Global(CmdPrompt, NetworkManager):
             flush eth0
         """
         self.log.info(f'global_flush() -> interface: {interface_name}')
-        
+
         # TODO
         #if self.get_exec_mode() != ExecMode.PRIV_MODE:
         #    print(f"Unable to flush, must be in Privilege Mode")
