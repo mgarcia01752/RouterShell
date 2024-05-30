@@ -1,11 +1,12 @@
 
+import argparse
 import logging
 from typing import List, Optional
 
 from lib.cli.common.exec_priv_mode import ExecMode
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
-from lib.common.constants import STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.arp import Encapsulate
@@ -71,8 +72,8 @@ class IfConfig(CmdPrompt, Interface):
         
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['auto'],     help='Auto assign mac address')
-    @CmdPrompt.register_sub_commands(sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['auto'],     help='Auto assign mac address')
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
     def ifconfig_mac(self, args:str) -> bool:
         
         self.log.debug(f"ifconfig_mac() -> args: {args}")
@@ -92,16 +93,16 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def ifconfig_ipv6(self, args, negate=False) -> bool:
+    def ifconfig_ip6(self, args, negate=False) -> bool:
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'], help='Set IPv4 address: xxx.xxx.xxx.xxx/xx')
-    @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'],  help='Enable drop-gratuitous-ARP')        
-    @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'],            help='Enable proxy ARP')
-    @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'],   help='Add/Del static ARP entry.')
-    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'inside', 'pool', 'acl'],     help='nat [inside|outside] pool <nat-pool-name> acl <acl-id> ')
-    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'outside', 'pool', 'acl'],    help='nat [inside|outside] pool <nat-pool-name> acl <acl-id> ')
-    def ifconfig_ip(self, args: List, negate=False) -> bool:
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool', 'acl'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool', 'acl'])
+    def X_ip(self, args: List, negate=False) -> bool:
 
         self.log.info(f'ifconfig_ip() -> {args}')
 
@@ -169,8 +170,71 @@ class IfConfig(CmdPrompt, Interface):
             DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
   
         return STATUS_OK
-    
-    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=['auto', 'half', 'full'])    
+
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
+    def ifconfig_ip4(self, args: List[str], negate=False):
+        """
+        Configure IP settings on the interface.
+
+        Args:
+            args (List[str]): Command arguments.
+            negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
+
+        Available suboptions:
+        - `address <IP Address>/<CIDR> [secondary]`     : Set a static IP address.
+        Use `<suboption> --help` to get help for specific suboptions.
+        """
+
+        self.log().info(f'ifconfig_ip4() -> ({args})')
+        if not args:
+            print('Missing command arguments')
+            return STATUS_NOK
+
+        if '?' in args:
+            # Show help if '?' is in the arguments
+            args = [arg if arg != '?' else '--help' for arg in args]
+
+        parser = argparse.ArgumentParser(
+            description="Configure IP settings on the interface.",
+            epilog="Available suboptions:\n"
+                   "   address <IPv4 Address>/<CIDR> [secondary]   Set IP address/CIDR (optional secondary).\n"
+                   "Use <suboption> --help to get help for specific suboptions."
+        )
+
+        subparsers = parser.add_subparsers(dest="subcommand")
+
+        address_parser = subparsers.add_parser("address",
+                                               help="Set a static IP address on the interface (e.g., 'ip address 192.168.1.1/24 [secondary]').")
+        
+        address_parser.add_argument("ipv4_address_cidr",
+                                    help="IPv4 address/subnet to configure.")
+        address_parser.add_argument("secondary", nargs="?", const=True, default=False,
+                                    help="Indicate that this is a secondary IP address.")
+        
+        # Parse the arguments
+        parsed_args = parser.parse_args(args)
+
+        if parsed_args.subcommand == "address":
+            ipv4_address_cidr = parsed_args.ipv4_address_cidr
+            is_secondary = parsed_args.secondary
+            is_secondary = True if is_secondary else False
+
+            self.log().debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+
+            action_description = "Removing" if negate else "Setting"
+            result = self.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
+
+            if result:
+                self.log().error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+            else:
+                self.log().debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+
+        else:
+            self.log().info(f'Invalid subcommand: {parsed_args.subcommand}')
+            print('Invalid subcommand')
+
+
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
     def ifconfig_duplex(self, args: Optional[str]) -> bool:
         """
         Updates the interface duplex mode based on the provided arguments.
@@ -208,7 +272,7 @@ class IfConfig(CmdPrompt, Interface):
                     
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
     def ifconfig_speed(self, args: Optional[str]) -> bool:
         args = StringFormats.list_to_string(args)
         
@@ -238,7 +302,7 @@ class IfConfig(CmdPrompt, Interface):
                     
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['group'])    
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'])    
     def ifconfig_bridge(self, args: Optional[str], negate=False) -> bool:
         
         if 'group' in args:
@@ -278,7 +342,7 @@ class IfConfig(CmdPrompt, Interface):
         
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['access-vlan'])    
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
     def ifconfig_switchport(self, args=None, negate=False) -> bool:
         if 'access-vlan' in args:
             
@@ -297,7 +361,7 @@ class IfConfig(CmdPrompt, Interface):
     def ifconfig_wireless(self, args=None, negate:bool=False) -> bool:
        return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
     def ifconfig_no(self, args: List) -> bool:
         
         self.log.debug(f"ifconfig_no() -> Line -> {args}")

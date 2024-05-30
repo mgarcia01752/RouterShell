@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Prompt the user for confirmation
 read -p "Are you sure you want to delete the router-shell db file (routershell.db)? (Y|y/n) " -n 1 -r

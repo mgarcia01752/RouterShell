@@ -24,8 +24,8 @@ class ClearMode(CmdPrompt):
         
         self.log.debug(f"Entering Clear({arg})")
 
-    @CmdPrompt.register_sub_commands(sub_cmds=['arp'], append_parallel_sub_cmds=Interface().get_network_interfaces())
-    @CmdPrompt.register_sub_commands(sub_cmds=['router-db'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['arp'], append_nested_sub_cmds=Interface().get_network_interfaces())
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['router-db'])
     def clearmode_clear(self, args: List):
 
         self.log.info(f"Entering clear({args})")

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Function to clear __pycache__ directories recursively
 clear_pycache() {

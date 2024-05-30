@@ -94,8 +94,9 @@ class CmdPrompt(CmdInterface):
 
     log = logging.getLogger(__name__)
     
-    # Statics
-    _nested_dict = {}
+    # STATIC
+    _nested_word_complete_cmd_dict = {}
+    _word_complete_cmd_list = []
     _help_dict = {}
     
     def __init__(self, global_commands: bool, 
@@ -200,14 +201,14 @@ class CmdPrompt(CmdInterface):
         """
         if (skip_top_key):
             self.log.debug(f'Provide only the Values from Class: {self.CLASS_NAME}')
-            return CmdPrompt._nested_dict[self.CLASS_NAME]
+            return CmdPrompt._nested_word_complete_cmd_dict[self.CLASS_NAME]
         
         try:
-            if not isinstance(CmdPrompt._nested_dict, dict):
+            if not isinstance(CmdPrompt._nested_word_complete_cmd_dict, dict):
                 raise KeyError("CmdPrompt._nested_dict is not a dictionary.")
             
-            if self.CLASS_NAME in CmdPrompt._nested_dict:
-                return {self.CLASS_NAME: CmdPrompt._nested_dict[self.CLASS_NAME]}
+            if self.CLASS_NAME in CmdPrompt._nested_word_complete_cmd_dict:
+                return {self.CLASS_NAME: CmdPrompt._nested_word_complete_cmd_dict[self.CLASS_NAME]}
             
             else:
                 return {}
@@ -226,18 +227,20 @@ class CmdPrompt(CmdInterface):
         pass
 
     @classmethod
-    def register_sub_commands(cls, 
-                              sub_cmds: Optional[List[str]] = None,
-                              extend_parallel_sub_cmds: Optional[List[str]] = None,
-                              append_parallel_sub_cmds: Optional[List[str]] = None,   
+    def register_sub_commands(cls,
+                              sub_cmds: Optional[List[str]] = None, 
+                              nested_sub_cmds: Optional[List[str]] = None,
+                              extend_nested_sub_cmds: Optional[List[str]] = None,
+                              append_nested_sub_cmds: Optional[List[str]] = None,   
                               help: Optional[str] = None):
         """
         Decorator function for registering sub-commands along with their help messages.
 
         Args:
             sub_cmds (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
-            extend_parallel_sub_cmds (Optional[List[str]]): A list of additional sub-commands to extend the registration. Defaults to None.
-            append_parallel_sub_cmds (Optional[List[str]]): A list of additional sub-commands to append the registration. Defaults to None.
+            nested_sub_cmds: (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
+            extend_nested_sub_cmds (Optional[List[str]]): A list of additional sub-commands to extend the registration. Defaults to None.
+            append_nested_sub_cmds (Optional[List[str]]): A list of additional sub-commands to append the registration. Defaults to None.
             help (Optional[str]): The help message associated with the sub-commands. Defaults to None.
 
         Returns:
@@ -255,60 +258,60 @@ class CmdPrompt(CmdInterface):
             command_parts = method_name.split('_')
             
             CmdPrompt.log.debug('-----------------------------------------------------------------')
-            CmdPrompt.log.debug(f'Start -> {CmdPrompt._nested_dict}')
+            CmdPrompt.log.debug(f'Start -> {CmdPrompt._nested_word_complete_cmd_dict}')
             
             # Accessing class methods using self
             class_start_cmd = command_parts[0]
             base_cmd = command_parts[1]
 
             # Check if the class name is the leading dict member
-            if class_start_cmd not in CmdPrompt._nested_dict.keys():
+            if class_start_cmd not in CmdPrompt._nested_word_complete_cmd_dict.keys():
                 logging.debug(f'Create top key: {class_start_cmd}')
-                CmdPrompt._nested_dict[class_start_cmd] = {}
+                CmdPrompt._nested_word_complete_cmd_dict[class_start_cmd] = {}
 
-            current_level = CmdPrompt._nested_dict[class_start_cmd]
-            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_dict} -> Current Level -> {current_level} -> SubCmds: {sub_cmds} -> ExtSubCmd: {extend_parallel_sub_cmds}')
+            current_level = CmdPrompt._nested_word_complete_cmd_dict[class_start_cmd]
+            logging.debug(f'\nregister_sub_commands-Start -> {CmdPrompt._nested_word_complete_cmd_dict} -> Current Level -> {current_level} -> SubCmds: {nested_sub_cmds} -> ExtSubCmd: {extend_nested_sub_cmds}')
 
             # Get the class base commands
             if base_cmd not in current_level:
                 CmdPrompt.log.debug(f'Create cmd key: {base_cmd}')
                 current_level[base_cmd] = {}
 
-            if sub_cmds and extend_parallel_sub_cmds:
+            if nested_sub_cmds and extend_nested_sub_cmds:
                 
-                append_cmd_list = [sub_cmds] + [sub_cmds[:-1] + [e] for e in extend_parallel_sub_cmds]
+                append_cmd_list = [nested_sub_cmds] + [nested_sub_cmds[:-1] + [e] for e in extend_nested_sub_cmds]
                                                              
-                CmdPrompt.log.debug(f'Extend sub cmds: {sub_cmds} -> {extend_parallel_sub_cmds} -> {append_cmd_list}')
+                CmdPrompt.log.debug(f'Extend sub cmds: {nested_sub_cmds} -> {extend_nested_sub_cmds} -> {append_cmd_list}')
                 
                 for sub_cmd_set in append_cmd_list:
                     CmdPrompt.log.debug(f'Adding sub-cmd: {sub_cmd_set}')
                     CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmd_set)
 
-            elif sub_cmds and append_parallel_sub_cmds:
+            elif nested_sub_cmds and append_nested_sub_cmds:
                 
-                append_cmd_list = [sub_cmds + [e] for e in append_parallel_sub_cmds]
+                append_cmd_list = [nested_sub_cmds + [e] for e in append_nested_sub_cmds]
                                                              
-                CmdPrompt.log.debug(f'Append sub cmds: {sub_cmds} -> {append_parallel_sub_cmds} -> {append_cmd_list}')
+                CmdPrompt.log.debug(f'Append sub cmds: {nested_sub_cmds} -> {append_nested_sub_cmds} -> {append_cmd_list}')
                 
                 for sub_cmd_set in append_cmd_list:
                     CmdPrompt.log.debug(f'Adding sub-cmd: {sub_cmd_set}')
                     CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmd_set)
 
-            elif extend_parallel_sub_cmds:
+            elif extend_nested_sub_cmds:
                 
-                for ext_sub_cmd_set in extend_parallel_sub_cmds:
+                for ext_sub_cmd_set in extend_nested_sub_cmds:
                     CmdPrompt.log.debug(f'Adding sub-cmd: {ext_sub_cmd_set}')
                     CmdPrompt._insert_sub_command(current_level[base_cmd], [ext_sub_cmd_set])               
             
-            elif sub_cmds:
-                CmdPrompt.log.debug(f'Insert sub-cmds into: {CmdPrompt._nested_dict} -> sub-cmds: {sub_cmds}')
-                CmdPrompt._insert_sub_command(current_level[base_cmd], sub_cmds)
+            elif nested_sub_cmds:
+                CmdPrompt.log.debug(f'Insert sub-cmds into: {CmdPrompt._nested_word_complete_cmd_dict} -> sub-cmds: {nested_sub_cmds}')
+                CmdPrompt._insert_sub_command(current_level[base_cmd], nested_sub_cmds)
             
             if help: 
-                cmd_sub_cmd_list = [base_cmd] + sub_cmds
+                cmd_sub_cmd_list = [base_cmd] + nested_sub_cmds
                 CmdPrompt._update_help_dict(cmd_sub_cmd_list, help)
 
-            CmdPrompt.log.debug(f'End -> {CmdPrompt._nested_dict}')
+            CmdPrompt.log.debug(f'End -> {CmdPrompt._nested_word_complete_cmd_dict}')
             CmdPrompt.log.debug("")
             
             def wrapper(*args, **kwargs):
@@ -387,6 +390,6 @@ class CmdPrompt(CmdInterface):
             Dict[str, dict]: The nested dictionary of available commands.
         """
         try:
-            return self._nested_dict
+            return self._nested_word_complete_cmd_dict
         except AttributeError:
             return {}

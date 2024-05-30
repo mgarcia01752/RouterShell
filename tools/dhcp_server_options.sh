@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Default values for DHCP settings
 interface="enx3c8cf8f943a2"

@@ -25,7 +25,7 @@ class TConfig(CmdPrompt):
             method = getattr(self, method_name)
             print(f"{method.__doc__}")
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['sub-command'])         
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['sub-command'])         
     def tconfig_cmd(self, args: List=None) -> None:
         self.log.debug(f'tconfig_cmd -> {args}')
 

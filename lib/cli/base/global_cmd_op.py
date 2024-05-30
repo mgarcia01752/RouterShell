@@ -152,7 +152,7 @@ class Global(CmdPrompt, NetworkManager):
             print(f"Error: {e}")
             return False  # Command execution failed
         
-    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=Interface().get_network_interfaces())       
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_network_interfaces())       
     def global_flush(self, interface_name: str) -> bool:
         """
         Command to flush the configuration of a network interface.

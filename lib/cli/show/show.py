@@ -50,8 +50,8 @@ class Show(CmdPrompt):
         BridgeShow().bridge(args)
         pass
 
-    @CmdPrompt.register_sub_commands(sub_cmds=['client' , 'log'])
-    @CmdPrompt.register_sub_commands(sub_cmds=['server', 'leases' , 'lease-log', 'server-log', 'status'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['client' , 'log'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['server', 'leases' , 'lease-log', 'server-log', 'status'])
     def show_dhcp(self, args: List=None) -> None:
         self.log.debug(f'show_dhcp: {args}')
         
@@ -83,8 +83,8 @@ class Show(CmdPrompt):
         
         pass
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['brief'])
-    @CmdPrompt.register_sub_commands(sub_cmds=['statistic'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['brief'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['statistic'])
     def show_interface(self, args:List) -> None:
         """interfaces\t\t\tDisplay information about network interfaces."""
         
@@ -107,8 +107,8 @@ class Show(CmdPrompt):
         
         pass
     
-    @CmdPrompt.register_sub_commands(sub_cmds=['cpu'])
-    @CmdPrompt.register_sub_commands(sub_cmds=['network'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['cpu'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['network'])
     def show_hardware(self, args: List) -> None:
         """hardware\t\t\tDisplay information about hardware."""
         
@@ -153,7 +153,7 @@ class Show(CmdPrompt):
             RouteShow().route()
             pass
         
-    @CmdPrompt.register_sub_commands(sub_cmds=['configuration'])      
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['configuration'])      
     def show_running(self, args: List) -> None:
 
         self.log.debug(f'show_running: {args}')

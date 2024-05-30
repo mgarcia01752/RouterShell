@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Stop Dnsmasq
 sudo systemctl stop dnsmasq

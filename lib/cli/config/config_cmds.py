@@ -26,12 +26,9 @@ class ConfigCmd(CmdPrompt):
             print(f"{method.__doc__}")
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=Interface().get_network_interfaces())         
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_network_interfaces())         
     def configcmd_interface(self, args: List=None) -> bool:
-        
         self.log.debug(f'configcmd_interface -> {args}')
-        
-        InterfaceConfig(ifName=args[0]).start()
-        
+        InterfaceConfig(ifName=args[0]).start()        
         return STATUS_OK
    

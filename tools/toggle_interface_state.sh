@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Function to display a numbered list of network interfaces with their current state
 display_interfaces() {

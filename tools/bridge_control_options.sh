@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 vif_names=("loopback10" "loopback11" "loopback12" "loopback13")
 
