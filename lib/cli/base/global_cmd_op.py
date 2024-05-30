@@ -3,9 +3,10 @@ import subprocess
 import inspect
 import os
 
-from lib.cli.base.exec_priv_mode import ExecMode
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdInterface, CmdPrompt
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
+from lib.network_manager.interface import Interface
 from lib.network_manager.network_mgr import NetworkManager
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
@@ -146,3 +147,29 @@ class Global(CmdPrompt, NetworkManager):
         except Exception as e:
             print(f"Error: {e}")
             return False  # Command execution failed
+        
+    @CmdPrompt.register_sub_commands(extend_parallel_sub_cmds=Interface().get_network_interfaces())       
+    def global_flush(self, interface_name: str) -> bool:
+        """
+        Command to flush the configuration of a network interface.
+
+        This command allows the user to flush the configuration of a network interface,
+        effectively removing all assigned IP addresses and resetting the interface.
+
+        Args:
+            interface_name (str): The name of the network interface to flush.
+
+        Usage:
+            flush <interface_name>
+
+        Example:
+            flush eth0
+        """
+        self.log.info(f'global_flush() -> interface: {interface_name}')
+        
+        # TODO
+        #if self.get_exec_mode() != ExecMode.PRIV_MODE:
+        #    print(f"Unable to flush, must be in Privilege Mode")
+        #    return
+                
+        return self.flush_interface(interface_name[0])

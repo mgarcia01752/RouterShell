@@ -1,7 +1,7 @@
 import os
 
 from bs4 import Comment
-from lib.cli.base.exec_priv_mode import ExecMode
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 import subprocess
 

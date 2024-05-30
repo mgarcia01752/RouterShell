@@ -9,7 +9,7 @@ from lib.cli.config.bridge_config import BridgeConfig
 from lib.cli.config.vlan_config import VlanConfig
 from lib.cli.config.ip_route_config import IpRouteConfig
 from lib.cli.base.global_operation import GlobalUserCommand
-from lib.cli.base.exec_priv_mode import ExecMode, ExecException
+from lib.cli.common.exec_priv_mode import ExecMode, ExecException
 from lib.cli.config.wireless_cell_config import WirelessCellPolicyConfig
 from lib.cli.config.wireless_wifi_config import WirelessWifiPolicyConfig
 from lib.common.common import Common

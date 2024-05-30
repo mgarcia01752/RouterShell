@@ -2,7 +2,7 @@
 import logging
 from typing import List
 
-from lib.cli.base.exec_priv_mode import ExecMode
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.interface.interface_config import InterfaceConfig
 from lib.common.constants import STATUS_OK

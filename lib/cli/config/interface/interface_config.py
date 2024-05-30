@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from lib.cli.base.exec_priv_mode import ExecMode
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.base.global_cmd_op import Global
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.configure_prompt import ConfigurePrompt

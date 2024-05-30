@@ -2,7 +2,7 @@ import argparse
 import logging
 from typing import List
 
-from lib.cli.base.exec_priv_mode import ExecMode
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 

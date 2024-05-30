@@ -3,7 +3,7 @@ import argparse
 from typing import List
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
-from lib.cli.base.exec_priv_mode import ExecMode, ExecException
+from lib.cli.common.exec_priv_mode import ExecMode, ExecException
 from lib.network_manager.arp import Arp
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
@@ -15,7 +15,6 @@ class InvalidClearMode(Exception):
         super().__init__(message)
 
 class ClearMode(CmdPrompt):
-    """Clear-Mode-Commands"""
 
     def __init__(self, arg=None):
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
