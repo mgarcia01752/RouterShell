@@ -56,25 +56,23 @@ class Global(CmdPrompt, NetworkManager):
         return False
 
     @CmdPrompt.register_sub_commands() 
-    def global_reload(self, args=None):
-        self.global_reboot(args=None)
-        return STATUS_OK
-
-    @CmdPrompt.register_sub_commands() 
-    def global_reboot(self, args=None):
-
+    def global_reload(self, args=None) -> bool:
         confirmation = input("Are you sure you want to reboot? (yes/no): ")
         if confirmation.lower() == 'yes':
             reboot_command = Common.get_reboot_command()
             print(f"Using reboot command: {reboot_command}")
             os.system(reboot_command)
-        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands() 
-    def global_shutdown(self, args=None):
-        self.run(Common.get_shutdown_command())
-        return STATUS_OK    
+    def global_shutdown(self, args=None) -> bool:
+        confirmation = input("Are you sure you want to shutdown? (yes/no): ")
+        if confirmation.lower() == 'yes':
+            command = Common.get_shutdown_command()
+            print(f"Using shutdown command: {command}")
+            os.system(command)
+
+        return STATUS_OK  
     
     @CmdPrompt.register_sub_commands() 
     def global_version(self, args=None):
