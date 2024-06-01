@@ -8,6 +8,9 @@ FLAG_FILE="$FLAG_DIR/first_boot_done"
 if [ -f "$FLAG_FILE" ]; then
     echo "Initial login check bypass, proceed to RouterShell"
     /etc/routershell/router-shell.sh
+    
+    # TODO may need to put a reboot, we dont ever want to get to system cli
+    exit 0
 fi
 
 echo "Initial Login, MUST create new username and password."
@@ -26,6 +29,10 @@ usermod -aG sudo $new_username
 
 # Mark the script as run
 touch $FLAG_FILE
+
+if [ -f "$FLAG_FILE" ]; then
+    echo "Initial Flag File ${FLAG_FILE} FOUND"
+fi
 
 echo "Initial setup is complete. Please log in as $new_username."
 
