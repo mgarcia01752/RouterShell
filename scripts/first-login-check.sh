@@ -4,6 +4,8 @@
 FLAG_DIR="/var/lib/first-boot"
 FLAG_FILE="$FLAG_DIR/first_boot_done"
 
+mkdir -p $FLAG_DIR
+
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
     echo "Initial login check bypass, proceed to RouterShell"
