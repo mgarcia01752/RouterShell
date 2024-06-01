@@ -9,9 +9,12 @@ mkdir -p $FLAG_DIR
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
     echo "Initial login check bypass, proceed to RouterShell"
+
+    cat /etc/sudoers
+
     /etc/routershell/router-shell.sh
     
-    # TODO may need to put a reboot, we dont ever want to get to system cli
+    echo "Coming out or RouterShell"
     exit 0
 fi
 
