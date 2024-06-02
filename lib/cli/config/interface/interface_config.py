@@ -13,18 +13,8 @@ class InterfaceConfigError(Exception):
     def __str__(self):
         return f'InterfaceConfigError: {self.message}'
    
-
 class InterfaceConfig(ConfigurePrompt):
     def __init__(self, ifName: str, ifType:str=None):
-        """
-        Initialize the InterfaceConfig class.
-
-        Args:
-            interface_name (str): The name of the interface to configure.
-
-        Raises:
-            InterfaceConfigError: If the interface_name is empty.
-        """
         super().__init__(sub_cmd_name='if')
 
         if not ifName:

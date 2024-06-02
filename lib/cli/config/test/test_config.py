@@ -14,10 +14,10 @@ class TestConfigError(Exception):
     def __str__(self):
         return f'TestConfigError: {self.message}'
    
-class TestConfig(ConfigurePrompt, TConfig):
+class TestConfig(ConfigurePrompt):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(sub_cmd_name='if')
         TConfig.__init__()
 
         self.register_top_lvl_cmds(Global())

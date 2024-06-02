@@ -4,9 +4,11 @@ from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.cli.config.bridge.bridge_config import BridgeConfig
 from lib.cli.config.interface.interface_config import InterfaceConfig
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.bridge import Bridge
 from lib.network_manager.interface import Interface
 from lib.system.system_config import SystemConfig
 
@@ -32,7 +34,13 @@ class ConfigCmd(CmdPrompt):
         self.log.debug(f'configcmd_interface -> {args}')
         InterfaceConfig(ifName=args[0]).start()        
         return STATUS_OK
-    
+
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         
+    def configcmd_bridge(self, args: List=None) -> bool:
+        self.log.info(f'configcmd_bridge -> {args}')
+        BridgeConfig(bridge_name=args[0]).start()        
+        return STATUS_OK
+
     @CmdPrompt.register_sub_commands()
     def configcmd_hostname(self, args: List=None) -> bool:
 

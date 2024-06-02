@@ -31,4 +31,4 @@ class Configure(CmdPrompt):
     def configure_terminal(self, args: List) -> bool:
         self.log.debug(f'Entering into configure mode')
         ConfigMode().start()
-        STATUS_OK
+        return STATUS_OK
