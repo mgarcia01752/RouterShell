@@ -31,8 +31,9 @@ mkdir -p "$FLAG_DIR"
 
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
-    # If the flag file exists, switch to a new shell environment
-    toShell
+    
+    sudo /etc/routershell/router-shell.sh
+    
     exit 0
 fi
 
