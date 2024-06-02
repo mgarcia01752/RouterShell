@@ -1,7 +1,6 @@
 import logging
-from lib.cli.config.bridge.bridge import Bridge
+from lib.cli.config.bridge.bridge_control import BridgeControl
 from lib.cli.config.configure_prompt import ConfigurePrompt
-from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class BridgeConfigError(Exception):
@@ -17,7 +16,7 @@ class BridgeConfig(ConfigurePrompt):
     def __init__(self, bridge_name:str):
         super().__init__(sub_cmd_name='br')
 
-        self.register_top_lvl_cmds(Bridge())
+        self.register_top_lvl_cmds(BridgeControl(bridge_name=bridge_name))
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG)

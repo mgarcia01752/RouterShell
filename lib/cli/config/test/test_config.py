@@ -6,7 +6,7 @@ from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class TestConfigError(Exception):
-    """Custom exception for TestMode errors."""
+    """Custom exception for TestConfig errors."""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -17,8 +17,7 @@ class TestConfigError(Exception):
 class TestConfig(ConfigurePrompt):
 
     def __init__(self):
-        super().__init__(sub_cmd_name='if')
-        TConfig.__init__()
+        super().__init__(sub_cmd_name='test')
 
         self.register_top_lvl_cmds(Global())
         self.register_top_lvl_cmds(TConfig())

@@ -1,6 +1,6 @@
 import logging
 from lib.cli.config.configure_prompt import ConfigurePrompt
-from lib.cli.config.interface.ifconfig import IfConfig
+from lib.cli.config.interface.if_control import IfConfig
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 

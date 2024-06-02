@@ -54,6 +54,7 @@ class Bridge(NetworkManager):
         self.log.setLevel(RSLGS().BRIDGE)
         
         self.bridgeDB = BridgeDatabase()
+
         self.arg = arg
         
     def get_bridge_list_os(self) -> list:

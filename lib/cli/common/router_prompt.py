@@ -111,6 +111,8 @@ class RouterPrompt:
         Returns:
             bool: Status indicating whether the registration was successful.
         """
+        self.log.debug(f'register_top_lvl_cmds() -> {class_name}')
+        
         cmd_list = class_name.get_command_list()
         due_to_global = True
         
