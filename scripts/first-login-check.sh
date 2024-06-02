@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+
+function toShell() {
+    /usr/bin/env bash
+}
+
 # Path to a file that indicates the script has already been run
 FLAG_DIR="/var/lib/first-boot"
 FLAG_FILE="$FLAG_DIR/first_boot_done"
@@ -9,7 +14,11 @@ mkdir -p $FLAG_DIR
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
 
+    # TODO Add a bypass flag at for Debug-Version
+
     # /etc/routershell/router-shell.sh
+
+    toShell
     
     exit 0
 fi
