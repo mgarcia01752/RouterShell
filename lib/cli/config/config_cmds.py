@@ -5,9 +5,10 @@ from typing import List
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.interface.interface_config import InterfaceConfig
-from lib.common.constants import STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.interface import Interface
+from lib.system.system_config import SystemConfig
 
 class ConfigCmd(CmdPrompt):
 
@@ -30,5 +31,14 @@ class ConfigCmd(CmdPrompt):
     def configcmd_interface(self, args: List=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
         InterfaceConfig(ifName=args[0]).start()        
+        return STATUS_OK
+    
+    @CmdPrompt.register_sub_commands()
+    def configcmd_hostname(self, args: List=None) -> bool:
+        
+        if SystemConfig().set_hostname(args[0]):
+            print(f"Error: Failed to set the hostname: {args[0]}.")
+            return STATUS_NOK
+                
         return STATUS_OK
    

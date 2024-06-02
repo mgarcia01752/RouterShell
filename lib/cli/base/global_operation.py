@@ -1,4 +1,5 @@
 import os
+import argparse
 
 from bs4 import Comment
 from lib.cli.common.exec_priv_mode import ExecMode
