@@ -36,7 +36,7 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         
-    def configcmd_bridge(self, args: List=None) -> bool:
+    def configcmd_bridge(self, args: List=None, negate: bool=False) -> bool:
         self.log.debug(f'configcmd_bridge -> {args}')
         BridgeConfig(bridge_name=args[0]).start()        
         return STATUS_OK
@@ -71,4 +71,12 @@ class ConfigCmd(CmdPrompt):
                 print(f"Invalid command: rename {args}")
                 
         return STATUS_OK
-   
+
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , append_nested_sub_cmds=Bridge().get_bridge_list_os())
+    def configcmd_no(self, args: List) -> bool:
+
+        if args[0] == 'bridge':
+            self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
+            Bridge().destroy_bridge_cmd(args[1])
+
+        return STATUS_OK
