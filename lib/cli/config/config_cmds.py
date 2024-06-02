@@ -35,10 +35,32 @@ class ConfigCmd(CmdPrompt):
     
     @CmdPrompt.register_sub_commands()
     def configcmd_hostname(self, args: List=None) -> bool:
-        
+
+        self.log.debug(f"configcmd_hostname() -> args: {args}")
+
         if SystemConfig().set_hostname(args[0]):
             print(f"Error: Failed to set the hostname: {args[0]}.")
             return STATUS_NOK
+                
+        return STATUS_OK
+    
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['if', 'if-alias'])
+    def configcmd_rename(self, args: List) -> bool:
+
+        if len(args) != 4:
+            print('missing arguments') 
+        
+        self.log.debug(f"configcmd_rename() -> args: {args}")
+
+        if args[0] == 'if':
+            self.log.debug(f"configcmd_rename() -> if")
+            
+            if len(args) == 4:
+                self.log.debug(f"configcmd_rename() -> args-parts: {args}")
+                Interface().rename_interface(args[1], args[3])
+
+            else:
+                print(f"Invalid command: rename {args}")
                 
         return STATUS_OK
    
