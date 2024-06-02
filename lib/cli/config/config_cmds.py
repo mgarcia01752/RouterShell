@@ -72,7 +72,8 @@ class ConfigCmd(CmdPrompt):
                 
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , append_nested_sub_cmds=Bridge().get_bridge_list_os())
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
+                                     append_nested_sub_cmds=Bridge().get_bridge_list_os())
     def configcmd_no(self, args: List) -> bool:
 
         if args[0] == 'bridge':
