@@ -32,9 +32,9 @@ adduser $new_username
 passwd $new_username
 
 # Add new user to sudoers file
-# usermod -aG sudo $new_username
+sudo usermod -aG sudo $new_username
 
-echo "dev01 ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
+# echo "dev01 ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
 
 # Mark the script as run
 touch $FLAG_FILE
