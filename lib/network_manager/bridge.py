@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import json
 import logging
 import re
 from typing import Optional
@@ -64,14 +65,25 @@ class Bridge(NetworkManager):
         Returns:
             List[str]: A list of bridge names.
         """
-        result = self.run(['ip', 'link', 'show', 'type', 'bridge'])
+        result = self.run(['ip', '-j', 'link', 'show', 'type', 'bridge'])
 
         if result.exit_code:
-            self.log.warn("Unable to get bridge list")
+            self.log("Unable to get bridge list")
             return []
 
-        bridge_list = [line.split(':')[1].strip() for line in result.stdout.splitlines()]
-        return bridge_list
+        try:
+            bridge_links = json.loads(result.stdout)
+            bridge_names = [link['ifname'] for link in bridge_links]
+            return bridge_names
+        
+        except json.JSONDecodeError as e:
+            self.log(f"Failed to parse JSON: {e}")
+            return []
+        
+        except KeyError as e:
+            self.log(f"Unexpected data format: {e}")
+            return []
+
 
     def add_bridge_global(self, bridge_name: str, bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, stp_status: bool=True) -> bool:
         """
