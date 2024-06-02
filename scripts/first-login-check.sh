@@ -1,45 +1,60 @@
 #!/usr/bin/env bash
 
-
+# Function to switch to a new shell environment
 function toShell() {
     /usr/bin/env bash
 }
 
-# Path to a file that indicates the script has already been run
+# Function to configure passwordless sudo access for a user
+function configurePasswordlessSudo() {
+    local username="$1"
+    local sudoers_file="/etc/sudoers.d/$username"
+
+    # Create a custom sudoers file for the user
+    echo "$username ALL=(ALL) NOPASSWD: ALL" | sudo tee "$sudoers_file" > /dev/null
+
+    # Validate the sudoers file syntax
+    if sudo visudo -cf "$sudoers_file"; then
+        echo "Sudo configuration for $username was successful."
+    else
+        echo "Sudo configuration for $username failed. Please check the sudoers file."
+        exit 1
+    fi
+}
+
+# Directory and file to indicate whether the script has been run
 FLAG_DIR="/var/lib/first-boot"
 FLAG_FILE="$FLAG_DIR/first_boot_done"
 
-mkdir -p $FLAG_DIR
+# Create the directory if it doesn't exist
+mkdir -p "$FLAG_DIR"
 
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
-
-    # TODO Add a bypass flag at for Debug-Version
+    # If the flag file exists, switch to a new shell environment
     toShell
-
-    # /etc/routershell/router-shell.sh
-
     exit 0
 fi
 
-echo "Initial Login, MUST create new username and password."
+echo "Initial Login: You must create a new username and password."
 
-# Prompt for new username
-read -p "Enter new username: " new_username
+# Prompt for a new username
+read -p "Enter the new username: " new_username
 
 # Create the new user
-adduser $new_username
-passwd $new_username
+adduser "$new_username"
+passwd "$new_username"
 
-# Add new user to sudoers file
-sudo usermod -aG sudo $new_username
+# Add the new user to the sudo group
+sudo usermod -aG sudo "$new_username"
 
-# echo "dev01 ALL=(ALL:ALL) ALL" | sudo tee -a /etc/sudoers
+# Configure passwordless sudo access for the new user
+configurePasswordlessSudo "$new_username"
 
-# Mark the script as run
-touch $FLAG_FILE
+# Indicate that the script has been run
+touch "$FLAG_FILE"
 
 echo "Initial setup is complete. Please log in as $new_username."
 
-# Exit script
+# Exit the script
 exit 0
