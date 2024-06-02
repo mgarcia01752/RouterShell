@@ -15,9 +15,9 @@ function configurePasswordlessSudo() {
 
     # Validate the sudoers file syntax
     if sudo visudo -cf "$sudoers_file"; then
-        echo "Sudo configuration for $username was successful."
+        # echo "Sudo configuration for $username was successful."
     else
-        echo "Sudo configuration for $username failed. Please check the sudoers file."
+        echo " ERROR: Sudo configuration for $username failed. Please check the sudoers file."
         exit 1
     fi
 }
