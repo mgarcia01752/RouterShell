@@ -231,8 +231,7 @@ class IfConfig(CmdPrompt, Interface):
         else:
             self.log().info(f'Invalid subcommand: {parsed_args.subcommand}')
             print('Invalid subcommand')
-
-
+    
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
     def ifconfig_duplex(self, args: Optional[str]) -> bool:
         """
@@ -301,7 +300,8 @@ class IfConfig(CmdPrompt, Interface):
                     
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'])    
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
+                                     append_nested_sub_cmds=Bridge().get_bridge_list_os())    
     def ifconfig_bridge(self, args: Optional[str], negate=False) -> bool:
         
         if 'group' in args:
@@ -315,6 +315,10 @@ class IfConfig(CmdPrompt, Interface):
                 self.log.debug(f"do_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self.ifName}")
                 Bridge().add_bridge_to_interface(self.ifName, bridge_name)
         
+        else:
+            print(f'error: invalid command: {args}')
+            STATUS_NOK
+
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    

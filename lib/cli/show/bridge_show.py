@@ -57,3 +57,70 @@ class BridgeShow(Bridge):
         table = tabulate(table_data, headers, tablefmt="simple")
 
         print(table)
+
+    def show_bridges_new(self):
+        """
+        Get a formatted table of bridge information using the tabulate library.
+
+        Returns:
+            str: A formatted table as a string.
+        """
+
+        def parse_ip_addr():
+            result = self.run(['ip', '-j', 'addr', 'show'])
+            if result.exit_code:
+                self.log("Unable to get IP addresses")
+                return []
+            return json.loads(result.stdout)
+
+        def parse_ip_link():
+            result = self.run(['ip', '-j', 'link', 'show', 'type', 'bridge'])
+            if result.exit_code:
+                self.log("Unable to get bridge links")
+                return []
+            return json.loads(result.stdout)
+
+        def get_ip_for_interface(interface):
+            ip_data = parse_ip_addr()
+            ipv4, ipv6 = None, None
+            for iface in ip_data:
+                if iface['ifname'] == interface:
+                    for addr in iface.get('addr_info', []):
+                        if addr['family'] == 'inet':
+                            ipv4 = addr['local']
+                        elif addr['family'] == 'inet6':
+                            ipv6 = addr['local']
+            return ipv4, ipv6
+
+        bridges = parse_ip_link()
+        bridge_data = []
+
+        for bridge in bridges:
+            bridge_ifname = bridge['ifname']
+            bridge_mac = bridge['address']
+            bridge_state = bridge['operstate']
+            
+            ipv4, ipv6 = get_ip_for_interface(bridge_ifname)
+            
+            interfaces = self.run(['bridge', '-j', 'link', 'show', 'dev', bridge_ifname])
+            if interfaces.exit_code:
+                self.log(f"Unable to get interfaces for bridge {bridge_ifname}")
+                interface_names = []
+            else:
+                interface_data = json.loads(interfaces.stdout)
+                interface_names = [iface['ifname'] for iface in interface_data]
+
+            bridge_data.append({
+                'Bridge': bridge_ifname,
+                'Mac': bridge_mac,
+                'IPv4': ipv4,
+                'IPv6': ipv6,
+                'State': bridge_state,
+                'Interfaces': ", ".join(interface_names)
+            })
+
+        headers = ['Bridge', 'Mac', 'IPv4', 'IPv6', 'State', 'Interfaces']
+
+        print(tabulate(bridge_data, headers=headers, tablefmt='simple'))
+        
+        

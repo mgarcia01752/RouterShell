@@ -17,6 +17,7 @@ from lib.db.interface_db import InterfaceDatabase
 from lib.db.vlan_db import VLANDatabase
 from lib.hardware.hardware_detection import HardwareDetection
 from lib.db.nat_db import NatDB
+from lib.common.constants import STATUS_OK
 
 class Show(CmdPrompt):
 
@@ -36,19 +37,17 @@ class Show(CmdPrompt):
         for method_name in self.class_methods():
             method = getattr(self, method_name)
             print(f"{method.__doc__}")
-        pass
+        STATUS_OK
     
     @CmdPrompt.register_sub_commands()         
     def show_arp(self, args: List=None) -> None:
-        """arp\t\t\tDisplay Address Resolution Protocol (ARP) table."""
         ArpShow().arp(args)
-        pass
+        STATUS_OK
     
     @CmdPrompt.register_sub_commands()      
     def show_bridge(self, args: List=None) -> None:
-        """bridge\t\t\tDisplay information about network bridges."""
-        BridgeShow().bridge(args)
-        pass
+        BridgeShow().show_bridges()
+        STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['client' , 'log'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['server', 'leases' , 'lease-log', 'server-log', 'status'])
@@ -64,24 +63,24 @@ class Show(CmdPrompt):
         
         elif 'server' and 'leases' in args:
             print(DHCPServerShow().leases())
-            pass
+            STATUS_OK
 
         elif 'server' and 'lease-log' in args:
             DHCPServerShow().dhcp_lease_log()
-            pass
+            STATUS_OK
         
         elif 'server' and 'server-log' in args:                
             print(DHCPServerShow().dhcp_server_log())
-            pass            
+            STATUS_OK            
 
         elif 'server' and 'status' in args: 
             print(DHCPServerShow().status())
-            pass 
+            STATUS_OK 
         
         else:
-            pass
+            STATUS_OK
         
-        pass
+        STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['brief'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['statistic'])
@@ -96,16 +95,16 @@ class Show(CmdPrompt):
         
         elif 'brief' in args:
             print(InterfaceShow().show_ip_interface_brief())
-            pass
+            STATUS_OK
             
         elif 'statistic' in args:
             print(InterfaceShow().show_interface_statistics())
-            pass
+            STATUS_OK
               
         else:
-            pass
+            STATUS_OK
         
-        pass
+        STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['cpu'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['network'])
@@ -138,7 +137,7 @@ class Show(CmdPrompt):
         
         else:
             print('Not Working Yet')
-            pass   
+            STATUS_OK   
     
     @CmdPrompt.register_sub_commands()    
     def show_route(self, args: List) -> None:
@@ -151,7 +150,7 @@ class Show(CmdPrompt):
         
         else:
             RouteShow().route()
-            pass
+            STATUS_OK
         
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['configuration'])      
     def show_running(self, args: List) -> None:
@@ -166,7 +165,7 @@ class Show(CmdPrompt):
             for line in RouterConfiguration().get_running_configuration():
                 print(line)
             
-        pass
+        STATUS_OK
                 
     @CmdPrompt.register_sub_commands()      
     def show_nat(self, args: List) -> None:

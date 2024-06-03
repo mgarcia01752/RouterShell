@@ -81,3 +81,9 @@ class BridgeControl(CmdPrompt):
         elif start_cmd == 'protocol':
             self.log.debug(f"Remove protocol -> ({args})")
             self.bridgecontrol_protocol(args[1:], negate=True)
+        
+        else:
+            print(f'error: invalid command: {args}')
+            return STATUS_NOK
+        
+        return STATUS_OK

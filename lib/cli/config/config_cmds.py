@@ -10,6 +10,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.interface import Interface
+from lib.network_manager.network_mgr import NetworkManager
 from lib.system.system_config import SystemConfig
 
 class ConfigCmd(CmdPrompt):
@@ -72,6 +73,30 @@ class ConfigCmd(CmdPrompt):
                 
         return STATUS_OK
 
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_network_interfaces())
+    def configcmd_flush(self, interface_name:str) -> bool:
+
+        """
+        Command to flush the configuration of a network interface.
+
+        This command allows the user to flush the configuration of a network interface,
+        effectively removing all assigned IP addresses and resetting the interface.
+
+        Args:
+            interface_name (str): The name of the network interface to flush.
+
+        Usage:
+            flush <interface_name>
+
+        Example:
+            flush eth0
+        """
+        self.log.debug(f'configcmd_flush() -> {interface_name}')
+
+        NetworkManager().flush_interface(interface_name[0])
+
+        return STATUS_OK
+
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())
     def configcmd_no(self, args: List) -> bool:
@@ -81,3 +106,4 @@ class ConfigCmd(CmdPrompt):
             Bridge().destroy_bridge_cmd(args[1])
 
         return STATUS_OK
+    
