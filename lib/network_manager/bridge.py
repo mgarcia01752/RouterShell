@@ -68,7 +68,7 @@ class Bridge(NetworkManager):
         result = self.run(['ip', '-j', 'link', 'show', 'type', 'bridge'])
 
         if result.exit_code:
-            self.log("Unable to get bridge list")
+            self.log.error("Unable to get bridge list")
             return []
 
         try:
@@ -77,11 +77,11 @@ class Bridge(NetworkManager):
             return bridge_names
         
         except json.JSONDecodeError as e:
-            self.log(f"Failed to parse JSON: {e}")
+            self.log.debug(f"Failed to parse JSON: {e}")
             return []
         
         except KeyError as e:
-            self.log(f"Unexpected data format: {e}")
+            self.log.debug(f"Unexpected data format: {e}")
             return []
 
 
