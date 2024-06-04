@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-source common.sh
+function toShell() {
+    /usr/bin/env bash
+}
 
 # Function to configure passwordless sudo access for a user
 function configurePasswordlessSudo() {
