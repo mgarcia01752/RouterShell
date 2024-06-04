@@ -6,7 +6,9 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 
 
 class InvalidLinuxSystem(Exception):
-    def __init__(self, message):
+    """Raised when an invalid Linux system object is encountered."""
+
+    def __init__(self, message="The provided Linux system is invalid."):
         super().__init__(message)
 
 class LinuxSystem(RunCommand):
@@ -14,7 +16,7 @@ class LinuxSystem(RunCommand):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_CONFIG)
+        self.log.setLevel(RSLGS().LINUX_SYSTEM)
         self.arg = arg
         self.sys_db = SystemDatabase()
 

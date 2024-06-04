@@ -29,6 +29,8 @@ class RouterShellLoggingGlobalSettings():
     SYSTEM_SHUT_DOWN            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_DB                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
+    LINUX_SYSTEM                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+
     COPY_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     CONFIGURE_MODE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
