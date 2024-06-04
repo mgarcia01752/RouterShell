@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-# Function to switch to a new shell environment
-function toShell() {
-    /usr/bin/env bash
-}
+source common.sh
 
 # Function to configure passwordless sudo access for a user
 function configurePasswordlessSudo() {
@@ -16,7 +13,6 @@ function configurePasswordlessSudo() {
     # Validate the sudoers file syntax
     if sudo visudo -cf "$sudoers_file"; then
         echo "Sudo configuration for $username was successful."
-
     else
         echo " ERROR: Sudo configuration for $username failed. Please check the sudoers file."
         exit 1
@@ -32,9 +28,7 @@ mkdir -p "$FLAG_DIR"
 
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
-    
-    sudo /etc/routershell/router-shell.sh
-    
+    sudo /usr/lib/routershell/router-shell.sh
     exit 0
 fi
 
@@ -43,9 +37,8 @@ echo "Initial Login: You must create a new username and password."
 # Prompt for a new username
 read -p "Enter the new username: " new_username
 
-# Create the new user
+# Create the new user and set their password
 adduser "$new_username"
-passwd "$new_username"
 
 # Add the new user to the sudo group
 sudo usermod -aG sudo "$new_username"
