@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List
+from typing import List, Optional
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
@@ -197,16 +197,39 @@ class Show(CmdPrompt):
         elif 'vlan-db' in args:
             print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
 
-    @CmdPrompt.register_sub_commands()     
-    def show_dmesg(self, args: List = None) -> None: 
-        
-        print(LinuxSystem().get_dmesg())
+    @CmdPrompt.register_sub_commands()
+    def show_dmesg(self, args: Optional[List[str]] = None) -> int:
+        """Displays kernel ring buffer messages using LinuxSystem.get_dmesg().
 
-        return STATUS_OK       
+        This function retrieves kernel ring buffer messages and prints them
+        to the console.
 
-    @CmdPrompt.register_sub_commands()     
-    def show_journalctl(self, args: List = None) -> None: 
-        
+        Args:
+            args (Optional[List[str]]): Optional arguments passed to
+                LinuxSystem.get_dmesg() (implementation may vary).
+
+        Returns:
+            int: STATUS_OK on success, an error code otherwise.
+        """
+        self.log.debug(f'show_dmesg() -> {args}')
+        print(LinuxSystem().get_dmesg(args))
+        return STATUS_OK
+
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['--help'])
+    def show_journalctl(self, args: Optional[List[str]] = None) -> int:
+        """Displays systemd journal entries using LinuxSystem.get_journalctl().
+
+        This function retrieves systemd journal entries based on provided
+        arguments and prints them to the console.
+
+        Args:
+            args (Optional[List[str]]): Optional arguments passed to
+                LinuxSystem.get_journalctl() (implementation may vary).
+
+        Returns:
+            int: STATUS_OK on success, an error code otherwise.
+        """
+
+        self.log.debug(f'show_journalctl() -> {args}')
         print(LinuxSystem().get_journalctl(args))
-
-        return STATUS_OK                                                     
+        return STATUS_OK                                                   

@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
@@ -29,13 +29,33 @@ class LinuxSystem(RunCommand):
 
         return result.stdout
     
-    def get_journalctl(self, args: List=None) -> List:
-        """journalctl – Query Contents of Systemd Journal"""
-        
-        result = self.run(['journalctl'])
-        
+    def get_journalctl(self, args: Optional[List[str]] = None) -> str:
+        """Queries the systemd journal using 'journalctl' command.
+
+        This function retrieves systemd journal entries based on provided arguments.
+        It handles potential errors and returns the journal output as a string.
+
+        Args:
+            args (Optional[List[str]]): Optional arguments to pass to 'journalctl'
+                (e.g., `-u <service>`, `--since yesterday`).
+
+        Returns:
+            str: The output of the 'journalctl' command as a string, or an empty
+                string on error.
+
+        Raises:
+            RuntimeError: If the `journalctl` command fails to execute.
+        """
+
+        command = ['journalctl']
+        if args:
+            # Simply append the provided list of arguments
+            command.extend(args)
+        print(command)
+        result = self.run(command)
+
         if result.exit_code:
-            self.log.error(f'Unable to get Systemd journalctl; Reason: {result.stderr}')
-            return []
-        
-        return result.stdout
+            self.log.error(f'Failed to get Systemd journalctl; Reason: {result.stderr}')
+            raise RuntimeError("Error retrieving journal entries")  # Raise an exception
+
+        return result.stdout.strip()  # Remove leading/trailing whitespace
