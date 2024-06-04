@@ -18,16 +18,36 @@ class LinuxSystem(RunCommand):
         self.arg = arg
         self.sys_db = SystemDatabase()
 
-    def get_dmesg(self) -> List:
-        """dmesg – Shows Kernel Messages"""
-        
-        result = self.run(['dmesg'])
-        
-        if result.exit_code:
-            self.log.error(f'Unable to get kernel dmesg; Reason: {result.stderr}')
-            return []
+    def get_dmesg(self, args: Optional[List[str]] = None) -> str:
+        """Queries the kernel ring buffer using 'dmesg' command.
 
-        return result.stdout
+        This function retrieves kernel ring buffer messages based on provided arguments.
+        It handles potential errors and returns the message output as a string.
+
+        Args:
+            args (Optional[List[str]]): Optional arguments to pass to 'dmesg'
+                (implementation may vary, consult 'dmesg' documentation).
+
+        Returns:
+            str: The output of the 'dmesg' command as a string, or an empty
+                string on error.
+
+        Raises:
+            RuntimeError: If the `dmesg` command fails to execute.
+        """
+
+        command = ['dmesg']
+        if args:
+            command.extend(args)
+
+        result = self.run(command)
+
+        if result.exit_code:
+            self.log.error(f'Failed to get kernel dmesg; Reason: {result.stderr}')
+            raise RuntimeError("Error retrieving kernel messages")
+
+        return result.stdout.strip()
+
     
     def get_journalctl(self, args: Optional[List[str]] = None) -> str:
         """Queries the systemd journal using 'journalctl' command.
@@ -49,13 +69,12 @@ class LinuxSystem(RunCommand):
 
         command = ['journalctl']
         if args:
-            # Simply append the provided list of arguments
             command.extend(args)
-        print(command)
+
         result = self.run(command)
 
         if result.exit_code:
             self.log.error(f'Failed to get Systemd journalctl; Reason: {result.stderr}')
-            raise RuntimeError("Error retrieving journal entries")  # Raise an exception
+            raise RuntimeError("Error retrieving journal entries")
 
-        return result.stdout.strip()  # Remove leading/trailing whitespace
+        return result.stdout.strip()
