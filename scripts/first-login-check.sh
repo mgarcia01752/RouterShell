@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 
+# Function to switch to a new shell environment
 function toShell() {
     /usr/bin/env bash
 }
 
-function changeRootShellToNologin() {
-    echo "Changing root shell to /sbin/nologin"
-    sudo sed -i 's#^root:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:/bin/bash#root:x:0:0:root:/root:/sbin/nologin#' /etc/passwd
+# Function to check if the user is root and switch to a new shell
+function rootGotoShell() {
+    if [ "$(id -u)" -eq 0 ]; then
+        toShell
+    fi
+}
+
+# Function to check if the user is root
+function isRoot() {
+    if [ "$(id -u)" -eq 0 ]; then
+        return 0 # True (root)
+    else
+        return 1 # False (not root)
+    fi
 }
 
 # Function to configure passwordless sudo access for a user
@@ -26,6 +38,12 @@ function configurePasswordlessSudo() {
     fi
 }
 
+# Function to change the root shell to /sbin/nologin
+function changeRootShellToNologin() {
+    echo "Changing root shell to /sbin/nologin"
+    sudo sed -i 's#^root:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:/bin/bash#root:x:0:0:root:/root:/sbin/nologin#' /etc/passwd
+}
+
 # Directory and file to indicate whether the script has been run
 FLAG_DIR="/var/lib/first-boot"
 FLAG_FILE="$FLAG_DIR/first_boot_done"
@@ -35,8 +53,13 @@ mkdir -p "$FLAG_DIR"
 
 # Check if the script has already been run
 if [ -f "$FLAG_FILE" ]; then
-    sudo /usr/lib/routershell/router-shell.sh
-    exit 0
+    if isRoot; then
+        toShell
+        exit 0
+    else
+        sudo /usr/lib/routershell/router-shell.sh
+        exit 0
+    fi
 fi
 
 echo "Initial Login: You must create a new username and password."
@@ -56,6 +79,7 @@ configurePasswordlessSudo "$new_username"
 # Indicate that the script has been run
 touch "$FLAG_FILE"
 
+# Change the root shell to /sbin/nologin
 changeRootShellToNologin
 
 echo "Initial setup is complete. Please log in as $new_username."
