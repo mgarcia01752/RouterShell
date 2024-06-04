@@ -4,6 +4,11 @@ function toShell() {
     /usr/bin/env bash
 }
 
+function changeRootShellToNologin() {
+    echo "Changing root shell to /sbin/nologin"
+    sudo sed -i 's#^root:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:/bin/bash#root:x:0:0:root:/root:/sbin/nologin#' /etc/passwd
+}
+
 # Function to configure passwordless sudo access for a user
 function configurePasswordlessSudo() {
     local username="$1"
@@ -50,6 +55,8 @@ configurePasswordlessSudo "$new_username"
 
 # Indicate that the script has been run
 touch "$FLAG_FILE"
+
+changeRootShellToNologin
 
 echo "Initial setup is complete. Please log in as $new_username."
 
