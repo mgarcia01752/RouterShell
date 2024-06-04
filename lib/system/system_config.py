@@ -1,5 +1,6 @@
 import logging
 import textwrap
+from typing import List
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
@@ -118,4 +119,4 @@ class SystemConfig(RunCommand):
             raise Exception('Failed to retrieve hostname from hostnamectl --static')
         
         return result.stdout.strip()
-    
+      

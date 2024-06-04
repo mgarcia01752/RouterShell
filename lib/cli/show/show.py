@@ -18,6 +18,8 @@ from lib.db.vlan_db import VLANDatabase
 from lib.hardware.hardware_detection import HardwareDetection
 from lib.db.nat_db import NatDB
 from lib.common.constants import STATUS_OK
+from lib.system.linux_calls import LinuxSystem
+
 
 class Show(CmdPrompt):
 
@@ -194,4 +196,17 @@ class Show(CmdPrompt):
 
         elif 'vlan-db' in args:
             print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
-                                                             
+
+    @CmdPrompt.register_sub_commands()     
+    def show_dmesg(self, args: List = None) -> None: 
+        
+        print(LinuxSystem().get_dmesg())
+
+        return STATUS_OK       
+
+    @CmdPrompt.register_sub_commands()     
+    def show_journalctl(self, args: List = None) -> None: 
+        
+        print(LinuxSystem().get_journalctl(args))
+
+        return STATUS_OK                                                     
