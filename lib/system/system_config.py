@@ -2,10 +2,12 @@ import logging
 import textwrap
 from typing import List
 
+from lib.common.constants import Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 from lib.db.sqlite_db.router_shell_db import RouterShellDB
 from lib.db.system_db import SystemDatabase
+from lib.network_manager.common.phy import State
 from lib.network_manager.common.run_commands import RunCommand
 
 class InvalidSystemConfig(Exception):
@@ -119,4 +121,48 @@ class SystemConfig(RunCommand):
             raise Exception('Failed to retrieve hostname from hostnamectl --static')
         
         return result.stdout.strip()
-      
+
+    def is_telnetd_enabled_via_os(self) -> bool:
+        """
+        Check if the Telnet server (telnetd) is enabled and running on the system.
+
+        Returns:
+            bool: True if the Telnet server is enabled and running, False otherwise.
+        """
+        # Check if the telnetd service is active
+        result_active = self.run(['systemctl', 'is-active', 'telnet.socket'])
+        if result_active.stdout.strip() == 'active':
+            self.log.info(f'is_telnetd_enabled_via_os() is ACTIVE')
+            return True
+        
+        # Alternatively, check if the telnetd service is enabled
+        result_enabled = self.run(['systemctl', 'is-enabled', 'telnet.socket'])
+        if result_enabled.stdout.strip() == 'enabled':
+            self.log.info(f'is_telnetd_enabled_via_os() is ENABLE')
+            return True
+        
+        self.log.info(f'is_telnetd_enabled_via_os() is DISABLE')
+        return False
+
+    def set_telnetd_status(self, status: Status) -> bool:
+        # Define the path to the Telnet configuration file
+        telnet_config_file = '/etc/xinetd.d/telnet'
+
+        # Define the command to restart the Telnet service
+        restart_command = ['systemctl', 'restart', 'xinetd.service']
+
+        # Define the sed command based on the provided status
+        disable_status = 'yes' if status == Status.DISABLE else 'no'
+        sed_command = ['sed', '-i', 's/disable.*$/disable         = {};/'.format(disable_status), telnet_config_file]
+
+        _ = self.run(sed_command)
+        if _.exit_code:
+            raise Exception(f'Failed to modify: {telnet_config_file}')
+        
+        _ = self.run(restart_command)
+        if _.exit_code:
+            raise Exception(f'Failed to set {restart_command}')
+        
+        self.sys_db.set_telnet_server_status(status)
+
+        return STATUS_OK

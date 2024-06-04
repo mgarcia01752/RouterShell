@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
-from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 
 class SystemDatabase:
 
@@ -45,8 +45,48 @@ class SystemDatabase:
         result = cls.rsdb.select_banner_motd()
 
         return result.status, result.result.get('BannerMotd')
+    
+    def get_telnet_server_status(cls) -> bool:
+        """
+        Get the status of the Telnet server.
 
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        return cls.rsdb.select_global_telnet_server().status
 
+    def set_telnet_server_status(cls, telnet_server_status: Status) -> bool:
+        """
+        Set the status of the Telnet server.
 
-        
-        
+        Args:
+            telnet_server_status (Status): The desired status of the Telnet server (ENABLE or DISABLE).
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        tss = telnet_server_status == Status.ENABLE
+        return cls.rsdb.insert_global_telnet_server(tss).status
+
+    def get_ssh_server_status(cls) -> bool:
+        """
+        Get the status of the SSH server.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        return cls.rsdb.select_global_ssh_server().status
+
+    def set_ssh_server_status(cls, ssh_server_status: Status) -> bool:
+        """
+        Set the status of the SSH server.
+
+        Args:
+            ssh_server_status (Status): The desired status of the SSH server (ENABLE or DISABLE).
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        tss = ssh_server_status == Status.ENABLE
+        return cls.rsdb.insert_global_ssh_server(tss).status
+              

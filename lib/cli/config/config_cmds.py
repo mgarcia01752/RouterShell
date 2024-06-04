@@ -6,7 +6,7 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.bridge.bridge_config import BridgeConfig
 from lib.cli.config.interface.interface_config import InterfaceConfig
-from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.interface import Interface
@@ -41,6 +41,25 @@ class ConfigCmd(CmdPrompt):
         self.log.debug(f'configcmd_bridge -> {args}')
         BridgeConfig(bridge_name=args[0]).start()        
         return STATUS_OK
+    
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['telnet-server', 'ssh-server'])  
+    def configcmd_system(self, args: List=None, negate: bool=False) -> bool:
+        self.log.info(f'configcmd_system() -> {args}')
+
+        status = Status.DISABLE if negate else Status.ENABLE
+
+        if 'telnet-server' in args:
+            self.log.info(f'configcmd_system() -> telnet-server -> negate: {negate}')    
+            SystemConfig().set_telnetd_status(status)
+
+        elif 'ssh-server' in args:
+            self.log.info(f'configcmd_system() -> ssh-server -> negate: {negate}') 
+            pass
+
+        else:
+            print(f'error: invalid command: {args}')
+
+        return STATUS_OK    
 
     @CmdPrompt.register_sub_commands()
     def configcmd_hostname(self, args: List=None) -> bool:
@@ -99,11 +118,17 @@ class ConfigCmd(CmdPrompt):
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['system'], append_nested_sub_cmds=['telnet-server', 'ssh-server'])
     def configcmd_no(self, args: List) -> bool:
 
         if args[0] == 'bridge':
             self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
             Bridge().destroy_bridge_cmd(args[1])
 
+        if args[0] == 'system':
+            self.log.info(f"configcmd_no() -> system: {args[1]}")
+            self.configcmd_system(args=args, negate=True)
+
         return STATUS_OK
+
     

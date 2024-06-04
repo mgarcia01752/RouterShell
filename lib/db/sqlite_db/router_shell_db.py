@@ -5047,4 +5047,101 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting WifiPolicyName information: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-     
+        
+    def select_global_telnet_server(self) -> Result:
+        """
+        Select the status of the Telnet server from the SystemConfiguration table.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure and the Telnet server status.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT TelnetServer FROM SystemConfiguration WHERE ID = 1")
+            result = cursor.fetchone()
+
+            if not result:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
+            
+            status = result[0]
+
+            return Result(status=STATUS_OK, row_id=1, result={'TelnetServerStatus': status})
+        
+        except sqlite3.Error as e:
+            self.log.error("Error selecting Telnet server status: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    def insert_global_telnet_server(self, telnet_status: bool) -> Result:
+            """
+            Insert or update the Telnet server status in the SystemConfiguration table.
+
+            Args:
+                telnet_status (bool): The status of the Telnet server to insert or update.
+
+            Returns:
+                Result: A Result object indicating the operation's success or failure.
+            """
+            try:
+                cursor = self.connection.cursor()
+                cursor.execute("""
+                    INSERT INTO SystemConfiguration (ID, TelnetServer)
+                    VALUES (1, ?)
+                    ON CONFLICT(ID) DO UPDATE SET TelnetServer=excluded.TelnetServer;
+                """, (telnet_status,))
+                self.connection.commit()
+                cursor.close()
+
+                return Result(status=STATUS_OK, row_id=1, result={'TelnetServerStatus': telnet_status})
+            
+            except sqlite3.Error as e:
+                self.log.error("Error inserting Telnet server status: %s", e)
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)     
+
+    def select_global_ssh_server(self) -> Result:
+        """
+        Select the status of the SSH server from the SystemConfiguration table.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure and the SSH server status.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT SshServer FROM SystemConfiguration WHERE ID = 1")
+            result = cursor.fetchone()
+
+            if not result:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
+            
+            status = result[0]
+
+            return Result(status=STATUS_OK, row_id=1, result={'SshServerStatus': status})
+        
+        except sqlite3.Error as e:
+            self.log.error("Error selecting SSH server status: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    def insert_global_Ssh_server(self, ssh_status: bool) -> Result:
+            """
+            Insert or update the SSH server status in the SystemConfiguration table.
+
+            Args:
+                ssh_status (bool): The status of the SSH server to insert or update.
+
+            Returns:
+                Result: A Result object indicating the operation's success or failure.
+            """
+            try:
+                cursor = self.connection.cursor()
+                cursor.execute("""
+                    INSERT INTO SystemConfiguration (ID, SshServer)
+                    VALUES (1, ?)
+                    ON CONFLICT(ID) DO UPDATE SET SshServer=excluded.SshServer;
+                """, (ssh_status,))
+                self.connection.commit()
+                cursor.close()
+
+                return Result(status=STATUS_OK, row_id=1, result={'SshServerStatus': ssh_status})
+            
+            except sqlite3.Error as e:
+                self.log.error("Error inserting SSH server status: %s", e)
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)  
