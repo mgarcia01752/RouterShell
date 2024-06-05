@@ -132,16 +132,16 @@ class SystemConfig(RunCommand):
         # Check if the telnetd service is active
         result_active = self.run(['systemctl', 'is-active', 'telnet.socket'])
         if result_active.stdout.strip() == 'active':
-            self.log.info(f'is_telnetd_enabled_via_os() is ACTIVE')
+            self.log.debug(f'is_telnetd_enabled_via_os() is ACTIVE')
             return True
         
         # Alternatively, check if the telnetd service is enabled
         result_enabled = self.run(['systemctl', 'is-enabled', 'telnet.socket'])
         if result_enabled.stdout.strip() == 'enabled':
-            self.log.info(f'is_telnetd_enabled_via_os() is ENABLE')
+            self.log.debug(f'is_telnetd_enabled_via_os() is ENABLE')
             return True
         
-        self.log.info(f'is_telnetd_enabled_via_os() is DISABLE')
+        self.log.debug(f'is_telnetd_enabled_via_os() is DISABLE')
         return False
 
     def set_telnetd_status(self, status: Status) -> bool:
@@ -166,3 +166,25 @@ class SystemConfig(RunCommand):
         self.sys_db.set_telnet_server_status(status)
 
         return STATUS_OK
+
+    def get_telnetd_status(self) -> bool:
+        """
+        Retrieve the current status of the Telnet server.
+
+        Returns:
+            bool: True if the Telnet server is enabled, False otherwise.
+        """
+        status = self.sys_db.get_telnet_server_status()
+        self.log.info(f'get_telnetd_status() -> {status}')
+        return status
+
+    def get_ssh_server_status(self) -> bool:
+        """
+        Retrieve the current status of the SSH server.
+
+        Returns:
+            bool: True if the SSH server is enabled, False otherwise.
+        """
+        status = self.sys_db.get_ssh_server_status()
+        self.log.info(f'get_ssh_server_status() -> {status}')
+        return status

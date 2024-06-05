@@ -45,7 +45,8 @@ class SystemDatabase:
         result = cls.rsdb.select_banner_motd()
 
         return result.status, result.result.get('BannerMotd')
-    
+
+
     def get_telnet_server_status(cls) -> bool:
         """
         Get the status of the Telnet server.

@@ -69,6 +69,8 @@ class RouterConfiguration:
         cmd_lines.extend([self.LINE_BREAK])
         
         cmd_lines.extend(self._get_banner())
+
+        cmd_lines.extend(self._get_system_servers())
         
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
@@ -318,6 +320,46 @@ class RouterConfiguration:
         
         return cmd_lines
 
+    def _get_system_telnet_server(self) -> List[str]:
+        """
+        Generate a list of system server configuration commands based on the telnet server status.
+
+        Returns:
+            List[str]: A list containing the system server configuration command.
+        """
+        base_cmd = 'system telnet-server'
+
+        if SystemConfig().get_telnetd_status():
+            base_cmd = f'no {base_cmd}'
+
+        return [base_cmd]
+
+    def _get_system_ssh_server(self) -> List[str]:
+        """
+        Generate a list of system server configuration commands based on the ssh server status.
+
+        Returns:
+            List[str]: A list containing the system server configuration command.
+        """
+        base_cmd = 'system ssh-server'
+
+        if SystemConfig().get_ssh_server_status():
+            base_cmd = f'no {base_cmd}'
+
+        return [base_cmd]
+
+    def _get_system_servers(self) -> List[str]:
+        """
+        Generate a list of system server configuration commands based on the statuses of telnet and ssh servers.
+
+        Returns:
+            List[str]: A combined list of system server configuration commands.
+        """
+        cmd_lines = self._get_system_telnet_server()
+        cmd_lines.extend(self._get_system_ssh_server())
+
+        return cmd_lines
+    
     def _get_banner(self) -> List[str]:
         """
         Retrieve the banner Message of the Day (Motd) from the RouterShell configuration and split it into a list of strings.

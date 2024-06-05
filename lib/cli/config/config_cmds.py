@@ -44,16 +44,16 @@ class ConfigCmd(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['telnet-server', 'ssh-server'])  
     def configcmd_system(self, args: List=None, negate: bool=False) -> bool:
-        self.log.info(f'configcmd_system() -> {args}')
+        self.log.debug(f'configcmd_system() -> {args}')
 
         status = Status.DISABLE if negate else Status.ENABLE
 
         if 'telnet-server' in args:
-            self.log.info(f'configcmd_system() -> telnet-server -> negate: {negate}')    
+            self.log.debug(f'configcmd_system() -> telnet-server -> negate: {negate}')    
             SystemConfig().set_telnetd_status(status)
 
         elif 'ssh-server' in args:
-            self.log.info(f'configcmd_system() -> ssh-server -> negate: {negate}') 
+            self.log.debug(f'configcmd_system() -> ssh-server -> negate: {negate}') 
             pass
 
         else:
@@ -126,7 +126,7 @@ class ConfigCmd(CmdPrompt):
             Bridge().destroy_bridge_cmd(args[1])
 
         if args[0] == 'system':
-            self.log.info(f"configcmd_no() -> system: {args[1]}")
+            self.log.debug(f"configcmd_no() -> system: {args[1]}")
             self.configcmd_system(args=args, negate=True)
 
         return STATUS_OK
