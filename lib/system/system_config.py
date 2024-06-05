@@ -149,7 +149,7 @@ class SystemConfig(RunCommand):
         telnet_config_file = '/etc/xinetd.d/telnet'
 
         # Define the command to restart the Telnet service
-        restart_command = ['systemctl', 'restart', 'xinetd.service']
+        restart_command = ['systemctl', 'restart', 'xinetd']
 
         # Define the sed command based on the provided status
         disable_status = 'yes' if status == Status.DISABLE else 'no'
