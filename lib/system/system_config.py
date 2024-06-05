@@ -153,7 +153,7 @@ class SystemConfig(RunCommand):
 
         # Define the sed command based on the provided status
         disable_status = 'yes' if status == Status.DISABLE else 'no'
-        sed_command = ['sed', '-i', 's/disable.*$/disable         = {};/'.format(disable_status), telnet_config_file]
+        sed_command = ['sed', '-i', 's/disable.*$/disable         = {}/'.format(disable_status), telnet_config_file]
 
         _ = self.run(sed_command)
         if _.exit_code:
