@@ -1,4 +1,6 @@
 import logging
+import os
+import platform
 import textwrap
 from typing import List
 
@@ -82,30 +84,38 @@ class SystemConfig(RunCommand):
     
     def set_hostname(self, hostname: str) -> bool:
         """
-        Set the system hostname using the `hostnamectl set-hostname` command.
-
-        Args:
-            hostname (str): The new hostname to set.
+        Set the system hostname.
+        
+        This function sets the hostname of the system. Currently, it supports Linux.
+        
+        Parameters:
+        hostname (str): The desired hostname to set.
 
         Returns:
-            bool: STATUS_OK if the hostname is set successfully, STATUS_NOK otherwise.
+        bool: STATUS_OK if successful, STATUS_NOK otherwise.
         """
-        
-        if not Common.is_valid_hostname(hostname):
-            self.log.debug(f'Invalid hostname format: {hostname}')
-            return STATUS_NOK        
-        
-        result = self.run(['hostnamectl', 'set-hostname', hostname])
-        if result.exit_code:
-            self.log.error(f'Unable to set hostname: {hostname}. Reason: {result.stderr}')
-            return STATUS_NOK
-        
-        result = RouterShellDB().update_hostname(hostname)
-        
-        if result.status:
-            self.log.error(f"Unable to add hostname to Router DB, reason: {result.reason}")
-            return STATUS_NOK
+        current_os = platform.system()
 
+        if current_os == "Linux":  
+
+            try:
+                # Update /etc/hostname
+                with open('/etc/hostname', 'w') as f:
+                    f.write(hostname + '\n')
+
+                # Ensure the change is recognized without a reboot
+                self.run(['hostname', hostname])
+                
+                self.log.info(f"Hostname successfully set to {hostname}")
+
+            except Exception as e:
+                self.log.error(f"set_hostname(): Failed to set hostname: {e}")
+                return STATUS_NOK
+        
+        else:
+            self.log.error(f"set_hostname(): Setting hostname not supported for OS: {current_os}")
+            return STATUS_NOK
+        
         return STATUS_OK
     
     def get_hostname(self) -> str:
@@ -115,12 +125,9 @@ class SystemConfig(RunCommand):
         Returns:
             str: The current static hostname.
         """
-        result = self.run(['hostnamectl', '--static'])
-        
-        if result.exit_code:
-            raise Exception('Failed to retrieve hostname from hostnamectl --static')
-        
-        return result.stdout.strip()
+        hostname = os.uname().nodename
+        self.log.info(f'get_hostname() -> {hostname}')
+        return hostname
 
     def is_telnetd_enabled_via_os(self) -> bool:
         """
