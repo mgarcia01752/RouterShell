@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # Default values
-BRIDGE="br0"
-IP_ADDRESS="192.168.100.10/24"
+BRIDGE="brlan0"
+IP_ADDRESS="192.168.0.10/24"
 
 # Function to display usage
 usage() {
     echo "Usage: $0 [-b bridge_name] [-i network] [-d]"
-    echo "  -b bridge_name  Specify the bridge name (default: br0)"
-    echo "  -i network      Specify the IP address and subnet (default: 192.168.100.10/24)"
+    echo "  -b bridge_name  Specify the bridge name (default: ${BRIDGE})"
+    echo "  -i network      Specify the IP address and subnet (default: ${IP_ADDRESS})"
     echo "  -d              Destroy the specified bridge"
     exit 1
 }
