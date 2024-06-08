@@ -106,7 +106,7 @@ class SystemConfig(RunCommand):
                 # Ensure the change is recognized without a reboot
                 self.run(['hostname', hostname])
                 
-                self.log.info(f"Hostname successfully set to {hostname}")
+                self.log.debug(f"Hostname successfully set to {hostname}")
 
             except Exception as e:
                 self.log.error(f"set_hostname(): Failed to set hostname: {e}")
@@ -126,7 +126,7 @@ class SystemConfig(RunCommand):
             str: The current static hostname.
         """
         hostname = os.uname().nodename
-        self.log.info(f'get_hostname() -> {hostname}')
+        self.log.debug(f'get_hostname() -> {hostname}')
         return hostname
 
     def is_telnetd_enabled_via_os(self) -> bool:
@@ -182,7 +182,7 @@ class SystemConfig(RunCommand):
             bool: True if the Telnet server is enabled, False otherwise.
         """
         status = self.sys_db.get_telnet_server_status()
-        self.log.info(f'get_telnetd_status() -> {status}')
+        self.log.debug(f'get_telnetd_status() -> {status}')
         return status
 
     def get_ssh_server_status(self) -> bool:
@@ -193,5 +193,5 @@ class SystemConfig(RunCommand):
             bool: True if the SSH server is enabled, False otherwise.
         """
         status = self.sys_db.get_ssh_server_status()
-        self.log.info(f'get_ssh_server_status() -> {status}')
+        self.log.debug(f'get_ssh_server_status() -> {status}')
         return status
