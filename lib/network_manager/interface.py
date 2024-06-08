@@ -291,7 +291,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the IP address was successfully updated, STATUS_NOK otherwise.
         """
-        self.log.debug(f"update_interface_inet() -> interface: {interface_name} -> inet: {inet_address} -> secondary: {secondary} -> negate: {negate}")
+        self.log.info(f"update_interface_inet() -> interface: {interface_name} -> inet: {inet_address} -> secondary: {secondary} -> negate: {negate}")
 
         if negate:
             if self.del_inet_address(interface_name, inet_address):

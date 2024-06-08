@@ -33,6 +33,7 @@ class RunCommand:
         self.run_cmds_successful: List[str] = []
         self.run_cmds_failed: List[str] = []
         self.log_dir = '/tmp/log'
+        self.log_cmd= f'{self.log_dir}/routershell-command.log'
 
         # Check if the log directory exists, and create it if not
         if not os.path.exists(self.log_dir):
@@ -47,9 +48,8 @@ class RunCommand:
         """
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"{timestamp} - {command}"
-        log_path = f"{self.log_dir}/routershell-command.log"
 
-        with open(log_path, "a") as log_file:
+        with open(self.log_cmd, "a") as log_file:
             log_file.write(log_entry + "\n")
     
     def run(self, command: List[str], suppress_error: bool = False, shell: bool = False, sudo: bool = True) -> RunResult:
@@ -79,7 +79,7 @@ class RunCommand:
 
             cmd_str = " ".join(command)
 
-            self.log.debug(f"run({exit_code}) -> cmd -> {cmd_str}")
+            self.log.info(f"run({exit_code}) -> cmd -> {cmd_str}")
 
             # TODO Need to fix this
             #self.log_command(cmd_str)
@@ -94,7 +94,7 @@ class RunCommand:
                 self.log.error(f"Error output: {e.stderr.decode('utf-8')}")
 
             self.run_cmds_failed.append(cmd_str)
-            self.log_command(cmd_str)
+            # self.log_command(cmd_str)
 
             return RunResult("", str(e), e.returncode, command)
 
