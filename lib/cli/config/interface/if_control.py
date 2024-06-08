@@ -171,7 +171,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    def ifconfig_ip4(self, args: List[str], negate=False):
+    def ifconfig_ip(self, args: List[str], negate=False):
         """
         Configure IP settings on the interface.
 

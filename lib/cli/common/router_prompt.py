@@ -323,6 +323,7 @@ class RouterPrompt:
         
         if self._execute_commands(commands[0], commands):
             print(f"Command {commands[0]} not found.")
+            
         else:
             self.log.debug(f'Command: {commands} Executed!!!')
 
@@ -347,8 +348,8 @@ class RouterPrompt:
             return cmd_object.execute(args)
         
         except Exception as e:
-            self.log.debug(f'Error executing command {cmd}: {e}')
-            return False
+            self.log.error(f'Error _execute_commands() {cmd}: {e}')
+            return STATUS_NOK
             
     def _DEBUG_print_top_lvl_cmds(self):
         """
