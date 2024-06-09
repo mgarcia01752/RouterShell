@@ -34,7 +34,7 @@ In conclusion, RouterShell is a router CLI distribution with features well-suite
 
 - [ARP (Address Resolution Protocol)](doc/cli/configure/arp.md): Understand ARP and how it works in RouterShell.
 
-- [Bridge Configuration](doc/cli//configurebridge.md): Configure and manage bridges in RouterShell.
+- [Bridge Configuration](doc/cli/configure/bridge.md): Configure and manage bridges in RouterShell.
 
 - [DHCPv4/v6 Configuration](doc/cli/configure/dhcp.md): Explore DHCP (Dynamic Host Configuration Protocol) setup for IPv4 and IPv6.
 
