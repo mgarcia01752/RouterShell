@@ -184,7 +184,7 @@ class IfConfig(CmdPrompt, Interface):
         Use `<suboption> --help` to get help for specific suboptions.
         """
 
-        self.log().info(f'ifconfig_ip4() -> ({args})')
+        self.log.info(f'ifconfig_ip4() -> ({args})')
         if not args:
             print('Missing command arguments')
             return STATUS_NOK
@@ -218,18 +218,18 @@ class IfConfig(CmdPrompt, Interface):
             is_secondary = parsed_args.secondary
             is_secondary = True if is_secondary else False
 
-            self.log().debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
             action_description = "Removing" if negate else "Setting"
             result = self.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
 
             if result:
-                self.log().error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
             else:
-                self.log().debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
 
         else:
-            self.log().info(f'Invalid subcommand: {parsed_args.subcommand}')
+            self.log.info(f'Invalid subcommand: {parsed_args.subcommand}')
             print('Invalid subcommand')
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
