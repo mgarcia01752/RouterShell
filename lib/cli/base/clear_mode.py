@@ -28,7 +28,7 @@ class ClearMode(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['router-db'])
     def clearmode_clear(self, args: List):
 
-        self.log.info(f"Entering clear({args})")
+        self.log.debug(f"Entering clear({args})")
 
         parser = argparse.ArgumentParser(
             description="Clear entries on router",

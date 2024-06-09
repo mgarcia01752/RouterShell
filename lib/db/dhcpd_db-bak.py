@@ -413,7 +413,7 @@ class DHCPDatabase:
         # Determine the appropriate key based on the DHCP version
         subnet_key = "subnet4" if dhcp_version == DhcpVersion.DHCP_V4 else "subnet6"
         
-        self.log.info(f"get_number_of_subnets() -> dhcp-version: {dhcp_version} -> Key: {subnet_key}")
+        self.log.debug(f"get_number_of_subnets() -> dhcp-version: {dhcp_version} -> Key: {subnet_key}")
 
         # Check if the specified key exists in the configuration
         if subnet_key in self.kea_v4_db["Dhcp4"]:

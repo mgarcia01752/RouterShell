@@ -594,7 +594,7 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
 
             if os.path.exists(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}'):
                 os.remove(f'{HOSTAPD_CONF_DIR}/{self.hostapd_file_name}')
-                self.log.info(f"Hostapd configuration file '{self.hostapd_file_name}' deleted successfully.")
+                self.log.debug(f"Hostapd configuration file '{self.hostapd_file_name}' deleted successfully.")
                 return STATUS_OK
             else:
                 self.log.warning(f"Hostapd configuration file '{self.hostapd_file_name}' not found.")

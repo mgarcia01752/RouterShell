@@ -79,7 +79,7 @@ class RunCommand:
 
             cmd_str = " ".join(command)
 
-            self.log.info(f"run({exit_code}) -> cmd -> {cmd_str}")
+            self.log.debug(f"run({exit_code}) -> cmd -> {cmd_str}")
 
             # TODO Need to fix this
             #self.log_command(cmd_str)

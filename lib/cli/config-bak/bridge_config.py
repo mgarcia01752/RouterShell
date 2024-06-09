@@ -36,7 +36,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         self.bridge_ifName = bridge_name
         
         if self.add_bridge_global(bridge_name):
-            self.log.info(f"Unable to add ({bridge_name}) to DB")
+            self.log.debug(f"Unable to add ({bridge_name}) to DB")
                         
         self.prompt = self.set_prompt()
              

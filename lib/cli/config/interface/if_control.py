@@ -62,7 +62,7 @@ class IfConfig(CmdPrompt, Interface):
             ValueError: If there is an issue updating the database description.
         """
         if negate:
-            self.log.info(f'Negating description on interface: {self.ifName}')
+            self.log.debug(f'Negating description on interface: {self.ifName}')
             line = [""]
         
         if self.update_db_description(self.ifName, StringFormats.list_to_string(line)):
@@ -103,7 +103,7 @@ class IfConfig(CmdPrompt, Interface):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool', 'acl'])
     def X_ip(self, args: List, negate=False) -> bool:
 
-        self.log.info(f'ifconfig_ip() -> {args}')
+        self.log.debug(f'ifconfig_ip() -> {args}')
 
         if 'address' in args[0]:
             ipv4_address_cidr = args[1]
@@ -171,7 +171,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    def ifconfig_ip(self, args: List[str], negate=False):
+    def ifconfig_ip(self, args: List[str], negate=False) -> bool:
         """
         Configure IP settings on the interface.
 
@@ -184,13 +184,12 @@ class IfConfig(CmdPrompt, Interface):
         Use `<suboption> --help` to get help for specific suboptions.
         """
 
-        self.log.info(f'ifconfig_ip4() -> ({args})')
+        self.log.debug(f'ifconfig_ip4() -> ({args})')
         if not args:
             print('Missing command arguments')
             return STATUS_NOK
 
         if '?' in args:
-            # Show help if '?' is in the arguments
             args = [arg if arg != '?' else '--help' for arg in args]
 
         parser = argparse.ArgumentParser(
@@ -229,8 +228,11 @@ class IfConfig(CmdPrompt, Interface):
                 self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
 
         else:
-            self.log.info(f'Invalid subcommand: {parsed_args.subcommand}')
+            self.log.debug(f'Invalid subcommand: {parsed_args.subcommand}')
             print('Invalid subcommand')
+            return STATUS_NOK
+
+        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
     def ifconfig_duplex(self, args: Optional[str]) -> bool:
@@ -250,12 +252,12 @@ class IfConfig(CmdPrompt, Interface):
         
         if not args:
             print("Usage: duplex <auto | half | full>")
-            return
+            return STATUS_NOK
 
         if self.interface_type != InterfaceType.ETHERNET:
             self.update_interface_duplex(self.ifName, Duplex.NONE)
             print("interface must be of ethernet type")
-            return
+            return STATUS_NOK
         
         duplex_values = {d.value: d for d in Duplex}
         
@@ -267,6 +269,7 @@ class IfConfig(CmdPrompt, Interface):
                         
         else:
             print(f"Invalid duplex mode ({args}). Use 'auto', 'half', or 'full'.")
+            return STATUS_NOK
                     
         return STATUS_OK
     
@@ -392,7 +395,7 @@ class IfConfig(CmdPrompt, Interface):
             self.ifconfig_switchport(args[1:], negate=True)
         
         elif start_cmd == 'description':
-            self.log.info(f"Remove description -> ({args})")
+            self.log.debug(f"Remove description -> ({args})")
             self.ifconfig_description(args[1:], negate=True)
         
         else:

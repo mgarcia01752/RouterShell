@@ -159,7 +159,7 @@ class Global(CmdPrompt, NetworkManager):
         Example:
             flush eth0
         """
-        self.log.info(f'global_flush() -> interface: {interface_name}')
+        self.log.debug(f'global_flush() -> interface: {interface_name}')
 
         # TODO
         #if self.get_exec_mode() != ExecMode.PRIV_MODE:
