@@ -26,18 +26,19 @@ class RunCommand:
     """
     A class for running Linux commands with sudo and logging successful and failed commands.
     """
+    
+    run_cmds_successful: List[str] = []
+    run_cmds_failed: List[str] = []
+    log_dir = '/tmp/log'
+    log_cmd= f'{log_dir}/routershell-command.log'    
+    
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().RUN)
         
-        self.run_cmds_successful: List[str] = []
-        self.run_cmds_failed: List[str] = []
-        self.log_dir = '/tmp/log'
-        self.log_cmd= f'{self.log_dir}/routershell-command.log'
-
         # Check if the log directory exists, and create it if not
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
+        if not os.path.exists(RunCommand.log_dir):
+            os.makedirs(RunCommand.log_dir)
 
     def log_command(self, command:str):
         """
@@ -49,7 +50,7 @@ class RunCommand:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"{timestamp} - {command}"
 
-        with open(self.log_cmd, "a") as log_file:
+        with open(RunCommand.log_cmd, "a") as log_file:
             log_file.write(log_entry + "\n")
     
     def run(self, command: List[str], suppress_error: bool = False, shell: bool = False, sudo: bool = True) -> RunResult:
@@ -65,7 +66,6 @@ class RunCommand:
         Returns:
             RunResult: A named tuple containing stdout, stderr, exit_code, and the command.
             
-        
         """
         try:
             if sudo:
@@ -80,9 +80,7 @@ class RunCommand:
             cmd_str = " ".join(command)
 
             self.log.debug(f"run({exit_code}) -> cmd -> {cmd_str}")
-
-            # TODO Need to fix this
-            #self.log_command(cmd_str)
+            self.log_command(cmd_str)
 
             return RunResult(stdout, stderr, exit_code, command)
 
@@ -93,8 +91,8 @@ class RunCommand:
                 self.log.error(f"Command failed: {e}: {cmd_str}")
                 self.log.error(f"Error output: {e.stderr.decode('utf-8')}")
 
-            self.run_cmds_failed.append(cmd_str)
-            # self.log_command(cmd_str)
+            RunCommand.run_cmds_failed.append(cmd_str)
+            self.log_command(cmd_str)
 
             return RunResult("", str(e), e.returncode, command)
 

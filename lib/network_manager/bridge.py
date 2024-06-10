@@ -52,6 +52,7 @@ class Bridge(NetworkManager, BridgeDatabase):
     def __init__(self, arg=None):
         super().__init__()
         BridgeDatabase().__init__()
+        
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE)
         self.arg = arg
@@ -83,7 +84,9 @@ class Bridge(NetworkManager, BridgeDatabase):
             return []
 
 
-    def add_bridge_global(self, bridge_name: str, bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, stp_status: bool=True) -> bool:
+    def add_bridge_global(self, bridge_name: str, 
+                          bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, 
+                          stp_status: bool=True) -> bool:
         """
         Add a bridge using global commands and store in the database
 
@@ -95,7 +98,7 @@ class Bridge(NetworkManager, BridgeDatabase):
         Returns:
             bool: STATUS_OK if the bridge was added successfully, STATUS_NOK otherwise.
         """
-        self.log.debug(f"add_bridge_global_cmd() - Bridge: {bridge_name} -> Protocol: {bridge_protocol.value} -> STP: {stp_status}")
+        self.log.debug(f"add_bridge_global() - Bridge: {bridge_name} -> Protocol: {bridge_protocol.value} -> STP: {stp_status}")
 
         if not bridge_name:
             self.log.fatal(f"No Bridge name provided")
@@ -182,15 +185,15 @@ class Bridge(NetworkManager, BridgeDatabase):
         Returns:
             bool: True if the bridge exists, False otherwise.
         """
-        self.log.debug(f"does_bridge_exist() -> Checking bridge name exists: {bridge_name}")
+        self.log.debug(f"does_bridge_exist_os() -> Checking bridge name exists: {bridge_name}")
         
         output = self.run(['ip', 'link', 'show', 'dev', bridge_name], suppress_error=True)
         
         if output.exit_code:
-            self.log.debug(f"does_bridge_exist() -> Bridge does NOT exist: {bridge_name} - exit-code: {output.exit_code}")
+            self.log.debug(f"does_bridge_exist_os() -> Bridge does NOT exist: {bridge_name} - exit-code: {output.exit_code}")
             return False
             
-        self.log.debug(f"does_bridge_exist(exit-code({output.exit_code})) -> Bridge does exist: {bridge_name}")
+        self.log.debug(f"does_bridge_exist_os(exit-code({output.exit_code})) -> Bridge does exist: {bridge_name}")
         
         return True
 
