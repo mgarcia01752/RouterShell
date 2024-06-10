@@ -118,7 +118,7 @@ class Bridge(NetworkManager, BridgeDatabase):
             if not bridge_exist_db:
                 self.log.debug(f"Adding bridge: {bridge_name} to DB")
                 
-                add_result = self.bridgeDB.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
+                add_result = self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
                 if add_result.status:
                     self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
@@ -244,7 +244,7 @@ class Bridge(NetworkManager, BridgeDatabase):
             self.log.error(f"del_bridge_from_interface()-> Interface {interface_name} unable to delete from bridge {bridge_name}.")
             return STATUS_NOK
         
-        if self.bridgeDB.update_interface_bridge_group(interface_name, bridge_name, True):
+        if self.update_interface_bridge_group(interface_name, bridge_name, True):
             self.log.error(f"del_bridge_from_interface90 -> Unable to delete bridge: {bridge_name} from interface: {interface_name} bridge-group via db")
             return STATUS_NOK
         
@@ -294,7 +294,7 @@ class Bridge(NetworkManager, BridgeDatabase):
             self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via os")
             return STATUS_NOK        
 
-        if self.bridgeDB.update_interface_bridge_group(interface_name, bridge_name):
+        if self.update_interface_bridge_group(interface_name, bridge_name):
             self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via db")
             return STATUS_NOK        
     
