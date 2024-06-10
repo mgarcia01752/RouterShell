@@ -47,15 +47,13 @@ class STP_STATE(Enum):
     STP_DISABLE='0'
     STP_ENABLE='1'
     
-class Bridge(NetworkManager):
+class Bridge(NetworkManager, BridgeDatabase):
 
     def __init__(self, arg=None):
         super().__init__()
+        BridgeDatabase().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE)
-        
-        self.bridgeDB = BridgeDatabase()
-
         self.arg = arg
         
     def get_bridge_list_os(self) -> list:
@@ -104,12 +102,12 @@ class Bridge(NetworkManager):
             return STATUS_NOK
 
         # Check if the bridge already exists in the database
-        bridge_exist_db = self.bridgeDB.does_bridge_exists_db(bridge_name)
-        self.log.debug(f"add_bridge_global_cmd() - Bridge: {bridge_name} -> Exists in DB: {bridge_exist_db}")
+        bridge_exist_db = self.does_bridge_exists_db(bridge_name)
+        self.log.debug(f"add_bridge_global() - Bridge: {bridge_name} -> Exists in DB: {bridge_exist_db}")
         
         # Check if the bridge already exists in Linux system
         bridge_exist_os = self.does_bridge_exist_os(bridge_name)
-        self.log.debug(f"add_bridge_global_cmd() - Bridge: {bridge_name} -> Exists in OS: {bridge_exist_os}")
+        self.log.debug(f"add_bridge_global - Bridge: {bridge_name} -> Exists in OS: {bridge_exist_os}")
         
         if bridge_exist_os:          
             self.log.debug(f"Bridge {bridge_name} exists in os")
@@ -133,13 +131,13 @@ class Bridge(NetworkManager):
                 self.log.error(f"add_bridge_global() - Unable to configure bridge: {bridge_name} to os")
                 
                 if bridge_exist_db:
-                    self.bridgeDB.del_bridge_db(bridge_name, bridge_protocol.value, stp_status)
+                    self.del_bridge_db(bridge_name, bridge_protocol.value, stp_status)
                     
                 return STATUS_NOK
 
         if not bridge_exist_db:
             self.log.debug(f"add_bridge_global() - Adding bridge: {bridge_name} to db")
-            add_result = self.bridgeDB.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
+            add_result = self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
             if add_result.status:
                 self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
@@ -502,7 +500,8 @@ class Bridge(NetworkManager):
                 bridge_interfaces = self.run(["ip", "link", "show", "type", "bridge_slave", "master", bridge_name])
                 interface_list = "\n".join([re.search(r"(\S+)(?:@|$)", iface).group(1) for iface in bridge_interfaces.stdout.splitlines() if "@" in iface])
 
-                bridge_debug.append([bridge_name, bridge_mac, bridge_inet, bridge_inet6, bridge_state, interface_list])
+                # TODO Need to figure out why I put bridge_debug HERE??
+                # bridge_debug.append([bridge_name, bridge_mac, bridge_inet, bridge_inet6, bridge_state, interface_list])
 
         # Display the information in a tabulated format
         headers = ["Bridge", "Mac", "IPv4", "IPv6", "State", "Interfaces"]

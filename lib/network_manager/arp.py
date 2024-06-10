@@ -10,6 +10,8 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.network_manager.network_mgr import NetworkManager
 
 class Encapsulate(Enum):
+    """Enumeration of encapsulation types."""
+    
     ARPA = 'arpa'
     """arpa Enables encapsulation for an Ethernet 802.3 network."""
     
@@ -18,9 +20,21 @@ class Encapsulate(Enum):
     
     SNAP = 'snap'
     """snap Enables encapsulation for FDDI and Token Ring networks."""
-    
-class Arp(NetworkManager):
 
+class ArpException(Exception):
+    """Exception raised for ARP (Address Resolution Protocol) related errors."""
+
+    def __init__(self, message="ARP error occurred"):
+        self.message = message
+        super().__init__(self.message)
+
+
+class Arp(NetworkManager):
+    """
+    Class for managing ARP (Address Resolution Protocol) settings.
+
+    Inherits from NetworkManager.
+    """
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
@@ -51,13 +65,12 @@ class Arp(NetworkManager):
                             return True
                         elif not interface:
                             return True
-
                 return False
             else:
                 self.log.error(f"Error executing 'ip neighbor show' command: {output.stderr}")
                 return False
             
-        except Exception as e:
+        except ArpException as e:
             self.log.error(f"Error: {e}")
             return False
 
@@ -134,7 +147,6 @@ class Arp(NetworkManager):
         """
         arp_evict_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_evict_nocarrier"
         value = "1" if enable else "0"
-        
         return SysCtl().write_sysctl(arp_evict_file, value)
 
     def set_os_arp_filter(self, ifName: str="all", enable: bool=True) -> bool:
@@ -147,7 +159,6 @@ class Arp(NetworkManager):
         """
         arp_filter_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_filter"
         value = "1" if enable else "0"
-        
         return SysCtl.write_sysctl(arp_filter_file, value)
 
     def set_os_arp_ignore(self, ifName: str="all", enable: bool=True) -> bool:
@@ -159,6 +170,7 @@ class Arp(NetworkManager):
         :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_ignore_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_ignore"
+        value = "1" if enable else "0"
         return SysCtl().write_sysctl(arp_ignore_file, str(value))
 
     def set_os_arp_notify(self, ifName: str = "all", enable: bool = True) -> bool:
@@ -177,7 +189,7 @@ class Arp(NetworkManager):
         
         return SysCtl().write_sysctl(arp_notify_file, value)
 
-    def set_os_drop_gratuitous_arp(self, ifName: str = "all", enable: bool = True) -> bool:
+    def set_os_drop_gratuitous_arp(self, if_name: str = "all", enable: bool = True) -> bool:
         """
         Enable or disable the dropping of gratuitous ARP packets for a specific network interface.
 
@@ -190,13 +202,13 @@ class Arp(NetworkManager):
         """
 
         value = "1" if enable else "0"
-        arp_file = f"/proc/sys/net/ipv4/conf/{ifName}/drop_gratuitous_arp"
+        arp_file = f"/proc/sys/net/ipv4/conf/{if_name}/drop_gratuitous_arp"
         
         command = ["sh", "-c", f"echo {value} > {arp_file}"]
         
         results = self.run(command)
         
-        self.log.debug(f"set_drop_gratuitous_arp(ifname: {ifName} -> enable: {enable}) -> Cmd: {command}")
+        self.log.debug(f"set_drop_gratuitous_arp(ifname: {if_name} -> enable: {enable}) -> Cmd: {command}")
         
         if results.exit_code:
             self.log.error(f"Failed to set gratuitous ARP to {value} due to {results.stderr}")
@@ -205,7 +217,7 @@ class Arp(NetworkManager):
             self.log.debug(f"Set gratuitous ARP to {value}")
             return STATUS_OK
 
-    def set_os_proxy_arp(self, ifName: str = 'all', enable: bool = True) -> bool:
+    def set_os_proxy_arp(self, if_name: str = 'all', enable: bool = True) -> bool:
         """
         Enable or disable proxy ARP for a specific network interface.
 
@@ -218,13 +230,13 @@ class Arp(NetworkManager):
         """       
         value = "1" if enable else "0"
         
-        arp_file = f"/proc/sys/net/ipv4/conf/{ifName}/proxy_arp"
+        arp_file = f"/proc/sys/net/ipv4/conf/{if_name}/proxy_arp"
         
         command = ["sh", "-c", f"echo {value} > {arp_file}"]
 
         results = self.run(command)
         
-        self.log.debug(f"set_proxy_arp(ifname: {ifName} -> enable: {enable}) -> Cmd: {command}")
+        self.log.debug(f"set_proxy_arp(ifname: {if_name} -> enable: {enable}) -> Cmd: {command}")
         
         if results.exit_code:
             self.log.error(f"Failed to set proxy ARP to {value} due to {results.stderr}")
@@ -302,7 +314,7 @@ class Arp(NetworkManager):
     def get_arp(self, args=None):
         try:
             
-            self.log.debug(f"get_arp()")
+            self.log.debug("get_arp()")
             
             # Run the 'ip neighbor show' command and capture the output
             output = self.run(['ip', 'neighbor', 'show'])
@@ -327,5 +339,5 @@ class Arp(NetworkManager):
                 print(table)
             else:
                 print(f"Error executing 'ip neighbor show' command: {output.stderr}")
-        except Exception as e:
+        except ArpException as e:
             print(f"Error: {e}")

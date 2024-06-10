@@ -38,7 +38,7 @@ In conclusion, RouterShell is a router CLI distribution with features well-suite
 
 - [DHCPv4/v6 Configuration](doc/cli/configure/dhcp.md): Explore DHCP (Dynamic Host Configuration Protocol) setup for IPv4 and IPv6.
 
-- [Interface Configuration](doc/cli//configureinterface.md): Configure and manage network interfaces in RouterShell.
+- [Interface Configuration](doc/cli/configure/config.md): Configure and manage network interfaces in RouterShell.
 
 - [NAT (Network Address Translation)](doc/cli/configure/nat.md): Set up Network Address Translation for your RouterShell router.
 

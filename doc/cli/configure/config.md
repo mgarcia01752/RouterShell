@@ -2,18 +2,18 @@
 
 ```text
 
-        arp                     (Implemented)
-        banner [login | motd]   (Implemented)
-        bridge                  (Implemented)
+        arp                     
+        banner [login | motd]   
+        bridge                  
         dhcp
-        interface <ifName>      (Implemented)
-        interface <vlan-id>     (Implemented)
-        ip nat                  (Implemented)
+        interface <ifName>      
+        interface <vlan-id>     
+        ip nat                  
         ip route
         ipv6 route
-        rename                  (Implemented)
-        vlan                    (Implemented)
-        vlanDB                  (Implemented)           
+        rename                  
+        vlan                    
+        vlanDB                             
         wireless [cell | wifi]  
 
 ```
@@ -21,7 +21,7 @@
 ## ARP
 
 ```text
-arp (Implemented)
+arp 
 ```
 
 Configures the Address Resolution Protocol (ARP) settings, allowing for the manipulation of ARP configurations.
@@ -29,7 +29,7 @@ Configures the Address Resolution Protocol (ARP) settings, allowing for the mani
 ## Banner
 
 ```text
-banner [login | motd] (Implemented)
+banner [login | motd] 
 ```
 
 Configures banners to be displayed during login or Message of the Day (MOTD) on the router.
@@ -45,13 +45,13 @@ Configures Dynamic Host Configuration Protocol (DHCP) settings, allowing for the
 ## Interface
 
 ```text
-interface <ifName> (Implemented)
+interface <ifName> 
 ```
 
 Configures settings for a specific network interface identified by its name.
 
 ```text
-interface <vlan-id> (Implemented)
+interface <vlan-id> 
 ```
 
 Configures settings for a VLAN (Virtual Local Area Network) identified by its VLAN ID.
@@ -75,7 +75,7 @@ Configures IPv6 routing settings, allowing for the addition of static routes for
 ## Rename
 
 ```text
-rename (Implemented)
+rename 
 ```
 
 Renames a specific network interface.
@@ -83,7 +83,7 @@ Renames a specific network interface.
 ## Vlan
 
 ```text
-vlan (Implemented)
+vlan 
 ```
 
 Configures VLAN (Virtual Local Area Network) settings, allowing for the creation and management of VLANs.
@@ -91,7 +91,7 @@ Configures VLAN (Virtual Local Area Network) settings, allowing for the creation
 ## Vlan Database
 
 ```text
-vlanDB (Implemented)
+vlanDB 
 ```
 
 Configures the VLAN database, allowing for the manipulation of VLAN configurations.

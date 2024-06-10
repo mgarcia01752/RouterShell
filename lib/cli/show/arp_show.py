@@ -9,5 +9,5 @@ class ArpShow(Arp):
         self.log = logging.getLogger(self.__class__.__name__)
         self.arg = arg        
 
-    def arp(self, args=None):
+    def arp(self, args: List=None):
             self.get_arp()
