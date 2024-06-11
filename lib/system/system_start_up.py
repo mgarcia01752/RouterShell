@@ -108,12 +108,13 @@ class SystemStartUp(Interface):
         if SystemConfig().set_hostname_from_db():
             self.log.error("Hostname not set DB error")
 
+        self.log.debug('Renaming Interfaces from DB')    
+        self.update_rename_interface_via_os()
+
         self.log.debug('Setting Interfaces from DB')
         if not self.get_interface_via_db():
             self.update_interface_db_from_os()
         
-        self.log.debug('Renaming Interfaces from DB')    
-        self.update_rename_interface_via_os()
 
 class SystemShutDown(RunCommand):    
     """
