@@ -8,6 +8,7 @@ from lib.cli.config.bridge.bridge_config import BridgeConfig
 from lib.cli.config.interface.interface_config import InterfaceConfig
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.db.system_db import SystemDatabase
 from lib.network_manager.bridge import Bridge
 from lib.network_manager.interface import Interface
 from lib.network_manager.network_mgr import NetworkManager
@@ -62,15 +63,32 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK    
 
     @CmdPrompt.register_sub_commands()
-    def configcmd_hostname(self, args: List=None) -> bool:
+    def configcmd_hostname(self, args: List = None) -> bool:
+        """
+        Configures the hostname of the system.
 
+        Sets the hostname both in the operating system and the system database.
+
+        Args:
+            args (List, optional): A list containing the new hostname to set.
+
+        Returns:
+            bool: STATUS_OK if the hostname is successfully set in both the OS and the database, STATUS_NOK otherwise.
+        """
         self.log.debug(f"configcmd_hostname() -> args: {args}")
 
+        # Set hostname in the operating system
         if SystemConfig().set_hostname_os(args[0]):
-            print(f"Error: Failed to set the hostname: {args[0]}.")
+            self.log.error(f"Error: Failed to set the hostname: ({args[0]}) to OS")
             return STATUS_NOK
-                
+
+        # Set hostname in the system database
+        if SystemDatabase().set_hostname_db(args[0]):
+            self.log.error(f"Error: Failed to set the hostname: ({args[0]}) to DB")
+            return STATUS_NOK
+
         return STATUS_OK
+
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['if', 'if-alias'])
     def configcmd_rename(self, args: List) -> bool:
