@@ -13,7 +13,9 @@ from lib.system.system_config import SystemConfig
 
 class RouterConfiguration:
 
-    CONFIG_MSG_START='; RouterShell Configuration'
+    REMARK_SYMBOL = '!'
+    
+    CONFIG_MSG_START=f'{REMARK_SYMBOL} RouterShell Configuration'
     LINE_BREAK = ""
     
     def __init__(self, args=None):

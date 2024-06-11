@@ -32,6 +32,8 @@ class RouterPrompt:
     DEF_NO_CONFIG_MODE_PROMPT = None
     PREFIX_SEP = ':'
     
+    PROMPT_REMARK_SYMBOL = [';', '!']
+    
     def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None) -> None:
         """
         Initializes RouterPromptSession instance.
@@ -51,7 +53,7 @@ class RouterPrompt:
         self.session = PromptSession(completer=self.completer, history=self.history)
 
         self.hostname = Common.getHostName()
-        
+            
         '''Start Prompt Router>'''
         self._prompt_dict = {
             'Hostname' : self.DEF_START_HOSTNAME,
@@ -83,6 +85,10 @@ class RouterPrompt:
         self.update_prompt()
         
         _ = self.session.prompt(f'{self.get_prompt()}',completer=self.completer, complete_in_thread=False)
+        
+        # Check if the input contains any remark symbols, if so, skip line
+        if any(_.startswith(symbol) for symbol in RouterPrompt.PROMPT_REMARK_SYMBOL):
+            return []
         
         if ws_trim_lead:
             _.lstrip()

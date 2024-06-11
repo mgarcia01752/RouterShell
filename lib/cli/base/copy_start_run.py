@@ -35,12 +35,16 @@ class CopyStartRun(RouterPrompt):
         RouterPrompt.__init__(self)
         self.register_top_lvl_cmds(Configure())
 
-    def read_start_config(self) -> bool:
+    def read_start_config(self, sleep_ms: float=500) -> bool:
         """
-        Reads the startup configuration file.
+        Reads the startup configuration file and processes each line.
 
         Attempts to read the startup configuration file located in the router configuration directory.
+        Logs each line of the configuration and optionally sleeps for a specified duration between lines.
         If the file is not found, it raises a CopyStartRunError.
+
+        Args:
+            sleep_ms (float, optional): Time in milliseconds to sleep between processing each line. Defaults to 500 ms.
 
         Returns:
             bool: STATUS_OK if the file is successfully read and processed, STATUS_NOK if there is an error.
@@ -54,11 +58,13 @@ class CopyStartRun(RouterPrompt):
             with open(config_file, "r") as file:
                 file_contents = file.read()
 
-            # Process each line from the file
             for line in file_contents.splitlines():
-                print(f'{line}')
-                sleep(1)
-                #self.rs_prompt(line)
+                self.log.info(f'{line}')
+                
+                if sleep_ms > 0:
+                    sleep((sleep_ms/1000))
+                    
+                self.rs_prompt(line)
         
         except FileNotFoundError:
             self.log.error(f"File not found: {config_file}")
