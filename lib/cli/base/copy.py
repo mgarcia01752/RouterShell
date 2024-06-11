@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+from lib.cli.base.copy_start_run import CopyStartRun
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -50,7 +51,7 @@ class Copy(CmdPrompt):
         elif 'startup-config' == args[0]:
             
             if 'running-config' == args[1]:
-                if CopyMode().copy_start_config_to_run_config():
+                if CopyStartRun().read_start_config():
                     self.log.error('Unable to copy startup-config to running-config')
                     return STATUS_NOK
 
