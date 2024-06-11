@@ -81,6 +81,27 @@ class SystemConfig(RunCommand):
             - The 'set_banner_motd' method returns True if the update is successful, and False otherwise.
         """
         return self.sys_db.set_banner_motd('')
+
+    def set_hostname_from_db(self) -> bool:
+        """
+        Sets the hostname from the system database.
+
+        Retrieves the hostname from the system configuration and updates it from the database if available.
+
+        Returns:
+            bool: STATUS_OK if the hostname is successfully set, STATUS_NOK otherwise.
+        """
+        host_name = SystemConfig.get_hostname()
+
+        rtn = self.sys_db.set_hostname_from_db()
+        if rtn.result:
+            host_name = rtn.result
+
+        if SystemConfig().set_hostname(host_name):
+            print(f"Error: Failed to set the hostname: {host_name}.")
+            return STATUS_NOK
+
+        return STATUS_OK
     
     def set_hostname(self, hostname: str) -> bool:
         """
