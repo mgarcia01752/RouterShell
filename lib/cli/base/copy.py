@@ -16,14 +16,14 @@ class CopyError(Exception):
     def __str__(self):
         return f'CopyError: {self.message}'
 
-class CopyX(CmdPrompt):
+class Copy(CmdPrompt):
 
     def __init__(self) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().COPY)
                
-    def copyx_help(self, args: List=None) -> None:
+    def copy_help(self, args: List=None) -> None:
         """
         Display help for available commands.
         """
@@ -33,7 +33,7 @@ class CopyX(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['running-config', 'startup-config'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['startup-config', 'running-config'])       
-    def copyx_copy(self, args: List=None) -> bool:
+    def copy_copy(self, args: List=None) -> bool:
         self.log.debug(f'copyx_copy -> {args}')
         
         if 'running-config' == args[0]:
@@ -53,7 +53,7 @@ class CopyX(CmdPrompt):
                 if CopyMode().copy_start_config_to_run_config():
                     self.log.error('Unable to copy startup-config to running-config')
                     return STATUS_NOK
-    
+
             else:
                 print(f'Invalid {args[0]} command: {args[1]}')
                 return STATUS_NOK
