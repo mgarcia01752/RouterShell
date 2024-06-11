@@ -380,7 +380,7 @@ class RouterConfiguration:
     
     def _get_hostname(self) -> List[str]:
         
-        hostname = f'hostname {SystemConfig().get_hostname_os()}'
+        hostname = f'hostname {SystemConfig().get_hostname()}'
 
         return [hostname]
 
