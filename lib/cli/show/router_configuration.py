@@ -7,6 +7,7 @@ from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
+from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.interface import InterfaceType
 from lib.system.system_config import SystemConfig
 
@@ -380,7 +381,7 @@ class RouterConfiguration:
     
     def _get_hostname(self) -> List[str]:
         
-        hostname = f'hostname {SystemConfig().get_hostname()}'
+        hostname = f'hostname {SystemDatabase().get_hostname_db()}'
 
         return [hostname]
 

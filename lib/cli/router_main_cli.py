@@ -1,9 +1,9 @@
 import logging
 
-
 from lib.cli.base.clear_mode import ClearMode
 from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.config.config import Configure
+from lib.cli.base.copy import CopyX
 from lib.cli.show.show import Show
 from system.system_config import SystemConfig
 from system.system_start_up import SystemStartUp
@@ -29,8 +29,9 @@ class RouterCLI(RouterPrompt):
         
         self.register_top_lvl_cmds(Global())
         self.register_top_lvl_cmds(ClearMode())
-        self.register_top_lvl_cmds(Show())
         self.register_top_lvl_cmds(Configure())
+        self.register_top_lvl_cmds(CopyX())        
+        self.register_top_lvl_cmds(Show())
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTERCLI)

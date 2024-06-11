@@ -31,6 +31,7 @@ class RouterShellLoggingGlobalSettings():
 
     LINUX_SYSTEM                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
+    COPY                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     COPY_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     CONFIGURE_MODE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

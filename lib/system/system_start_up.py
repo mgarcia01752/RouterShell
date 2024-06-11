@@ -114,8 +114,7 @@ class SystemStartUp(Interface):
         self.log.debug('Setting Interfaces from DB')
         if not self.get_interface_via_db():
             self.update_interface_db_from_os()
-        
-
+            
 class SystemShutDown(RunCommand):    
     """
     Class for managing system shutdown procedures.
