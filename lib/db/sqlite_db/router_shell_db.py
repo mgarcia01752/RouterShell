@@ -310,7 +310,10 @@ class RouterShellDB(metaclass=Singleton):
             result_hostname = self.hostname_exists(hostname)
             
             if result_hostname.status:
-                return Result(status=STATUS_NOK, row_id=result_hostname.row_id, reason=f"Hostname '{hostname}' already exists.", result=result_hostname.result)
+                return Result(status=STATUS_OK, 
+                              row_id=result_hostname.row_id, 
+                              reason=f"Hostname '{hostname}' already exists.", 
+                              result=result_hostname.result)
 
             query = "UPDATE SystemConfiguration SET Hostname = ? WHERE ID = 1"
             parameters = (hostname,)

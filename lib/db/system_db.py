@@ -18,7 +18,7 @@ class SystemDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()
     
-    def set_hostname(cls, host_name: str) -> bool:
+    def set_hostname_db(cls, host_name: str) -> bool:
         """
         Sets the hostname in the system database.
 
@@ -28,7 +28,7 @@ class SystemDatabase:
             host_name (str): The new hostname to set.
 
         Returns:
-            bool: True if the hostname is successfully updated, False otherwise.
+            bool: STATUS_OK if the hostname is successfully updated, STATUS_NOK otherwise.
         """
         return cls.rsdb.update_hostname(host_name).status
     
