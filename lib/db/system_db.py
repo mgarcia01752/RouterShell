@@ -6,6 +6,7 @@ from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
+from lib.system.system_config import SystemConfig
 
 class SystemDatabase:
 
@@ -19,6 +20,27 @@ class SystemDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()
     
+        def set_hostname_from_db(cls) -> bool:
+            """
+            Sets the hostname from the system database.
+
+            Retrieves the hostname from the system configuration and updates it from the database if available.
+
+            Returns:
+                bool: STATUS_OK if the hostname is successfully set, STATUS_NOK otherwise.
+            """
+            host_name = SystemConfig.get_hostname()
+
+            rtn = cls.rsdb.select_hostname()
+            if rtn.result:
+                host_name = rtn.result
+
+            if SystemConfig().set_hostname(host_name):
+                print(f"Error: Failed to set the hostname: {host_name}.")
+                return STATUS_NOK
+
+            return STATUS_OK
+
     def set_banner_motd(cls, motd_banner:str) -> bool:
         """
         Set the banner Message of the Day (Motd) in the RouterShell configuration.
@@ -45,7 +67,6 @@ class SystemDatabase:
         result = cls.rsdb.select_banner_motd()
 
         return result.status, result.result.get('BannerMotd')
-
 
     def get_telnet_server_status(cls) -> bool:
         """
