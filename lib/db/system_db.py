@@ -6,8 +6,6 @@ from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
-from lib.system.system_config import SystemConfig
-
 class SystemDatabase:
 
     rsdb = RSDB()
@@ -20,27 +18,35 @@ class SystemDatabase:
             cls.log.debug(f"Connecting RouterShell Database")
             cls.rsdb = RSDB()
     
-        def set_hostname_from_db(cls) -> bool:
-            """
-            Sets the hostname from the system database.
+    def set_hostname(cls, host_name: str) -> bool:
+        """
+        Sets the hostname in the system database.
 
-            Retrieves the hostname from the system configuration and updates it from the database if available.
+        Updates the hostname in the database with the provided hostname.
 
-            Returns:
-                bool: STATUS_OK if the hostname is successfully set, STATUS_NOK otherwise.
-            """
-            host_name = SystemConfig.get_hostname()
+        Args:
+            host_name (str): The new hostname to set.
 
-            rtn = cls.rsdb.select_hostname()
-            if rtn.result:
-                host_name = rtn.result
+        Returns:
+            bool: True if the hostname is successfully updated, False otherwise.
+        """
+        return cls.rsdb.update_hostname(host_name).status
+    
+    def get_hostname_db(cls) -> str:
+        """
+        Retrieves the hostname from the system database.
 
-            if SystemConfig().set_hostname(host_name):
-                print(f"Error: Failed to set the hostname: {host_name}.")
-                return STATUS_NOK
+        Fetches the current hostname from the database.
 
-            return STATUS_OK
+        Returns:
+            str: The current hostname, else None.
+        """
+        result = cls.rsdb.select_hostname()
+        if result.status == STATUS_OK and result.result:
+            return result.result.get('Hostname')
+        return None
 
+    
     def set_banner_motd(cls, motd_banner:str) -> bool:
         """
         Set the banner Message of the Day (Motd) in the RouterShell configuration.

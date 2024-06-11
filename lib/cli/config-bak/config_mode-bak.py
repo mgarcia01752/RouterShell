@@ -434,7 +434,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         args = line.split()
         hostname = args[0] if args else ""
 
-        if SystemConfig().set_hostname(hostname) == STATUS_OK:
+        if SystemConfig().set_hostname_os(hostname) == STATUS_OK:
             self.prompt = self.set_prompt()
             
         else:

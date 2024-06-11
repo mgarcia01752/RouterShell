@@ -66,7 +66,7 @@ class ConfigCmd(CmdPrompt):
 
         self.log.debug(f"configcmd_hostname() -> args: {args}")
 
-        if SystemConfig().set_hostname(args[0]):
+        if SystemConfig().set_hostname_os(args[0]):
             print(f"Error: Failed to set the hostname: {args[0]}.")
             return STATUS_NOK
                 

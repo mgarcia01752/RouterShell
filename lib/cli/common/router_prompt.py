@@ -207,7 +207,7 @@ class RouterPrompt:
         Returns:
             bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
-        self._prompt_dict['Hostname'] = SystemConfig().get_hostname()
+        self._prompt_dict['Hostname'] = SystemConfig().get_hostname_os()
             
         return STATUS_OK
 

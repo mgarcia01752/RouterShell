@@ -341,29 +341,21 @@ class RouterShellDB(metaclass=Singleton):
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
-        log_message = "select_hostname"
-        self.log.debug(log_message)
-
         try:
-            query = "SELECT Hostname FROM SystemConfiguration"
             cursor = self.connection.cursor()
-            cursor.execute(query)
+            cursor.execute("SELECT Hostname FROM SystemConfiguration LIMIT 1")
+            row = cursor.fetchone()
 
-            result = cursor.fetchone()
-
-            if result is not None:
-                selected_hostname = result["Hostname"]
-                self.log.debug(f"Selected hostname: {selected_hostname}")
-                return Result(status=STATUS_OK, row_id=1, result={"Hostname": selected_hostname})
+            if row and row[0]:
+                return Result(status=STATUS_OK, row_id=None, result={'Hostname': row[0]})
             else:
-                error_message = "No hostname found in 'SystemConfiguration'"
-                self.log.error(error_message)
-                return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+                return Result(status=STATUS_NOK, row_id=None, reason="No hostname found in the database")
 
         except sqlite3.Error as e:
-            error_message = f"Error selecting hostname from 'SystemConfiguration': {e}"
+            error_message = f"Error selecting hostname: {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
 
     '''
                         BRIDGE DATABASE

@@ -6,10 +6,8 @@ from typing import List
 
 from lib.common.constants import Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.common import STATUS_NOK, STATUS_OK, Common
-from lib.db.sqlite_db.router_shell_db import RouterShellDB
+from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.system_db import SystemDatabase
-from lib.network_manager.common.phy import State
 from lib.network_manager.common.run_commands import RunCommand
 
 class InvalidSystemConfig(Exception):
@@ -84,26 +82,32 @@ class SystemConfig(RunCommand):
 
     def set_hostname_from_db(self) -> bool:
         """
-        Sets the hostname from the system database.
+        Sets the hostname from the system database if available; otherwise, uses the system configuration.
 
-        Retrieves the hostname from the system configuration and updates it from the database if available.
+        Retrieves the hostname from the system database. If the database does not provide a hostname, it falls back to the system configuration.
+        Attempts to set the system hostname to the retrieved value.
 
         Returns:
             bool: STATUS_OK if the hostname is successfully set, STATUS_NOK otherwise.
         """
-        host_name = SystemConfig.get_hostname()
+        host_name = self.sys_db.get_hostname_db()
+        self.log.info(f'set_hostname_from_db() -> Retrieved hostname from DB: {host_name}')
+        
+        if not host_name:
+            host_name = self.get_hostname_os()
+            self.log.info(f'No hostname found in DB, setting hostname: {host_name} to DB')
+            if not self.sys_db.set_hostname(host_name=host_name):
+                self.log.error(f"Error: Failed to set the hostname: {host_name} in the database.")
+                return STATUS_NOK
+            return STATUS_OK
 
-        rtn = self.sys_db.set_hostname_from_db()
-        if rtn.result:
-            host_name = rtn.result
-
-        if SystemConfig().set_hostname(host_name):
-            print(f"Error: Failed to set the hostname: {host_name}.")
+        if not self.set_hostname_os(host_name):
+            self.log.error(f"Error: Failed to set the hostname: {host_name}.")
             return STATUS_NOK
 
         return STATUS_OK
     
-    def set_hostname(self, hostname: str) -> bool:
+    def set_hostname_os(self, hostname: str) -> bool:
         """
         Set the system hostname.
         
@@ -139,7 +143,7 @@ class SystemConfig(RunCommand):
         
         return STATUS_OK
     
-    def get_hostname(self) -> str:
+    def get_hostname_os(self) -> str:
         """
         Get the current static hostname using the `hostnamectl --static` command.
 

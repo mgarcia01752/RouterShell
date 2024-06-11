@@ -100,6 +100,7 @@ class SystemStartUp(Interface):
         Initializes the SystemStartUp class.
         """
         super().__init__()
+        
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
         
