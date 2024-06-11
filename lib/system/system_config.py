@@ -98,12 +98,12 @@ class SystemConfig(RunCommand):
             self.log.debug(f'No hostname found in DB, setting hostname: ({host_name}) to DB')
             
             if not self.sys_db.set_hostname_db(host_name):
-                self.log.error(f"Error: Failed to set the hostname: ({host_name}) to DB")
+                self.log.error(f"Failed to set the hostname: ({host_name}) to DB")
                 return STATUS_NOK
             return STATUS_OK
 
         if not self.set_hostname_os(host_name):
-            self.log.error(f"Error: Failed to set the hostname: ({host_name}) via OS")
+            self.log.error(f"Failed to set the hostname: ({host_name}) via OS")
             return STATUS_NOK
 
         return STATUS_OK
@@ -125,21 +125,20 @@ class SystemConfig(RunCommand):
         if current_os == "Linux":  
 
             try:
-                # Update /etc/hostname
                 with open('/etc/hostname', 'w') as f:
                     f.write(hostname + '\n')
 
                 # Ensure the change is recognized without a reboot
                 self.run(['hostname', hostname])
                 
-                self.log.debug(f"Hostname successfully set to {hostname}")
+                self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
 
             except Exception as e:
-                self.log.error(f"set_hostname(): Failed to set hostname: {e}")
+                self.log.error(f"set_hostname_os(): Failed to set hostname: {e}")
                 return STATUS_NOK
         
         else:
-            self.log.error(f"set_hostname(): Setting hostname not supported for OS: {current_os}")
+            self.log.error(f"set_hostname_os(): Setting hostname not supported for OS: {current_os}")
             return STATUS_NOK
         
         return STATUS_OK

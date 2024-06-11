@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS SystemConfiguration;
 CREATE TABLE IF NOT EXISTS SystemConfiguration (
     ID INTEGER PRIMARY KEY NOT NULL,
     BannerMotd TEXT DEFAULT '',
-    Hostname VARCHAR(255),
+    Hostname VARCHAR(255) DEFAULT '',
     TelnetServer BOOLEAN DEFAULT FALSE,
     SshServer BOOLEAN DEFAULT FALSE
 );
