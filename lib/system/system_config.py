@@ -97,12 +97,12 @@ class SystemConfig(RunCommand):
             host_name = self.get_hostname_os()
             self.log.debug(f'No hostname found in DB, setting hostname: ({host_name}) to DB')
             
-            if not self.sys_db.set_hostname_db(host_name):
+            if self.sys_db.set_hostname_db(host_name):
                 self.log.error(f"Failed to set the hostname: ({host_name}) to DB")
                 return STATUS_NOK
             return STATUS_OK
 
-        if not self.set_hostname_os(host_name):
+        if self.set_hostname_os(host_name):
             self.log.error(f"Failed to set the hostname: ({host_name}) via OS")
             return STATUS_NOK
 
