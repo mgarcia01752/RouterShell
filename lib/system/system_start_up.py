@@ -6,6 +6,7 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.interface import Interface
+from lib.db.sqlite_db.router_shell_db import RouterShellDB
 from lib.system.system_config import SystemConfig
 
 class Service(enum.Enum):
@@ -152,3 +153,21 @@ class SystemReset(Interface):
                 
         # Revert Interfaces back to the original interface name
         Interface().update_rename_interface_via_os(reverse=True)
+
+class SystemFactoryReset():
+    def __init__(self):
+        """
+        Initializes the SystemFactoryReset class.
+        """
+        super().__init__()
+        
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().SYSTEM_INIT)
+
+        RouterShellDB().reset_database()
+        
+        #Build Initial DB Entries based on Interface found on system
+        Interface().update_interface_db_from_os()
+        
+        #Take factory-startup-config and configure router    
+        CopyStartRun().read_start_config('factory-startup.cfg')
