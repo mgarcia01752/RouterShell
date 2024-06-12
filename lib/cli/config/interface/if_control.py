@@ -342,7 +342,7 @@ class IfConfig(CmdPrompt, Interface):
         if negate:
             ifState = State.UP
 
-        self.log.debug(f'ifconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
+        self.log.info(f'ifconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
 
         self.update_shutdown(self.ifName, ifState)
         

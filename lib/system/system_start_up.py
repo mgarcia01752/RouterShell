@@ -104,6 +104,11 @@ class SystemStartUp(Interface):
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
+
+        if not self.get_interface_via_db():
+            self.update_interface_db_from_os()
+            
+        self.update_rename_interface_via_os()
         
         self.log.debug('Loading........')
         CopyStartRun().read_start_config()
