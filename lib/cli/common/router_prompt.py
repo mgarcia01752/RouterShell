@@ -436,6 +436,35 @@ class RouterPrompt:
         """
         self.session.completer = None
 
+    def _process_prompt_feeder_line(self, line: List[str]) -> List[str]:
+        """
+        Processes a single line from the prompt feeder.
+
+        This method checks if the line contains any remark symbols and skips it if so.
+        Additionally, it updates the execution mode if the line contains the 'enable' command.
+
+        Args:
+            line (List[str]): The line to be processed, represented as a list of strings.
+
+        Returns:
+            List[str]: The processed line, or an empty list if the line is a remark or contains the 'enable' command.
+        """
+        # Check if the line is empty
+        if not line:
+            return []
+        
+        # Check if the input contains any remark symbols, if so, skip line
+        if any(line[0].startswith(symbol) for symbol in RouterPrompt.PROMPT_REMARK_SYMBOL):
+            return []
+        
+        # Check if the line starts with the 'enable' command
+        if line[0] == 'enable':
+            self.execute_mode = ExecMode.PRIV_MODE
+            self.update_prompt()
+            return []
+
+        return line
+
     def _read_prompt_file(self, pf: PromptFeeder , sleep_ms: float=200) -> bool:
        
         self.log.debug(f'_read_prompt_file() PromptFeed: {pf.__str__()} - sleep_ms: {sleep_ms}')
@@ -444,6 +473,7 @@ class RouterPrompt:
             
             line = pf.next()
             self.log.debug(f'Line: {line}')
+            line = self._process_prompt_feeder_line(line)
             
             if sleep_ms > 0:
                 sleep((sleep_ms/1000))

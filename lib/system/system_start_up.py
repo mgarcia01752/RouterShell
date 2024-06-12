@@ -1,6 +1,7 @@
 import enum
 import logging
 
+from lib.cli.base.copy_start_run import CopyStartRun
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
@@ -104,16 +105,8 @@ class SystemStartUp(Interface):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
         
-        self.log.debug('Setting hostname from DB')
-        if SystemConfig().set_hostname_from_db():
-            self.log.error("Hostname not set DB error")
-
-        self.log.debug('Renaming Interfaces from DB')    
-        self.update_rename_interface_via_os()
-
-        self.log.debug('Setting Interfaces from DB')
-        if not self.get_interface_via_db():
-            self.update_interface_db_from_os()
+        self.log.debug('Loading........')
+        CopyStartRun().read_start_config()
             
 class SystemShutDown(RunCommand):    
     """
