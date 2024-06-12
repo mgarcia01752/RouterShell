@@ -32,6 +32,7 @@ class RouterShellLoggingGlobalSettings():
     LINUX_SYSTEM                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     COPY                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    COPY_START_RUN              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     COPY_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     CONFIGURE_MODE              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -100,7 +101,8 @@ class RouterShellLoggingGlobalSettings():
     ROUTER_CONFIG_DB            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ROUTER_PROMPT               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
- 
+    PROMPT_FEEDER               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     MAC                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

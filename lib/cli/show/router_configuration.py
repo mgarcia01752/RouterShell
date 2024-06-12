@@ -8,7 +8,6 @@ from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
 from lib.db.system_db import SystemDatabase
-from lib.network_manager.common.interface import InterfaceType
 from lib.system.system_config import SystemConfig
 
 class RouterConfiguration:
@@ -16,6 +15,7 @@ class RouterConfiguration:
     REMARK_SYMBOL = '!'
     
     CONFIG_MSG_START=f'{REMARK_SYMBOL} RouterShell Configuration'
+    STARTUP_CONFIG_FILE = f"{ROUTER_CONFIG_DIR}/startup-config.cfg"
     LINE_BREAK = ""
     
     def __init__(self, args=None):
@@ -25,6 +25,21 @@ class RouterConfiguration:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ROUTER_CONFIG)
         self.rcdb = RouterConfigurationDatabase()
+    
+    def remark_comment(self, comment: str) -> str:
+        """
+        Formats a comment string with the configured remark symbol.
+
+        This method takes a comment string and formats it by prepending the 
+        configured remark symbol defined in RouterConfiguration.
+
+        Args:
+            comment (str): The comment to be formatted.
+
+        Returns:
+            str: The formatted comment string with the remark symbol.
+        """
+        return f'{RouterConfiguration.REMARK_SYMBOL} {comment}'
         
     def copy_running_configuration_to_startup_configuration(self, args=None):
         """

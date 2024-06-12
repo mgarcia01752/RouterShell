@@ -10,3 +10,4 @@ class ConfigurePrompt(RouterPrompt):
         RouterPrompt.__init__(self, exec_mode, sub_cmd_name=sub_cmd_name)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CONFIGURE_PROMPT)
+        

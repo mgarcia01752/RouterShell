@@ -20,4 +20,3 @@ class ConfigMode(ConfigurePrompt):
         
     def help(self):
         return 'No Help'
-      

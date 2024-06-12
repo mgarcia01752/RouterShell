@@ -35,7 +35,7 @@ class Copy(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['running-config', 'startup-config'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['startup-config', 'running-config'])       
     def copy_copy(self, args: List=None) -> bool:
-        self.log.debug(f'copyx_copy -> {args}')
+        self.log.debug(f'copy_copy -> {args}')
         
         if 'running-config' == args[0]:
             
@@ -51,6 +51,9 @@ class Copy(CmdPrompt):
         elif 'startup-config' == args[0]:
             
             if 'running-config' == args[1]:
+                
+                self.log.debug(f'copy_copy -> {args[0]} - {args[0]} - FOUND!!')
+                
                 if CopyStartRun().read_start_config():
                     self.log.error('Unable to copy startup-config to running-config')
                     return STATUS_NOK

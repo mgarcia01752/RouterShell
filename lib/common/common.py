@@ -219,5 +219,18 @@ class Common():
             return False
 
         return True
+    
+    @staticmethod
+    def get_env(var_name: str) -> str:
+        """
+        Get the value of an environment variable.
+        
+        Args:
+            var_name (str): The name of the environment variable.
+        
+        Returns:
+            str: The value of the environment variable, or None if it is not found.
+        """
+        return os.environ.get(var_name)
 
 

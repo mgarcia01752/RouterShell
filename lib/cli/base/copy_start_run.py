@@ -1,7 +1,12 @@
+import logging
 import os
 from time import sleep
-from lib.cli.common.router_prompt import RouterPrompt
+from typing import List
+from lib.cli.common.router_prompt import PromptFeeder, RouterPrompt
 from lib.cli.config.config import Configure
+from lib.common.common import Common
+from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.constants import ROUTER_CONFIG_DIR, STATUS_NOK, STATUS_OK
 
 class CopyStartRunError(Exception):
@@ -33,41 +38,22 @@ class CopyStartRun(RouterPrompt):
         """
         super().__init__()
         RouterPrompt.__init__(self)
+        
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().COPY_START_RUN)
+        
         self.register_top_lvl_cmds(Configure())
 
-    def read_start_config(self, sleep_ms: float=500) -> bool:
-        """
-        Reads the startup configuration file and processes each line.
+    def read_start_config(self) -> bool:
 
-        Attempts to read the startup configuration file located in the router configuration directory.
-        Logs each line of the configuration and optionally sleeps for a specified duration between lines.
-        If the file is not found, it raises a CopyStartRunError.
-
-        Args:
-            sleep_ms (float, optional): Time in milliseconds to sleep between processing each line. Defaults to 500 ms.
-
-        Returns:
-            bool: STATUS_OK if the file is successfully read and processed, STATUS_NOK if there is an error.
-
-        Raises:
-            CopyStartRunError: If the startup configuration file is not found or cannot be read.
-        """
-        config_file = os.path.join(ROUTER_CONFIG_DIR, "startup-config.cfg")
+        rs_path = Common.get_env('ROUTERSHELL_PROJECT_ROOT')    
+        prompt_file=f'{rs_path}/config/startup-config.cfg'
         
-        try:
-            with open(config_file, "r") as file:
-                file_contents = file.read()
-
-            for line in file_contents.splitlines():
-                self.log.info(f'{line}')
-                
-                if sleep_ms > 0:
-                    sleep((sleep_ms/1000))
-                    
-                self.rs_prompt(line)
+        pf = PromptFeeder(PromptFeeder.process_file(prompt_file))
+        self.load_prompt_feeder(pf)
+        self.log.debug(f'{pf.__str__()}')
         
-        except FileNotFoundError:
-            self.log.error(f"File not found: {config_file}")
-            raise CopyStartRunError(f"Startup configuration file not found: {config_file}")
+        self.start()
         
         return STATUS_OK
+    

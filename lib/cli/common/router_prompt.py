@@ -1,12 +1,11 @@
 import logging
+from typing import Any, List, Optional, Union
 
+from time import sleep
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
-
-from typing import Any, List, Union
-
 from common.common import Common
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
@@ -14,6 +13,140 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.string_formats import StringFormats
 from lib.system.system_config import SystemConfig
+
+class PromptFeeder:
+    """
+    A class to manage and simulate feeding prompts.
+
+    This class is designed to handle a list of prompt commands or inputs,
+    allowing them to be processed sequentially.
+
+    Attributes:
+        prompt_feed (List[List[str]]): The initial list of prompts/commands.
+        start_length (int): The length of the initial prompt feed.
+
+    Methods:
+        pop() -> bool:
+            Removes the top entry from the prompt feed.
+        top() -> List[str]:
+            Returns the top entry from the prompt feed without removing it.
+        length() -> int:
+            Returns the current length of the prompt feed.
+        get_start_length() -> int:
+            Returns the initial length of the prompt feed.
+        next() -> List[str]:
+            Returns and removes the top entry from the prompt feed.
+    """
+    @staticmethod
+    def process_file(file_path: str) -> List[List[str]]:
+        """
+        Processes a file and creates a nested list where each line is a list,
+        and each word in the line is a string.
+
+        Args:
+            file_path (str): The path to the input file.
+
+        Returns:
+            List[List[str]]: The processed nested list.
+        """
+        nested_list = []
+
+        try:
+            with open(file_path, 'r') as file:
+                for line in file:
+                    line_list = [word for word in line.strip().split()]
+                    nested_list.append(line_list)
+                            
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        return nested_list
+    
+    def __init__(self, prompt_feed: List[List[str]] = []):
+        """
+        Initializes the PromptFeed with a list of prompts/commands.
+
+        Args:
+            prompt_feed (List[List[str]]): The initial list of prompts/commands.
+        """
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().PROMPT_FEEDER)
+                
+        self.prompt_feed = prompt_feed[:]
+        self.start_length = len(self.prompt_feed)
+
+    def pop(self) -> bool:
+        """
+        Removes the top entry from the prompt feed.
+
+        Returns:
+            bool: STATUS_OK if the operation is successful.
+        """
+        if self.prompt_feed:
+            self.prompt_feed.pop(0)
+        return STATUS_OK
+
+    def top(self) -> List[str]:
+        """
+        Returns the top entry from the prompt feed without removing it.
+
+        Returns:
+            List[str]: The top entry or an empty list if the prompt feed is empty.
+        """
+        if self.prompt_feed:
+            return self.prompt_feed[0]
+        return []
+
+    def length(self) -> int:
+        """
+        Returns the current length of the prompt feed.
+
+        Returns:
+            int: The current length of the prompt feed.
+        """
+        return len(self.prompt_feed)
+
+    def get_start_length(self) -> int:
+        """
+        Returns the initial length of the prompt feed.
+
+        Returns:
+            int: The initial length of the prompt feed.
+        """
+        return self.start_length
+
+    def next(self) -> List[str]:
+        """
+        Returns and removes the top entry from the prompt feed.
+
+        Returns:
+            List[str]: The top entry from the prompt feed, or an empty list if the prompt feed is empty.
+        """
+        if self.prompt_feed:
+            return self.prompt_feed.pop(0)
+        return []
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the PromptFeed object.
+
+        Returns:
+            str: A string representation of the PromptFeed object.
+        """
+        return f"PromptFeed(start_length={self.start_length}, current_length={len(self.prompt_feed)}, top_entry={self.top()})"
+
+
+class RouterPromptError(Exception):
+    """
+    Custom exception class for RouterPrompt errors.
+
+    This exception is raised when there are issues RouterPrompt.
+    """
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 
 class RouterPrompt:
     """
@@ -33,6 +166,9 @@ class RouterPrompt:
     PREFIX_SEP = ':'
     
     PROMPT_REMARK_SYMBOL = [';', '!']
+    
+    #Create an shared empty object
+    _prompt_feeder_obj = PromptFeeder([])
     
     def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None) -> None:
         """
@@ -66,6 +202,43 @@ class RouterPrompt:
 
         self.update_prompt()
 
+    def prompt_feeder_length(self) -> int:
+        """
+        Get the length of the prompt feeder.
+
+        Returns:
+            int: The length of the prompt feeder.
+        """
+        return RouterPrompt._prompt_feeder_obj.length()
+    
+    def get_prompt_feeder(self) -> Optional[PromptFeeder]:
+        """
+        Get the current prompt feeder.
+
+        Returns:
+            Optional[PromptFeeder]: The current prompt feeder if available, otherwise None.
+        """
+        return RouterPrompt._prompt_feeder_obj
+    
+    def load_prompt_feeder(self, pf: PromptFeeder) -> bool:
+        """
+        Load a new prompt feeder.
+
+        Args:
+            pf (PromptFeeder):  The new prompt feeder to load. 
+
+        Returns:
+            bool: STATUS_OK if the prompt feeder is successfully loaded, STATUS_NOK otherwise.
+        """
+        if not isinstance(pf, PromptFeeder):
+            return False
+        
+        RouterPrompt._prompt_feeder_obj = pf
+        if RouterPrompt._prompt_feeder_obj.length() < 0:
+            return STATUS_NOK
+        
+        return STATUS_OK
+        
     def intro(self) -> str:
         return ""
          
@@ -262,19 +435,45 @@ class RouterPrompt:
         Clear the current completer, removing all suggestions.
         """
         self.session.completer = None
-        
-    def start(self) -> bool:
-        """
-        Start the command prompt.
 
-        This method initializes the command prompt interface, printing top-level
-        commands and introduction, and enters a loop to process user commands.
+    def _read_prompt_file(self, pf: PromptFeeder , sleep_ms: float=200) -> bool:
+       
+        self.log.debug(f'_read_prompt_file() PromptFeed: {pf.__str__()} - sleep_ms: {sleep_ms}')
+       
+        while pf.length():
+            
+            line = pf.next()
+            self.log.debug(f'Line: {line}')
+            
+            if sleep_ms > 0:
+                sleep((sleep_ms/1000))
+            
+            if self._process_command(line):
+                break
+                    
+        return STATUS_OK
+
+    def start(self, pf : PromptFeeder = None) -> bool:
+        """
+        Start the process with an optional prompt feeder.
+
+        Args:
+            pf PromptFeeder`: The optional prompt feeder object.
 
         Returns:
-            bool: True if the prompt exits normally, False if interrupted.
+            bool: True if the process starts successfully, False otherwise.
         """
         self._DEBUG_print_top_lvl_cmds()
-
+        
+        if self.load_prompt_feeder(pf):
+            self.log.debug('Invalid PromptFeeder Object')
+        
+        # PromptFeeder Has Priority
+        if self.get_prompt_feeder().length():
+            self.log.debug(f'PromptFeeder, has {self.get_prompt_feeder().length()} entries')
+            self._read_prompt_file(self.get_prompt_feeder())
+            return STATUS_OK
+        
         while True:
             try:
                 command = self._get_command()

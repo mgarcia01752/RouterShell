@@ -125,8 +125,8 @@ class SystemConfig(RunCommand):
         if current_os == "Linux":  
 
             try:
-                with open('/etc/hostname', 'w') as f:
-                    f.write(hostname + '\n')
+                # with open('/etc/hostname', 'w') as f:
+                #    f.write(hostname + '\n')
 
                 # Ensure the change is recognized without a reboot
                 self.run(['hostname', hostname])

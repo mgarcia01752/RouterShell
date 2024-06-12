@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Set project root and update PYTHONPATH
-ROUTERSHELL_PROJECT_ROOT="${PWD}"
+export ROUTERSHELL_PROJECT_ROOT="${PWD}" 
 export PYTHONPATH="${PYTHONPATH}:${ROUTERSHELL_PROJECT_ROOT}:${ROUTERSHELL_PROJECT_ROOT}/src:${ROUTERSHELL_PROJECT_ROOT}/lib:${ROUTERSHELL_PROJECT_ROOT}/test"
 
 # Determine the current user
