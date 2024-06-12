@@ -472,7 +472,7 @@ class RouterPrompt:
         while pf.length():
             
             line = pf.next()
-            self.log.debug(f'Line: {line}')
+            self.log.info(f'Line: {line}')
             line = self._process_prompt_feeder_line(line)
             
             if sleep_ms > 0:
