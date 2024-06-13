@@ -109,7 +109,7 @@ class RunCommand:
 
             if not suppress_error:
                 self.log.error(f"Command failed: {e}: {cmd_str}")
-                self.log.error(f"Error output: {e.stderr.decode('utf-8')}")
+                self.log.error(f"Error output: {e.stderr.strip()}")
 
             RunCommand.run_cmds_failed.append(cmd_str)
             self.log_command(cmd_str)
