@@ -72,25 +72,7 @@ class RunCommand:
 
             if sudo:
                 command = ['sudo'] + command
-
-            if OsPrivilegeVerifier.get_current_username(use_subprocess=True) == 'root':
-                
-                self.log.info(f'Running command as root: {command}')
-                
-                process = subprocess.run(command, capture_output=True, text=True, check=True)
-                
-                exit_code = process.returncode
-                stdout = process.stdout.strip()
-                stderr = process.stderr.strip()
-
-                cmd_str = " ".join(command)
-
-                self.log.debug(f"run({exit_code}) -> cmd -> {cmd_str}")
-                self.log_command(cmd_str)
-
-                return RunResult(stdout, stderr, exit_code, command)
-                 
-            
+                            
             process = subprocess.run(command, shell=shell, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             exit_code = process.returncode
