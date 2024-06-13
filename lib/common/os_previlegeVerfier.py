@@ -1,5 +1,6 @@
 import os
 import grp
+import subprocess
 
 class OsPrivilegeVerifier:
     """Static class to check for root user and root group membership."""
@@ -39,3 +40,27 @@ class OsPrivilegeVerifier:
             bool: True if the user is root or in the root group, False otherwise.
         """
         return OsPrivilegeVerifier.is_root_user() or OsPrivilegeVerifier.is_in_root_group()
+
+    @staticmethod
+    def get_current_username(use_subprocess: bool = False) -> str:
+        """
+        Get the current username.
+
+        Args:
+            use_subprocess (bool): If True, use subprocess to get the username. Default is False.
+
+        Returns:
+            str: The username of the current user.
+        """
+        if use_subprocess:
+            try:
+                result = subprocess.run(['whoami'], capture_output=True, text=True, check=True)
+                return result.stdout.strip()
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(f"Failed to get current username using subprocess: {e}")
+        else:
+            try:
+                return os.getlogin()
+            except OSError:
+                # Fallback if os.getlogin() fails
+                return os.getenv('USER') or os.getenv('LOGNAME') or os.getenv('USERNAME')

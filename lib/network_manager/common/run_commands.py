@@ -71,6 +71,8 @@ class RunCommand:
         try:
             
             if sudo:
+                self.log.info(f'WhoAmI(ENV): {OsPrivilegeVerifier.get_current_username()}')
+                self.log.info(f'WhoAmI(CLI): {OsPrivilegeVerifier.get_current_username(use_subprocess=True)}')
                 command = ['sudo'] + command
 
             process = subprocess.run(command, shell=shell, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
