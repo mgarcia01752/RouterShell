@@ -69,13 +69,16 @@ class RunCommand:
             
         """
         try:
-            
+
             if sudo:
-                self.log.info(f'WhoAmI(ENV): {OsPrivilegeVerifier.get_current_username()}')
-                self.log.info(f'WhoAmI(CLI): {OsPrivilegeVerifier.get_current_username(use_subprocess=True)}')
                 command = ['sudo'] + command
 
-            process = subprocess.run(command, shell=shell, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if OsPrivilegeVerifier.get_current_username(use_subprocess=True) == 'root':
+                self.log.info(f'Running command as root: {command}')
+                process = subprocess.run(['whoami'], capture_output=True, text=True, check=True)
+            
+            else:
+                process = subprocess.run(command, shell=shell, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             exit_code = process.returncode
             stdout = process.stdout.decode("utf-8")
