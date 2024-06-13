@@ -70,7 +70,7 @@ class CopyStartRun(RouterPrompt):
         prompt_file = f'{rs_path}/config/{start_config_fname}'
 
         pf = PromptFeeder(PromptFeeder.process_file(prompt_file))
-        self.log.info(f'{pf.__str__()}')
+        self.log.debug(f'{pf.__str__()}')
         self.start(pf)
 
         return STATUS_OK
