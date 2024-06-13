@@ -4,6 +4,7 @@ import logging
 import datetime
 from typing import List, NamedTuple
 
+from lib.common.os_previlegeVerfier import OsPrivilegeVerifier
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class RunResult(NamedTuple):
@@ -68,7 +69,7 @@ class RunCommand:
             
         """
         try:
-            if sudo:
+            if sudo and not OsPrivilegeVerifier.is_root_user():
                 command = ['sudo'] + command
 
             process = subprocess.run(command, shell=shell, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -1,0 +1,3364 @@
+[33mcommit 23191c32803f886f6a67b99ad8d49d955e0dbb80[m[33m ([m[1;36mHEAD -> [m[1;32mv0.1.7[m[33m, [m[1;31morigin/v0.1.7[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Jun 12 23:19:24 2024 -0400
+
+    Update CopyStartRun() - Continue
+
+[33mcommit 29d8fb0a5ceccb658a880e294f8600928258e27e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Jun 12 23:08:07 2024 -0400
+
+    Update CopyStartRun() - Continue
+
+[33mcommit aa9e840a13d2d5beae3809351c0ff8df8b468796[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Jun 12 22:36:30 2024 -0400
+
+    Update CopyStartRun() - Continue
+
+[33mcommit cf3bf96af2469b893353f05e2fb4304171732295[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Jun 12 10:27:07 2024 -0400
+
+    Adding factor-reset
+
+[33mcommit d1cd40480b18fc313b54ea1b07aa2e17d6c00a49[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Jun 12 00:17:49 2024 -0400
+
+    Fixing copy-running-start-config
+
+[33mcommit e4e1c7a3b4f801c7b2c60dd47e26650127c65368[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 22:51:21 2024 -0400
+
+    Fixing copy-run-start and copy start-run
+
+[33mcommit 9ba198a4215498e41301c2e76ba23059761f8036[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 22:50:51 2024 -0400
+
+    Fixing copy-run-start and copy start-run
+
+[33mcommit 5e4decf5e32633eb350d7f44fe01f81457a26118[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 22:14:36 2024 -0400
+
+    Added copy-run-start and copy start-run
+
+[33mcommit 47c3a935ea02dd2c3d7fbf8428048b845b64ce15[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 02:38:03 2024 -0400
+
+    Fixed copy-running-start-config
+
+[33mcommit 3c2697b98d85dfb04147b31ec863aba2895de3da[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 02:15:12 2024 -0400
+
+    Fixed copy-running-start-config
+
+[33mcommit 2eb6005133f550ace9b2e71add41bd0029be88d4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 01:49:33 2024 -0400
+
+    Fixed copy-running-start-config
+
+[33mcommit 478517d5c09870d8e1ad4740af78e0d562247a9a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 01:47:19 2024 -0400
+
+    Fixed copy-running-start-config
+
+[33mcommit 86af2f659daf15c58da9889f612d20926223219c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 11 00:23:15 2024 -0400
+
+    Fixing copy-running-start
+
+[33mcommit f71034a022f3712c2418760ac41b2ecc3b77388c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 23:42:33 2024 -0400
+
+    Fixing Startup Process after a reboot - Working
+
+[33mcommit df34a4cb291796c6984085890f6b862e1017575f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 23:24:16 2024 -0400
+
+    Fixing Startup Process after a reboot - Working
+
+[33mcommit 5a2be59b2729c42a67b940337fac826894af8acf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 23:12:29 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit 67c5258cc54fdc69523d62d30fd6a4cec696525a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 23:01:27 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit b68a5e429958bcc80f2e01bb4d4a76d7f80d45da[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 22:46:12 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit d74b2805a02fdf5d00978e217a09287c2f280af0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 22:32:54 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit bce7c06545fb354e0a20a05302ae6b186e344d3c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 22:16:31 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit 01ea93753d79351e3a84e077c509fb7bcf9bd676[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 22:02:08 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit 2f3b13352a08a1ad9484a7aa648968baf4c12067[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 21:47:01 2024 -0400
+
+    Fixing Startup Process after a reboot - Setting hostname
+
+[33mcommit 4faf617ee1f82b4f600005eafb0a72347e6cad37[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 20:49:43 2024 -0400
+
+    Fixing Startup Process after a reboot or initial - continue
+
+[33mcommit 45201ab21128ddce2d5814226c679315567bae57[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 20:24:00 2024 -0400
+
+    Fixing Startup Process after a reboot or initial
+
+[33mcommit e1e70ad21046910f4be0e0f473617ca50ce3bf99[m[33m ([m[1;31morigin/v0.1.6[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 18:15:33 2024 -0400
+
+    Updating configure-interface-bridge-group
+
+[33mcommit 8143f1acca9838bf3cc9d594b90b43e08dd7e9de[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 17:22:06 2024 -0400
+
+    Updating Bridge Control DB - Working - Debug removed
+
+[33mcommit 5579b895496c812c536a6bcf2edbdf21593a5fe9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 16:21:46 2024 -0400
+
+    Updating Bridge Control DB - Continue
+
+[33mcommit 9739da65292930f12b87120b3b8285c0765f76cf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 10 16:14:29 2024 -0400
+
+    Updating Bridge Control DB
+
+[33mcommit 2391b3dcb700759e49acc6e3c35a3fd2b6cc6bb8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 9 17:15:19 2024 -0400
+
+    Updating docs bridge config
+
+[33mcommit 23dfc1bb664a721612935c107a8ddf88673cb4df[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 9 16:31:36 2024 -0400
+
+    Fixing bridge control, being able to shutdown or no shutdown a bridge interface
+
+[33mcommit 6bcd7fb6ae2e523d2b6fd69c5b355df05813514a[m[33m ([m[1;31morigin/v0.1.5[m[33m, [m[1;32mv0.1.5[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 9 13:20:36 2024 -0400
+
+    Last update for v0.1.5
+
+[33mcommit 3d518df688b13d5fbe6d32c24b8897273a5bc9cd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 9 12:23:01 2024 -0400
+
+    Fixing configure-interface-ip - logging issue fixing
+
+[33mcommit 14d8c487f36c0c652a3552f71a71d87117aca079[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 8 17:33:14 2024 -0400
+
+    Fixing configure-interface-ip
+
+[33mcommit cddd5cc7a9b196d5819e9b0f7a427a2967b8f5d7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 8 16:38:22 2024 -0400
+
+    Workaround log_command
+
+[33mcommit 78eec3802656af4dfe09e1d10d9e20511a156bd2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 8 11:30:07 2024 -0400
+
+    updated get/set hostname() - Fixed
+
+[33mcommit fce1875faf4031a37f5ce324c95546e6e6040095[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 8 11:24:31 2024 -0400
+
+    updated get/set hostname()
+
+[33mcommit df17b9add29a2281d316cd59fd5d179d4a061455[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 8 10:53:37 2024 -0400
+
+    updated get_hostname
+
+[33mcommit 4e6566933f8d187d9828ca28190de527db956846[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Jun 6 00:34:37 2024 -0400
+
+    Factory Reset Settings
+
+[33mcommit 541b223c81dfa82b243f065e1041b18f72c94087[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 23:13:22 2024 -0400
+
+    Updating configure-system-telnet-server
+
+[33mcommit 02134b120274b04a526ea5544557ec5b4960de98[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 22:40:29 2024 -0400
+
+    Updating configure-system-telnet-server
+
+[33mcommit f1cda6065a6ac7b7c82ea19c4b169bf17f46a693[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 20:06:55 2024 -0400
+
+    Updated configure-system-telnet-server
+
+[33mcommit 690e9fc81bfbd9432a19d8cadd98358705aa4402[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 19:31:01 2024 -0400
+
+    Updated configure-system-telnet-server
+
+[33mcommit 1625da1605af0fc182b7e67a2e86eda60e99d314[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 13:44:38 2024 -0400
+
+    added dmesg and jpornalctl show commands
+
+[33mcommit 93b3eec4f28a20fd9e398131fdda003d4753f97b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 13:41:08 2024 -0400
+
+    added dmesg and jpornalctl show commands
+
+[33mcommit 4749ba5d15c67cdf4787fe4a0f890c612135750b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 13:38:24 2024 -0400
+
+    added dmesg and jpornalctl show commands
+
+[33mcommit fb8b73ca9b3f994d269939132194ad3ea44e0cac[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 13:15:24 2024 -0400
+
+    added dmesg and jpornalctl show commands
+
+[33mcommit abc0c59ae12904ce6bd5cbf9b32aa86248e5ade3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 02:49:51 2024 -0400
+
+    Updated first-login script
+
+[33mcommit a7ce5a71366fb2355f494f7af5daac29f730384e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 02:47:44 2024 -0400
+
+    Updated first-login script
+
+[33mcommit 349684eea5f425695cf6c187b78c706b7af36bf3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 02:34:11 2024 -0400
+
+    Updated first-login script
+
+[33mcommit c96e558f72f11e3b171a769a8604b4baf8961b61[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 02:26:17 2024 -0400
+
+    Updated first-login script
+
+[33mcommit e81cdef9bcd9694fdd11372888023adccbc5b1f7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Jun 4 02:22:07 2024 -0400
+
+    Updated first-login script
+
+[33mcommit 29c6f87c0c67f1959987d86886f259a2719f8253[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jun 3 13:36:37 2024 -0400
+
+    Fixed Bridge.get_bridge_list_os()
+
+[33mcommit 9fb51384a4f503d88c164b958191a6c039baec47[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 21:03:35 2024 -0400
+
+    Update: Added configure-interface-bridge-group
+
+[33mcommit d607a30ca1c8ac7c3a5c0ecebe255387b4bb4c8c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 12:54:52 2024 -0400
+
+    Update: Added configure-no-bridge to remove bridges - continue
+
+[33mcommit be33c47ade1b1ae507c31195f757d772f22d6299[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 12:47:13 2024 -0400
+
+    Update: Added configure-no-bridge to remove bridges
+
+[33mcommit 49d7a0699427006106968722840f0f59a125e919[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 12:36:58 2024 -0400
+
+    Update: Added bridge tab-completion if found OS bridges
+
+[33mcommit 242e67495b4325dac46a6465d286627526beb08d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 12:19:59 2024 -0400
+
+    Update: Fixed getting into  configure-bridge
+
+[33mcommit 43fad6415366dfb4aae32bd4e6c8579ab9af159d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 02:47:54 2024 -0400
+
+    Started configure-bridge
+
+[33mcommit 305e28488e15418985c4c282f0bd2d5092c06b5e[m[33m ([m[1;31morigin/v0.1.4[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 01:58:55 2024 -0400
+
+    removed Global commands in config mode
+
+[33mcommit 60b2ce26407170fadc76f23d5458562764506bc2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 01:56:06 2024 -0400
+
+    Added configure-rename
+
+[33mcommit 0e52fc9228d83d962aa82ceeba474092f334b383[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Jun 2 01:46:13 2024 -0400
+
+    Added configure-hostname
+
+[33mcommit 2e152134020c113f34ef6d6291d683a3cdc66967[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 22:42:04 2024 -0400
+
+    fixed install prompt-toolkit
+
+[33mcommit e4a98780a2a9aad074b9b96b769f3db8eeaf0354[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 21:54:56 2024 -0400
+
+    Working....
+
+[33mcommit ccde802f2d10275b0d0ec32153135b7bfe43ea27[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 21:48:17 2024 -0400
+
+    Working....
+
+[33mcommit 85900c5eea54c4bc055a59352fc2a113e166f69c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 21:41:16 2024 -0400
+
+    Continue updating first-login script
+
+[33mcommit 1b6105ca96251d82cbf56cc5888e17d18b68ecf5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 20:54:18 2024 -0400
+
+    Refactor first-login- script
+
+[33mcommit b3a1ca9d6c4fc1b62aee58eb47fd479771a98886[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 20:31:30 2024 -0400
+
+    Continue updating first-login script
+
+[33mcommit 13afe07bfc8246612e9c4fd088bcdcb21c0ec0a5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 20:19:04 2024 -0400
+
+    Continue updating first-login script
+
+[33mcommit da20e89d0319dc212e8c5e7afdb5cb0af704e4fb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 20:05:25 2024 -0400
+
+    Continue updating first-login script
+
+[33mcommit 58c5de9e481f84a2afbc402ddf893c177ee96ed6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 19:58:22 2024 -0400
+
+    Continue updating first-login script
+
+[33mcommit 820c56e63d8dc895a013ab564f80dab1b11a5c4b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 19:42:03 2024 -0400
+
+    Continue with  first-login script
+
+[33mcommit daebb3044f91f17f7ff94abd3fa6d30e7838ef54[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 19:28:29 2024 -0400
+
+    Updated first-login script
+
+[33mcommit 190be71b545fb60af9a912aef27b7901b749cae2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 19:17:18 2024 -0400
+
+    Initial Flag Found check
+
+[33mcommit af426b2fda1e560e9a77c54a36c30acd5cd99b43[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 19:09:36 2024 -0400
+
+    Updated first-login script
+
+[33mcommit 7911bd471c88ca1ca6a4f57b539039d0cdf9c651[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 18:59:19 2024 -0400
+
+    Updated Permissions
+
+[33mcommit 4f24b7f707eb8cc7243451adc4d02469bb37cabc[m[33m ([m[1;31morigin/v0.1.3[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Jun 1 18:31:05 2024 -0400
+
+    Adding login checks
+
+[33mcommit dad154ec35c4c1e63f9de28e50560bcc795928f5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 30 16:01:47 2024 -0400
+
+    Revode DEBUG
+
+[33mcommit daeb2bb00fc3dd63806f87b33e726248ba503179[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 30 15:55:19 2024 -0400
+
+    updated tools file to using env bash
+
+[33mcommit 8562c4c2ca6f8a7b1b1d5bafe2e4df30d630371c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 30 10:13:30 2024 -0400
+
+    Updated shutdown
+
+[33mcommit f26e195f3a0fc40b7091ffba322b5607ac103695[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 30 09:47:07 2024 -0400
+
+    Updated reboot
+
+[33mcommit 697fe9af1f48c7d7f3702f73a3f647095a0005ff[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 29 22:14:43 2024 -0400
+
+    Updated global-flush
+
+[33mcommit 8f7367833fc2cfdcf10e69d4ccfbc8129a55bdfc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 29 21:57:22 2024 -0400
+
+    Updated clear-router-db
+
+[33mcommit ea66297ffec1e0a857d75e7fa2f2e29a0fb5a32d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 29 13:41:17 2024 -0400
+
+    Updated clear-arp
+
+[33mcommit c3f5b7a940a813bde0b4f25d3df080ba008fd856[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 29 10:55:41 2024 -0400
+
+    Updated start
+
+[33mcommit 5acd7bea64b3a01787a60fe3cda9241127c6ae8b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 22:34:12 2024 -0400
+
+    Next
+
+[33mcommit 4f70c0fe65a4893cdb54bd47e0b42c69a1db18eb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 21:28:38 2024 -0400
+
+    Added some global commands
+
+[33mcommit 2b102390087fc0b65b84826c3f474c677d5ee45d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 17:35:55 2024 -0400
+
+    next
+
+[33mcommit f4f01e0eb61cbe5739ce244c44703a3ac1f3f287[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 17:02:47 2024 -0400
+
+    updated interface speed
+
+[33mcommit 9458389f9f46351da4a0092d191af0c815a78d3a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 16:54:31 2024 -0400
+
+    updated interface duplex
+
+[33mcommit ebecef6189c3156aeb64d12a0bee9542010fbed6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 16:19:48 2024 -0400
+
+    Fixed interface description negate and show running config
+
+[33mcommit f7b22b3aef3f78854b0e460cb3cfd4201ac3896d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 27 16:12:28 2024 -0400
+
+    Added interface description with negate
+
+[33mcommit 9cf626285f728c686c66300d346617ae3fee3884[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri May 24 07:43:35 2024 -0600
+
+    Start of configure interface - mac working
+
+[33mcommit 9760dea54d6a1b1811d609e22406f0861cb6e50d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri May 24 01:15:14 2024 -0600
+
+    Start of configure interface - mac working
+
+[33mcommit e7b7ea5f7000eb37038dd9896abcf5cc8caeb156[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 23:37:54 2024 -0600
+
+    Start of configure interface - fixing no shutdown
+
+[33mcommit 47ebfdc6784c0d5e4d4c7cd0a4c5d0171d12477a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 22:41:49 2024 -0600
+
+    Start of configure interface
+
+[33mcommit c786fd603e0a2d8fb9b0907a15d53fedadc84dba[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 22:22:30 2024 -0600
+
+    Fixed config-mode to correct promit
+
+[33mcommit cc2d0c1e1ea6346360a112cc5895ea91cdc6513c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 20:00:50 2024 -0600
+
+    Updated Test Config Classes
+
+[33mcommit c6ff3f36d277d6920cbb5b4046550c533f800867[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 18:59:57 2024 -0600
+
+    Continue configure interface development
+
+[33mcommit 2bb4ccc3d6c2abe66df7f8f7993f765cad7f65d1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 18:21:35 2024 -0600
+
+    Continue configure interface development
+
+[33mcommit 2aa916bc9ab412188f32042b4503286a1ce1c467[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 17:19:19 2024 -0600
+
+    Continue configure interface development - remove info
+
+[33mcommit 132fd2b5a6fc3507de1224ca67c19eff3443fba6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 17:07:56 2024 -0600
+
+    Continue configure interface development - remove info
+
+[33mcommit 8d90510050aa1187e8ffd503feabe5a8e0f9fdbe[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 16:22:44 2024 -0600
+
+    Continue configure interface development - remove info
+
+[33mcommit 16fdb13d4d1119122fbe7e8a6daf5f5bb1b07a5b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 16:21:46 2024 -0600
+
+    Continue configure interface development
+
+[33mcommit 71ce612e8896a794892d59adff72e0556554ea1a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 14:23:43 2024 -0600
+
+    Adding Interfae Configuration Mode
+
+[33mcommit 88735b9b37d5077d7ee4d6650606055683fcbc39[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 13:26:59 2024 -0600
+
+    Adding Interfae Configuration Mode
+
+[33mcommit 2d9948d2a6fc53178797b2c60a3562fd627da239[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 12:22:45 2024 -0600
+
+    Adding Interfae Configuration Mode
+
+[33mcommit 12c910c26136e5563354911aee9c840380a9d5ff[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 12:12:22 2024 -0600
+
+    Adding Interfae Configuration Mode
+
+[33mcommit fed1ba0707d983ffdcce15dfbcc4735bd7ad2561[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 11:53:06 2024 -0600
+
+    Adding Interfae Configuration Mode
+
+[33mcommit bd46e7b32a0800bf9e312b0c7aa9ae7217390fa5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 11:33:05 2024 -0600
+
+    Continue developing Configuration Mode
+
+[33mcommit 5ab30aa053af93e1ae8cb3fa8f2ddb11f85065f7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 11:27:58 2024 -0600
+
+    Continue developing Configuration Mode
+
+[33mcommit e322f981284c7be765da6a7b350afd547999e689[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 11:25:26 2024 -0600
+
+    Continue developing Configuration Mode
+
+[33mcommit f88114e6f0878f38c2aed7392d66f9518bbb5687[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 11:02:09 2024 -0600
+
+    Fixing Configuration Mode
+
+[33mcommit f78a5066ff3cce997a549706d67e88a2d0e86c0b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 09:59:17 2024 -0600
+
+    Fixing Configuration Mode
+
+[33mcommit 1d2e9ddd18c9ba633fc23b18050a21a9fd74f2ec[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 09:56:56 2024 -0600
+
+    Fixing Configuration Mode
+
+[33mcommit 6377b8f6a0deabc2f78a1614d7a89328b611c041[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu May 23 09:23:19 2024 -0600
+
+    Fixed per class tab-completion
+
+[33mcommit 1bd7547db63957fe17332121c6bd9f86b299ad86[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 20:53:05 2024 -0600
+
+    Next configure update
+
+[33mcommit 06ce7536e995d08226937fb501bf97cb70317899[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 18:46:46 2024 -0600
+
+    Added more show commands
+
+[33mcommit d502e2ad2987a71fb96bd5938425f290750c0367[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 18:32:24 2024 -0600
+
+    Added show running configuration
+
+[33mcommit 64bb96fb9675b9826e1d5a25b34042cc74157840[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 18:25:47 2024 -0600
+
+    Added show ip/route
+
+[33mcommit 1c010df0fcb267cdbbf9fe781c77c7127c484a01[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 18:18:33 2024 -0600
+
+    Added show cpu/network
+
+[33mcommit c5e75f2edf572a397749c275a9cb0ff0ae87050d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 18:14:20 2024 -0600
+
+    Added show interface brief/statisic
+
+[33mcommit 4cca46542ef37de9d52bac12fcc4c7a64d7a10da[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 16:16:18 2024 -0600
+
+    Added Help function
+
+[33mcommit abf4da85d64ca2557e1b815b731063e3fbf9b6c2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 16:08:52 2024 -0600
+
+    Added Help function
+
+[33mcommit c3efb8807f00cc2d7dd9b1bcdb673c8be2e4de19[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 14:05:44 2024 -0600
+
+    Update
+
+[33mcommit dcea68b8b0b060da0b211aa0590d150a3d6bd103[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 14:03:55 2024 -0600
+
+    Fixed decorator
+
+[33mcommit c5d44540de99a6c42f52d5a9c098123bcf6a495d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 14:03:17 2024 -0600
+
+    Fixed decorator
+
+[33mcommit 6458d1865294134fda2697166051b0fcfec73270[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 11:32:47 2024 -0600
+
+    Updated debug
+
+[33mcommit 453300ad8a3bd8ce2a18ac40cf2e760d84bcda30[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 11:30:04 2024 -0600
+
+    Working extending/edding tab completion
+
+[33mcommit 14897ffa83a37aa039e2702c762c8d2efa4d23b4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed May 22 11:25:58 2024 -0600
+
+    Working extending tab completion
+
+[33mcommit 21f289c69f12632f07db067a214c37f27e9049ff[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 20 06:29:21 2024 -0600
+
+    Fixed global and show commands
+
+[33mcommit 02f41f798269a66b10aec3832665090b6d9b24a0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 19 21:54:32 2024 -0600
+
+    Fixed global and show commands
+
+[33mcommit a4c461b952b08c7e683763dc78218e33cc4ab644[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 19 13:52:00 2024 -0600
+
+    Fixed global and show commands
+
+[33mcommit a9c238b2225d187457fa8d830c96f95dd660cba2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 19 13:08:39 2024 -0600
+
+    Show is working
+
+[33mcommit 201ba8a272698ec5408f2f2c781314eb8f26ebab[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat May 18 17:37:19 2024 -0600
+
+    Added Nested Tab Completion
+
+[33mcommit 6320211cd4cfc07f2874b01e3965b0812089ffce[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat May 18 16:33:58 2024 -0600
+
+    Added Nested Tab Completion
+
+[33mcommit f786a983ecc5ffef45a7f4d6b0447e7505eb9d91[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 13 21:39:12 2024 -0600
+
+    Updated start.sh
+
+[33mcommit d856d046ed87afd276be87b3806aed2531315fc7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 13 15:28:01 2024 -0600
+
+    Fixed global ping
+
+[33mcommit 9047d481c91b94aed1bcaedfe26b101f7a554895[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 13 09:39:30 2024 -0600
+
+    Updated Intro
+
+[33mcommit c4a0e902655b3c3f192842c0036f02e3e0bd6e97[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 13 09:36:17 2024 -0600
+
+    Continue
+
+[33mcommit a9b2cd76636cd1cb37a906e7bbe39acab350901e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 13 09:22:46 2024 -0600
+
+    Continue
+
+[33mcommit ae5701ebe8546f43f150c86f661ab87e1ec4bda1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 12 23:08:41 2024 -0600
+
+    Continue
+
+[33mcommit d405a91b68ab4eeaa62960a920aeb9a8ef1be138[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 12 23:02:54 2024 -0600
+
+    Continue
+
+[33mcommit 7297126e0318b07dc9448d19e41db677c2b91604[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 12 22:55:00 2024 -0600
+
+    Continue
+
+[33mcommit cfdc9c09c6b975dc4f6a2fb04a296a7233c3e5ee[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun May 12 22:26:17 2024 -0600
+
+    CLI rewrite start
+
+[33mcommit d65b7a9d3714d12a0ab3eb3c5bb5ace16eda07d6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 6 20:29:25 2024 -0600
+
+    enable debug
+
+[33mcommit 669fd39d0f62377d7f46af918d3f7063e3be9112[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon May 6 19:59:56 2024 -0600
+
+    Started overwrite from cmd2 to prompt_toolkit
+
+[33mcommit df66aaf48752b2b04b01340a82a14f3d2b2561c1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri May 3 20:36:18 2024 -0600
+
+    Generic
+
+[33mcommit 4a791caf0b081b034c718c2cd2859d415185522c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri May 3 12:15:51 2024 -0600
+
+    Initial
+
+[33mcommit c3f6543b9145ccce279e8069926c0cf324476702[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri May 3 08:19:59 2024 -0600
+
+    Moving from cmd2 to prompt-toolkit
+
+[33mcommit 59eb5b307d85fbf03301755c2955813b21944164[m[33m ([m[1;32mmain[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Apr 30 19:07:58 2024 -0600
+
+    Revert
+
+[33mcommit fdb4f6428b08aca453dc369695103da995b1fe7f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Apr 30 19:01:13 2024 -0600
+
+    updated for yocto
+
+[33mcommit 510bba6f7f9ae7f5d3e85e270af9af2f8af805c5[m[33m ([m[1;31morigin/adding-updating-interface-wifi-hostapd[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Jan 1 21:11:20 2024 -0500
+
+    updated wifi-to-work-on-it-later
+
+[33mcommit ca7521fe12d5a3d43fbba619e54d43ac7dfd179b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 31 12:29:43 2023 -0500
+
+    Update
+
+[33mcommit 87bb1d559100821b2438c57724ba02d377c4845b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 30 16:11:23 2023 -0500
+
+    Clear-up white space and doc
+
+[33mcommit cb2abb9f6034ffe3cf0583f4fbbf2915ce52ea90[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 30 16:03:27 2023 -0500
+
+    Fixed config-interface-wifi-prompt; added-better sql diction db get
+
+[33mcommit a04e0f0ed4f13b18e7150447ca5affc0aa96b8dd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 30 13:02:49 2023 -0500
+
+    Updated wireless-wifi-policy-config
+
+[33mcommit 8c70291580d54e4ed95e15e5925d40830810e3cd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 30 02:38:58 2023 -0500
+
+    Updated show-run
+
+[33mcommit 9354c5d6883d8496c0dfa787e915625fc676b218[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 30 02:01:27 2023 -0500
+
+    Updated show-run
+
+[33mcommit 908c6d330d7ab53b06bcee40f2078166b7fba622[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 22:52:36 2023 -0500
+
+    Updated intro message
+
+[33mcommit 47d0eb5a57dc018b3b765c18f32c4114b728c584[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 22:32:52 2023 -0500
+
+    Added rename-interface-real-time-show-run - UPDATE
+
+[33mcommit 3bea1ed16d4b12e85ced8a30d98905fd0ed384ec[m[33m ([m[1;31morigin/add-auto-interface-to-run-config[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 18:17:15 2023 -0500
+
+    Added rename-interface-real-time-show-run
+
+[33mcommit 94c95b0b2ee52c2bbfb852d95076cdb8a600a6ab[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 15:34:23 2023 -0500
+
+    Added rename-interface-real-time-show-run
+
+[33mcommit cc11f15f4aad92e9c7bf54a449bf30d6218b680a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 13:50:31 2023 -0500
+
+    Updated default description
+
+[33mcommit b9c37f227756925eab4daceab55ad4542c0a77fe[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 13:36:21 2023 -0500
+
+    Added method to auto add basic interface configure if not found in the DB
+
+[33mcommit 76b2fcff466a83dc20394be46bb4968c9ece1349[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 12:12:52 2023 -0500
+
+    update gitignore
+
+[33mcommit 126867980fe743c113bf9ae12076f6ed4716e554[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 12:11:34 2023 -0500
+
+    update gitignore
+
+[33mcommit 77044e505d413c987b42c64b11441b0a1df2966b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 12:08:08 2023 -0500
+
+    Fixed interface-dhcp-client-show-run
+
+[33mcommit 358bf8076c960ba9457db6ac8af25cbfa7828c98[m[33m ([m[1;31morigin/fixing-dhcp-server-config-checks[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 11:35:58 2023 -0500
+
+    Added dhcp-mode to global
+
+[33mcommit 6910ef2c9bcc9fd6d050b3c2afb649bf11f6845f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 11:32:29 2023 -0500
+
+    Added dhcp-mode to global
+
+[33mcommit 49659be05e5f8357403a02809f8c5d2a0d8e5e26[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 10:15:37 2023 -0500
+
+    Added show-run-interface-dhcp-client UPDATE
+
+[33mcommit eacd09b1afa82ad520112f71e76569000cb9cfd3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 10:03:54 2023 -0500
+
+    Added show-run-interface-dhcp-client
+
+[33mcommit 9f4d561a89152c4170b22eba3f5438b9b359a696[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 09:15:20 2023 -0500
+
+    Added more DHCP Config checks
+
+[33mcommit 9f7319ac5a933a73acacdd1e48e3ac265672812c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 09:02:26 2023 -0500
+
+    Added more DHCP Config checks
+
+[33mcommit e0b68cac6dabdc5679b4e47899043696cb45d3cb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 08:39:40 2023 -0500
+
+    Added ip addres range check when adding dhcp pool range
+
+[33mcommit 3ad2234107752a9a41f8ecc423df643ac434f2e7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 29 08:31:12 2023 -0500
+
+    Added ip addres range check when adding dhcp pool range
+
+[33mcommit 6da190d8b8c3a168d163fc6b22c971756710f2f4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 22:13:31 2023 -0500
+
+    update gitignore
+
+[33mcommit 30948fe68c63f1d173aca9592bcd16b17e2577d2[m[33m ([m[1;31morigin/adding-dmasq-ipv6[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 22:09:05 2023 -0500
+
+    Added interface dhcp-server-update
+
+[33mcommit 3e8fe7c150777fd8174fe2e41c7999bead9fc473[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 21:20:46 2023 -0500
+
+    Added interface dhcp-server policy-negate
+
+[33mcommit 072229010a7da376e74299b3483db5f799bc3725[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 16:40:24 2023 -0500
+
+    Added DHCP-Server-Mode in show-run update
+
+[33mcommit 42d5df225a0f2c9c26cf190fcadcd72ba79096b9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 16:31:41 2023 -0500
+
+    Added DHCP-Server-Mode in show-run update
+
+[33mcommit 62391c05154abeffb6840e239fe8a97d1c787a60[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 16:28:10 2023 -0500
+
+    Added DHCP-Server-Mode in show-run update
+
+[33mcommit 24828cb0e97783b49daa176b4e4bb04f464d1026[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 16:18:26 2023 -0500
+
+    Added DHCP-Server-Mode in show-run update
+
+[33mcommit fd6c7a4bfacf68986d4443a3f774c5990a0759fe[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 16:17:10 2023 -0500
+
+    Added DHCP-Server-Mode in show-run
+
+[33mcommit 1b594cbb8a2d22931629e1d8d6d8000763b75629[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 28 15:31:41 2023 -0500
+
+    Updated IPv6 DHCP SQL Triggers
+
+[33mcommit 8552e57b42ca394db46f6b745331b71199c22852[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 26 23:24:52 2023 -0500
+
+    Added DHCPv6 mode in global dhcp config
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit a9d41b83c21a8fac15ce7c9ad744c5c0a8fb782a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 26 20:57:18 2023 -0500
+
+    Updating
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 5af41d04af9d114399c5150cb55c2bd2c8ff49dd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 26 16:23:14 2023 -0500
+
+    Fix config-interface-ipv6-address add
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit ae3e5372314a6e27bdd28d0b8faf2019c0b92abf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 26 15:26:32 2023 -0500
+
+    Updated README
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit f26c9d8cff1405591a08e3076572c61ca5425221[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 23:03:19 2023 -0500
+
+    Updated README
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 6d042e0bef95876b907b363d8820077239f63c37[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 22:29:44 2023 -0500
+
+    Updated tools
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 75a0f3b863810489ce2f428d3538fd29506a8305[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 20:13:10 2023 -0500
+
+    Updated install-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit e1b97878f0be8d110f599e847526df9aafe21dd6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 19:25:59 2023 -0500
+
+    Updated install-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit a7d0fdc84e3ad765b02155d2c5b56d2922e5777d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 19:23:51 2023 -0500
+
+    Updated install-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit c20d3a3f55fa1c4b70b19472c37ef4ead300e3a0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 18:25:34 2023 -0500
+
+    Updated install-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit f9b9a6d647ce0e6669a1a520602daec2f2bfae82[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 18:20:38 2023 -0500
+
+    Updated install-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 90f838e26293949f5b5a57b601ab649170fe5c46[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 18:12:18 2023 -0500
+
+    Updated install-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 8a4f96d3c53703307aed4170a1a6a0486a079eb0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 18:10:26 2023 -0500
+
+    Updated install, change to python3-pip
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 4cc8c9edc3e5d91ae98f942799520b51409e83d6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 25 12:40:19 2023 -0500
+
+    Added new tools for creating os
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 1e5e72404db13ed666ea256f0e5a014860ae81a3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 23 22:16:30 2023 -0500
+
+    Added new tools for creating os
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 5c42b8843882190ddaddb61de81fa3d7d714fccf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 23 12:15:18 2023 -0500
+
+    Fixed hostname CLI and hostname DNS checking
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit f6ffb15bada40e131aea049a67cfdc5f688d8c14[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 22 15:31:40 2023 -0500
+
+    Cleanup
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 451a0dc8a2ecb544adfc9dc12cb0c98b90186cb8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 22 14:16:16 2023 -0500
+
+    fixed config-interface-prompt
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit acfa30fbb1067b6b130ddc4fadae82c9c28387d9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 22 13:54:34 2023 -0500
+
+    wireless-almost-working
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit dde20e2b36814db1b3f1bc37942e68bc10308219[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 22 12:11:12 2023 -0500
+
+    Fix merge issue
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit b1c3356bd7c3b5dedc4b5bdb4ec391dcee31fcc4[m
+Merge: 4d0000d e0966f1
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 20 23:49:40 2023 -0500
+
+    Fix merge issue
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit e0966f1e3e5926afbe65726411ce2f4b19fdab1c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 20 23:22:35 2023 -0500
+
+    Fixed a bunch of other things
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 34ceedecf30d31ba7e7003537b6cc9b97c5f9273[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 20 16:56:08 2023 -0500
+
+    Added get_interface_type()
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 8d785aa59b773b84a9e0d3d7739c2a8c5801ecfb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 20 15:59:32 2023 -0500
+
+    Added interface layer class and move enum aroudn to maek sure sense
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 4d0000dbbe880175788b60be761b7e3bac9dc3c7[m[33m ([m[1;31morigin/add-copy-start-run[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 20 10:11:24 2023 -0500
+
+    Started Copy startup-config runnging-config (not fully implemented
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit efe69c5513d9d1d1419bd82221dd36eab1573dc3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 19 00:30:44 2023 -0500
+
+    Updating HostapdManager
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit d30ef58a9b239b499f32957aece69de4bee91151[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 18 23:27:23 2023 -0500
+
+    Updating HostapdManager
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 3568fa05ff05fe4a9087b08aad6306b06c6c3d67[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 18 22:25:37 2023 -0500
+
+    Added hostapd-manager class
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 93d8f9c90d39413405228bc2cb411ddfa1a19ec6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 18:49:39 2023 -0500
+
+    More clean-up
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 1b7fd9efd483c783c65f787837975c6610fb8e5d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 18:34:28 2023 -0500
+
+    Added interface wifi policy running-config-update
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 79ce676f7110a97a12a24becc2b17901a26076c1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 18:30:04 2023 -0500
+
+    Added interface wifi policy running-config
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 2fa1c370fa2fda62d8c7ba93f277d163f2b3242b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 15:20:29 2023 -0500
+
+    Fixing running-config formating
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 4d83ef289dd42d034ea84aec834b5ecdb76a6dc0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 15:19:43 2023 -0500
+
+    Added more debug
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit cf99afcd76f6452df42233a612040d2b45a53f73[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 15:18:36 2023 -0500
+
+    Fixed running-config end issue
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit dd1042e87c66ef9b3af4c6ffcab5c6ea033cc184[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 15:15:23 2023 -0500
+
+    Fixed running-config end issue
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 54c3886acc0155f67e52e01bb231a55180ca1326[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 15:05:47 2023 -0500
+
+    Updating docs
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 3a9c04282c9ddd4cd8ef01b4a00fd664e587eeb5[m[33m ([m[1;31morigin/updating-interface-wifi[m[33m)[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 17 14:23:06 2023 -0500
+
+    finished Wifi running-config
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 58cf4a6b79c46fb938ef45c493fbb9e23fafc4dc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 23:55:58 2023 -0500
+
+    Added get_wifi_policy_configuration
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit a4c02d216ffd53196159e09e5048854d74a45464[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 23:28:20 2023 -0500
+
+    Added get_wifi_policy_configuration
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit b12b232b64f9e8ffad306cae2f426949d2456d8c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 15:19:11 2023 -0500
+
+    Clean up
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit a0dbd465aa68b531f7364ccd59952f3c5d82a2bc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 14:59:29 2023 -0500
+
+    Added DHCP-Client Log
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 64695514efc2243c38563b17c11aa8e4681dcb8e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 14:58:36 2023 -0500
+
+    Added DHCP-Client Log
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 1052a90417e57f836392e1fe30fbf6735efc1d0a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 13:56:34 2023 -0500
+
+    Updating Run Command
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 0ca0a59a1c1cb0e18e32c63e2b3bba43d7a52f40[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 12:36:44 2023 -0500
+
+    Added show dhcp-server leases and server log
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit d35b0a9404c9fb169b38b1a1cf91c67c0737d65e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 16 01:06:50 2023 -0500
+
+    Added show dhcp-server leases
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 49be0b7692663a914ec389ba00c73b97b3130430[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 23:38:22 2023 -0500
+
+    Fixing DHCP SERVER/CLIENT SERVICES
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 3f9c827af4ae13ac45e454cb01498166bc1e29b1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 19:34:14 2023 -0500
+
+    Added Interface Description
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit a25ee6ad03b3378ddf76562e7b1c44632c2b4663[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 11:28:40 2023 -0500
+
+    Update documenation
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit e661e537bf1edaf93ca52d18c45ebe434b91fb44[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 11:10:07 2023 -0500
+
+    Update README.md
+    
+    Updating README
+
+[33mcommit 1524146402cafdc74e1420909adb8a19873aecdc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 10:59:29 2023 -0500
+
+    Update documenation
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit dc676fc544a82f1d75039724cae6f002eb050bcc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 10:57:46 2023 -0500
+
+    Update documenation
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 0c2f69bb18b290da8d8f040649369a48e58d81ca[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 10:50:34 2023 -0500
+
+    Update documenation
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 68601b9597193542fcd4f0e3e25f438e4053e497[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 15 10:40:22 2023 -0500
+
+    Update documenation
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit b40b9960ad7669e1392501cb91d9516fc9e57155[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 23:26:25 2023 -0500
+
+    Update show interfaces stats
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit e62e121a8ed414553eda143537a9ea00c726e62c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 23:24:49 2023 -0500
+
+    Update show interfaces stats
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 901d3e759ebbd4a41e3b902cb1aeaea7c70d551f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 21:34:56 2023 -0500
+
+    Update no banner config
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 75d13d04a827fd0249f9746fd30d4a403c3d7545[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 21:31:05 2023 -0500
+
+    Update no banner config
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 354bf42fc7df0dfc68d7c73b826e2056ad4d2662[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 21:13:08 2023 -0500
+
+    Refactor Router Prompt - clean up class, remove some unneeded methods
+
+[33mcommit c2fb678e29e8ebc20d576ee1994ea708f9454b42[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 19:22:02 2023 -0500
+
+    Refactor Router Prompt - clean up class, remove some unneeded methods
+
+[33mcommit 0c754a502cef469cda29086728cc03d1bf8d4852[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 19:19:59 2023 -0500
+
+    Refactor Router Prompt
+
+[33mcommit c11254d0e8b5646d6ae1653b60d9f7874faaf6d5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Dec 14 15:54:55 2023 -0500
+
+    Updating hostname code
+
+[33mcommit 4272f6bc74e34da8756e918a3d899756891851ec[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 13 08:57:05 2023 -0500
+
+    File cleanup
+    
+    Signed-off-by: Maurice Garcia <mgarcia01752@outlook.com>
+
+[33mcommit 2c3956a3622a86079d232bc26a86e75eec473f13[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 13 08:52:30 2023 -0500
+
+    fix copy run start overwrite file
+
+[33mcommit 0c1d0d9a2d14e09d06a44d3f450ea691fe276bd0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 12 22:39:09 2023 -0500
+
+    finished copy run start process
+
+[33mcommit ef6d90ab1818419f28518cd1fed8d5c2f0152b74[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 11 21:08:58 2023 -0500
+
+    Init
+
+[33mcommit 1f69bfbb152dd07bbaac5be5c1276bd060ae2f6a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 11 11:04:04 2023 -0500
+
+    Clean-up some white space
+
+[33mcommit 62e833f4f3cef642fcd65a45b19b7e1eca197907[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 11 11:01:36 2023 -0500
+
+    Fixed a premature exit from RouterCLI
+
+[33mcommit 51621c89fce25ed36b4f66a0cb9b4bdd91a204c1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 11 10:53:26 2023 -0500
+
+    Fixed a premature exit from RouterCLI
+
+[33mcommit 8768207fcbc01b61a6144aa395f59594dc5aa348[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 11 10:28:36 2023 -0500
+
+    Update DB queries
+
+[33mcommit 92f5ecbe58cf6d20e633d9b0d54aeba719384106[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 11 10:26:26 2023 -0500
+
+    Fixed interface <> speed auto config
+
+[33mcommit 7da16edbcc69b126528a2e62f072c62b60579970[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 10 23:00:08 2023 -0500
+
+    Update running-config
+
+[33mcommit 6225eab34525502eadf5b4b98f259c1630e28702[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 10 22:46:38 2023 -0500
+
+    Updated banner doc
+
+[33mcommit f6f3e1eb7b229f6d4dacb5def1d565ff6fff573b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 10 22:40:17 2023 -0500
+
+    Added Banner commadn to router
+
+[33mcommit e3eef899513744d5d36d32c0083d9e40b8ce44ab[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 9 22:12:58 2023 -0500
+
+    Updated a bunch of stuff
+
+[33mcommit 61c2fc31e4644908fa981d5c0d9ab85b1c23e57a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 9 19:55:56 2023 -0500
+
+    Updated a bunch of stuff
+
+[33mcommit 8977f2deabc09cdefa9a356a71bb68b7d01546ec[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 9 12:34:50 2023 -0500
+
+    Fixed config mode bridge default command
+
+[33mcommit 9e81a541fa7772610333aaa592024268db6a3789[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Dec 9 09:33:06 2023 -0500
+
+    Fixed config mode bridge default command
+
+[33mcommit 0d15dcfe6916dd78553b3defa1eb3593ad661456[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 8 09:04:45 2023 -0500
+
+    Starting show running-config DHCP Server Configuration
+
+[33mcommit e6ab72dea08bef0847f241afd10cc1ab6a73ce7b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Dec 8 08:57:52 2023 -0500
+
+    Starting show running-config DHCP Server Configuration
+
+[33mcommit a442051b6c075cdb06daa976b01ca29806107029[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 6 00:56:33 2023 -0500
+
+    Starting show running-config DHCP-Server Configuration
+
+[33mcommit cdb9517a36afecb07bc609c18ba6497ad8af06c2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Dec 6 00:45:01 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit a0044276b5cc8999388453683e1be1f61f2cf9a7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 23:02:17 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit c6a45b47057ace2a980a23778f74b12e1bd9974e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 22:57:57 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit 75d035f27e0103053fa46c9a32993e4122006e01[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 22:50:36 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit e6f674acd74af41a60308e04de48d8151900f2de[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 22:49:59 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit 12be574ff4539792fa31aa846dd9b65e679c6736[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 22:43:37 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit 78a48b926036b21f8a0500f4fb18c14b9a8db425[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 21:21:44 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit e06f193af31b8619e6d3611637d095e9ade1fea3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 20:44:28 2023 -0500
+
+    Starting show running-config NAT  Configuration
+
+[33mcommit 5ee0e3b209af000f844627b5406a2d0658007e66[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 15:09:22 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit d7804692ce790af354e8b2e5ea03a14de7867512[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 14:25:41 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 278383a4011a2ccec1fd846a45d55e1c84664cbe[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 13:54:52 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 62d43b33c90f635c6065c01c4ddf5e2d8354c7a8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 12:52:00 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit a44f8dea6c2f0f4f1f5708f2b5132a1f7537722b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 10:32:22 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit f45476b3a1676b6d2f347861bd5ab52f835dde29[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 00:51:07 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 553cc1a0a1fa2f459e60ae0e1e95c046648839b6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 00:39:39 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit a666aba896807d20998aa09a558a4aa3c98f49bd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 00:14:42 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit afc76731c332d17a7671cf8e163b3378db1e509e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Dec 5 00:10:41 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 06b6626a13fcab41eb1cbd9c25da3ad965fc3400[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 23:56:02 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 06e4368029c5ad1392777ba1798b90e6874c57b2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 23:37:14 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 762e27c8b63faa032715c96a09e26708c5462f17[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 23:10:44 2023 -0500
+
+    Starting Show Router Configuration
+
+[33mcommit 987280e48dcd2e369bdb2f8d671a37a27db79fd3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 22:52:58 2023 -0500
+
+    Added interface switchport access-vlan to db
+
+[33mcommit 30d8ddb7143beb6443cbc6ac0a6646994ec3958e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 19:13:24 2023 -0500
+
+    Adding vlan code to finish show run
+
+[33mcommit bcb892a10756ee4038bc742063e830bb046a92dd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 14:02:45 2023 -0500
+
+    Adding vlan code to finish show run
+
+[33mcommit d9806ac88f30f31ba63f7b5d55379410efdcdcb1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 13:59:44 2023 -0500
+
+    Adding vlan code to finish show run
+
+[33mcommit ae3850c065ba8b957cc66c6e595228226d0384e8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Dec 4 13:33:43 2023 -0500
+
+    Adding vlan code to finish show run
+
+[33mcommit a9f608b4eca4cdcb4fbeb688d7e93a7ecc7e4e71[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 3 17:12:52 2023 -0500
+
+    fixing secondary issue
+
+[33mcommit 246fb7fb990525f2595a95cbf297cea0358c06cc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Dec 3 15:16:08 2023 -0500
+
+    cleanup
+
+[33mcommit 67163145ef21e421af5402132132e0b10df65072[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Nov 14 11:32:13 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit 36c36d621c772bfc34781b8616e4c420ba136f6d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Nov 14 11:08:36 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit b4f4e3078c906791d5b105902ffcfbbc1e7bf0f9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Nov 14 10:59:39 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit 4bff377ba1da4d1fedce6baaa18853fb582d461f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Nov 14 08:49:30 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit 7e9e16e7b01a5baca48b9c30b756c2770a60c104[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Nov 13 00:33:27 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit f1b9247368aeaa30f1b7d12630c71baa2885d0e6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Nov 13 00:08:10 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit 7943fcde835c3bf1b98750ca684e3e0bba10a6a5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 23:27:31 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit dd1652777c339102c2207c0a06fd103514773d28[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 15:14:42 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit 5b2a69380f18160306a6f9b038cd0ce1984933ba[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 14:32:35 2023 -0500
+
+    Adding wireless-interface methods
+
+[33mcommit f651d858975acfd65adb85b530224b613460b2df[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 12:34:58 2023 -0500
+
+    Adding wireless-interface WifiInterface
+
+[33mcommit cc7dbb4302f65441d1ae65b5154b94167e4dcab0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 12:31:06 2023 -0500
+
+    Adding wireless-interface WifiInterface
+
+[33mcommit 4d8562e7904aa574376df2e89a0a187dc79e07f8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 11:58:53 2023 -0500
+
+    Adding wireless-interface in interface-config
+
+[33mcommit 9251b8a9cc29b0e0ee945e033789caaf7e1fa5cd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 12 11:29:59 2023 -0500
+
+    Adding negate wifi-policy commands (mode/channel)
+
+[33mcommit 9907090676aea074ce64b100a70ac5bda3b71cbb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 11 22:33:18 2023 -0500
+
+    Adding negate wifi-policy commands (mode/channel)
+
+[33mcommit b17ca935e6cc3de1e00767b8a472e8d36e8b75ca[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 11 22:32:09 2023 -0500
+
+    Adding negate wifi-policy commands (mode/channel)
+
+[33mcommit 2b2d8f0340dee0682cd2ec1dc5ce4518f45bdc0e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 11 22:15:49 2023 -0500
+
+    Adding negate wifi-policy commands (ssid)
+
+[33mcommit 41eec07fcc271074a0a66f35582cfa1a88347247[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 11 21:28:34 2023 -0500
+
+    Updated wifi-securoty-insert DB
+
+[33mcommit d265dd6ee556868f5b3e39805d5b5874a8947c12[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 11 21:01:55 2023 -0500
+
+    Updated wifi-securoty-insert DB
+
+[33mcommit 09348681f6fc2258922225ca022b700098be8bd7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 11 17:55:59 2023 -0500
+
+    Updated SQL wifi related
+
+[33mcommit d0e8d4ea5d0fbbe1172853398092f3524260a832[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Nov 6 10:05:35 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group - DB check
+
+[33mcommit e5d6225fec53e145f5ce1af2b2c79bcb81b00cca[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Nov 6 08:52:58 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group - DB check
+
+[33mcommit d030d4f1922f1238de5644ddd9ef887c91bb61e6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 23:08:07 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group - DB check
+
+[33mcommit dfc46d3564ab48492cd67c4d4552a81894baa9d1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 22:07:41 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group - DB check
+
+[33mcommit f6129c084049c694ff50faee3359e326ad01a6b0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 20:39:07 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group - DB check
+
+[33mcommit 6208561a8a054fb67ad353166951b07579d267ba[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 20:36:50 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group - DB check
+
+[33mcommit 0026356428e8685fcb4ac1f732fee925776490bd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 20:00:47 2023 -0500
+
+    Update Added Wifi-Policy - Add Security Group
+
+[33mcommit f5391168bad115341242beeb76c8dbe7330fb6c9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 19:12:37 2023 -0500
+
+    Update Added Wifi-Policy
+
+[33mcommit fe1add96ad4fc3bbb868ba3b0f0c6067eea520e0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 18:07:29 2023 -0500
+
+    Update Wireless-wifi-ssid-cli-next
+
+[33mcommit 08a6f50ea2e60181019fc2a3d3b3cd096bd042df[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 18:06:40 2023 -0500
+
+    Update Wireless-wifi-ssid-cli
+
+[33mcommit 777b321005cf9641ea506cc1988748b9f8ef199c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 17:43:22 2023 -0500
+
+    Update Wireless-wifi-ssid-cli
+
+[33mcommit 2076670d9ccb5fae5d62659bb731caf31f2af4fd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 16:56:41 2023 -0500
+
+    Update DNSMasq deploy method
+
+[33mcommit f078b439df320808bc424ecadef42fdb9027458d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 16:02:33 2023 -0500
+
+    Update Added Wifi-Policy class and wifi-db
+
+[33mcommit ec4912b86dcc9941b8119285a39bc2961b680cdb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 15:41:34 2023 -0500
+
+    Update Added Wifi-Policy class and wifi-db
+
+[33mcommit 6508a999604d8a73ee892590c14c4736970ce49a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 15:39:16 2023 -0500
+
+    Update Added Wifi-Policy class and wifi-db
+
+[33mcommit 1b25abd8a220d9603de003787e32b22e1d96a813[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 13:23:21 2023 -0500
+
+    Update Added Wifi-Policy class and wifi-db
+
+[33mcommit 85a15cf80f21b6e99b9688af21d71d7eba81ccc4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 12:31:48 2023 -0500
+
+    Update Added Wifi-Policy class
+
+[33mcommit a7a690de131f8ced2897846f30365e70c617fec0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 10:47:19 2023 -0500
+
+    Update Added hostapd-generation-config
+
+[33mcommit 22e82d62f94cd217d5aedadd2508ce3cd758420f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Nov 5 00:33:22 2023 -0400
+
+    Update Added hostapd
+
+[33mcommit ee0f3c430c8fff9c8689dd7a3021980ab7146e8f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 17:13:52 2023 -0400
+
+    Updating wireless-wifi-command-control
+
+[33mcommit d56416085524218f5e511c65b89ab1914003a9e4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 17:13:21 2023 -0400
+
+    Updating wireless-wifi-command-control
+
+[33mcommit d64c22bb9455e3db1fa649fa9bee482a8a6d3c2b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 17:11:32 2023 -0400
+
+    Updating wireless-wifi-command-control
+
+[33mcommit cdc02a95032fbe1c5384154269107c21b0848f29[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 16:52:17 2023 -0400
+
+    Updating wireless-wifi-command-control
+
+[33mcommit 70df102469dcdc9c6824df75ad5067a880e6bffa[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 15:59:25 2023 -0400
+
+    Updating wireless-wifi
+
+[33mcommit 745b3a839e55f7e25244007355e52617eb548997[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 15:47:21 2023 -0400
+
+    Updating wireless-wifi
+
+[33mcommit d157ca33d9c8b630b9ecb1fc7d0c9aceb5de50a5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 15:27:41 2023 -0400
+
+    Updating wireless-wifi
+
+[33mcommit a9d8250980b55df50257be93e830c7d80f049169[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 13:32:01 2023 -0400
+
+    Updating wireless-policy - API
+
+[33mcommit e74f76c935b592e23b5b4b797212d523e45427d5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 01:19:17 2023 -0400
+
+    init wireless
+
+[33mcommit 9dceb281f942ea8af4704115f555558c6ab77f10[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 00:59:05 2023 -0400
+
+    Updated DNSMasq Config, Run Status
+
+[33mcommit 0f8e9fca65feb47e1efd5577b3ef56df25aed185[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Nov 4 00:55:00 2023 -0400
+
+    Updated DNSMasq Config, Run Status
+
+[33mcommit 03f42d52aea693c64b4073907275ab910b8e26f8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 21:54:42 2023 -0400
+
+    Update DNSMasq
+
+[33mcommit a3a99f1cff247ddbb4d42feb3fcc9ce98f09c55d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 21:22:23 2023 -0400
+
+    Update DNSMasq
+
+[33mcommit f09de1f7eb3d7224185e589c50b8150c51f2e592[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 21:03:08 2023 -0400
+
+    Update DNSMasq
+
+[33mcommit 6165efb18cbc5f4d6497caaff8de8dc74c4d5cb0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 15:13:17 2023 -0400
+
+    Update DNSMasq deploy method
+
+[33mcommit 7491da72c6e1ea0c099e1c2bcd80e1759ddf1a6b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 13:07:08 2023 -0400
+
+    Update install script
+
+[33mcommit 5233384f0eab27c9ae97966c8f90bfe78440a6ef[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 12:44:53 2023 -0400
+
+    Update install script
+
+[33mcommit 16760069ecf941fa8d039ebee423b5ac65d7df8f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 10:24:28 2023 -0400
+
+    Update install script
+
+[33mcommit ef1827237f7fb3b9831b6fe0c65f15f864674f2d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 10:23:03 2023 -0400
+
+    Update install script
+
+[33mcommit 7e668d31da03a70b72b1f01a4fd44ed802ea862f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 10:05:10 2023 -0400
+
+    Update install script
+
+[33mcommit 55dfc6d746dafd1119e8515baf8c969c83813489[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 09:59:19 2023 -0400
+
+    Update install script
+
+[33mcommit c6422e58d86e140f032e75faa2366a4ec2c14bbf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 09:45:09 2023 -0400
+
+    Update install script
+
+[33mcommit 94b7837c643712fd02174d49c1d14f1b61374c34[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 09:35:56 2023 -0400
+
+    Update install script
+
+[33mcommit 7b206c01191f61dcacb92a255944a23915ec1350[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 09:33:03 2023 -0400
+
+    Update install script
+
+[33mcommit a3d688c9c28dba89b75a6c859fd6b65e69105d62[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 09:23:59 2023 -0400
+
+    Update install script
+
+[33mcommit 31af8fd91e26ce265d3cedaccd9b31b6408452dc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 08:56:31 2023 -0400
+
+    Undatedd install script for cloud installation
+
+[33mcommit c706be1505021990f06347564c0f9cfbeefdf686[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 01:20:20 2023 -0400
+
+    Updating dnsmasq
+
+[33mcommit 308e3936b3b589e6a37c1513ad89cd0abd88caed[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 00:47:48 2023 -0400
+
+    Updating dnsmasq
+
+[33mcommit b66cd3bbd3bbb96fc4df7657652099900a1c2765[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 00:40:51 2023 -0400
+
+    Updating dnsmasq
+
+[33mcommit b93ee348bd129e30991dd83bb75ebfc5201082ca[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 00:50:01 2023 -0400
+
+    Update install.sh
+
+[33mcommit cfddef086b9a2467f8075d3b8772f5c1c4382efc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 00:13:12 2023 -0400
+
+    Final commit before merge to main
+
+[33mcommit 70236c11c1eedde6d22cf1ab4e8ae0056ffaf530[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 00:03:11 2023 -0400
+
+    moved setup.sh to install.sh and created an uninstall.sh, continue
+
+[33mcommit a9c4eaa2ab2612e4c08af3a06bfe67c54de02ed9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Nov 3 00:02:39 2023 -0400
+
+    moved setup.sh to install.sh and created an uninstall.sh
+
+[33mcommit c43f1c345fa87bac2264598f1476691a370ab26c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 15:47:41 2023 -0400
+
+    Update DNSMasq, Fixind DNSMasq DB related issues
+
+[33mcommit 044605c822c70f1204df14653d41fdad09e96e60[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 15:30:55 2023 -0400
+
+    Update DNSMasq, Fixind DNSMasq DB related issues
+
+[33mcommit 590de52cecba578dbc83dc26ef0fbb3e78bb9ba4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 13:09:36 2023 -0400
+
+    Update DNSMasq, Added: show hardware network/cpu
+
+[33mcommit 9548d20eb70751e4b2711f77b057735f918fcc34[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 12:32:06 2023 -0400
+
+    Update DNSMasq, Added: show hardware network - fixed
+
+[33mcommit b7a1b0e1f964ff59b76e4b6e9c0fbdd7ccdc490f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 10:43:17 2023 -0400
+
+    Update DNSMasq, Added: show hardware network
+
+[33mcommit 65377803cb9bca394507d0dea4c21a34d8d19ef0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 00:26:45 2023 -0400
+
+    Update DNSMasq, dnsmasq config generator
+
+[33mcommit 3baa72f326e53c1f952e16e3396904b879322f22[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Nov 2 00:06:44 2023 -0400
+
+    Update DNSMasq, dnsmasq config generator
+
+[33mcommit 180324fa6182dc8658e216eead1e46e7bf1e9a30[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 21:16:20 2023 -0400
+
+    Update DNSMasq, dhcp-server-db
+
+[33mcommit 66a40b6d85bcae38642f61f851304cf58401246c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 20:59:12 2023 -0400
+
+    Update DNSMasq, dhcp-server-db
+
+[33mcommit 8143b4d09f1016f29cb03137efef462140dd1b51[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 09:42:30 2023 -0400
+
+    Updating DNSMasq - adding config options
+
+[33mcommit 9ee96158f66d75008cb60136eaf2b776c2551561[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 09:38:59 2023 -0400
+
+    Updating DNSMasq - start/stop/restart
+
+[33mcommit 0896dd8b8c27a5df70b50fd960c0d13c064fe30b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 08:41:52 2023 -0400
+
+    Updating DNSMasq - start/stop/restart
+
+[33mcommit 52a593214401bbb77df102816ae4543152f2d19e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 08:39:07 2023 -0400
+
+    Updating DNSMasq - start/stop/restart
+
+[33mcommit ea036ab63569c32389331176d3b574c6c6bdd992[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 08:07:25 2023 -0400
+
+    Updating DNSMasq - continue
+
+[33mcommit c0c0ca748af7e49b566852d114a86b93cf8770f5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 07:46:56 2023 -0400
+
+    Updating DNSMasq - continue
+
+[33mcommit 439f2ad6b82dce6146cdd93452b0219140c90ad4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 07:31:02 2023 -0400
+
+    updating dnsmasq - continue
+
+[33mcommit f4204263152abc628181effa9f666f697c0164e4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 00:57:14 2023 -0400
+
+    add dnsmasq config - continue
+
+[33mcommit 4525815c71b495f09aed064d16df7bc5f9e924e9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Nov 1 00:33:46 2023 -0400
+
+    Updated DHCP-Server Global/Interface via DB
+
+[33mcommit 0289fcd84801578d233a2d6f5ea8fac50982e574[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 31 17:26:14 2023 -0400
+
+    Fix DhcpServerFactory() add subnet pool DB
+
+[33mcommit 0dbe59d81280e3616ffc9db9b9f34e8af6c71300[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 31 11:40:51 2023 -0400
+
+    Added clear router-db command
+
+[33mcommit 8f72dc0d7bebe78b2f227b46230aa59250b99f6b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 31 11:21:30 2023 -0400
+
+    Updated RouterShellDB() added Singleton to maintain DB connection
+
+[33mcommit 54a24fbf78e4f0410f7492735ec614da1edb98e5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 31 07:38:36 2023 -0400
+
+    Updated RouterShellDB() class also added a database reset...more
+
+[33mcommit 1516120badb9a7abfd86810a6d529b56e17f9b57[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 31 07:37:55 2023 -0400
+
+    Updated RouterShellDB() class also added a database reset
+
+[33mcommit 5281dca502b104102fd285cb49d83a32b66c0e32[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 23:23:56 2023 -0400
+
+    Updated DHCPServer()
+
+[33mcommit b25ca5b59f18ef1d74645edad785671b83730702[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 23:21:21 2023 -0400
+
+    Updated DHCPServer()
+
+[33mcommit 8e71f0a0f8e2c2cedad90567d71463c09330c706[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 22:30:16 2023 -0400
+
+    Updated DHCPServerDatabase
+
+[33mcommit 2e45fd164cacb3e3a26bf135bca330e8ccebc6e0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 21:28:05 2023 -0400
+
+    Update DNSMasq, and created unistall DHCP server scripts
+
+[33mcommit 8f9d678608891137aaaa36ab179d45875bc57f2d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 20:54:57 2023 -0400
+
+    Updated DHCP Config and factory
+
+[33mcommit b0255cf24c388715db53e4b8fe6d5b96857e93a9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 13:00:21 2023 -0400
+
+    Added DHCP option in common
+
+[33mcommit 58733538e78bfbaf446ce9a4e240d84aad52ea08[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 12:45:36 2023 -0400
+
+    Updated startup script to accomidate various Linux distros
+
+[33mcommit e9239dcddc443a1ab9ac3fb21ef37e224fe3fc38[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 30 10:21:57 2023 -0400
+
+    re-organizing DHCP Server Process/DB/Configuration
+
+[33mcommit ae1d6722175935ab6de82d783b67f7334e9d2679[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 23:32:18 2023 -0400
+
+    add-python-cmd2
+
+[33mcommit 2a2444ea810f7fd5755171229a15aa8cbf69da40[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 22:55:45 2023 -0400
+
+    updated show interface
+
+[33mcommit ef4af22df149a3954fcc88ee2c3fae4741d7e83d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 22:47:07 2023 -0400
+
+    updated show interface
+
+[33mcommit 9232d3bfa6802b07a34b6186692ca59781836653[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 20:57:39 2023 -0400
+
+    updated config-rename
+
+[33mcommit 57a532fff31369a6b3f5d06e15641b6b3f0924eb[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 19:31:07 2023 -0400
+
+    updated inside nat os/db
+
+[33mcommit 320a2ed74faeca4678f251e6c96b22e2751a075f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 16:36:42 2023 -0400
+
+    added Rename DB table
+
+[33mcommit 8192288ef644d03a9dc853052dbec9757379f908[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 15:59:41 2023 -0400
+
+    updating-nat-inside
+
+[33mcommit 20465cb4d80342527ba665e0bb67fec9b1b1a1e3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 15:53:00 2023 -0400
+
+    updating-nat-outside-db
+
+[33mcommit 762a00a6fe5c959e88bf511d6f73d61c41da8f89[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 15:42:33 2023 -0400
+
+    updating-nat-outside-db
+
+[33mcommit 121048618327cc4087998c2f9f284bb0a84837a4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 29 15:40:40 2023 -0400
+
+    updating-nat-outside-db
+
+[33mcommit db4255a8b43ed9da42c6f1f64122025603888974[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 27 18:03:58 2023 -0400
+
+    Updated interface-nat-outside re-write
+
+[33mcommit 2ee048d729c7ad8b7c6419580d3ba9381f930382[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 27 09:26:54 2023 -0400
+
+    Some refactoring
+
+[33mcommit 865589437dd65b16465c2a1681fef092a9c67ddc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 27 07:55:59 2023 -0400
+
+    Updated ipv6 address/dhcp-client (Basic configure)
+
+[33mcommit ba7e5f913b5e7c4096cc3c90f85b979c50a8fd8d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 16:26:26 2023 -0400
+
+    re-organized network mgr design pattern API
+
+[33mcommit 259a616ae5713b5ef927dad65c90923f46d8fe8a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 13:48:40 2023 -0400
+
+    re-organized network mgr design pattern API
+
+[33mcommit bbd862e997939287f738061573a4df32b8747611[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 13:44:27 2023 -0400
+
+    re-organized network mgr design pattern API
+
+[33mcommit 2e0775e236e5d040b84d88ead6901edd8e26e416[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 13:38:46 2023 -0400
+
+    re-organized network mgr design pattern API
+
+[33mcommit 5a09cc4c52f3c2d9db6b31971bcbb846d3af3113[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 13:29:11 2023 -0400
+
+    re-organized network mgr design pattern API
+
+[33mcommit 8c888f2466600ff9ff68093381d9e0fa2c477dbc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 13:23:17 2023 -0400
+
+    re-organized network mgr design pattern API
+
+[33mcommit cbb39182980953cc489f60c27e69903e598c03a4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 09:31:24 2023 -0400
+
+    Update DHCP Client API/DB
+
+[33mcommit 1979fdcfa1531f39b67aea6a0fc939dd7b8fc507[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 09:09:57 2023 -0400
+
+    Update DHCP Client
+
+[33mcommit afd357d1f94d3d840cd8b2ac3bd3d69b5b1cadb0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 26 02:43:00 2023 -0400
+
+    Adding and updating interface dhcp-client
+
+[33mcommit 9f712c518ee58cb24a49c7ec2cf4867ceebb1235[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 23:25:27 2023 -0400
+
+    Updated interface switchport
+
+[33mcommit 553783cabd94600b254832b628fdf7176608c139[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 22:56:27 2023 -0400
+
+    Updated interface static-arp DB/OS
+
+[33mcommit 86399b188d20b0ef1e123b02e5577a25cb121392[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 22:41:40 2023 -0400
+
+    Updated interface static-arp DB/OS
+
+[33mcommit 155346e466006e8c3b957188293185a1d7c64b2a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 21:49:46 2023 -0400
+
+    Updated interface DB
+
+[33mcommit 844a88ca15374dea878f59cae7ccbc964b329b27[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 21:43:50 2023 -0400
+
+    Updated interface drop-gratuttius-arp  OS/DB
+
+[33mcommit be7d5af491d567af31c28a5752e35b3b2843e546[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 20:47:26 2023 -0400
+
+    Updated interface inet address OS/DB
+
+[33mcommit cbb40aa3fd1f24b90792f3f828b5302d6f29b509[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 14:01:39 2023 -0400
+
+    Updated interface int address
+
+[33mcommit 2ca543da1aaf98c6e7a58de4d59918094b966e8b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 13:29:22 2023 -0400
+
+    Updated interface int address
+
+[33mcommit b83f733e6636bce4a01616aad6809df53c931b1e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 10:51:22 2023 -0400
+
+    Updated interface mac address format
+
+[33mcommit 917c4a745277f1f7c32e07484448073c06996abd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 09:16:56 2023 -0400
+
+    Updated interface mac address format
+
+[33mcommit ba3ee70b0235ee83fd68fbf9acc3451596f39b57[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 09:03:05 2023 -0400
+
+    Updated interface mac address format
+
+[33mcommit 3b52d10a606afcf4ad1e8c035f6989f2780f4e7d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 09:00:00 2023 -0400
+
+    Updated interface mac address format
+
+[33mcommit 0e942769308bf01b10ea611ba79016eaeb9a8354[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 02:09:29 2023 -0400
+
+    re-organizes directories
+
+[33mcommit 446fa1a075e2bd13c17bb9949e029fdf63041b2e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 01:53:44 2023 -0400
+
+    Updated switchport access-vlan
+
+[33mcommit 9e12284534d5c241fe933eb21c3918f2d204ecbe[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 25 01:41:55 2023 -0400
+
+    Updated switchport access-vlan
+
+[33mcommit c28560d062733fda6a9648bf9f59cb05aa3c16b4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 23:57:49 2023 -0400
+
+    updated interface duplex process
+
+[33mcommit 15c7f635346721009bde7bb690f6d7e6286329cc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 23:28:20 2023 -0400
+
+    updated interface shutdown process
+
+[33mcommit 7a78c2d44f488434400b5aa3898226157eebe9b8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 20:12:41 2023 -0400
+
+    Update interface methods
+
+[33mcommit bd0125ff6871a226764b0f485aa934d7fa919e27[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 19:36:49 2023 -0400
+
+    Last update prior to merge to main
+
+[33mcommit e71d8bbdc5af6de84deb0bf6dc732faf8d5e6f44[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 18:42:27 2023 -0400
+
+    update bridge group migrating db from ifconfig to bridge
+
+[33mcommit f9dd47f739643d0dae4deb45bb91d414cb3a858e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 16:40:19 2023 -0400
+
+    fixed global bridge add/del with db re-org
+
+[33mcommit 4928b85d56666a120681144b1e0ca6498e4e1dc6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 16:00:31 2023 -0400
+
+    fixed global bridge add/del with db re-org
+
+[33mcommit ba274574a0232ad70b3ef7ee2b0274126c0140a2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 11:09:45 2023 -0400
+
+    re-organizes logging...again
+
+[33mcommit 71451e22df3d07ff914456ef8ccd8dcb82e1f66f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 24 11:08:10 2023 -0400
+
+    re-organizes logging
+
+[33mcommit 61138a422e88f4c9235d85e6dd085a627db27fb7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 20:20:27 2023 -0400
+
+    re-organizes directories
+
+[33mcommit 5170b9d594a69ed5541c58774c89e465434f6ba3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 20:09:00 2023 -0400
+
+    Updated Next
+
+[33mcommit 1f960e16d3b50b27d47f4cd7ee2d2a2e424cefa1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 19:32:54 2023 -0400
+
+    Updated README
+
+[33mcommit b55e61855a7ea0183cafb6e0e238d9e020fd9e82[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 19:17:26 2023 -0400
+
+    Updated README
+
+[33mcommit efe93b7aa014e41eb6e44760b0c7ab4550cdabfe[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 16:48:22 2023 -0400
+
+    Updated README
+
+[33mcommit c775192b83a82127a8a2f98171b9e090b8c0281c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 15:16:53 2023 -0400
+
+    Updated README
+
+[33mcommit 78e82e0175f0af671e0290fb6e072a8f376cf5f1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 15:13:15 2023 -0400
+
+    Next
+
+[33mcommit 55a9b8dadb0f3ab68ec1d5ff7d63915f8802d8ae[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 11:36:29 2023 -0400
+
+    Next
+
+[33mcommit 4f84bab4fe059bcdd3192c8f8dee050beb777714[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 11:29:19 2023 -0400
+
+    Next
+
+[33mcommit b09873a82443289ee323009179143a14841c9e78[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 11:19:12 2023 -0400
+
+    Next
+
+[33mcommit 37d9486cdf0fe8573e195939806579d4cf491809[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 10:46:24 2023 -0400
+
+    Next
+
+[33mcommit 19c9392eecd3d3ffe055a59e2327fd4378d221b8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 08:05:03 2023 -0400
+
+    Next
+
+[33mcommit 548d063bc7a0148091d2b19a0df64299d6b4e22b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 23 01:22:33 2023 -0400
+
+    Next
+
+[33mcommit c9c72f66bb20aafb626e9a670f9b5e40445f5330[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 17:36:26 2023 -0400
+
+    Next
+
+[33mcommit 731eaa000bd6a3ebcc004a1a9d4d063cdc88734d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 17:28:57 2023 -0400
+
+    Next
+
+[33mcommit dcd929941a50537ffc058fe1acf500ab5977322e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 15:56:24 2023 -0400
+
+    Next
+
+[33mcommit aa04926536a988e7bae0782e51f21b11f41f62f2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 01:58:12 2023 -0400
+
+    Next
+
+[33mcommit 933e122c5b65677a3fea260e1e212e3ab124cf34[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 01:25:43 2023 -0400
+
+    Next
+
+[33mcommit ae381fffbce1ae67e6333134b075389e90c9342d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 01:17:17 2023 -0400
+
+    Next
+
+[33mcommit a05db0cc7cddcdfec65f3e778ef2a5adc476dd27[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 22 00:37:34 2023 -0400
+
+    Next
+
+[33mcommit 3b5cd52494803dc6ee7e0101ef0adc3b26cb4dc4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 21:15:27 2023 -0400
+
+    Next
+
+[33mcommit 7a2445ac43a2b66214588c215df9a076e9f13eb0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 19:55:49 2023 -0400
+
+    Next
+
+[33mcommit 3240419e70041dff532c728ffe538bba70d5a435[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 19:22:15 2023 -0400
+
+    Next
+
+[33mcommit c0a1d157b12c3c715014e7090ab422cb224282a3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 17:56:59 2023 -0400
+
+    Next
+
+[33mcommit d48183264afedaf7ca25523e9ccfde5a26a7dec6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 17:42:06 2023 -0400
+
+    Next
+
+[33mcommit 5352b76ad723498729a20956e6846a18d7e29baa[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 17:12:06 2023 -0400
+
+    Next
+
+[33mcommit 13a2633275148ea04be001e4c334cf746d08333d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 11:38:54 2023 -0400
+
+    Next
+
+[33mcommit 307759b41d2856a2ffedf012b1499cca405a698c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 10:10:10 2023 -0400
+
+    Next
+
+[33mcommit 064448d4629c98018883e785051d1ed1554160e2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 09:26:28 2023 -0400
+
+    Next
+
+[33mcommit 3b76f15698c084ecfe47fc382ed4b1af00219608[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 02:51:00 2023 -0400
+
+    Next
+
+[33mcommit 148a2c74c7d545d5e9b57e48c303e96af5b045b8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 02:04:45 2023 -0400
+
+    Next
+
+[33mcommit 30c2d6bb81d8215a153b752cc118385299812a61[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sat Oct 21 00:57:21 2023 -0400
+
+    Next
+
+[33mcommit a5f45207f63176b30a45450c5cb76b15a4a772e7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 18:59:40 2023 -0400
+
+    Next
+
+[33mcommit 021f4b709501e1caf6b2bcd0d469bb87b92f5241[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 15:04:53 2023 -0400
+
+    Next
+
+[33mcommit 8a0165598106f93c0fedecaf3b18826b197e2587[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 13:40:03 2023 -0400
+
+    Next
+
+[33mcommit bc4d02ac7d5151c747117757ae2fed2ca94bbc28[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 13:27:29 2023 -0400
+
+    Next
+
+[33mcommit 795f1ab182003c590e3fccbd9f19040e9e0dd18f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 11:39:54 2023 -0400
+
+    Next
+
+[33mcommit 8ab0f6518b27ac859d375d4b3c1b6bd427ce86d1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 10:46:57 2023 -0400
+
+    Next
+
+[33mcommit 692d351c9de0b03548a19d3bfcdd10ed11e52cc8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 10:03:38 2023 -0400
+
+    Next
+
+[33mcommit 71479d37cad26808d59b78d4ae520be4c2e8534f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 10:01:04 2023 -0400
+
+    Next
+
+[33mcommit 80d4bab36fc1e4076897d39eacc60165b254a071[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 09:49:40 2023 -0400
+
+    Next
+
+[33mcommit 6c28a53d1da0ff076dc2c640e1ab09c90938ceaf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 09:48:57 2023 -0400
+
+    Next
+
+[33mcommit 88d2d5f3b46d16cb1de0717279a50d052d4233d4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 09:13:33 2023 -0400
+
+    Next
+
+[33mcommit bfa1ea60a3108122f076b971077093cdeba0896f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 08:59:37 2023 -0400
+
+    Next
+
+[33mcommit 8c1614257f350f96b2c089d1ad3b00fd5bd858a3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 08:51:44 2023 -0400
+
+    Next
+
+[33mcommit da6ac9bd1403c57f90c22c0d912a89c26259dcb5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 08:46:43 2023 -0400
+
+    Next
+
+[33mcommit 22ca3a6ce4b91d54a1a9f8dfecca7b53efa63fb5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 01:23:14 2023 -0400
+
+    Updated more db stuff for interfaces
+
+[33mcommit 0ac660be34219159af88da00fd4b2d4c287d3f32[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 00:12:06 2023 -0400
+
+    Update interface static arp
+
+[33mcommit 54d72e736c0125fd301133e38e6056f3bba4fef9[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 20 00:04:57 2023 -0400
+
+    Update interface static arp
+
+[33mcommit 451f9bfde4b12d3138db514bc5aa26f54d16a2c0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 23:35:11 2023 -0400
+
+    Added more sub commands
+
+[33mcommit 8d2f3f7ff12ff78102bde5839b592da1b971c03e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 22:18:21 2023 -0400
+
+    Update DB
+
+[33mcommit 8851f677dbe0ca5aae16a3af8930a33c7f2094d7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 21:57:13 2023 -0400
+
+    Updated DB schema
+
+[33mcommit 290d64cdaa21b9690a7b8c4cfa2dde2fe525816e[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 15:16:52 2023 -0400
+
+    More updates
+
+[33mcommit ef3fd6d3138bc629715746e1b35a9649d8f506bf[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 15:00:13 2023 -0400
+
+    re-organized DB and directly
+
+[33mcommit ef992e6188953468cf1b530061d27648784352fd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 14:15:24 2023 -0400
+
+    Updated interface DB
+
+[33mcommit 97fcc634e9f9a85aaf086469745e007168354640[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 19 09:08:12 2023 -0400
+
+    Update DB for interface
+
+[33mcommit 6d5e1ebfa6d4a0e78f8502db37c50ec62b7739d5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 18 17:17:37 2023 -0400
+
+    updating interface and bridge DB to finish feature
+
+[33mcommit fa8c485a421a495f0f0ab734d1bb8f217732b0e2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 18 17:16:56 2023 -0400
+
+    updating interface and bridge DB to finish feature
+
+[33mcommit 822e6e6f2d3fafb83ed1cb4933d06b0c8567b308[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 18 14:34:25 2023 -0400
+
+    fixed bridge interface assignment and negate command
+
+[33mcommit 322c99414bec4c5bb6f629e98c36a25a86b5bbf8[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 17 23:46:13 2023 -0400
+
+    fixed show bridge and interface to properly get the STATE
+
+[33mcommit a5174bf966f3edf8df7fa5999120be7c0f210fce[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 17 18:59:46 2023 -0400
+
+    added more debug controls
+
+[33mcommit d6b3784b4542b6b73091057570fe50484595e29c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 17 17:44:57 2023 -0400
+
+    updated config
+
+[33mcommit 61422ddaadee5f6b2090d119901375efc1e6601d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 17 01:24:46 2023 -0400
+
+    Update folder names
+
+[33mcommit a97005f46162f2da16c138b89b5c049a1e9a896b[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 17 01:22:50 2023 -0400
+
+    re-organized folders
+
+[33mcommit 0fdd9bb7e796ed5a29a570e30882be8118dbf9c4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Tue Oct 17 01:10:46 2023 -0400
+
+    re-organized folders
+
+[33mcommit ab7dfe20774185386a6eb12cb06475e6846669e6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 16 22:46:44 2023 -0400
+
+    Updated global Bridge add both linux an DB
+
+[33mcommit 2e548a5bc0e2632a9bb2e302e131b3c165698975[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 16 16:09:38 2023 -0400
+
+    Fixed DB Schema
+
+[33mcommit 87fa949449b5cc874c0a3982fa0502604b12817c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 16 11:55:34 2023 -0400
+
+    Adding bridge DB access and controls
+
+[33mcommit 046f47f045c4eacd389f6fe8210a2a45472e5efc[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 16 03:14:58 2023 -0400
+
+    Update
+
+[33mcommit 71bfa00eaf0dd33ce3dcd8ba739821ab51448b59[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 16 02:34:53 2023 -0400
+
+    Re-organized directory
+
+[33mcommit fda39d2ab6cd372031927d127bfadd18a794f9b7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Mon Oct 16 01:57:24 2023 -0400
+
+    updated vlan name
+
+[33mcommit 13ed40780fb63f4875cdd16fb0f619d7f76ff1d6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 23:47:33 2023 -0400
+
+    Fixing DB Connect Singleton
+
+[33mcommit 583fff6e305f0f863e5ebb01c5adbccd45623e6d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 22:47:50 2023 -0400
+
+    updated
+
+[33mcommit a63d7a9386b17f641b314039b23d7f93f01a27d3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 20:08:20 2023 -0400
+
+    updated
+
+[33mcommit e9915a0ca1535287ecd42d63e43f1c31ac70b436[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 18:30:59 2023 -0400
+
+    Continue to update DB
+
+[33mcommit d4edf3f194ca02f9698125a15be5a09eab076aa1[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 18:02:13 2023 -0400
+
+    Update VLAN DB methods to use SQLite
+
+[33mcommit f17f844d18d75091b3b8c527e0f7b0e4e41a7a8a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 15:41:09 2023 -0400
+
+    Added new DB schema, migrating from JSON db to SQLite
+
+[33mcommit b61cd5ccf2c91bdfe12d2950c89abc0f98856734[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Sun Oct 15 01:32:43 2023 -0400
+
+    Update DHCP renamed to KEA
+
+[33mcommit 1333d75961445b7b1570e1dc37ac9ede1503a470[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 13 12:34:02 2023 -0400
+
+    continue to add
+
+[33mcommit 4ed9af4ebb958ed664352ebfafb60c527491eef2[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Fri Oct 13 10:01:42 2023 -0400
+
+    Added start.sh and contiue to add DHCP Server Code
+
+[33mcommit 004f41e148e7306b13755425de335c94017490c7[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 12 08:58:44 2023 -0400
+
+    fixed enum class
+
+[33mcommit 7ea44632f0d648b7474a96f2a151f752a171af6f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 12 08:55:51 2023 -0400
+
+    removed log dir, moved to /tmp/log
+
+[33mcommit a43a3b8a4b334ebf46907ae7b76c018e9d6f082c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 12 08:52:16 2023 -0400
+
+    re-organized cli operation to cli folder
+
+[33mcommit a835ca14a2c10f352124d571c5476d8190f48aac[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 12 08:35:47 2023 -0400
+
+    re-organized common class files
+
+[33mcommit 471d89ac32ab300188241274e477cf21406a6dc4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 12 01:17:16 2023 -0400
+
+    Update DHCPFactory add pool-name and subnet
+
+[33mcommit e226e6122b80c441195e15eab707e5de07930709[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Thu Oct 12 00:32:22 2023 -0400
+
+    Added DHCPDatabaseFactory class
+
+[33mcommit e8082e8d5498be929d513bf0a1454c7d3b61dc41[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 19:45:28 2023 -0400
+
+    Added dhcp-pool-db-add
+
+[33mcommit 125c5e9538cef79f4aaa01e201c998c811106ac3[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 18:18:34 2023 -0400
+
+    added todo
+
+[33mcommit 33584b1827134fb9a619f3680f18305b6363e0bd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 17:58:00 2023 -0400
+
+    renamed interface.md filename
+
+[33mcommit 878aaa05828ee670f20585c479b7207fcb105841[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 17:43:37 2023 -0400
+
+    Update logging loaction for sysctl class
+
+[33mcommit a99eb8e227e652a577bdbff7955802bc130c8b9c[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 17:41:32 2023 -0400
+
+    Update setup.sh
+
+[33mcommit 003ed1507db77d7b902ea35f7882d541d415434d[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 17:30:27 2023 -0400
+
+    Updated README and logging directoies
+
+[33mcommit 7ef65837fd517007400f9ef09a841e940d49dabd[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 16:06:31 2023 -0400
+
+    Updated setup.sh
+
+[33mcommit c1e39c6ddf4010b8565f1269d2f870c77d90f7d5[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 16:03:20 2023 -0400
+
+    Updated DOC
+
+[33mcommit 1f86accc0462ba0481f0acd507e9e3f816e0483f[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:57:50 2023 -0400
+
+    Update setup.sh PYTHON path
+
+[33mcommit 6d51c4862254868632ce9f699f50080049e63f97[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:52:58 2023 -0400
+
+    Update route.md
+
+[33mcommit 85e6bdafa2452a75027b7a60b633e6e80b3510d0[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:44:08 2023 -0400
+
+    removed lib from .gitignore
+
+[33mcommit a9d132f30739435c3a7c4f52992a4610e26fd5c4[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:14:05 2023 -0400
+
+    Update README
+
+[33mcommit 1df2d5c2fa53d3bff843b3025c5bb633872bd843[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:09:48 2023 -0400
+
+    Update README.md
+    
+    Update Intro
+
+[33mcommit 5b59a9844d97ea7b29063c20de549e81b4bb85a6[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:08:59 2023 -0400
+
+    Init-Pre-RELEASE - Updated script chmod
+
+[33mcommit f68b40aac772681ec3c74bbd88e551582b85ae02[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 15:07:31 2023 -0400
+
+    Init-Pre-RELEASE
+
+[33mcommit 916c64d8b41af559eac950c8a7c870bb682d9d9a[m
+Author: Maurice Garcia <mgarcia01752@outlook.com>
+Date:   Wed Oct 11 14:51:04 2023 -0400
+
+    Initial commit
