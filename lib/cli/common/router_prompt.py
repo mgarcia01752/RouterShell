@@ -500,7 +500,7 @@ class RouterPrompt:
         
         # PromptFeeder Has Priority
         if self.get_prompt_feeder().length():
-            self.log.debug(f'PromptFeeder, has {self.get_prompt_feeder().length()} entries')
+            self.log.info(f'PromptFeeder, has {self.get_prompt_feeder().length()} entries')
             self._read_prompt_file(self.get_prompt_feeder())
             return STATUS_OK
         
