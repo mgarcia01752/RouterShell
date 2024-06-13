@@ -70,7 +70,7 @@ class RunCommand:
         """
         try:
             
-            if sudo and not OsPrivilegeVerifier.is_root_user():
+            if sudo:
                 command = ['sudo'] + command
 
             process = subprocess.run(command, shell=shell, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
