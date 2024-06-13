@@ -69,6 +69,7 @@ class RunCommand:
             
         """
         try:
+            
             if sudo and not OsPrivilegeVerifier.is_root_user():
                 command = ['sudo'] + command
 

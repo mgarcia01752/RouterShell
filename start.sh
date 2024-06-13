@@ -28,7 +28,9 @@ done
 # Perform factory reset if the option is specified
 if [ "$factory_reset" = true ]; then
     echo "Performing factory reset..."
+    
     factory_reset_script="${ROUTERSHELL_PROJECT_ROOT}/src/factory-reset.py"
+
     if [ ! -x "$factory_reset_script" ]; then
         echo "Error: $factory_reset_script does not exist or is not executable."
         exit 1
