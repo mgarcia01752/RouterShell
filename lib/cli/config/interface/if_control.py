@@ -235,7 +235,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def ifconfig_duplex(self, args: Optional[str]) -> bool:
+    def ifconfig_duplex(self, args: List[str]) -> bool:
         """
         Updates the interface duplex mode based on the provided arguments.
         
@@ -248,7 +248,6 @@ class IfConfig(CmdPrompt, Interface):
         Raises:
             ValueError: If the duplex mode is invalid.
         """
-        args = StringFormats.list_to_string(args)
         
         if not args:
             print("Usage: duplex <auto | half | full>")
@@ -260,7 +259,7 @@ class IfConfig(CmdPrompt, Interface):
             return STATUS_NOK
         
         duplex_values = {d.value: d for d in Duplex}
-        
+        self.log.info(f'Interface: {self.ifName} -> Duplex: {args}')
         args = args.lower()
 
         if args in duplex_values:

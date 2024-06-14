@@ -22,6 +22,176 @@ class InvalidInterface(Exception):
     def __init__(self, message):
         super().__init__(message)
 
+class CreateLoopBackInterface:
+    def __init__(self, loopback_name: str):
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().CREATE_LB_INTERFACE)          
+        self.loopback_name = loopback_name
+        self.interface = Interface()
+        
+        if Interface().does_interface_exist(loopback_name):
+            raise InvalidInterface(f"Interface {loopback_name} already exists.")
+        
+        if Interface().create_loopback(loopback_name):
+            raise InvalidInterface(f"Unable to create {loopback_name} interface.")
+    
+    def getNetworkInterface(self) -> 'NetworkInterface':
+        return NetworkInterfaceFactory(self.loopback_name)
+    
+
+class NetworkInterfaceFactory:
+    def __init__(self, interface_name: str, ifType: InterfaceType):
+        """
+        Initialize an InterfaceFactory instance with a specific interface name and type.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            ifType (InterfaceType): The type of the network interface.
+        """
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().NETWORK_INTERFACE_FACTORY)        
+        self.interface_name = interface_name
+    
+    def getNetworkInterface(self) -> 'NetworkInterface':
+        return NetworkInterface(self.interface_name)
+
+class NetworkInterface:
+    def __init__(self, interface_name: str):
+        """
+        Initialize an InterfaceFactory instance with a specific interface name and type.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            ifType (InterfaceType): The type of the network interface.
+        """
+        super().__init__()
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().NETWORK_INTERFACE_FACTORY)        
+        self.interface_name = interface_name
+
+    def get_ifType(self) -> InterfaceType:
+        """
+        Retrieve the type of the network interface.
+
+        Returns:
+            InterfaceType: The type of the network interface.
+        """
+        return Interface().get_interface_type(self.interface_name)
+
+    def get_interface_name(self) -> str:
+        """
+        Retrieve the name of the network interface.
+
+        Returns:
+            str: The name of the network interface.
+        """
+        return self.interface_name
+
+    def interface_exist_os(self) -> bool:
+        """
+        Check if the network interface exists in the operating system.
+
+        This method verifies the existence of the network interface specified by `interface_name` in the operating system.
+
+        Returns:
+            bool: True if the interface exists, False otherwise.
+        """
+        return Interface().does_interface_exist(self.interface_name)
+
+    def interface_exist_db(self) -> bool:
+        """
+        Check if the network interface exists in the database.
+
+        Returns:
+            bool: True if the interface exists in the database, False otherwise.
+        """
+        if self.interface_name in Interface().get_interface_via_db():
+            return True
+        return False
+    
+    def flush_interface(self) -> bool:
+        """
+        Flush network interface, removing any configurations.
+
+        Returns:
+            bool: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
+        """
+        return Interface().flush_interface(self.interface_name)
+
+    def get_interface_shutdown_state(self) -> State:
+        """
+        Get the shutdown state of the network interface.
+
+        Returns:
+            State: The current shutdown state of the interface.
+        """
+        state = Interface().get_interface_info(self.interface_name).get('state')
+        return State[state.upper()] if state else None
+
+    def set_interface_shutdown_state(self, state: State) -> bool:
+        """
+        Set the shutdown state of the network interface.
+
+        Args:
+            state (State): The desired shutdown state (UP or DOWN).
+
+        Returns:
+            bool: STATUS_OK if the state change is successful, STATUS_NOK otherwise.
+        """
+        return Interface().update_shutdown(self.interface_name, state)
+
+    def get_interface_speed(self) -> Speed:
+        """
+        Get the speed of the network interface.
+
+        Returns:
+            Speed: The current speed of the interface.
+        """
+        speed = Interface().get_interface_info(self.interface_name).get('speed')
+        return Speed[speed.upper()] if speed else Speed.NONE
+
+    def set_interface_speed(self, speed: Speed) -> bool:
+        """
+        Set the speed of the network interface.
+
+        Args:
+            speed (Speed): The desired speed of the interface.
+
+        Returns:
+            bool: STATUS_OK if the speed change is successful, STATUS_NOK otherwise.
+        """
+        return Interface().update_interface_speed(self.interface_name, speed.value)
+    
+    def set_proxy_arp(self, negate: bool = False) -> bool:
+        """
+        Enable or disable Proxy ARP on the network interface.
+
+        This method allows you to enable or disable Proxy ARP on the specified network interface.
+
+        Args:
+            negate (bool): If True, Proxy ARP will be disabled. If False, Proxy ARP will be enabled.
+
+        Returns:
+            bool: STATUS_OK if the Proxy ARP configuration was successfully updated, STATUS_NOK otherwise.
+        """
+        return Interface().update_interface_proxy_arp(self.interface_name, negate)
+    
+    def set_mac_address(self, mac_addr: str = None) -> bool:
+        """
+        Set the MAC address of the network interface.
+
+        If `mac_addr` is None, the interface is set to auto, which typically resets the MAC address to the default hardware address.
+
+        Args:
+            mac_addr (str, optional): The new MAC address to assign to the network interface. If None, the MAC address is reset to the default.
+
+        Returns:
+            bool: STATUS_OK if the MAC address is successfully updated, STATUS_NOK otherwise.
+        """
+        return Interface().update_interface_mac(self.interface_name, mac_addr)
+
 class Interface(NetworkManager, InterfaceDatabase):
 
     def __init__(self, arg=None):
@@ -428,7 +598,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             interface_name (str): The name for the loopback interface.
 
         Returns:
-            bool: True if the loopback interface was created successfully, False otherwise.
+            bool: STATUS_OK if the loopback interface was created successfully, STATUS_NOK otherwise.
         """
         result = self.run(['ip', 'link', 'add', 'name', interface_name , 'type', 'dummy'], suppress_error=True)
         
