@@ -4,14 +4,18 @@ from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
-from lib.cli.config.bridge.bridge_config import BridgeConfig
-from lib.cli.config.interface.interface_config import InterfaceConfig
+from lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
+from lib.cli.config.interface.interface_config_cmd import InterfaceConfigCmd
+from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
+from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.bridge import Bridge
+from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.interface import Interface
 from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.vlan import Vlan
 from lib.system.system_config import SystemConfig
 
 class ConfigCmd(CmdPrompt):
@@ -22,7 +26,7 @@ class ConfigCmd(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CONFIGURE_CMD)
                
-    def configcmd_help(self, args: List=None) -> None:
+    def configcmd_help(self, args: List[str]=None) -> None:
         """
         Display help for available commands.
         """
@@ -32,15 +36,27 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_network_interfaces())         
-    def configcmd_interface(self, args: List=None) -> bool:
+    def configcmd_interface(self, args: List[str]=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
-        InterfaceConfig(ifName=args[0]).start()        
+        
+        if InterfaceType.LOOPBACK.value == args[0]:
+            LoopbackConfigCmd().start()
+        
+        else:
+            InterfaceConfigCmd(interface_name=args).start()        
+        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         
-    def configcmd_bridge(self, args: List=None, negate: bool=False) -> bool:
+    def configcmd_bridge(self, args: List[str]=None, negate: bool=False) -> bool:
         self.log.debug(f'configcmd_bridge -> {args}')
-        BridgeConfig(bridge_name=args[0]).start()        
+        BridgeConfigCmd(bridge_name=args, negate=negate).start()        
+        return STATUS_OK
+
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Vlan().get_vlan_interfaces())         
+    def configcmd_vlan(self, args: List[str]=None, negate: bool=False) -> bool:
+        self.log.debug(f'configcmd_vlan -> {args}')
+        VlanConfigCmd()(bridge_name=args, negate=negate).start()        
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['telnet-server', 'ssh-server'])  

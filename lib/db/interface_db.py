@@ -440,7 +440,10 @@ class InterfaceDatabase:
 
         Returns:
             bool: STATUS_OK if the update operation is successful, STATUS_NOK otherwise.
-        """        
+        """
+        if not description:
+            description = ""
+                    
         result = cls.rsdb.update_interface_description(interface_name, description)
         return result.status
 

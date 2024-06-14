@@ -6,7 +6,7 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
-class TConfig(CmdPrompt):
+class LoopbackConfig(CmdPrompt):
 
     def __init__(self, args: str=None) -> None:
         """
@@ -15,9 +15,9 @@ class TConfig(CmdPrompt):
         super().__init__(global_commands=False, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().TEST_DEFAULT)
+        self.log.setLevel(RSLGS().TEMPLATE_CONFIG)
                
-    def tconfig_help(self, args: List=None) -> None:
+    def loopbackconfig_help(self, args: List=None) -> None:
         """
         Display help for available commands.
         """
@@ -26,7 +26,7 @@ class TConfig(CmdPrompt):
             print(f"{method.__doc__}")
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['sub-command'])         
-    def tconfig_cmd(self, args: List=None) -> None:
+    def loopabackconfig_cmd(self, args: List=None) -> None:
         self.log.debug(f'tconfig_cmd -> {args}')
 
         parser = argparse.ArgumentParser(

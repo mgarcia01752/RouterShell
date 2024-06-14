@@ -13,9 +13,9 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL CRITICAL
     '''
     
-    GLOBAL_DEBUG = True
+    GLOBAL_DEBUG = False
     
-    TEST_DEFAULT                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    TEMPLATE_CONFIG                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     GLOBAL_MODE                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ROUTER_SHELL_DB             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -40,7 +40,7 @@ class RouterShellLoggingGlobalSettings():
     CONFIGURE_PROMPT            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     CLEAR_MODE                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    CONFIGURE_CMD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    CONFIGURE_CMD               = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     
     BRIDGE                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONTROL              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -67,7 +67,7 @@ class RouterShellLoggingGlobalSettings():
     DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INTERFACE_CONFIG            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    INTERFACE_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     IF_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -84,6 +84,7 @@ class RouterShellLoggingGlobalSettings():
     
     VLAN                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_DB                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    VLAN_CONFIG_CMD             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ARP                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -105,7 +106,8 @@ class RouterShellLoggingGlobalSettings():
     PROMPT_FEEDER               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     CREATE_LB_INTERFACE         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NETWORK_INTERFACE_FACTORY           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NET_INTERFACE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NET_INTERFACE_FACTORY       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
     INET                        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

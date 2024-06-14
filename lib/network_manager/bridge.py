@@ -2,7 +2,7 @@ from enum import Enum, auto
 import json
 import logging
 import re
-from typing import Optional
+from typing import List, Optional
 
 from tabulate import tabulate
 from lib.db.bridge_db import BridgeDatabase 
@@ -57,7 +57,7 @@ class Bridge(NetworkManager, BridgeDatabase):
         self.log.setLevel(RSLGS().BRIDGE)
         self.arg = arg
         
-    def get_bridge_list_os(self) -> list:
+    def get_bridge_list_os(self) -> List[str]:
         """
         Get a list of bridge names from OS
 

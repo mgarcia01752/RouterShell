@@ -491,7 +491,7 @@ class RouterPrompt:
             pf PromptFeeder`: The optional prompt feeder object.
 
         Returns:
-            bool: True if the process starts successfully, False otherwise.
+            bool: STATUS_OK if the process starts successfully, STATUS_NOK otherwise.
         """
         self._DEBUG_print_top_lvl_cmds()
         

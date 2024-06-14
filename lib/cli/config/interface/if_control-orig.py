@@ -17,7 +17,7 @@ from lib.network_manager.dhcp_server import DHCPServer
 from lib.network_manager.interface import Interface
 from lib.network_manager.nat import NATDirection
 
-class IfConfigError(Exception):
+class InterfaceConfigError(Exception):
     """Custom exception for IfConfig errors."""
     def __init__(self, message: str):
         self.message = message
@@ -26,9 +26,9 @@ class IfConfigError(Exception):
     def __str__(self):
         return f'IfConfigError: {self.message}'
 
-class IfConfig(CmdPrompt, Interface):
+class InterfaceConfig(CmdPrompt, Interface):
 
-    def __init__(self, ifName: str=None, ifType: str=None) -> None:
+    def __init__(self, ifName: str=None, ifType: InterfaceType=InterfaceType.ETHERNET) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
@@ -36,7 +36,7 @@ class IfConfig(CmdPrompt, Interface):
         
         self.ifName = ifName
                
-    def ifconfig_help(self, args: List=None) -> None:
+    def interfaceconfig_help(self, args: List=None) -> None:
         """
         Display help for available commands.
         """
@@ -47,7 +47,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def ifconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
+    def interfaceconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
         """
         Updates the interface configuration description in the database.
         
@@ -73,17 +73,17 @@ class IfConfig(CmdPrompt, Interface):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['auto'],     help='Auto assign mac address')
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
-    def ifconfig_mac(self, args:str) -> bool:
+    def interfaceconfig_mac(self, args:str) -> bool:
         
-        self.log.debug(f"ifconfig_mac() -> args: {args}")
+        self.log.debug(f"interfaceconfig_mac() -> args: {args}")
         
         if len(args) == 1 and args[0] == "auto":
-            self.log.debug(f"ifconfig_mac() -> auto")
+            self.log.debug(f"interfaceconfig_mac() -> auto")
             self.update_interface_mac(self.ifName)
                             
         elif len(args) == 2 and args[0] == "address":
             mac = args[1]
-            self.log.debug(f"ifconfig_mac() -> address -> {mac}")
+            self.log.debug(f"interfaceconfig_mac() -> address -> {mac}")
             self.update_interface_mac(self.ifName, mac)
             
         else:
@@ -92,7 +92,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def ifconfig_ip6(self, args, negate=False) -> bool:
+    def interfaceconfig_ip6(self, args, negate=False) -> bool:
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
@@ -103,7 +103,7 @@ class IfConfig(CmdPrompt, Interface):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool', 'acl'])
     def X_ip(self, args: List, negate=False) -> bool:
 
-        self.log.debug(f'ifconfig_ip() -> {args}')
+        self.log.debug(f'interfaceconfig_ip() -> {args}')
 
         if 'address' in args[0]:
             ipv4_address_cidr = args[1]
@@ -171,7 +171,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    def ifconfig_ip(self, args: List[str], negate=False) -> bool:
+    def interfaceconfig_ip(self, args: List[str], negate=False) -> bool:
         """
         Configure IP settings on the interface.
 
@@ -184,7 +184,7 @@ class IfConfig(CmdPrompt, Interface):
         Use `<suboption> --help` to get help for specific suboptions.
         """
 
-        self.log.debug(f'ifconfig_ip4() -> ({args})')
+        self.log.debug(f'interfaceconfig_ip4() -> ({args})')
         if not args:
             print('Missing command arguments')
             return STATUS_NOK
@@ -235,7 +235,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def ifconfig_duplex(self, args: List[str]) -> bool:
+    def interfaceconfig_duplex(self, args: List[str]) -> bool:
         """
         Updates the interface duplex mode based on the provided arguments.
         
@@ -273,7 +273,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def ifconfig_speed(self, args: Optional[str]) -> bool:
+    def interfaceconfig_speed(self, args: Optional[str]) -> bool:
         args = StringFormats.list_to_string(args)
         
         if not args:
@@ -304,7 +304,7 @@ class IfConfig(CmdPrompt, Interface):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def ifconfig_bridge(self, args: Optional[str], negate=False) -> bool:
+    def interfaceconfig_bridge(self, args: Optional[str], negate=False) -> bool:
         
         if 'group' in args:
             
@@ -324,7 +324,7 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def ifconfig_shutdown(self, args=None, negate=False) -> bool:
+    def interfaceconfig_shutdown(self, args=None, negate=False) -> bool:
         """
         This function is used to change the state of an interface to either UP or DOWN.
 
@@ -341,14 +341,14 @@ class IfConfig(CmdPrompt, Interface):
         if negate:
             ifState = State.UP
 
-        self.log.debug(f'ifconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
+        self.log.debug(f'interfaceconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
 
         self.update_shutdown(self.ifName, ifState)
         
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
-    def ifconfig_switchport(self, args=None, negate=False) -> bool:
+    def interfaceconfig_switchport(self, args=None, negate=False) -> bool:
         if 'access-vlan' in args:
             
             vlan_id = args[1]
@@ -363,39 +363,39 @@ class IfConfig(CmdPrompt, Interface):
         return STATUS_OK        
 
     @CmdPrompt.register_sub_commands()    
-    def ifconfig_wireless(self, args=None, negate:bool=False) -> bool:
+    def interfaceconfig_wireless(self, args=None, negate:bool=False) -> bool:
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def ifconfig_no(self, args: List) -> bool:
+    def interfaceconfig_no(self, args: List) -> bool:
         
-        self.log.debug(f"ifconfig_no() -> Line -> {args}")
+        self.log.debug(f"interfaceconfig_no() -> Line -> {args}")
 
         start_cmd = args[0]
                 
         if start_cmd == 'shutdown':
             self.log.debug(f"up/down interface -> {self.ifName}")
-            self.ifconfig_shutdown(None, negate=True)
+            self.interfaceconfig_shutdown(None, negate=True)
         
         elif start_cmd == 'bridge':
             self.log.debug(f"Remove bridge -> ({args})")
-            self.ifconfig_bridge(args[1:], negate=True)
+            self.interfaceconfig_bridge(args[1:], negate=True)
         
         elif start_cmd == 'ip':
             self.log.debug(f"Remove ip -> ({args})")
-            self.ifconfig_ip(args[1:], negate=True)
+            self.interfaceconfig_ip(args[1:], negate=True)
         
         elif start_cmd == 'ipv6':
             self.log.debug(f"Remove ipv6 -> ({args})")
-            self.ifconfig_ipv6(args[1:], negate=True)
+            self.interfaceconfig_ipv6(args[1:], negate=True)
 
         elif start_cmd == 'switchport':
             self.log.debug(f"Remove switchport -> ({args})")
-            self.ifconfig_switchport(args[1:], negate=True)
+            self.interfaceconfig_switchport(args[1:], negate=True)
         
         elif start_cmd == 'description':
             self.log.debug(f"Remove description -> ({args})")
-            self.ifconfig_description(args[1:], negate=True)
+            self.interfaceconfig_description(args[1:], negate=True)
         
         else:
             print(f"No negate option for {start_cmd}")

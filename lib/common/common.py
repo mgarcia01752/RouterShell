@@ -9,6 +9,7 @@ import logging
 from datetime import datetime 
 
 from lib.common.constants import *
+from lib.network_manager.common.interface import InterfaceType
 
 class Common():
     '''Commonly used Static Methods'''
@@ -233,4 +234,19 @@ class Common():
         """
         return os.environ.get(var_name)
 
+    @staticmethod
+    def is_loopback_valid_format(s) -> bool:
+        """
+        Check if a string matches the format of a loopback interface name.
 
+        A loopback interface name is expected to start with the string representation
+        of InterfaceType.LOOPBACK followed by one or more digits.
+
+        Args:
+        s (str): The string to check.
+
+        Returns:
+        bool: True if s matches the format of a loopback interface name, False otherwise.
+        """
+        pattern = rf'^{InterfaceType.LOOPBACK}\d+$'
+        return bool(re.match(pattern, s))

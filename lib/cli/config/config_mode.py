@@ -13,7 +13,7 @@ class ConfigMode(ConfigurePrompt):
         self.register_top_lvl_cmds(ConfigCmd())
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().CONFIGURE_PROMPT)
+        self.log.setLevel(RSLGS().CONFIGURE_MODE)
     
     def intro(self) -> str:
         return f'Starting Configuration Mode....'

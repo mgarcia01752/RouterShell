@@ -3,6 +3,7 @@ import json
 import logging
 import subprocess
 from enum import Enum, auto
+from typing import List
 from tabulate import tabulate
 
 from lib.network_manager.common.inet import InetServiceLayer
@@ -80,6 +81,9 @@ class NetworkManager(InetServiceLayer):
 
         return STATUS_OK
 
+    def get_vlan_interfaces(self) -> List[str]:
+        return []
+    
     def get_interfaces(self, args=None):
         """
         Display information about network interfaces.
