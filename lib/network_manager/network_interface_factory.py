@@ -1,6 +1,6 @@
 
 import logging
-from typing import List
+from typing import Dict, List
 from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
@@ -25,15 +25,18 @@ class CreateLoopBackNetInterface:
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(logging.DEBUG)
+        self.log.setLevel(RSLGS.CREATE_LB_INTERFACE)
         self.loopback_name = loopback_name
         self.interface = Interface()
+        self.log.debug(f'Loopback-Name: {loopback_name}')
         
         if Interface().does_interface_exist(loopback_name):
-            raise InvalidNetInterface(f"Interface {loopback_name} already exists.")
+            self.log.debug(f'Loopback: {loopback_name} exists')
         
-        if not Interface().create_loopback(loopback_name):
+        if Interface().create_loopback(loopback_name):
             raise InvalidNetInterface(f"Unable to create {loopback_name} interface.")
+        
+        self._net_interface = NetInterfaceFactory(self.loopback_name).getNetInterface()
     
     def getNetworkInterface(self) -> 'NetInterface':
         """
@@ -42,10 +45,11 @@ class CreateLoopBackNetInterface:
         Returns:
             NetInterface: A NetInterface object associated with the created loopback interface.
         """
-        return NetInterfaceFactory(self.loopback_name)
+        self.log.debug(f'getNetworkInterface() -> Interface: {self._net_interface.get_ifType()}')
+        return self._net_interface
 
 class NetInterfaceFactory:
-    _interface_name_dict: dict = {}
+    _interface_name_dict: Dict[str, 'NetInterface'] = {}
 
     def __init__(self, interface_name: str):
         """
@@ -59,7 +63,7 @@ class NetInterfaceFactory:
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(logging.DEBUG)
+        self.log.setLevel(RSLGS.NET_INTERFACE_FACTORY)
         self.interface_name = interface_name
         
         if self.interface_name in NetInterfaceFactory._interface_name_dict:
@@ -67,7 +71,7 @@ class NetInterfaceFactory:
         
         else:
             if not Interface().does_interface_exist(interface_name):
-                if Common.is_loopback_valid_format(interface_name):
+                if Common.is_loopback_if_name_valid(interface_name):
                     if Interface().create_loopback(interface_name):
                         self.log.info(f"Created loopback interface: {interface_name}")
                 else:

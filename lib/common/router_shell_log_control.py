@@ -73,6 +73,9 @@ class RouterShellLoggingGlobalSettings():
     IF_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IF_SHOW                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
+    LOOPBACK_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    LOOPBACK_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
     ROUTE                       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
@@ -105,7 +108,7 @@ class RouterShellLoggingGlobalSettings():
     ROUTER_PROMPT               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     PROMPT_FEEDER               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    CREATE_LB_INTERFACE         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    CREATE_LB_INTERFACE         = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     NET_INTERFACE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     NET_INTERFACE_FACTORY       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     

@@ -4,18 +4,20 @@ from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.network_interface_factory import NetInterface
 
 class LoopbackConfig(CmdPrompt):
 
-    def __init__(self, args: str=None) -> None:
-        """
-        Initializes Global instance.
-        """
-        super().__init__(global_commands=False, exec_mode=ExecMode.USER_MODE)
+    def __init__(self, net_interface: NetInterface) -> None:
+        super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().TEMPLATE_CONFIG)
+        self.log.setLevel(RSLGS().LOOPBACK_CONFIG)
+        
+        self.net_interface = net_interface
+        self.log.debug(f'Loopback: {net_interface.get_interface_name()}')
                
     def loopbackconfig_help(self, args: List=None) -> None:
         """
@@ -24,25 +26,38 @@ class LoopbackConfig(CmdPrompt):
         for method_name in self.class_methods():
             method = getattr(self, method_name)
             print(f"{method.__doc__}")
+
+    @CmdPrompt.register_sub_commands()         
+    def loopbackconfig_description(self, args: List=None) -> bool:
+        self.log.debug(f'loopbackconfig_description -> {args}')
+        return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['sub-command'])         
-    def loopabackconfig_cmd(self, args: List=None) -> None:
-        self.log.debug(f'tconfig_cmd -> {args}')
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])         
+    def loopbackconfig_ip(self, args: List=None, negate: bool=False) -> bool:
+        self.log.debug(f'loopbackconfig_ip -> {args}')
+        return STATUS_OK
 
-        parser = argparse.ArgumentParser(
-            description="Manage TConfig commands",
-            epilog="Supported subcommands:\n"
-                   "   sub-command [sub_command_arg]           Description of sub-command\n"
-        )
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])         
+    def loopbackconfig_ipv6(self, args: List=None, negate: bool=False) -> bool:
+        self.log.debug(f'loopbackconfig_ipv6 -> {args}')
+        return STATUS_OK
 
-        subparsers = parser.add_subparsers(dest='subcommand')
-        sub_command_parser = subparsers.add_parser('sub-command', help='sub-command help')
-        sub_command_parser.add_argument('sub_command_arg', type=str, help='Sub Command Arg')
-
-        # Parse the arguments passed to this command
-        parsed_args = parser.parse_args(args)
-
-        if parsed_args.subcommand == 'sub-command':
-            sub_command_arg = parsed_args.sub_command_arg
-            print(f'sub-command: {sub_command_arg}')
-            self.log.debug(f'sub-command: {sub_command_arg}')
+    @CmdPrompt.register_sub_commands()         
+    def loopbackconfig_shutdown(self, args: List=None, negate: bool=False) -> bool:
+        self.log.debug(f'loopbackconfig_shutdown -> {args}')
+        return STATUS_OK
+    
+    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['ip', 'ipv6', 'shutdown'])         
+    def loopbackconfig_no(self, args: List=None) -> bool:
+        self.log.debug(f'loopbackconfig_no -> {args}')
+        
+        if 'ip' in args:
+            self.loopbackconfig_ip(args, negate=True)
+        elif 'ipv6' in args:
+            self.loopbackconfig_ipv6(args, negate=True)
+        elif 'shutdown' in args:
+            self.loopbackconfig_shutdown(args, negate=True)
+        else:
+            print(f"Invalid argument: {args}")
+        
+        return STATUS_OK    

@@ -18,14 +18,14 @@ from lib.network_manager.interface import Interface
 from lib.network_manager.nat import NATDirection
 from lib.network_manager.network_interface_factory import NetInterface
 
-class IfConfigError(Exception):
-    """Custom exception for IfConfig errors."""
+class InterfaceConfigError(Exception):
+    """Custom exception for InterfaceConfig errors."""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
 
     def __str__(self):
-        return f'IfConfigError: {self.message}'
+        return f'InterfaceConfigError: {self.message}'
 
 class InterfaceConfig(CmdPrompt):
 

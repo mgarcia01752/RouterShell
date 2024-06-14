@@ -6,7 +6,8 @@ import os
 import datetime
 import subprocess
 import logging
-from datetime import datetime 
+from datetime import datetime
+from typing import List 
 
 from lib.common.constants import *
 from lib.network_manager.common.interface import InterfaceType
@@ -235,18 +236,27 @@ class Common():
         return os.environ.get(var_name)
 
     @staticmethod
-    def is_loopback_valid_format(s) -> bool:
+    def is_loopback_if_name_valid(interface_name: str, add_loopback_if_name: List[str] = None) -> bool:
         """
-        Check if a string matches the format of a loopback interface name.
-
-        A loopback interface name is expected to start with the string representation
-        of InterfaceType.LOOPBACK followed by one or more digits.
+        Check if the given interface name is in the loopback format or starts with any of the specified prefixes.
 
         Args:
-        s (str): The string to check.
+            interface_name (str): The name of the network interface.
+            loopback_if_check_list (List[str], optional): List of additional interface name prefixes to check against. Default is None.
 
         Returns:
-        bool: True if s matches the format of a loopback interface name, False otherwise.
+            bool: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.
         """
-        pattern = rf'^{InterfaceType.LOOPBACK}\d+$'
-        return bool(re.match(pattern, s))
+        if add_loopback_if_name is None:
+            add_loopback_if_name = []
+        
+        loopback_pattern = rf'^{InterfaceType.LOOPBACK.value}\d+$'
+        
+        if re.match(loopback_pattern, interface_name):
+            return True
+        
+        for prefix in add_loopback_if_name:
+            if re.match(rf'^{prefix}\d*$', interface_name):
+                return True
+            
+        return False

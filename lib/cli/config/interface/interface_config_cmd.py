@@ -39,18 +39,14 @@ class InterfaceConfigCmd(ConfigurePrompt):
         '''
         
         if Interface().db_lookup_interface_exists(interface_name):
-            net_if = NetInterfaceFactory(interface_name).getNetInterface()
-        
-        elif Common.is_loopback_valid_format(interface_name):
-            net_if = CreateLoopBackNetInterface(interface_name).getNetworkInterface()
-                    
+            net_if = NetInterfaceFactory(interface_name).getNetInterface()            
         else:
             raise InterfaceConfigCmdError(f'Invalid interface: {interface_name}')
                 
         super().__init__(sub_cmd_name=net_if.get_ifType().value)
         
         self.register_top_lvl_cmds(InterfaceConfig(net_interface=net_if))
-        
+
     def intro(self) -> str:
         return f'Starting Interface Configuration'
                     

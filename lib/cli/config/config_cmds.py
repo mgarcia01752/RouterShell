@@ -8,6 +8,7 @@ from lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
 from lib.cli.config.interface.interface_config_cmd import InterfaceConfigCmd
 from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
 from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
+from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.system_db import SystemDatabase
@@ -35,14 +36,16 @@ class ConfigCmd(CmdPrompt):
             print(f"{method.__doc__}")
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_network_interfaces())         
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_network_interfaces() + [InterfaceType.LOOPBACK.value])         
     def configcmd_interface(self, args: List[str]=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
         
-        if InterfaceType.LOOPBACK.value == args[0]:
-            LoopbackConfigCmd().start()
+        if Common().is_loopback_if_name_valid(args[0], add_loopback_if_name=['lo']):
+            self.log.debug(f'configcmd_interface() -> Loopback: {args}')
+            LoopbackConfigCmd(loopback_name=args).start()
         
         else:
+            self.log.debug(f'configcmd_interface() -> Ethernet: {args}')
             InterfaceConfigCmd(interface_name=args).start()        
         
         return STATUS_OK
