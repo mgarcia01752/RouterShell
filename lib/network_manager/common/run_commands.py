@@ -23,6 +23,46 @@ class RunResult(NamedTuple):
     exit_code: int
     command: List[str]
 
+class RunLog:
+    """
+    Utility class to retrieve the run log from a specified file.
+
+    Attributes:
+        None
+
+    Methods:
+        get_run_log(): Retrieves the contents of a run log file as a list of strings.
+
+    Usage:
+        log = RunLog()
+        log_contents = log.get_run_log()
+        for line in log_contents:
+            print(line)
+    """
+    @staticmethod
+    def get_run_log() -> List[str]:
+        """
+        Retrieve the contents of the run log file.
+
+        Returns:
+            List[str]: A list of strings representing each line of the run log file.
+
+        Example:
+            >>> log = RunLog()
+            >>> log_contents = log.get_run_log()
+            >>> for line in log_contents:
+            >>>     print(line)
+        """
+        cmd = f'cat {RunCommand.log_cmd}'.split()
+        result = RunCommand().run(cmd)
+        return result.stdout.split("\n")
+    
+    @staticmethod
+    def clear_run_log() -> bool:
+        cmd = f'rm {RunCommand.log_cmd}'.split()
+        result = RunCommand().run(cmd)
+        return result.exit_code
+
 class RunCommand:
     """
     A class for running Linux commands with sudo and logging successful and failed commands.

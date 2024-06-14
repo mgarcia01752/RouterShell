@@ -8,7 +8,7 @@ from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
 from lib.db.system_db import SystemDatabase
-from lib.system.system_config import SystemConfig
+from lib.system.system_call import SystemCall
 
 class RouterConfiguration:
 
@@ -347,7 +347,7 @@ class RouterConfiguration:
         """
         base_cmd = 'system telnet-server'
 
-        if SystemConfig().get_telnetd_status():
+        if SystemCall().get_telnetd_status():
             base_cmd = f'no {base_cmd}'
 
         return [base_cmd]
@@ -361,7 +361,7 @@ class RouterConfiguration:
         """
         base_cmd = 'system ssh-server'
 
-        if SystemConfig().get_ssh_server_status():
+        if SystemCall().get_ssh_server_status():
             base_cmd = f'no {base_cmd}'
 
         return [base_cmd]
@@ -385,7 +385,7 @@ class RouterConfiguration:
         Returns:
             List[str]: The formatted banner text as a list of strings, where each element represents a line in the banner.
         """
-        banner_text = SystemConfig().get_banner()
+        banner_text = SystemCall().get_banner()
         
         if not banner_text:
             return []

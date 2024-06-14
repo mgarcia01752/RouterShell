@@ -7,7 +7,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.interface import Interface
 from lib.db.sqlite_db.router_shell_db import RouterShellDB
-from lib.system.system_config import SystemConfig
+from lib.system.system_call import SystemCall
 
 class Service(enum.Enum):
     """

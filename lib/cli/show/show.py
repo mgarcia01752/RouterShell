@@ -19,6 +19,7 @@ from lib.hardware.hardware_detection import HardwareDetection
 from lib.db.nat_db import NatDB
 from lib.common.constants import STATUS_OK
 from lib.system.linux_calls import LinuxSystem
+from lib.system.system_call import SystemCall
 
 
 class Show(CmdPrompt):
@@ -154,7 +155,7 @@ class Show(CmdPrompt):
             RouteShow().route()
             STATUS_OK
         
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['configuration'])      
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['configuration', 'system-commands'])      
     def show_running(self, args: List) -> None:
 
         self.log.debug(f'show_running: {args}')
@@ -166,6 +167,10 @@ class Show(CmdPrompt):
         elif 'configuration' in args:
             for line in RouterConfiguration().get_running_configuration():
                 print(line)
+                
+        elif 'system-commands' in args:
+            for line in SystemCall().get_run_log():
+                print(line)                
             
         STATUS_OK
                 

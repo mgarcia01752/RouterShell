@@ -8,13 +8,13 @@ from lib.common.constants import Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.system_db import SystemDatabase
-from lib.network_manager.common.run_commands import RunCommand
+from lib.network_manager.common.run_commands import RunCommand, RunLog
 
 class InvalidSystemConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class SystemConfig(RunCommand):
+class SystemCall(RunCommand):
 
     def __init__(self, arg=None):
         super().__init__()
@@ -220,3 +220,19 @@ class SystemConfig(RunCommand):
         status = self.sys_db.get_ssh_server_status()
         self.log.debug(f'get_ssh_server_status() -> {status}')
         return status
+    
+    def get_run_log(self) -> List[str]:
+        """
+        Retrieve the run log from the RunLog utility class.
+
+        Returns:
+            List[str]: A list of strings representing each line of the run log file.
+
+        Example:
+            >>> instance = SomeOtherClass()
+            >>> log_contents = instance.get_run_log()
+            >>> for line in log_contents:
+            >>>     print(line)
+        """
+        return RunLog().get_run_log()
+    

@@ -36,6 +36,9 @@ class CreateLoopBackNetInterface:
         if Interface().create_loopback(loopback_name):
             raise InvalidNetInterface(f"Unable to create {loopback_name} interface.")
         
+        if Interface().add_interface_entry(interface_name=loopback_name, ifType=InterfaceType.LOOPBACK):
+            raise InvalidNetInterface(f"Unable to add {loopback_name} interface db entry.")
+        
         self._net_interface = NetInterfaceFactory(self.loopback_name).getNetInterface()
     
     def getNetworkInterface(self) -> 'NetInterface':

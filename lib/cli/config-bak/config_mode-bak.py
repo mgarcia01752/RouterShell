@@ -21,7 +21,7 @@ from lib.network_manager.nat import Nat
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.system.system_config import SystemConfig
+from lib.system.system_call import SystemCall
 
 class InvalidConfigureMode(Exception):
     def __init__(self, message):
@@ -79,7 +79,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         """
         if negate:
-            SystemConfig().del_banner()
+            SystemCall().del_banner()
             
 
         banner_config = []
@@ -91,7 +91,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
                 break
             banner_config.append(line)
 
-        SystemConfig().set_banner('\n'.join(banner_config))
+        SystemCall().set_banner('\n'.join(banner_config))
 
     def complete_interface(self, text, line, begidx, endidx):
         completions = ['loopback', 'vlan']
@@ -415,7 +415,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
                        
         elif start_cmd == 'banner':
             self.log.debug(f"do_no(banner)")
-            SystemConfig().del_banner()
+            SystemCall().del_banner()
         
         else:
             print(f"Invalid command: {line}")
@@ -434,7 +434,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         args = line.split()
         hostname = args[0] if args else ""
 
-        if SystemConfig().set_hostname_os(hostname) == STATUS_OK:
+        if SystemCall().set_hostname_os(hostname) == STATUS_OK:
             self.prompt = self.set_prompt()
             
         else:

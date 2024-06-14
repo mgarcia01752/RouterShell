@@ -5,7 +5,7 @@ from lib.cli.common.router_prompt import RouterPrompt
 from lib.cli.config.config import Configure
 from lib.cli.base.copy import Copy
 from lib.cli.show.show import Show
-from system.system_config import SystemConfig
+from lib.system.system_call import SystemCall
 from system.system_start_up import SystemStartUp
 from common.constants import ROUTER_CONFIG, STATUS_OK
 from lib.cli.base.global_cmd_op import Global
@@ -39,7 +39,7 @@ class RouterCLI(RouterPrompt):
         self.intro_message()
         
     def intro_message(self):
-        banner_motd = SystemConfig().get_banner()
+        banner_motd = SystemCall().get_banner()
         self.intro = f"\n{banner_motd}\n" if banner_motd else "Welcome to the Router CLI!\n"
 
     def run(self):

@@ -17,7 +17,7 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.interface import Interface
 from lib.network_manager.network_mgr import NetworkManager
 from lib.network_manager.vlan import Vlan
-from lib.system.system_config import SystemConfig
+from lib.system.system_call import SystemCall
 
 class ConfigCmd(CmdPrompt):
 
@@ -70,7 +70,7 @@ class ConfigCmd(CmdPrompt):
 
         if 'telnet-server' in args:
             self.log.debug(f'configcmd_system() -> telnet-server -> negate: {negate}')    
-            SystemConfig().set_telnetd_status(status)
+            SystemCall().set_telnetd_status(status)
 
         elif 'ssh-server' in args:
             self.log.debug(f'configcmd_system() -> ssh-server -> negate: {negate}') 
@@ -97,7 +97,7 @@ class ConfigCmd(CmdPrompt):
         self.log.debug(f"configcmd_hostname() -> args: {args}")
 
         # Set hostname in the operating system
-        if SystemConfig().set_hostname_os(args[0]):
+        if SystemCall().set_hostname_os(args[0]):
             self.log.error(f"Error: Failed to set the hostname: ({args[0]}) to OS")
             return STATUS_NOK
 

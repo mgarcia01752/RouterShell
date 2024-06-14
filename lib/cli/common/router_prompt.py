@@ -12,7 +12,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.string_formats import StringFormats
-from lib.system.system_config import SystemConfig
+from lib.system.system_call import SystemCall
 
 class PromptFeeder:
     """
@@ -386,7 +386,7 @@ class RouterPrompt:
         Returns:
             bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
-        self._prompt_dict['Hostname'] = SystemConfig().get_hostname_os()
+        self._prompt_dict['Hostname'] = SystemCall().get_hostname_os()
             
         return STATUS_OK
 
