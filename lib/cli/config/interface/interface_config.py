@@ -35,6 +35,7 @@ class InterfaceConfig(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().IF_CONFIG)
         self.net_interface = net_interface
+        self.ifName = net_interface.get_interface_name()
                
     def interfaceconfig_help(self, args: List=None) -> None:
         """
