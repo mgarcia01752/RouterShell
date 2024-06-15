@@ -4,7 +4,7 @@ from typing import Dict, List
 from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.common.phy import Speed, State
+from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.interface import Interface
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
@@ -70,13 +70,13 @@ class NetInterfaceFactory:
         self.interface_name = interface_name
         
         if self.interface_name in NetInterfaceFactory._interface_name_dict:
-            self.log.info(f'Already created NetInterface Object for interface: {self.interface_name}')
+            self.log.debug(f'Already created NetInterface Object for interface: {self.interface_name}')
         
         else:
             if not Interface().does_interface_exist(interface_name):
                 if Common.is_loopback_if_name_valid(interface_name):
                     if Interface().create_loopback(interface_name):
-                        self.log.info(f"Created loopback interface: {interface_name}")
+                        self.log.debug(f"Created loopback interface: {interface_name}")
                 else:
                     raise InvalidNetInterface(f"Invalid loopback interface name format: {interface_name}")
             
@@ -266,6 +266,9 @@ class NetInterface:
         """
         return Interface().update_interface_mac(self.interface_name, mac_addr)
     
+    def set_duplex(self, duplex: Duplex) -> bool:
+        return STATUS_OK
+    
     def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
         """
         Add or modify an IP address on the network interface.
@@ -279,4 +282,7 @@ class NetInterface:
             bool: True if the IP address is successfully added or modified, False otherwise.
         """
         return Interface().update_interface_inet(self.interface_name, inet_address, secondary_address, negate)
+    
+    def add_static_arp(self, inet_address:str, mac_addr:str, negate: bool=False) -> bool:
+        return STATUS_OK
 

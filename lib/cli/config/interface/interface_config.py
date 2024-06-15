@@ -114,7 +114,7 @@ class InterfaceConfig(CmdPrompt):
             self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
             action_description = "Removing" if negate else "Setting"
-            result = self.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
+            result = self.net_interface.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
 
             if result:
                 self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
@@ -124,12 +124,12 @@ class InterfaceConfig(CmdPrompt):
         elif "proxy-arp" in args[0]:
             '''[no] [ip proxy-arp]'''
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
-            self.update_interface_proxy_arp(self.ifName, negate)
+            self.net_interface.set_proxy_arp(negate)
                 
         elif "drop-gratuitous-arp" in args[0]:
             '''[no] [ip drop-gratuitous-arp]'''
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
-            self.update_interface_drop_gratuitous_arp(self.ifName, negate)
+            self.net_interface.set_drop_gratuitous_arp(negate)
 
         elif "static-arp" in args[0]:
             '''[no] [ip static-arp ip-address mac-address arpa]'''
@@ -140,7 +140,7 @@ class InterfaceConfig(CmdPrompt):
             encap_arp = Encapsulate.ARPA         
                     
             self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
-            self.update_interface_static_arp(self.ifName, ipv4_addr_arp, mac_addr_arp, encap_arp, negate)
+            self.net_interface.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
             
         elif "nat" in args[0]:
             '''[no] [ip nat [inside | outside] pool <nat-pool-name>]'''
@@ -154,8 +154,8 @@ class InterfaceConfig(CmdPrompt):
 
             self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction.value} -> Pool: {nat_pool_name}")
 
-            if self.set_nat_domain_status(self.ifName, nat_pool_name, nat_direction):
-                self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
+            #if self.set_nat_domain_status(self.ifName, nat_pool_name, nat_direction):
+            #    self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
 
         elif "dhcp-client" in args[0]:
             '''[no] [ip dhcp-client]'''
@@ -221,7 +221,7 @@ class InterfaceConfig(CmdPrompt):
             self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
             action_description = "Removing" if negate else "Setting"
-            result = self.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
+            result = self.net_interface.add_inet_address(inet_address=ipv4_address_cidr, secondary_address=is_secondary, negate=negate)
 
             if result:
                 self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
@@ -255,17 +255,17 @@ class InterfaceConfig(CmdPrompt):
             return STATUS_NOK
 
         if self.interface_type != InterfaceType.ETHERNET:
-            self.update_interface_duplex(self.ifName, Duplex.NONE)
+            self.net_interface.set_duplex(Duplex.NONE)
             print("interface must be of ethernet type")
             return STATUS_NOK
         
         duplex_values = {d.value: d for d in Duplex}
-        self.log.info(f'Interface: {self.ifName} -> Duplex: {args}')
+        self.log.debug(f'Interface: {self.ifName} -> Duplex: {args}')
         args = args.lower()
 
         if args in duplex_values:
             duplex = duplex_values[args]
-            self.update_interface_duplex(self.ifName, duplex)
+            self.net_interface.set_duplex(duplex)
                         
         else:
             print(f"Invalid duplex mode ({args}). Use 'auto', 'half', or 'full'.")
@@ -282,7 +282,7 @@ class InterfaceConfig(CmdPrompt):
             return
 
         if self.interface_type != InterfaceType.ETHERNET:
-            self.update_interface_speed(self.ifName, Speed.NONE)
+            self.net_interface.set_interface_speed(Speed.NONE)
             print("interface must be of ethernet type")
             return
         
@@ -292,11 +292,11 @@ class InterfaceConfig(CmdPrompt):
         args = args.lower()
 
         if args == "auto":
-            self.update_interface_speed(self.ifName, Speed.AUTO_NEGOTIATE)
+            self.net_interface.set_interface_speed(Speed.AUTO_NEGOTIATE)
 
         elif args in speed_values:
             speed = speed_values[args]
-            self.update_interface_speed(self.ifName, speed)
+            self.net_interface.set_interface_speed(speed)
             
         else:
             print("Invalid speed value. Use '10', '100', '1000', '2500', '10000', or 'auto'.")
@@ -344,7 +344,7 @@ class InterfaceConfig(CmdPrompt):
 
         self.log.debug(f'interfaceconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
 
-        self.update_shutdown(self.ifName, ifState)
+        self.net_interface.set_interface_shutdown_state(ifState)
         
         return STATUS_OK
     

@@ -15,7 +15,7 @@ class RouterShellLoggingGlobalSettings():
     
     GLOBAL_DEBUG = False
     
-    TEMPLATE_CONFIG                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    TEMPLATE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     GLOBAL_MODE                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ROUTER_SHELL_DB             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -40,7 +40,7 @@ class RouterShellLoggingGlobalSettings():
     CONFIGURE_PROMPT            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     CLEAR_MODE                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SHOW_MODE                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    CONFIGURE_CMD               = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    CONFIGURE_CMD               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     BRIDGE                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONTROL              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -67,7 +67,7 @@ class RouterShellLoggingGlobalSettings():
     DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INTERFACE_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    INTERFACE_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     IF_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -108,7 +108,7 @@ class RouterShellLoggingGlobalSettings():
     ROUTER_PROMPT               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     PROMPT_FEEDER               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    CREATE_LB_INTERFACE         = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
+    CREATE_LB_INTERFACE         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     NET_INTERFACE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     NET_INTERFACE_FACTORY       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
