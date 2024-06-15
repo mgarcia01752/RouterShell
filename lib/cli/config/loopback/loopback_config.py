@@ -14,6 +14,7 @@ class LoopbackConfig(CmdPrompt):
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().LOOPBACK_CONFIG)
+        self.log.setLevel(logging.INFO)
         
         self.net_interface = net_interface
         self.log.debug(f'Loopback: {net_interface.get_interface_name()}')
