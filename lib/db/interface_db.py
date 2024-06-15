@@ -382,7 +382,7 @@ class InterfaceDatabase:
         
         return cls.rsdb.update_interface_alias(bus_info, initial_interface_name, alias_interface_name).status
 
-    def get_interface_aliases(cls) -> List[dict]:
+    def get_db_interface_aliases(cls) -> List[dict]:
         """
         Get a list of dictionaries representing interface aliases from the InterfaceAlias table.
 

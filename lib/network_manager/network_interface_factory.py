@@ -30,15 +30,21 @@ class CreateLoopBackNetInterface:
         self.interface = Interface()
         self.log.debug(f'Loopback-Name: {loopback_name}')
         
-        if Interface().does_interface_exist(loopback_name):
+        if Interface().does_os_interface_exist(loopback_name):
             self.log.debug(f'Loopback: {loopback_name} exists')
+
+            if not Interface().db_lookup_interface_exists(loopback_name):
+                self.log.debug(f'Loopback: {loopback_name} does not exist in DB...adding')
+                Interface().update_interface_db_from_os(loopback_name)
         
-        if Interface().create_loopback(loopback_name):
+        elif Interface().create_os_loopback(loopback_name):
+            
+            if Interface().add_db_interface_entry(interface_name=loopback_name, ifType=InterfaceType.LOOPBACK):
+                raise InvalidNetInterface(f"Unable to add {loopback_name} interface db entry.")
+        
+        else:
             raise InvalidNetInterface(f"Unable to create {loopback_name} interface.")
-        
-        if Interface().add_interface_entry(interface_name=loopback_name, ifType=InterfaceType.LOOPBACK):
-            raise InvalidNetInterface(f"Unable to add {loopback_name} interface db entry.")
-        
+                
         self._net_interface = NetInterfaceFactory(self.loopback_name).getNetInterface()
     
     def getNetworkInterface(self) -> 'NetInterface':
@@ -73,9 +79,9 @@ class NetInterfaceFactory:
             self.log.debug(f'Already created NetInterface Object for interface: {self.interface_name}')
         
         else:
-            if not Interface().does_interface_exist(interface_name):
+            if not Interface().does_os_interface_exist(interface_name):
                 if Common.is_loopback_if_name_valid(interface_name):
-                    if Interface().create_loopback(interface_name):
+                    if Interface().create_os_loopback(interface_name):
                         self.log.debug(f"Created loopback interface: {interface_name}")
                 else:
                     raise InvalidNetInterface(f"Invalid loopback interface name format: {interface_name}")
@@ -140,7 +146,7 @@ class NetInterface:
         Returns:
             InterfaceType: The type of the network interface.
         """
-        return Interface().get_interface_type(self.interface_name)
+        return Interface().get_os_interface_type_extened(self.interface_name)
 
     def get_interface_name(self) -> str:
         """
@@ -160,7 +166,7 @@ class NetInterface:
         Returns:
             bool: True if the interface exists, False otherwise.
         """
-        return Interface().does_interface_exist(self.interface_name)
+        return Interface().does_os_interface_exist(self.interface_name)
 
     def interface_exist_db(self) -> bool:
         """
@@ -169,7 +175,7 @@ class NetInterface:
         Returns:
             bool: True if the interface exists in the database, False otherwise.
         """
-        if self.interface_name in Interface().get_interface_via_db():
+        if self.interface_name in Interface().get_db_interface_names():
             return True
         return False
     
@@ -189,7 +195,7 @@ class NetInterface:
         Returns:
             State: The current shutdown state of the interface.
         """
-        state = Interface().get_interface_info(self.interface_name).get('state')
+        state = Interface().get_os_interface_hardware_info(self.interface_name).get('state')
         return State[state.upper()] if state else None
 
     def set_interface_shutdown_state(self, state: State) -> bool:
@@ -211,7 +217,7 @@ class NetInterface:
         Returns:
             Speed: The current speed of the interface.
         """
-        speed = Interface().get_interface_info(self.interface_name).get('speed')
+        speed = Interface().get_os_interface_hardware_info(self.interface_name).get('speed')
         return Speed[speed.upper()] if speed else Speed.NONE
 
     def set_interface_speed(self, speed: Speed) -> bool:

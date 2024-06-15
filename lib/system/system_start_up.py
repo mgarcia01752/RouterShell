@@ -106,10 +106,10 @@ class SystemStartUp(Interface):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
 
-        if not self.get_interface_via_db():
+        if not self.fetch_db_interface_names():
             self.update_interface_db_from_os()
             
-        self.update_rename_interface_via_os()
+        self.set_os_rename_interface()
         
         self.log.debug('Loading........')
         CopyStartRun().read_start_config()
@@ -152,7 +152,7 @@ class SystemReset(Interface):
         Interface().flush_interfaces()
                 
         # Revert Interfaces back to the original interface name
-        Interface().update_rename_interface_via_os(reverse=True)
+        Interface().set_os_rename_interface(reverse=True)
 
 class SystemFactoryReset():
     def __init__(self):

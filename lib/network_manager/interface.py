@@ -52,7 +52,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.run(['sudo', 'ip', 'neigh', 'flush', 'all'], suppress_error=True)
         return STATUS_OK
 
-    def get_network_interfaces(self) -> List[str]:
+    def get_os_network_interfaces(self) -> List[str]:
         """
         Get a list of network interface names (excluding bridges) using the 'ip' command with --json option.
 
@@ -82,7 +82,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error decoding JSON: {e}")
             return []
 
-    def get_interface_type_via_iproute(self, interface_name:str) -> InterfaceType:
+    def get_os_interface_type(self, interface_name:str) -> InterfaceType:
         """
             Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
@@ -124,7 +124,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             
         return InterfaceType.UNKNOWN
 
-    def get_interface_type(self, interface_name: str) -> InterfaceType:
+    def get_os_interface_type_extened(self, interface_name: str) -> InterfaceType:
         """
         Get the type of a network interface using lshw.
 
@@ -137,10 +137,10 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             InterfaceType: An enumeration representing the type of the network interface.
         """
-        interface_info = self.get_interface_info(interface_name)
+        interface_info = self.get_os_interface_hardware_info(interface_name)
         
         if not interface_info:
-            if_type =  self.get_interface_type_via_iproute(interface_name)
+            if_type =  self.get_os_interface_type(interface_name)
             return if_type
         
         elif interface_info.get('capabilities', {}).get('wireless'):
@@ -152,9 +152,9 @@ class Interface(NetworkManager, InterfaceDatabase):
         elif interface_info.get('configuration', {}).get('duplex'):
             return InterfaceType.ETHERNET
         
-        return self.get_interface_type_via_iproute(interface_name)
+        return self.get_os_interface_type(interface_name)
 
-    def get_interface_type_via_db(self, interface_name) -> InterfaceType:
+    def get_db_interface_type(self, interface_name) -> InterfaceType:
         """
         Get the interface type for a specified interface name from the database.
 
@@ -175,7 +175,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return InterfaceType.UNKNOWN
 
-    def does_interface_exist(self, interface_name: str) -> bool:
+    def does_os_interface_exist(self, interface_name: str) -> bool:
         """
         Determine if a network interface with the specified name exists on the current system.
 
@@ -204,7 +204,20 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"{e}")
             return False
 
-    def add_interface_entry(self, interface_name: str, ifType: InterfaceType) -> bool:
+    def does_db_interface_exist(self, interface_name: str) -> bool:
+        """
+        Determine if a network interface with the specified name exists on the DB.
+        Args:
+            interface_name (str): The name of the network interface to be checked.
+
+        Returns:
+            bool: A boolean value indicating the existence of the specified interface in the DB.
+            - True: The interface exists.
+            - False: otherwise
+        """        
+        return self.db_lookup_interface_exists(interface_name).status
+
+    def add_db_interface_entry(self, interface_name: str, ifType: InterfaceType) -> bool:
         """
         Add an interface entry to the database.
 
@@ -420,9 +433,9 @@ class Interface(NetworkManager, InterfaceDatabase):
             return STATUS_NOK
         return STATUS_OK
     
-    def create_loopback(self, interface_name:str) -> bool:
+    def create_os_loopback(self, interface_name:str) -> bool:
         """
-        Create a loopback interface with the specified name.
+        Create a loopback interface with the specified name to OS.
 
         Args:
             interface_name (str): The name for the loopback interface.
@@ -491,11 +504,11 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
         self.log.debug(f"rename_interface() -> if: {initial_interface_name} -> alias-if: {alias_interface_name}")
         
-        if not self.does_interface_exist(initial_interface_name):
+        if not self.does_os_interface_exist(initial_interface_name):
             self.log.error(f"Interface: {initial_interface_name} does not exists")
             return STATUS_NOK        
 
-        bus_info = self.get_interface_info(initial_interface_name)['businfo']
+        bus_info = self.get_os_interface_hardware_info(initial_interface_name)['businfo']
         
         result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
                 
@@ -513,7 +526,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK        
 
-    def update_rename_interface_via_os(self, reverse=False) -> bool:
+    def set_os_rename_interface(self, reverse=False) -> bool:
         """
         Update and rename network interfaces via the operating system.
 
@@ -526,7 +539,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the update and rename process is successful for all interfaces, STATUS_NOK otherwise.
         """
-        for alias in self.get_interface_aliases():
+        for alias in self.get_db_interface_aliases():
             original_name = alias['InterfaceName']
             alias_name = alias['AliasInterface']
 
@@ -727,9 +740,9 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def get_interface_info(self, interface_name: str) -> dict:
+    def get_os_interface_hardware_info(self, interface_name: str) -> dict:
         """
-        Retrieve information about network interfaces using lshw.
+        Retrieve information about hardware network interfaces.
 
         Args:
             interface_name (str): The name of the network interface to retrieve information for.
@@ -788,17 +801,17 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             bool: STATUS_OK if the update process is successful, STATUS_NOK otherwise.
         """
-        for if_name in self.get_network_interfaces():
+        for if_name in self.get_os_network_interfaces():
             
             if interface_name is not None and if_name != interface_name or not self.db_lookup_interface_exists(if_name):
                 self.log.debug(f"Unknown interface: {if_name}")
                 continue
             
-            if_type = self.get_interface_type(if_name)
+            if_type = self.get_os_interface_type_extened(if_name)
                        
             if if_type != InterfaceType.UNKNOWN:
                 self.log.debug(f"Adding Interface: {if_name} -> if-type: {if_type.name} to DB")
-                self.add_interface_entry(if_name, if_type)
+                self.add_db_interface_entry(if_name, if_type)
                 self.update_interface_description(if_name,f'Interface Type: {if_type.name}')
                 self.update_shutdown(if_name, State.UP)
 
@@ -827,7 +840,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
 
-    def get_interface_via_db(self) -> List[str]:
+    def fetch_db_interface_names(self) -> List[str]:
         """
         Get a list of all interface names from DB.
 
@@ -852,7 +865,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         if interface_name:
             self.flush_interface(interface_name)
         else:
-            for if_name in self.get_interface_via_db():
+            for if_name in self.get_db_interface_names():
                 self.flush_interface(if_name)
 
         return STATUS_OK

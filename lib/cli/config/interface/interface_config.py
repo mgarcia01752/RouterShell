@@ -36,6 +36,8 @@ class InterfaceConfig(CmdPrompt):
         self.log.setLevel(RSLGS().IF_CONFIG)
         self.net_interface = net_interface
         self.ifName = net_interface.get_interface_name()
+        
+        self.log.debug(f'Interface: {net_interface.get_interface_name()}')
                
     def interfaceconfig_help(self, args: List=None) -> None:
         """
@@ -402,3 +404,5 @@ class InterfaceConfig(CmdPrompt):
             print(f"No negate option for {start_cmd}")
         
         return STATUS_OK
+    
+    

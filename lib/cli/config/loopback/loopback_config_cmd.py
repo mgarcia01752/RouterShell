@@ -24,13 +24,14 @@ class LoopbackConfigCmd(ConfigurePrompt):
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().LOOPBACK_CONFIG_CMD)
+        self.log.setLevel(logging.DEBUG)
         self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name}')
         
         ni = CreateLoopBackNetInterface(loopback_name=loopback_name[0]).getNetworkInterface()
         self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name} -> {ni.get_ifType().value}')
 
         self.register_top_lvl_cmds(LoopbackConfig(net_interface=ni))    
-        self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name}')
+        
         
     def intro(self) -> str:
         return f'Starting Loopback Config....'

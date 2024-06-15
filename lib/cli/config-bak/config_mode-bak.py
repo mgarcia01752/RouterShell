@@ -96,7 +96,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
     def complete_interface(self, text, line, begidx, endidx):
         completions = ['loopback', 'vlan']
         '''Dynamically add interfaces to tab completion'''
-        completions.extend(Interface().get_network_interfaces())
+        completions.extend(Interface().get_os_network_interfaces())
         return [comp for comp in completions if comp.startswith(text)]
     
     @cmd2.with_argument_list
@@ -305,7 +305,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
     def complete_rename(self, text, line, begidx, endidx):
         completions = ['if', 'if-alias']
-        completions.extend(Interface().get_network_interfaces())
+        completions.extend(Interface().get_os_network_interfaces())
         return [comp for comp in completions if comp.startswith(text)]
 
     def do_rename(self, args: str, negate: bool = False) -> None:

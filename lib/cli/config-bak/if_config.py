@@ -47,34 +47,34 @@ class InterfaceConfig(cmd2.Cmd,
             if ifType == InterfaceType.LOOPBACK.value:
                 self.log.debug(f"Creating {if_config_interface_name} if it does not exists....")
                 
-                if not self.does_interface_exist(if_config_interface_name):
+                if not self.does_os_interface_exist(if_config_interface_name):
                     self.log.debug(f"Creating Loopback {if_config_interface_name}")
-                    if self.create_loopback(if_config_interface_name):
+                    if self.create_os_loopback(if_config_interface_name):
                         return None
                     
                     else:
                         self.log.debug(f"Adding Loopback to DB")
-                        self.add_interface_entry(if_config_interface_name, InterfaceType.LOOPBACK)
+                        self.add_db_interface_entry(if_config_interface_name, InterfaceType.LOOPBACK)
                 
                 else:
                     self.log.debug(f"Not Creating Loopback {if_config_interface_name}")
         else:
                     
-            if not self.does_interface_exist(if_config_interface_name):             
+            if not self.does_os_interface_exist(if_config_interface_name):             
                 print(f"Interface {if_config_interface_name} does not exists.")
                 RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)
                 self.do_end()
 
             self.log.debug(f"interface: {if_config_interface_name} is not a loopback or vlan....")
             
-            if if_config_interface_name in self.get_interface_via_db():
-                self.interface_type = self.get_interface_type_via_db(if_config_interface_name)    
+            if if_config_interface_name in self.get_db_interface_names():
+                self.interface_type = self.get_db_interface_type(if_config_interface_name)    
             
             else:
-                self.interface_type = self.get_interface_type_via_iproute(if_config_interface_name)
+                self.interface_type = self.get_os_interface_type(if_config_interface_name)
                 self.log.debug(f'Interface: {if_config_interface_name} -> Type: {self.interface_type}')
                 
-                if self.add_interface_entry(if_config_interface_name, self.interface_type):
+                if self.add_db_interface_entry(if_config_interface_name, self.interface_type):
                     self.log.debug(f"Unable to add interface: {if_config_interface_name} to DB")
 
         self.PROMPT_CMD_ALIAS = self.interface_type.value
