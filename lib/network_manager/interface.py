@@ -82,46 +82,50 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error decoding JSON: {e}")
             return []
 
-    def get_os_interface_type(self, interface_name:str) -> InterfaceType:
+    def get_os_interface_type(self, interface_name: str) -> InterfaceType:
         """
-            Get the type of a network interface (physical, virtual, or VLAN) based on its name.
+        Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
-            Args:
-                interface_name (str): The name of the network interface to query.
+        Args:
+            interface_name (str): The name of the network interface to query.
 
-            Returns:
-                str: The type of the interface, which can be 'Physical', 'Virtual', 'VLAN', or 'Unknown'.
-                    Returns 'None' if the interface is not found.
+        Returns:
+            InterfaceType: The type of the interface, which can be 'ETHERNET', 'VIRTUAL', 'VLAN', 'BRIDGE', 'LOOPBACK', or 'UNKNOWN'.
         """
+        result = self.run(['ip', '-json', 'link', 'show', interface_name], suppress_error=True)
+        self.log.debug(f"get_os_interface_type() -> stdout: {result.stdout}")
 
-        result = self.run(['ip', 'link', 'show' , interface_name], suppress_error=True)
-        self.log.debug(f"get_interface_type() -> sdtout: {result.stdout}")
-        
         if result.exit_code:
-            self.log.debug(f"get_interface_type() -> Interface Not Found: {interface_name}")
+            self.log.debug(f"get_os_interface_type() -> Interface Not Found: {interface_name}")
             return InterfaceType.UNKNOWN
-        
-        # Split the output into lines
-        lines = result.stdout.split('\n')
-        
-        for line in lines:
-            self.log.debug(f"Line {line}")
 
-            if 'link/ether' in line:
-                return InterfaceType.ETHERNET
+        try:
+            interfaces = json.loads(result.stdout)
+        except json.JSONDecodeError as e:
+            self.log.error(f"Failed to decode JSON: {e}")
+            return InterfaceType.UNKNOWN
 
-            elif 'link/tun' in line or 'link/tap' in line:
-                return InterfaceType.VIRTUAL
+        if not interfaces:
+            self.log.debug(f"get_os_interface_type() -> No interfaces found for: {interface_name}")
+            return InterfaceType.UNKNOWN
 
-            elif 'vlan' in line:
-                return InterfaceType.VLAN
+        interface = interfaces[0]
+        self.log.debug(f"Parsed interface JSON: {interface}")
 
-            elif 'bridge' in line:
-                return InterfaceType.BRIDGE
+        link_type = interface.get('link_type', '')
+        self.log.debug(f"Detected link type: {link_type}")
 
-            elif 'link/loopback' in line:
-                return InterfaceType.LOOPBACK
-            
+        if link_type == 'ether':
+            return InterfaceType.ETHERNET
+        elif link_type in ['tun', 'tap']:
+            return InterfaceType.VIRTUAL
+        elif link_type == 'vlan':
+            return InterfaceType.VLAN
+        elif link_type == 'bridge':
+            return InterfaceType.BRIDGE
+        elif link_type == 'loopback':
+            return InterfaceType.LOOPBACK
+
         return InterfaceType.UNKNOWN
 
     def get_os_interface_type_extened(self, interface_name: str) -> InterfaceType:

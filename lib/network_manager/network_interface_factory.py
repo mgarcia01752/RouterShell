@@ -37,7 +37,8 @@ class CreateLoopBackNetInterface:
                 self.log.debug(f'Loopback: {loopback_name} does not exist in DB...adding')
                 Interface().update_interface_db_from_os(loopback_name)
         
-        elif Interface().create_os_loopback(loopback_name):
+        elif not Interface().create_os_loopback(loopback_name):
+            self.log.debug(f'Loopback: {loopback_name} didn not exist on OS...Added to OS')
             
             if Interface().add_db_interface_entry(interface_name=loopback_name, ifType=InterfaceType.LOOPBACK):
                 raise InvalidNetInterface(f"Unable to add {loopback_name} interface db entry.")
