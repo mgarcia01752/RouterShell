@@ -127,4 +127,6 @@ class LoopbackConfig(CmdPrompt):
         else:
             print(f"Invalid argument: {args}")
         
-        return STATUS_OK    
+        return STATUS_OK
+    
+    def loopbackconfig_no(self, args: List=None) -> bool:   
