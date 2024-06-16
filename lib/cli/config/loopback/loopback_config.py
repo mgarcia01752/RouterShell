@@ -134,8 +134,10 @@ class LoopbackConfig(CmdPrompt):
                   configuration is destroyed successfully. STATUS_NOK otherwise.
         """
         if 'YES' in args:
+            self.log.debug(f'Destroying Loopback: {self.net_interface.interface_name}')
             return self.net_interface.destroy()
-        return self.STATUS_OK   
+        
+        return STATUS_OK   
         
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['ip', 'ipv6', 'shutdown'])         
     def loopbackconfig_no(self, args: List=None) -> bool:
