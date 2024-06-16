@@ -450,11 +450,30 @@ class Interface(NetworkManager, InterfaceDatabase):
         result = self.run(['ip', 'link', 'add', 'name', interface_name , 'type', 'dummy'], suppress_error=True)
         
         if result.exit_code:
-            self.log.error(f'Error creating loopback -> {interface_name}')
+            self.log.error(f'Error creating loopback -> {interface_name}, Reason: {result.stderr}')
             return STATUS_NOK
         
         self.log.debug(f'Created {interface_name} Loopback')
         
+        return STATUS_OK
+
+    def destroy_os_loopback(self, interface_name: str) -> bool:
+        """
+        Destroy a loopback interface with the specified name on the OS.
+
+        Args:
+            interface_name (str): The name of the loopback interface to destroy.
+
+        Returns:
+            bool: STATUS_OK if the loopback interface was destroyed successfully, STATUS_NOK otherwise.
+        """
+        result = self.run(['ip', 'link', 'delete', interface_name, 'type', 'dummy'], suppress_error=True)
+
+        if result.exit_code:
+            self.log.error(f'Error destroying loopback -> {interface_name}, Reason: {result.stderr}')
+            return STATUS_NOK
+
+        self.log.debug(f'Destroyed {interface_name} Loopback')
         return STATUS_OK
     
     def update_interface_vlan(self, interface_name:str, vlan_id:int=1000) -> bool:

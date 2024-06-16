@@ -293,3 +293,14 @@ class NetInterface:
     def add_static_arp(self, inet_address:str, mac_addr:str, negate: bool=False) -> bool:
         return STATUS_OK
 
+    def destroy(self) -> bool:
+        
+        if Interface().del_db_interface(self.interface_name):
+            self.log.error(f'Failed to delete interface {self.interface_name} from database')
+            return STATUS_NOK
+        
+        if Interface().destroy_os_loopback(self.interface_name):
+            self.log.error(f'Failed to delete interface {self.interface_name} from OS')
+            return STATUS_NOK           
+        
+        return STATUS_OK

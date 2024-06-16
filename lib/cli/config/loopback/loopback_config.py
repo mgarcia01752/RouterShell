@@ -113,6 +113,29 @@ class LoopbackConfig(CmdPrompt):
         except Exception as e:
             self.log.debug(f'Error in loopbackconfig_shutdown: {e}')
             return STATUS_NOK
+
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['YES'])
+    def loopbackconfig_destroy(self, args: List=None) -> bool:
+        """
+        Destroys a loopback configuration if the confirmation argument 'YES' is provided.
+
+        This method is registered as a sub-command and checks if the 'YES' argument is 
+        present in the provided arguments. If 'YES' is present, it calls the destroy 
+        method on the network interface. Otherwise, it returns STATUS_OK without 
+        performing any action.
+
+        Args:
+            args (List, optional): A list of arguments. The method checks for the presence
+                                   of 'YES' in this list to confirm the destruction of 
+                                   the loopback configuration.
+
+        Returns:
+            bool: STATUS_OK if the 'YES' argument is not provided or if the loopback 
+                  configuration is destroyed successfully. STATUS_NOK otherwise.
+        """
+        if 'YES' in args:
+            return self.net_interface.destroy()
+        return self.STATUS_OK   
         
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['ip', 'ipv6', 'shutdown'])         
     def loopbackconfig_no(self, args: List=None) -> bool:
@@ -129,4 +152,3 @@ class LoopbackConfig(CmdPrompt):
         
         return STATUS_OK
     
-    def loopbackconfig_no(self, args: List=None) -> bool:   

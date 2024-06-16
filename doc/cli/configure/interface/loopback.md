@@ -9,7 +9,7 @@
       [no] [ip address <ip-address>/<CIDR> [secondary]]
       [no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]
       [no] shutdown
-      destroy
+      destroy YES
    end
 ```
 
@@ -86,11 +86,6 @@ To remove the configuration or the loopback interface, use the following command
 
 ```plaintext
 interface loopback0
-   no description
-   no mac
-   no ip address
-   no ipv6 address
-   shutdown
-   destroy
+   destroy YES
 end
 ```
