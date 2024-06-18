@@ -48,62 +48,6 @@ class InterfaceShow(Interface):
     def show_ip_interface_brief(self):
         """
         Display a brief summary of IP interfaces.
-
-        This function retrieves IP interface information using the `get_ip_addr_info` method and
-        displays it in a tabular format. It includes interface name (with labels as separate entries for 'lo'),
-        MAC address, IP addresses (both IPv4 and IPv6), operational state, and protocol.
-
-        If no IP address is assigned to an interface, it is marked as "unassigned."
-
-        The output is printed to the console.
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-        ip_info_json = self.get_ip_addr_info()
-        
-        table = []
-        for interface in ip_info_json:
-            interface_name = interface["ifname"]
-            mac = interface.get("address", "N/A")
-            inet_addresses = []
-            inet6_addresses = []
-            
-            for addr_info in interface["addr_info"]:
-                if interface_name == "lo":
-                    labels = addr_info.get("label", "").split(":")
-                else:
-                    labels = [""]
-                
-                if addr_info["family"] == "inet":
-                    address = addr_info["local"]
-                    if self.is_secondary_address(interface, address):
-                        address += " (s)"
-                    inet_addresses.append(address)
-                    for label in labels:
-                        table.append([f"{interface_name} ({label})", mac, address, "N/A", interface.get("operstate", "N/A"), interface.get("link_type", "N/A")])
-
-                elif addr_info["family"] == "inet6":
-                    address = addr_info["local"]
-                    inet6_addresses.append(address)
-                    for label in labels:
-                        table.append([f"{interface_name} ({label})", mac, "N/A", address, interface.get("operstate", "N/A"), interface.get("link_type", "N/A")])
-
-            if interface_name != "lo":
-                if not inet_addresses:
-                    table.append([interface_name, mac, "unassigned", "N/A", interface.get("operstate", "N/A"), interface.get("link_type", "N/A")])
-                if not inet6_addresses:
-                    table.append([interface_name, mac, "N/A", "unassigned", interface.get("operstate", "N/A"), interface.get("link_type", "N/A")])
-
-        headers = ["Interface", "mac", "inet", "inet6", "state", "protocol"]
-        print(tabulate(table, headers, tablefmt="simple"))
-
-    def show_ip_interface_brief(self):
-        """
-        Display a brief summary of IP interfaces.
         
         This function retrieves IP interface information using the `get_ip_addr_info` method and
         displays it in a tabular format. It includes interface name, MAC address, IP addresses
@@ -128,24 +72,28 @@ class InterfaceShow(Interface):
             inet_addresses = []
             inet6_addresses = []
             
-            # Dictionary to hold addresses by label for the 'lo' interface
             label_dict = {}
             
             for addr_info in interface["addr_info"]:
-                # Check if it's the 'lo' interface
                 if interface_name == "lo":
-                    label = addr_info.get("label", "")
-                    if label not in label_dict:
-                        label_dict[label] = {"inet": [], "inet6": []}
+                    label = addr_info.get("label", "lo")
+                    
+                    if ":" in label:
+                        _, sub_label = label.split(":")
+                    else:
+                        _, sub_label = label, ""
+
+                    if sub_label not in label_dict:
+                        label_dict[sub_label] = {"inet": [], "inet6": []}
                     
                     if addr_info["family"] == "inet":
                         address = addr_info["local"]
                         if self.is_secondary_address(interface, address):
                             address += " (s)"
-                        label_dict[label]["inet"].append(address)
+                        label_dict[sub_label]["inet"].append(address)
                     elif addr_info["family"] == "inet6":
                         address = addr_info["local"]
-                        label_dict[label]["inet6"].append(address)
+                        label_dict[sub_label]["inet6"].append(address)
                 
                 # Handle non-'lo' interfaces
                 else:
@@ -160,10 +108,11 @@ class InterfaceShow(Interface):
             # Extract state from flags for 'lo' interface
             if interface_name == "lo":
                 state = "UP" if "UP" in interface["flags"] else "DOWN"
-                for label, addresses in label_dict.items():
+                for sub_label, addresses in label_dict.items():
                     inet_str = "\n".join(addresses["inet"]) if addresses["inet"] else "unassigned"
                     inet6_str = "\n".join(addresses["inet6"]) if addresses["inet6"] else "unassigned"
-                    table.append([f"{interface_name} ({label})", mac, inet_str, inet6_str, state, interface.get("link_type", "N/A")])
+                    interface_display_name = f"{interface_name} ({sub_label})" if sub_label else interface_name
+                    table.append([interface_display_name, mac, inet_str, inet6_str, state, interface.get("link_type", "N/A")])
             
             # Add entries for non-'lo' interfaces
             else:
