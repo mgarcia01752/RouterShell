@@ -56,6 +56,9 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         Args:
             interface_type (Optional[InterfaceType]): The type of network interface to retrieve.
+                - InterfaceType.LOOPBACK: Retrieve loopback interfaces.
+                - InterfaceType.ETHERNET: Retrieve Ethernet interfaces.
+                - InterfaceType.WIRELESS: Retrieve wireless interfaces.
 
         Returns:
             List[str]: A list of network interface names of the specified type, or all if no type is specified.
@@ -67,22 +70,24 @@ class Interface(NetworkManager, InterfaceDatabase):
             return []
 
         interfaces = []
-        for line in output.stdout.split('\n')[2:]:
+        for line in output.stdout.split('\n')[2:]:  # Skip header lines
             if not line.strip():
                 continue
+            
             parts = line.split()
-            iface_name = parts[-1]
+            description = ' '.join(parts[1:-1])
+            iface_name = parts[1] if len(parts) > 1 else ""
 
             if interface_type is None:
                 interfaces.append(iface_name)
             elif interface_type == InterfaceType.LOOPBACK:
-                if 'loopback' in iface_name:
+                if 'loopback' in iface_name.lower():
                     interfaces.append(iface_name)
             elif interface_type == InterfaceType.ETHERNET:
-                if 'Ethernet' in ' '.join(parts):
+                if 'Ethernet' in description:
                     interfaces.append(iface_name)
             elif interface_type == InterfaceType.WIRELESS_WIFI:
-                if 'Wireless' in ' '.join(parts):
+                if 'Wireless' in description:
                     interfaces.append(iface_name)
 
         return interfaces
