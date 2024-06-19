@@ -1,5 +1,3 @@
-Your updated wiki on dummy interfaces looks comprehensive and clear. Here are a few minor adjustments and suggestions for clarity:
-
 # Dummy Interfaces
 
 A dummy interface is a software-based virtual interface that behaves like a network interface but doesn't correspond to any physical hardware. It is often used for testing, development, or as a placeholder for various network configurations and services.
