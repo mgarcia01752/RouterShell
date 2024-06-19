@@ -16,7 +16,7 @@ from lib.network_manager.dhcp_client import DHCPVersion
 from lib.network_manager.dhcp_server import DHCPServer
 from lib.network_manager.interface import Interface
 from lib.network_manager.nat import NATDirection
-from lib.network_manager.network_interface_factory import NetInterface
+from lib.network_manager.network_interfaces.network_interface_factory import NetInterface
 
 class InterfaceConfigError(Exception):
     """Custom exception for InterfaceConfig errors."""

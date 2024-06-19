@@ -7,19 +7,19 @@ from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.phy import State
-from lib.network_manager.network_interface_factory import NetInterface
+from lib.network_manager.network_interfaces.network_interface_factory import LoopbackInterface
 
 class LoopbackConfig(CmdPrompt):
 
-    def __init__(self, net_interface: NetInterface) -> None:
+    def __init__(self, loopback_interface: LoopbackInterface) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().LOOPBACK_CONFIG)
         
-        self.net_interface = net_interface
+        self.lo_interface = loopback_interface
         
-        self.log.debug(f'Loopback: {net_interface.get_interface_name()}')
+        self.log.debug(f'Loopback: {loopback_interface.get_interface_name()}')
                
     def loopbackconfig_help(self, args: List=None) -> None:
         """
@@ -51,10 +51,10 @@ class LoopbackConfig(CmdPrompt):
             successful.
         """
         self.log.debug(f'loopbackconfig_description -> {line}')
-        self.net_interface.set_description(Common.flatten_list(line))
+        self.lo_interface.set_description(Common.flatten_list(line))
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])         
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'])         
     def loopbackconfig_ip(self, args: List[str] = None, negate: bool = False) -> bool:
         """
         Configures the IP address of the loopback interface.
@@ -78,7 +78,7 @@ class LoopbackConfig(CmdPrompt):
                 secondary_addr = 'secondary' in args
                 self.log.debug(f'Inet: {args[1]}, Secondary: {secondary_addr}, Negate: {negate}')
                 
-                self.net_interface.add_inet_address(args[1], secondary_addr, negate)
+                self.lo_interface.add_inet_address(args[1], secondary_addr, negate)
                 return STATUS_OK
             else:
                 self.log.debug(f'Invalid IP address or missing "address" keyword: {args}')
@@ -88,7 +88,7 @@ class LoopbackConfig(CmdPrompt):
             self.log.debug(f'Error in loopbackconfig_ip: {e}')
             return STATUS_NOK
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])         
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'])         
     def loopbackconfig_ipv6(self, args: List=None, negate: bool=False) -> bool:
         self.log.debug(f'loopbackconfig_ipv6 -> {args}')
         return STATUS_OK
@@ -108,7 +108,7 @@ class LoopbackConfig(CmdPrompt):
         try:
             self.log.debug(f'loopbackconfig_shutdown -> {args}')
             state = State.UP if negate else State.DOWN
-            self.net_interface.set_interface_shutdown_state(state)
+            self.lo_interface.set_interface_shutdown_state(state)
             return STATUS_OK
         except Exception as e:
             self.log.debug(f'Error in loopbackconfig_shutdown: {e}')
@@ -134,8 +134,8 @@ class LoopbackConfig(CmdPrompt):
                   configuration is destroyed successfully. STATUS_NOK otherwise.
         """
         if 'YES' in args:
-            self.log.debug(f'Destroying Loopback: {self.net_interface.interface_name}')
-            return self.net_interface.destroy()
+            self.log.debug(f'Destroying Loopback: {self.lo_interface.interface_name}')
+            return self.lo_interface.destroy()
         
         return STATUS_OK   
         

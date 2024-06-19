@@ -5,18 +5,15 @@ import re
 from typing import List, Optional, Union
 
 from lib.db.interface_db import InterfaceDatabase
-from lib.network_manager.arp import Arp, Encapsulate
-
-from lib.network_manager.bridge import Bridge, BridgeProtocol as BrProc
-from lib.network_manager.dhcp_client import DHCPClient, DHCPVersion
-from lib.network_manager.network_mgr import NetworkManager
-from lib.network_manager.vlan import Vlan
 from lib.network_manager.common.interface import InterfaceType 
-from lib.network_manager.nat import Nat, NATDirection
 from lib.network_manager.common.phy import Duplex, Speed, State
-
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK, Common
+from lib.network_manager.network_operations.arp import Arp, Encapsulate
+from lib.network_manager.network_operations.bridge import Bridge, BridgeProtocol
+from lib.network_manager.network_operations.dhcp_client import DHCPClient, DHCPVersion
+from lib.network_manager.network_operations.nat import NATDirection
+from lib.network_manager.network_operations.network_mgr import NetworkManager
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -30,7 +27,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.setLevel(RSLGS().INTERFACE)
         self.arg = arg
 
-    def clear_interface_arp(self, interface_name: str = None) -> bool:
+    def clear_interface_arp(self, interface_name: str=None) -> bool:
         """
         Clear the ARP cache for a specific network interface using iproute2.
 
@@ -51,13 +48,21 @@ class Interface(NetworkManager, InterfaceDatabase):
             # Clear the ARP cache for all interfaces
             self.run(['sudo', 'ip', 'neigh', 'flush', 'all'], suppress_error=True)
         return STATUS_OK
-
-    def get_os_network_interfaces(self) -> List[str]:
+    
+    def get_os_network_interfaces(self, include_loopbacks: bool = True) -> List[str]:
         """
-        Get a list of network interface names (excluding bridges) using the 'ip' command with --json option.
+        Retrieve a list of network interfaces present on the system.
+
+        This method uses the 'ip -json link show' command to get detailed information about
+        network interfaces. It parses the JSON output to extract interface names, optionally
+        including loopback interface labels if specified.
+
+        Args:
+            include_loopbacks (bool): If True, include loopback interface labels in the returned list.
 
         Returns:
-            List[str]: A list of network interface names.
+            List[str]: A list of network interface names present on the system. If an error occurs,
+            an empty list is returned.
         """
         result = self.run(['ip', '-json', 'link', 'show'])
 
@@ -66,23 +71,77 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         try:
             data = json.loads(result.stdout)
+            
             if isinstance(data, dict):
                 interfaces = data.get("link", [])
             elif isinstance(data, list):
                 interfaces = data
             else:
-                print("Unexpected JSON format")
+                self.log.error("Unexpected JSON format")
                 return []
 
             # Filter out interfaces based on your criteria (e.g., excluding bridges)
             interface_list = [iface["ifname"] for iface in interfaces if "BROADCAST,MULTICAST" not in iface.get("flags", [])]
+            
+            if include_loopbacks:
+                interface_list += self.get_os_lo_labels()
+            
             return interface_list
-        
+
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {e}")
+            self.log.error(f"JSON decoding error: {e}")
             return []
 
-    def get_os_interface_type(self, interface_name: str) -> InterfaceType:
+    def does_os_interface_exist(self, interface_name: str, include_loopbacks: bool=True) -> bool:
+        """
+        Determine if a network interface with the specified name exists on the current system.
+
+        This method utilizes the 'ip -json address show' command to retrieve a list of all network interfaces
+        present on the system and subsequently verifies if the provided interface name is included in the
+        command's output. It also checks for labeled sub-interfaces of loopback.
+
+        Args:
+            interface_name (str): The name of the network interface to be checked.
+            include_loopbacks (bool): Whether to include loopback interfaces in the check.
+
+        Returns:
+            bool: A boolean value indicating the existence of the specified interface.
+            - True: The interface exists.
+            - False: otherwise
+        """
+        try:
+            result = self.run(['ip', '-json', 'address', 'show'], suppress_error=True)
+            
+            if result.exit_code:
+                self.log.debug(f"does_os_interface_exist() returned a non-zero exit code: {result.exit_code}")
+                return False
+            
+            interfaces = json.loads(result.stdout)
+            
+            for interface in interfaces:
+                ifname = interface.get("ifname", "")
+                
+                # Check for the main interface
+                if ifname == interface_name:
+                    if "loopback" in interface.get("link_type", "") and not include_loopbacks:
+                        continue
+                    return True
+                
+                # Check for labeled sub-interfaces under loopback (lo)
+                if ifname == "lo" and include_loopbacks:
+                    for addr_info in interface.get("addr_info", []):
+                        label = addr_info.get("label", "")
+                        if label == interface_name:
+                            return True
+
+            self.log.debug(f"Interface '{interface_name}' does not exist")
+            return False
+                
+        except Exception as e:
+            self.log.error(f"Exception in does_os_interface_exist: {e}")
+            return False
+
+    def get_os_interface_type(self, interface_name: str, include_loopback_labels: bool=True) -> InterfaceType:
         """
         Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
@@ -92,6 +151,12 @@ class Interface(NetworkManager, InterfaceDatabase):
         Returns:
             InterfaceType: The type of the interface, which can be 'ETHERNET', 'VIRTUAL', 'VLAN', 'BRIDGE', 'LOOPBACK', or 'UNKNOWN'.
         """
+        
+        if include_loopback_labels:
+            if interface_name in Interface().get_os_lo_labels():
+                self.log.debug(f'interface" {interface_name} is a type {InterfaceType.LOOPBACK.value}')
+                return InterfaceType.LOOPBACK
+        
         result = self.run(['ip', '-json', 'link', 'show', interface_name], suppress_error=True)
         self.log.debug(f"get_os_interface_type() -> stdout: {result.stdout}")
 
@@ -178,35 +243,6 @@ class Interface(NetworkManager, InterfaceDatabase):
                         return interface_enum
 
         return InterfaceType.UNKNOWN
-
-    def does_os_interface_exist(self, interface_name: str) -> bool:
-        """
-        Determine if a network interface with the specified name exists on the current system.
-
-        This method utilizes the 'ip link' command to retrieve a list of all network interfaces
-        present on the system and subsequently verifies if the provided interface name is
-        included in the command's output.
-
-        Args:
-            interface_name (str): The name of the network interface to be checked.
-
-        Returns:
-            bool: A boolean value indicating the existence of the specified interface.
-            - True: The interface exists.
-            - False: otherwise
-        """
-        try:
-            result = self.run(['ip', 'link', 'show', interface_name], suppress_error=True)
-
-            if result.exit_code:
-                self.log.debug(f"does_interface_exist() return a non-zero: {result.exit_code}")
-                return False
-                
-            return True
-            
-        except Exception as e:
-            self.log.error(f"{e}")
-            return False
 
     def does_db_interface_exist(self, interface_name: str) -> bool:
         """
@@ -416,7 +452,9 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.debug(f"update_shutdown() -> interface_name: {interface_name} -> State: {state} via os")
         return self.set_interface_shutdown(interface_name, state)
  
-    def update_interface_bridge_group(self, interface_name:str, br_id:str, stp_protocol:BrProc=BrProc.IEEE_802_1D) -> bool:
+    def update_interface_bridge_group(self, interface_name:str, 
+                                      br_id:str, 
+                                      stp_protocol:BridgeProtocol = BridgeProtocol.IEEE_802_1D) -> bool:
         """
         Set the bridge group and Spanning Tree Protocol (STP) configuration for a network interface.
 
@@ -437,43 +475,43 @@ class Interface(NetworkManager, InterfaceDatabase):
             return STATUS_NOK
         return STATUS_OK
     
-    def create_os_loopback(self, interface_name:str) -> bool:
+    def create_os_dummy_interface(self, interface_name:str) -> bool:
         """
-        Create a loopback interface with the specified name to OS.
+        Create a dummy interface with the specified name to OS.
 
         Args:
-            interface_name (str): The name for the loopback interface.
+            interface_name (str): The name for the dummy interface.
 
         Returns:
-            bool: STATUS_OK if the loopback interface was created successfully, STATUS_NOK otherwise.
+            bool: STATUS_OK if the dummy interface was created successfully, STATUS_NOK otherwise.
         """
         result = self.run(['ip', 'link', 'add', 'name', interface_name , 'type', 'dummy'], suppress_error=True)
         
         if result.exit_code:
-            self.log.error(f'Error creating loopback -> {interface_name}, Reason: {result.stderr}')
+            self.log.error(f'Error creating dummy -> {interface_name}, Reason: {result.stderr}')
             return STATUS_NOK
         
-        self.log.debug(f'Created {interface_name} Loopback')
+        self.log.debug(f'Created {interface_name} Dummy')
         
         return STATUS_OK
 
-    def destroy_os_loopback(self, interface_name: str) -> bool:
+    def destroy_os_dummy_interface(self, interface_name: str) -> bool:
         """
-        Destroy a loopback interface with the specified name on the OS.
+        Destroy a dummy interface with the specified name on the OS.
 
         Args:
-            interface_name (str): The name of the loopback interface to destroy.
+            interface_name (str): The name of the dummy interface to destroy.
 
         Returns:
-            bool: STATUS_OK if the loopback interface was destroyed successfully, STATUS_NOK otherwise.
+            bool: STATUS_OK if the dummy interface was destroyed successfully, STATUS_NOK otherwise.
         """
         result = self.run(['ip', 'link', 'delete', interface_name, 'type', 'dummy'], suppress_error=True)
 
         if result.exit_code:
-            self.log.error(f'Error destroying loopback -> {interface_name}, Reason: {result.stderr}')
+            self.log.error(f'Error destroying dummy -> {interface_name}, Reason: {result.stderr}')
             return STATUS_NOK
 
-        self.log.debug(f'Destroyed {interface_name} Loopback')
+        self.log.debug(f'Destroyed {interface_name} dummy')
         return STATUS_OK
     
     def update_interface_vlan(self, interface_name:str, vlan_id:int=1000) -> bool:
@@ -893,3 +931,172 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
+    # LoopBack Operations
+
+    def get_os_lo_labels(self) -> List[str]:
+        """
+        Extract labels from the loopback interface labels
+
+        Args:
+            ip_lo_json (dict): The JSON data structure for the loopback interface.
+
+        Returns:
+            List[str]: A list of labels found in the loopback interface's address information.
+        """
+        labels = []
+        
+        try:
+            result = self.run(['ip', '-json', 'address', 'show', 'dev', 'lo'], suppress_error=True)
+            
+            if result.exit_code:
+                self.log.debug(f"does_os_interface_exist() returned a non-zero exit code: {result.exit_code}")
+                return []
+                            
+        except Exception as e:
+            self.log.error(f"Exception in does_os_interface_exist: {e}")
+            return []
+
+        interfaces = json.loads(result.stdout)
+        
+        for interface in interfaces:
+            ifname = interface.get("ifname", "")
+                            
+            if ifname == "lo":
+                for addr_info in interface.get("addr_info", []):
+                    label = addr_info.get("label", "lo")
+                    labels.append(label.split(":")[-1])
+
+        return labels
+
+    def create_os_loopback(self, loopback_name: str, inet_address: str) -> bool:
+        """
+        Creates a loopback interface with the specified name (label) and IP address on the 'lo' device.
+
+        Args:
+            loopback_name (str): The name (label) for the new loopback interface.
+            inet_address (str): The IP address to assign to the loopback interface.
+
+        Returns:
+            bool: STATUS_OK if the loopback interface was created successfully, otherwise STATUS_NOK.
+        """
+        
+        if loopback_name in self.get_os_lo_labels():
+            self.log.debug(f"Loopback interface {loopback_name} already exists.")
+            return STATUS_NOK
+        
+        try:
+            ip = ipaddress.ip_address(inet_address)
+            if ip.version == 4:
+                ip_ver_opt = 'addr'
+                cidr = '/32'
+            elif ip.version == 6:
+                ip_ver_opt = '-6 addr'
+                cidr = '/128'
+            else:
+                self.log.error(f'inet address is invalid: {inet_address}')
+                return STATUS_NOK
+            
+        except ValueError:
+            self.log.error(f'inet address is invalid: {inet_address}')
+            return STATUS_NOK
+
+        inet_address += cidr
+
+        command = ['ip', ip_ver_opt, 'add', inet_address, 'label', f'lo:{loopback_name}', 'dev', 'lo']
+        
+        rtn = self.run(command, suppress_error=True)
+        
+        if rtn.exit_code != 0:
+            self.log.error(f"Failed to create loopback interface {loopback_name} with address {inet_address}: {rtn.stderr}")
+            return STATUS_NOK
+        
+        return STATUS_OK
+    
+    def set_db_loopback(self, loopback_name: str, inet_address_cidr: str) -> bool:
+        """
+        Sets a loopback interface in the database with the specified name and IP address in CIDR notation.
+
+        Args:
+            loopback_name (str): The name (label) for the loopback interface.
+            inet_address_cidr (str): The IP address with CIDR notation to assign to the loopback interface.
+
+        Returns:
+            bool: STATUS_OK if the loopback interface was set successfully, otherwise STATUS_NOK.
+        """
+        
+        # Attempt to add the loopback interface entry to the database
+        if not self.add_db_interface_entry(interface_name=loopback_name, ifType=InterfaceType.LOOPBACK):
+            self.log.error(f'Unable to add Loopback interface: {loopback_name}')
+            return STATUS_NOK
+        
+        # Attempt to update the IP address for the loopback interface in the database
+        if not self.update_db_inet_address(interface_name=loopback_name, inet_address_cidr=inet_address_cidr):
+            self.log.error(f'Unable to update inet address for Loopback interface: {loopback_name} with address: {inet_address_cidr}')
+            # Remove the interface entry since the IP address update failed
+            self.del_db_loopback(loopback_name)
+            return STATUS_NOK
+        
+        return STATUS_OK
+    
+    def destroy_os_loopback(self, loopback_name: str, inet_address: str) -> bool:
+        """
+        Destroys a loopback interface with the specified name (label) and IP address from the 'lo' device.
+
+        Args:
+            loopback_name (str): The name (label) for the loopback interface to be removed.
+            inet_address (str): The IP address assigned to the loopback interface.
+
+        Returns:
+            bool: STATUS_OK if the loopback interface was removed successfully, otherwise STATUS_NOK.
+        """
+        
+        if loopback_name not in self.get_os_lo_labels():
+            self.log.debug(f"Loopback interface {loopback_name} does not exist.")
+            return STATUS_NOK
+        
+        try:
+            ip = ipaddress.ip_address(inet_address)
+            if ip.version == 4:
+                ip_ver_opt = 'addr'
+                cidr = '/32'
+            elif ip.version == 6:
+                ip_ver_opt = '-6 addr'
+                cidr = '/128'
+            else:
+                self.log.error(f'inet address is invalid: {inet_address}')
+                return STATUS_NOK
+            
+        except ValueError:
+            self.log.error(f'inet address is invalid: {inet_address}')
+            return STATUS_NOK
+
+        inet_address += cidr
+
+        command = ['ip', ip_ver_opt, 'del', inet_address, 'label', f'lo:{loopback_name}', 'dev', 'lo']
+        
+        rtn = self.run(command, suppress_error=True)
+        
+        if rtn.exit_code != 0:
+            self.log.error(f"Failed to destroy loopback interface {loopback_name} with address {inet_address}: {rtn.stderr}")
+            return STATUS_NOK
+        
+        return STATUS_OK
+    
+    def del_db_loopback(self, loopback_name: str) -> bool:
+        """
+        Deletes a loopback interface from the database with the specified name.
+
+        Args:
+            loopback_name (str): The name (label) of the loopback interface to be deleted.
+
+        Returns:
+            bool: STATUS_OK if the loopback interface was deleted successfully, otherwise STATUS_NOK.
+        """
+        
+        if not self.del_db_interface(loopback_name):
+            self.log.error(f'Unable to delete Loopback interface: {loopback_name}')
+            return STATUS_NOK
+        
+        return STATUS_OK
+    
+    

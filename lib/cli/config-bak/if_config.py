@@ -49,7 +49,7 @@ class InterfaceConfig(cmd2.Cmd,
                 
                 if not self.does_os_interface_exist(if_config_interface_name):
                     self.log.debug(f"Creating Loopback {if_config_interface_name}")
-                    if self.create_os_loopback(if_config_interface_name):
+                    if self.create_os_dummy_interface(if_config_interface_name):
                         return None
                     
                     else:

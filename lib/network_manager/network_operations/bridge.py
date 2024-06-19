@@ -10,7 +10,8 @@ from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class BridgeProtocol(Enum):
     

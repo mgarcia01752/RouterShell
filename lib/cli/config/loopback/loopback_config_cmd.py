@@ -6,7 +6,7 @@ from lib.cli.config.loopback.loopback_config import LoopbackConfig
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.network_interface_factory import CreateLoopBackNetInterface
+from lib.network_manager.network_interfaces.network_interface_factory import CreateLoopBackNetInterface
 
 class LoopbackConfigCmdError(Exception):
     """Custom exception for LoopbackConfigCmd errors."""
@@ -27,10 +27,10 @@ class LoopbackConfigCmd(ConfigurePrompt):
         
         self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name}')
         
-        ni = CreateLoopBackNetInterface(loopback_name=loopback_name[0]).getNetworkInterface()
+        li = CreateLoopBackNetInterface(loopback_name=loopback_name[0]).getLoopbackInterface()
         self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name} -> {ni.get_ifType().value}')
 
-        self.register_top_lvl_cmds(LoopbackConfig(net_interface=ni))    
+        self.register_top_lvl_cmds(LoopbackConfig(loopback_interface=li))    
         
         
     def intro(self) -> str:

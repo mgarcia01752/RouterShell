@@ -7,7 +7,8 @@ from lib.network_manager.common.sysctl import SysCtl
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class Encapsulate(Enum):
     """Enumeration of encapsulation types."""
@@ -27,7 +28,6 @@ class ArpException(Exception):
     def __init__(self, message="ARP error occurred"):
         self.message = message
         super().__init__(self.message)
-
 
 class Arp(NetworkManager):
     """

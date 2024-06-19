@@ -225,10 +225,10 @@ class InetServiceLayer(MacServiceLayer):
                 addresses.append(ip_addr)
 
         return addresses
-
+    
     def set_inet_address(self, interface_name: str, inet_address_cidr: str, secondary: bool = False) -> bool:
         """
-        Set an IP address on an interface.
+        Set an IP address on an interface via OS.
 
         Args:
             interface_name (str): The network interface.

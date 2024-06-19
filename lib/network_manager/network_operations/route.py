@@ -2,9 +2,9 @@ import ipaddress
 import logging
 
 from tabulate import tabulate
-from lib.network_manager.network_mgr import NetworkManager
 from lib.network_manager.common.sysctl import SysCtl
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.network_operations.network_mgr import NetworkManager
 
 class Route(NetworkManager):
 

@@ -4,12 +4,13 @@ from tabulate import tabulate
 from lib.db.sqlite_db.router_shell_db import Result 
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.db.vlan_db import VLANDatabase
-from lib.network_manager.bridge import Bridge
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class Vlan(NetworkManager):
 

@@ -6,8 +6,8 @@
    interface loopback<id>
       description <Description of loopback>
       [no] [mac [auto | <mac-address>]]
-      [no] [ip address <ip-address>/<CIDR> [secondary]]
-      [no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]
+      [no] [ip address <ip-address>/32 [secondary]]
+      [no] [ipv6 address <ipv6-ip-address>/128 [secondary]]
       [no] shutdown
       destroy YES
    end
@@ -30,21 +30,21 @@
   - `no mac` removes the MAC address configuration.
   - Example: `mac 00:11:22:33:44:55` or `no mac auto`
 
-- **[no] [ip address <ip-address>/<CIDR> [secondary]]**:
+- **[no] [ip address <ip-address>/32 [secondary]]**:
   
   - Assigns an IPv4 address to the loopback interface.
-  - `<ip-address>/<CIDR>` specifies the IP address and subnet mask.
+  - `<ip-address>/32` specifies the IP address and subnet mask.
   - `secondary` allows adding a secondary IP address.
   - `no ip address` removes the IP address.
-  - Example: `ip address 192.168.1.1/24` or `ip address 192.168.1.2/24 secondary`
+  - Example: `ip address 192.168.1.1/32` or `ip address 192.168.1.2/32 secondary`
 
-- **[no] [ipv6 address <ipv6-ip-address>/<CIDR> [secondary]]**:
+- **[no] [ipv6 address <ipv6-ip-address>/128 [secondary]]**:
   
   - Assigns an IPv6 address to the loopback interface.
-  - `<ipv6-ip-address>/<CIDR>` specifies the IPv6 address and prefix length.
+  - `<ipv6-ip-address>/128` specifies the IPv6 address and prefix length.
   - `secondary` allows adding a secondary IPv6 address.
   - `no ipv6 address` removes the IPv6 address.
-  - Example: `ipv6 address 2001:db8::1/64` or `ipv6 address 2001:db8::2/64 secondary`
+  - Example: `ipv6 address 2001:db8::1/128` or `ipv6 address 2001:db8::2/128 secondary`
 
 - **[no] shutdown**:
   
@@ -65,9 +65,10 @@ Below is an example of configuring a loopback interface:
 interface loopback0
    description Management Loopback
    mac 00:11:22:33:44:55
-   ip address 192.168.1.1/24
-   ipv6 address 2001:db8::1/64
+   ip address 192.168.0.1/32
+   ipv6 address 2001:db8::1/128
    no shutdown
+   destroy
 end
 ```
 
@@ -85,7 +86,7 @@ In this example:
 To remove the configuration or the loopback interface, use the following commands:
 
 ```plaintext
-interface loopback0
-   destroy YES
+interface loopback0 
+ destroy YES
 end
 ```

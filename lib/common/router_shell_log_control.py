@@ -67,6 +67,8 @@ class RouterShellLoggingGlobalSettings():
     DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
+    ETHERNET_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
     INTERFACE_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
@@ -75,6 +77,7 @@ class RouterShellLoggingGlobalSettings():
     
     LOOPBACK_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     LOOPBACK_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    LOOPBACK_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     ROUTE                       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
