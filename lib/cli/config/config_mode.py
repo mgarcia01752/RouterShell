@@ -1,8 +1,6 @@
 import logging
-from lib.cli.base.global_cmd_op import Global
 from lib.cli.config.config_cmds import ConfigCmd
 from lib.cli.config.configure_prompt import ConfigurePrompt
-from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class ConfigMode(ConfigurePrompt):

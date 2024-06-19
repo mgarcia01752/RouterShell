@@ -29,15 +29,15 @@ class EthernetConfigError(Exception):
 
 class EthernetConfig(CmdPrompt):
 
-    def __init__(self, eth_interface:EthernetInterface) -> None:
+    def __init__(self, eth_interface_obj:EthernetInterface) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_CONFIG)
-        self.eth_interface = eth_interface
-        self.ifName = eth_interface.get_interface_name()
+        self.eth_interface = eth_interface_obj
+        self.ifName = eth_interface_obj.get_interface_name()
         
-        self.log.debug(f'Ethernet: {eth_interface.get_interface_name()}')
+        self.log.debug(f'Ethernet: {eth_interface_obj.get_interface_name()}')
                
     def ethernetconfig_help(self, args: List=None) -> None:
         """

@@ -1,13 +1,11 @@
-
 import logging
 from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
-from lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
-from lib.cli.config.interface.interface_config_cmd import InterfaceConfigCmd
 from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
+from lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
 from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
@@ -41,19 +39,24 @@ class ConfigCmd(CmdPrompt):
     def configcmd_interface(self, args: List[str]=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
         
-        if Common().is_loopback_if_name_valid(args[0], add_loopback_if_name=['lo']):
-            self.log.debug(f'configcmd_interface() -> Loopback: {args}')
-            LoopbackConfigCmd(loopback_name=args).start()
-        
-        elif args[0] ==  Interface().get_os_network_interfaces(InterfaceType.ETHERNET):
-            self.log.debug(f'configcmd_interface() -> Ethernet: {args}')
-            EthernetConfigCmd(interface_name=args).start()        
+        interface_name = args[0]
 
-        elif args[0] ==  Interface().get_os_network_interfaces(InterfaceType.WIRELESS_WIFI):
-            self.log.debug(f'configcmd_interface() -> WireLess WiFI: {args}')
-            print('Not implemented yet')            
+        if Common().is_loopback_if_name_valid(interface_name, add_loopback_if_name=['lo']):
+            self.log.debug(f'configcmd_interface() -> Loopback: {interface_name}')
+            LoopbackConfigCmd(loopback_name=args).start()
+            
+        elif interface_name in Interface().get_os_network_interfaces(InterfaceType.ETHERNET):
+            self.log.debug(f'configcmd_interface() -> Ethernet: {interface_name}')
+            EthernetConfigCmd(eth_name=args).start()        
+           
+        elif interface_name in Interface().get_os_network_interfaces(InterfaceType.WIRELESS_WIFI):
+            self.log.debug(f'configcmd_interface() -> WireLess WiFI: {interface_name}')
+            print('Not implemented yet')
+                        
         else:
-            return STATUS_NOK        
+            self.log.debug(f'Interface Type not found for interface: {interface_name}')
+            return STATUS_NOK
+        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         

@@ -1,12 +1,11 @@
 import logging
 from typing import List
-from lib.cli.base.global_cmd_op import Global
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.loopback.loopback_config import LoopbackConfig
-from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.network_interfaces.loopback_interface import CreateLoopBackNetInterface
+from lib.network_manager.network_interfaces.create_loopback_net_interface import CreateLoopBackNetInterface
+
 
 
 class LoopbackConfigCmdError(Exception):
@@ -25,14 +24,12 @@ class LoopbackConfigCmd(ConfigurePrompt):
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().LOOPBACK_CONFIG_CMD)
-        
         self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name}')
-        
-        li = CreateLoopBackNetInterface(loopback_name=loopback_name[0]).getLoopbackInterface()
-        self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name} -> {ni.get_ifType().value}')
+        loopback_name = loopback_name[0]
 
-        self.register_top_lvl_cmds(LoopbackConfig(loopback_interface=li))    
-        
+        #Loopbacks are dynamically created except for the initial linux local loopback: lo
+        lio = CreateLoopBackNetInterface(loopback_name).getLoopbackInterface()
+        self.register_top_lvl_cmds(LoopbackConfig(loopback_interface_obj=lio))  
         
     def intro(self) -> str:
         return f'Starting Loopback Config....'

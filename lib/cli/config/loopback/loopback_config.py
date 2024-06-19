@@ -9,18 +9,15 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 
-
 class LoopbackConfig(CmdPrompt):
 
-    def __init__(self, loopback_interface: LoopbackInterface) -> None:
+    def __init__(self, loopback_interface_obj: LoopbackInterface) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().LOOPBACK_CONFIG)
-        
-        self.lo_interface = loopback_interface
-        
-        self.log.debug(f'Loopback: {loopback_interface.get_interface_name()}')
+        self.loopback_interface_obj = loopback_interface_obj
+        self.log.debug(f'Loopback: {loopback_interface_obj.get_interface_name()}')
                
     def loopbackconfig_help(self, args: List=None) -> None:
         """
@@ -52,7 +49,7 @@ class LoopbackConfig(CmdPrompt):
             successful.
         """
         self.log.debug(f'loopbackconfig_description -> {line}')
-        self.lo_interface.set_description(Common.flatten_list(line))
+        self.loopback_interface_obj.set_description(Common.flatten_list(line))
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'])         
@@ -79,7 +76,7 @@ class LoopbackConfig(CmdPrompt):
                 secondary_addr = 'secondary' in args
                 self.log.debug(f'Inet: {args[1]}, Secondary: {secondary_addr}, Negate: {negate}')
                 
-                self.lo_interface.add_inet_address(args[1], secondary_addr, negate)
+                self.loopback_interface_obj.add_inet_address(args[1], secondary_addr, negate)
                 return STATUS_OK
             else:
                 self.log.debug(f'Invalid IP address or missing "address" keyword: {args}')
@@ -109,7 +106,7 @@ class LoopbackConfig(CmdPrompt):
         try:
             self.log.debug(f'loopbackconfig_shutdown -> {args}')
             state = State.UP if negate else State.DOWN
-            self.lo_interface.set_interface_shutdown_state(state)
+            self.loopback_interface_obj.set_interface_shutdown_state(state)
             return STATUS_OK
         except Exception as e:
             self.log.debug(f'Error in loopbackconfig_shutdown: {e}')
@@ -135,8 +132,8 @@ class LoopbackConfig(CmdPrompt):
                   configuration is destroyed successfully. STATUS_NOK otherwise.
         """
         if 'YES' in args:
-            self.log.debug(f'Destroying Loopback: {self.lo_interface.interface_name}')
-            return self.lo_interface.destroy()
+            self.log.debug(f'Destroying Loopback: {self.loopback_interface_obj.interface_name}')
+            return self.loopback_interface_obj.destroy()
         
         return STATUS_OK   
         

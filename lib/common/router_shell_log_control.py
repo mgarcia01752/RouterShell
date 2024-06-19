@@ -13,7 +13,7 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL CRITICAL
     '''
     
-    GLOBAL_DEBUG = False
+    GLOBAL_DEBUG = True
     
     TEMPLATE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
@@ -66,19 +66,10 @@ class RouterShellLoggingGlobalSettings():
     DNSMASQ_GLOBAL_SERVICE      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_INTERFACE_SERVICE   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DNSMASQ_CONFIG              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
-    ETHERNET_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
-    ETHERNET_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+        
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
-    ETHERNET_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IF_SHOW                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
-    LOOPBACK_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    LOOPBACK_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    LOOPBACK_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    
+
     ROUTE                       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IP_ROUTE_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
@@ -112,7 +103,7 @@ class RouterShellLoggingGlobalSettings():
     PROMPT_FEEDER               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     CREATE_LB_INTERFACE         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    NET_INTERFACE               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    NETWORK_INTERFACE           = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     NET_INTERFACE_FACTORY       = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     NETWORK_MANAGER             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO   
@@ -122,4 +113,19 @@ class RouterShellLoggingGlobalSettings():
     PHY                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     RUN                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSCTL                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+
+                            ##########################
+                            # HIGH LEVEL API LOGGING #
+                            ##########################
+    LOOPBACK_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    LOOPBACK_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    LOOPBACK_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+
+    ETHERNET_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ETHERNET_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ETHERNET_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+
+    WIRELESS_WIFI_CONFIG_CMD    = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WIRELESS_WIFI_CONFIG        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    WIRELESS_WIFI_INTERFACE     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
