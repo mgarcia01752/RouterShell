@@ -2,25 +2,17 @@ import argparse
 import cmd2
 import logging
 
-from lib.cli.config.arp_config import ArpConfig
-from lib.cli.config.dhcp_server_config import DHCPServerConfig
-from lib.cli.config.if_config import InterfaceConfig
-from lib.cli.config.bridge_config import BridgeConfig
-from lib.cli.config.vlan_config import VlanConfig
-from lib.cli.config.ip_route_config import IpRouteConfig
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.exec_priv_mode import ExecMode, ExecException
-from lib.cli.config.wireless_cell_config import WirelessCellPolicyConfig
-from lib.cli.config.wireless_wifi_config import WirelessWifiPolicyConfig
+from lib.cli.config.bridge.bridge_config import BridgeConfig
+from lib.cli.config.interface.interface_config import InterfaceConfig
+from lib.cli.config.vlan.vlan_config import VlanConfig
 from lib.common.common import Common
-from lib.network_manager.interface import Interface
-from lib.network_manager.bridge import Bridge
 from lib.cli.common.router_prompt import RouterPrompt
-from lib.network_manager.nat import Nat
-
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.interface import Interface
 from lib.system.system_call import SystemCall
 
 class InvalidConfigureMode(Exception):
@@ -50,7 +42,6 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().CONFIGURE_MODE)
-        self.debug = CGS().DEBUG_CONFIGURE_MODE
 
         GlobalUserCommand.__init__(self)
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE)

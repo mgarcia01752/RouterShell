@@ -3,9 +3,8 @@ from typing import List
 from tabulate import tabulate
 from lib.common.common import Common
 from lib.common.constants import STATUS_OK
-from lib.network_manager.dhcp_client import DHCPClient
-
-from lib.network_manager.dhcp_server import DhcpServerManager
+from lib.network_manager.network_operations.dhcp_client import DHCPClient
+from lib.network_manager.network_operations.dhcp_server import DhcpServerManager
 
 class DHCPClientShow():
     """Command set for showing DHCPClient-Show-Command"""

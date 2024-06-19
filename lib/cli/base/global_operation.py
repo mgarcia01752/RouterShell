@@ -6,7 +6,8 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 import subprocess
 
-from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.network_operations.network_mgr import NetworkManager
+import parser
 
 class GlobalPrivCommand(NetworkManager):
 

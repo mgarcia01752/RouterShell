@@ -2,7 +2,8 @@ import json
 import logging
 
 from tabulate import tabulate
-from lib.network_manager.bridge import Bridge
+
+from lib.network_manager.network_operations.bridge import Bridge
 
 class BridgeShow(Bridge):
     """Command set for showing Bridge-Show-Command"""

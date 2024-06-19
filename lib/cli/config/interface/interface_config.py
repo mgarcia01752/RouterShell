@@ -8,15 +8,15 @@ from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.string_formats import StringFormats
-from lib.network_manager.arp import Encapsulate
-from lib.network_manager.bridge import Bridge
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.network_manager.dhcp_client import DHCPVersion
-from lib.network_manager.dhcp_server import DHCPServer
-from lib.network_manager.interface import Interface
-from lib.network_manager.nat import NATDirection
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterface
+from lib.network_manager.network_operations.arp import Encapsulate
+from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.dhcp_client import DHCPVersion
+from lib.network_manager.network_operations.dhcp_server import DHCPServer
+from lib.network_manager.network_operations.interface import Interface
+from lib.network_manager.network_operations.nat import NATDirection
 
 class InterfaceConfigError(Exception):
     """Custom exception for InterfaceConfig errors."""

@@ -6,7 +6,6 @@ from typing import List
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.run_commands import RunCommand
-from lib.network_manager.network_mgr import NetworkManager
 
 class DHCPVersion(Enum):
     """An enumeration of DHCP versions: DHCPv4 and DHCPv6."""

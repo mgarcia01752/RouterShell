@@ -6,9 +6,9 @@ import os
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdInterface, CmdPrompt
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
-from lib.network_manager.interface import Interface
-from lib.network_manager.network_mgr import NetworkManager
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.network_operations.interface import Interface
+from lib.network_manager.network_operations.network_mgr import NetworkManager
 
 class Global(CmdPrompt, NetworkManager):
     """

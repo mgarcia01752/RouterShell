@@ -1041,7 +1041,7 @@ class RouterShellDB(metaclass=Singleton):
         """
         
         '''avoid circular imports'''
-        from lib.network_manager.nat import NATDirection
+        from lib.network_manager.network_operations.nat import NATDirection
         
         try:
             if not pool_name or not interface_name:

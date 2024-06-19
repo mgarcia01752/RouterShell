@@ -1,6 +1,6 @@
 import logging
-from lib.network_manager.nat import Nat
 
+from lib.network_manager.network_operations.nat import Nat
 
 class NatShow(Nat):
     

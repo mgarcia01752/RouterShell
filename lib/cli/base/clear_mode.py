@@ -4,11 +4,12 @@ from typing import List
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.common.exec_priv_mode import ExecMode, ExecException
-from lib.network_manager.arp import Arp
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.constants import *
-from lib.network_manager.interface import Interface
+from lib.network_manager.network_operations.arp import Arp
+from lib.network_manager.network_operations.interface import Interface
+
 
 class InvalidClearMode(Exception):
     def __init__(self, message):

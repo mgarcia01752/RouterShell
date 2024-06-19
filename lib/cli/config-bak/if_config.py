@@ -4,16 +4,16 @@ import logging
 
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
-
-from lib.network_manager.dhcp_client import DHCPVersion
-from lib.network_manager.dhcp_server import DHCPServer
-from lib.network_manager.interface import Interface, InterfaceType
+from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.network_manager.arp import Encapsulate
-from lib.network_manager.bridge import Bridge
-from lib.network_manager.nat import NATDirection
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.wireless_wifi import HardwareMode, WifiChannel, WifiInterface
+from lib.network_manager.network_operations.arp import Encapsulate
+from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.dhcp_client import DHCPVersion
+from lib.network_manager.network_operations.dhcp_server import DHCPServer
+from lib.network_manager.network_operations.interface import Interface
+from lib.network_manager.network_operations.nat import NATDirection
+from lib.network_manager.network_operations.wireless_wifi import HardwareMode, WifiChannel, WifiInterface
 
 class InvalidInterface(Exception):
     def __init__(self, message):

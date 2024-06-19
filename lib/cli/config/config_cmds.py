@@ -12,11 +12,11 @@ from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.system_db import SystemDatabase
-from lib.network_manager.bridge import Bridge
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.interface import Interface
-from lib.network_manager.network_mgr import NetworkManager
-from lib.network_manager.vlan import Vlan
+from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.interface import Interface
+from lib.network_manager.network_operations.network_mgr import NetworkManager
+from lib.network_manager.network_operations.vlan import Vlan
 from lib.system.system_call import SystemCall
 
 class ConfigCmd(CmdPrompt):

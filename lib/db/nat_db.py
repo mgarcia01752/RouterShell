@@ -3,9 +3,7 @@ from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
-
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.nat import *
 
 
 class NatDB:
@@ -162,7 +160,7 @@ class NatDB:
         Returns:
             bool: STATUS_OK if the inside interface is added successfully, STATUS_NOK otherwise.
         """
-        from lib.network_manager.nat import NATDirection
+        from lib.network_manager.network_operations.nat import NATDirection
         
         cls.log.debug(f"add_inside_interface({nat_pool_name}, {interface_name})")
         
@@ -208,7 +206,7 @@ class NatDB:
         Returns:
             bool: STATUS_OK if the outside interface is added successfully, STATUS_NOK otherwise.
         """
-        from lib.network_manager.nat import NATDirection
+        from lib.network_manager.network_operations.nat import NATDirection
         
         cls.log.debug(f"add_outside_interface({nat_pool_name}, {interface_name})")
         

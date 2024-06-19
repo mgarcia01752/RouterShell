@@ -1,6 +1,8 @@
 import logging
 from typing import List
-from lib.network_manager.arp import Arp
+
+from lib.network_manager.network_operations.arp import Arp
+
 
 class ArpShow(Arp):
     """

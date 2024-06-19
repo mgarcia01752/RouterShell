@@ -1,14 +1,13 @@
 import logging
 import re
 from typing import List
-from lib.network_manager.dhcp_client import DHCPVersion
-
-from lib.network_manager.nat import Nat, NATDirection
 from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as RSDB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.common.interface import InterfaceType
+from lib.network_manager.network_operations.dhcp_client import DHCPVersion
+from lib.network_manager.network_operations.nat import NATDirection
 
 class InterfaceDatabase:
 
