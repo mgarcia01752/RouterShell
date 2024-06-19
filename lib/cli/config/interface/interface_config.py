@@ -10,7 +10,6 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.network_manager.network_interfaces.network_interface_factory import NetInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.dhcp_client import DHCPVersion

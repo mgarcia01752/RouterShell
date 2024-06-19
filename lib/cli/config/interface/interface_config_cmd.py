@@ -5,9 +5,8 @@ from lib.cli.config.interface.interface_config import InterfaceConfig
 from lib.common.common import Common
 from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.interface import Interface
-from lib.network_manager.network_interfaces.network_interface_factory import CreateLoopBackNetInterface, NetInterface, NetInterfaceFactory
+from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
+from lib.network_manager.network_operations.interface import Interface
 
 class InterfaceConfigCmdError(Exception):
     """Custom exception for InterfaceConfig errors."""
