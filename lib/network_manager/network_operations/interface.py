@@ -456,6 +456,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         if speed == Speed.NONE:
             if self.update_db_ifSpeed(interface_name, speed.value):
+                self.log.error(f'Unable to update database speed: {speed.value} on interface: {interface_name}')
                 return STATUS_NOK
             return STATUS_OK
         
@@ -465,10 +466,10 @@ class Interface(NetworkManager, InterfaceDatabase):
             
         elif speed in {Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000}:
             self.set_speed(interface_name, speed)
-            self.update_db_ifSpeed(interface_name, speed.value)
+            self.update_db_ifSpeed(interface_name, str(speed.value))
         
         else:
-            print("Invalid speed value. Use Speed.MBPS_10, Speed.MBPS_100, Speed.MBPS_1000, Speed.MBPS_10000, or Speed.AUTO_NEGOTIATE.")
+            print(f"Invalid speed value: {speed.value}")
             return STATUS_NOK
         
         return STATUS_OK

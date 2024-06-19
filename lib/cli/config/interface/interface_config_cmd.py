@@ -37,7 +37,7 @@ class InterfaceConfigCmd(ConfigurePrompt):
         '''
         
         if Interface().db_lookup_interface_exists(interface_name):
-            net_if = NetInterfaceFactory(interface_name).getNetInterface()            
+            net_if = NetInterfaceFactory(interface_name).getNetInterface(interface_name=interface_name)            
         else:
             raise InterfaceConfigCmdError(f'Invalid interface: {interface_name}')
                 

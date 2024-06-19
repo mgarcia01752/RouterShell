@@ -69,7 +69,7 @@ class EthernetInterface(NetworkInterface):
         Returns:
             bool: STATUS_OK if the speed change is successful, STATUS_NOK otherwise.
         """
-        return Interface().update_interface_speed(self.interface_name, speed.value)
+        return Interface().update_interface_speed(self.interface_name, speed)
     
     def set_proxy_arp(self, negate: bool = False) -> bool:
         """
@@ -127,7 +127,8 @@ class EthernetInterface(NetworkInterface):
             bool: True if the duplex mode was successfully set and updated in the database,
                 False otherwise.
         """
-        return Interface().update_db_duplex(self.interface_name, duplex)
+        return Interface().update_interface_duplex(self.interface_name, duplex)
+    
 
     def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
         """
