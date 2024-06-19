@@ -9,7 +9,6 @@ from lib.network_manager.network_interfaces.network_interface_factory import Net
 from lib.network_manager.network_operations.interface import Interface
 
 class InterfaceConfigCmdError(Exception):
-    """Custom exception for InterfaceConfig errors."""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -20,7 +19,7 @@ class InterfaceConfigCmdError(Exception):
 class InterfaceConfigCmd(ConfigurePrompt):
     def __init__(self, interface_name:List[str]):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().INTERFACE_CONFIG_CMD)
+        self.log.setLevel(RSLGS().ETHERNET_CONFIG_CMD)
         interface_name = interface_name[0]
         self.log.debug(f'InterfaceConfigCmd() -> Interface: {interface_name}')
         

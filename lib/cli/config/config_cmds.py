@@ -36,7 +36,7 @@ class ConfigCmd(CmdPrompt):
             print(f"{method.__doc__}")
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces() + [InterfaceType.LOOPBACK.value])         
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces())         
     def configcmd_interface(self, args: List[str]=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
         
@@ -44,10 +44,15 @@ class ConfigCmd(CmdPrompt):
             self.log.debug(f'configcmd_interface() -> Loopback: {args}')
             LoopbackConfigCmd(loopback_name=args).start()
         
-        else:
+        elif args[0] ==  Interface().get_os_network_interfaces(InterfaceType.ETHERNET):
             self.log.debug(f'configcmd_interface() -> Ethernet: {args}')
             InterfaceConfigCmd(interface_name=args).start()        
-        
+
+        elif args[0] ==  Interface().get_os_network_interfaces(InterfaceType.WIRELESS_WIFI):
+            self.log.debug(f'configcmd_interface() -> WireLess WiFI: {args}')
+            print('Not implemented yet')            
+        else:
+            return STATUS_NOK        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         

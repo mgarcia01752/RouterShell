@@ -69,10 +69,10 @@ class RouterShellLoggingGlobalSettings():
     
     ETHERNET_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    INTERFACE_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ETHERNET_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     INTERFACE_DB                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    IF_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    ETHERNET_CONFIG                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     IF_SHOW                     = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
     LOOPBACK_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

@@ -9,6 +9,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
+from lib.network_manager.network_interfaces.ethernet_interface import EthernetInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.dhcp_client import DHCPVersion
@@ -17,7 +18,7 @@ from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
-class InterfaceConfigError(Exception):
+class EthernetConfigError(Exception):
     """Custom exception for InterfaceConfig errors."""
     def __init__(self, message: str):
         self.message = message
@@ -26,19 +27,19 @@ class InterfaceConfigError(Exception):
     def __str__(self):
         return f'InterfaceConfigError: {self.message}'
 
-class InterfaceConfig(CmdPrompt):
+class EthernetConfig(CmdPrompt):
 
-    def __init__(self, net_interface:NetworkInterface) -> None:
+    def __init__(self, eth_interface:EthernetInterface) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_CONFIG)
-        self.net_interface = net_interface
-        self.ifName = net_interface.get_interface_name()
+        self.eth_interface = eth_interface
+        self.ifName = eth_interface.get_interface_name()
         
-        self.log.debug(f'Interface: {net_interface.get_interface_name()}')
+        self.log.debug(f'Ethernet: {eth_interface.get_interface_name()}')
                
-    def interfaceconfig_help(self, args: List=None) -> None:
+    def ethernetconfig_help(self, args: List=None) -> None:
         """
         Display help for available commands.
         """
@@ -49,9 +50,9 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def interfaceconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
+    def ethernetconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
         """
-        Updates the interface configuration description in the database.
+        Updates the ethernet interface configuration description in the database.
         
         Args:
             line (Optional[str]): The description to be added. If None, the description will be empty.
@@ -75,17 +76,17 @@ class InterfaceConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['auto'],     help='Auto assign mac address')
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
-    def interfaceconfig_mac(self, args:str) -> bool:
+    def ethernetconfig_mac(self, args:str) -> bool:
         
-        self.log.debug(f"interfaceconfig_mac() -> args: {args}")
+        self.log.debug(f"ethernetconfig_mac() -> args: {args}")
         
         if len(args) == 1 and args[0] == "auto":
-            self.log.debug(f"interfaceconfig_mac() -> auto")
+            self.log.debug(f"ethernetconfig_mac() -> auto")
             self.net_interface.set_mac_address(mac_addr=None)
                             
         elif len(args) == 2 and args[0] == "address":
             mac = args[1]
-            self.log.debug(f"interfaceconfig_mac() -> address -> {mac}")
+            self.log.debug(f"ethernetconfig_mac() -> address -> {mac}")
             self.net_interface.set_mac_address(mac_addr=mac)
             
         else:
@@ -94,7 +95,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_ip6(self, args, negate=False) -> bool:
+    def ethernetconfig_ip6(self, args, negate=False) -> bool:
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
@@ -105,7 +106,7 @@ class InterfaceConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool', 'acl'])
     def X_ip(self, args: List, negate=False) -> bool:
 
-        self.log.debug(f'interfaceconfig_ip() -> {args}')
+        self.log.debug(f'ethernetconfig_ip() -> {args}')
 
         if 'address' in args[0]:
             ipv4_address_cidr = args[1]
@@ -173,7 +174,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    def interfaceconfig_ip(self, args: List[str], negate=False) -> bool:
+    def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
         """
         Configure IP settings on the interface.
 
@@ -186,7 +187,7 @@ class InterfaceConfig(CmdPrompt):
         Use `<suboption> --help` to get help for specific suboptions.
         """
 
-        self.log.debug(f'interfaceconfig_ip4() -> ({args})')
+        self.log.debug(f'ethernetconfig_ip4() -> ({args})')
         if not args:
             print('Missing command arguments')
             return STATUS_NOK
@@ -237,7 +238,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def interfaceconfig_duplex(self, args: List[str]) -> bool:
+    def ethernetconfig_duplex(self, args: List[str]) -> bool:
         """
         Updates the interface duplex mode based on the provided arguments.
         
@@ -275,7 +276,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def interfaceconfig_speed(self, args: Optional[str]) -> bool:
+    def ethernetconfig_speed(self, args: Optional[str]) -> bool:
         args = StringFormats.list_to_string(args)
         
         if not args:
@@ -306,7 +307,7 @@ class InterfaceConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def interfaceconfig_bridge(self, args: Optional[str], negate=False) -> bool:
+    def ethernetconfig_bridge(self, args: Optional[str], negate=False) -> bool:
         
         if 'group' in args:
             
@@ -326,7 +327,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_shutdown(self, args=None, negate=False) -> bool:
+    def ethernetconfig_shutdown(self, args=None, negate=False) -> bool:
         """
         This function is used to change the state of an interface to either UP or DOWN.
 
@@ -343,14 +344,14 @@ class InterfaceConfig(CmdPrompt):
         if negate:
             ifState = State.UP
 
-        self.log.debug(f'interfaceconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
+        self.log.debug(f'ethernetconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
 
         self.net_interface.set_interface_shutdown_state(ifState)
         
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
-    def interfaceconfig_switchport(self, args=None, negate=False) -> bool:
+    def ethernetconfig_switchport(self, args=None, negate=False) -> bool:
         if 'access-vlan' in args:
             
             vlan_id = args[1]
@@ -365,39 +366,39 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK        
 
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_wireless(self, args=None, negate:bool=False) -> bool:
+    def ethernetconfig_wireless(self, args=None, negate:bool=False) -> bool:
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def interfaceconfig_no(self, args: List) -> bool:
+    def ethernetconfig_no(self, args: List) -> bool:
         
-        self.log.debug(f"interfaceconfig_no() -> Line -> {args}")
+        self.log.debug(f"ethernetconfig_no() -> Line -> {args}")
 
         start_cmd = args[0]
                 
         if start_cmd == 'shutdown':
             self.log.debug(f"up/down interface -> {self.ifName}")
-            self.interfaceconfig_shutdown(None, negate=True)
+            self.ethernetconfig_shutdown(None, negate=True)
         
         elif start_cmd == 'bridge':
             self.log.debug(f"Remove bridge -> ({args})")
-            self.interfaceconfig_bridge(args[1:], negate=True)
+            self.ethernetconfig_bridge(args[1:], negate=True)
         
         elif start_cmd == 'ip':
             self.log.debug(f"Remove ip -> ({args})")
-            self.interfaceconfig_ip(args[1:], negate=True)
+            self.ethernetconfig_ip(args[1:], negate=True)
         
         elif start_cmd == 'ipv6':
             self.log.debug(f"Remove ipv6 -> ({args})")
-            self.interfaceconfig_ipv6(args[1:], negate=True)
+            self.ethernetconfig_ipv6(args[1:], negate=True)
 
         elif start_cmd == 'switchport':
             self.log.debug(f"Remove switchport -> ({args})")
-            self.interfaceconfig_switchport(args[1:], negate=True)
+            self.ethernetconfig_switchport(args[1:], negate=True)
         
         elif start_cmd == 'description':
             self.log.debug(f"Remove description -> ({args})")
-            self.interfaceconfig_description(args[1:], negate=True)
+            self.ethernetconfig_description(args[1:], negate=True)
         
         else:
             print(f"No negate option for {start_cmd}")

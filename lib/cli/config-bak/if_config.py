@@ -27,7 +27,7 @@ class InterfaceConfig(cmd2.Cmd,
     def __init__(self, if_config_interface_name: str, ifType:str=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().IF_CONFIG)
+        self.log.setLevel(RSLGS().ETHERNET_CONFIG)
         
         GlobalUserCommand.__init__(self)
         Interface.__init__(self)

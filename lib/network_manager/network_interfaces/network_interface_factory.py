@@ -9,7 +9,7 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_operations.interface import Interface
 
-class NetworkInterfaceGeneric:
+class NetworkInterface:
     def __init__(self, interface_name:str) -> None:
         self.interface_name = interface_name
         pass
@@ -123,18 +123,10 @@ class NetInterfaceError(Exception):
         super().__init__(message)
 
 class NetInterfaceFactory:
-    _interface_name_dict: Dict[str, NetworkInterfaceGeneric] = {}
+    _interface_name_dict: Dict[str, NetworkInterface] = {}
 
-    def __init__(self, interface_name: str):
-        """
-        Initialize a NetInterfaceFactory instance with a specific interface name.
+    def __init__(self, interface_name: str, interface_type: InterfaceType):
 
-        Args:
-            interface_name (str): The name of the network interface.
-        
-        Raises:
-            InvalidNetInterface: If the interface is not found in the OS or if it's an invalid loopback format.
-        """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS.NET_INTERFACE_FACTORY)
@@ -151,9 +143,9 @@ class NetInterfaceFactory:
                 else:
                     raise NetInterfaceError(f"Invalid loopback interface name format: {interface_name}")
             
-            NetInterfaceFactory._interface_name_dict[self.interface_name] = NetworkInterfaceGeneric(self.interface_name)
+            NetInterfaceFactory._interface_name_dict[self.interface_name] = NetworkInterface(self.interface_name)
 
-    def getNetInterface(self) -> 'NetworkInterfaceGeneric':
+    def getNetInterface(self) -> 'NetworkInterface':
         """
         Retrieve the NetInterface object associated with the specified interface name.
 
@@ -163,7 +155,7 @@ class NetInterfaceFactory:
         return NetInterfaceFactory._interface_name_dict[self.interface_name]
     
     @staticmethod
-    def getNetInterfaceList(interface_name: str) -> 'NetworkInterfaceGeneric':
+    def getNetInterfaceList(interface_name: str) -> 'NetworkInterface':
         """
         Retrieve the NetInterface object associated with the specified interface name.
 

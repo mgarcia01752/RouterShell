@@ -50,7 +50,45 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.run(['sudo', 'ip', 'neigh', 'flush', 'all'], suppress_error=True)
         return STATUS_OK
     
-    def get_os_network_interfaces(self, include_loopbacks: bool = True) -> List[str]:
+    def get_os_network_interfaces(self, interface_type: Optional[InterfaceType] = None) -> List[str]:
+        """
+        Retrieve network interface names based on their type. If no type is specified, retrieves all interfaces.
+
+        Args:
+            interface_type (Optional[InterfaceType]): The type of network interface to retrieve.
+
+        Returns:
+            List[str]: A list of network interface names of the specified type, or all if no type is specified.
+        """
+        command = ['lshw', '-class', 'network', '-short']
+        output = self.run_command(command)
+        
+        if not output:
+            return []
+
+        interfaces = []
+        for line in output.split('\n')[2:]:  # Skip header lines
+            if not line.strip():
+                continue
+            parts = line.split()
+            iface_name = parts[-1]
+
+            if interface_type is None:
+                interfaces.append(iface_name)
+            elif interface_type == InterfaceType.LOOPBACK:
+                if 'loopback' in iface_name:
+                    interfaces.append(iface_name)
+            elif interface_type == InterfaceType.ETHERNET:
+                if 'Ethernet' in ' '.join(parts):
+                    interfaces.append(iface_name)
+            elif interface_type == InterfaceType.WIRELESS_WIFI:
+                if 'Wireless' in ' '.join(parts):
+                    interfaces.append(iface_name)
+
+        return interfaces
+    
+    @DeprecationWarning
+    def get_os_network_interfaces_OLD(self, include_loopbacks: bool = True) -> List[str]:
         """
         Retrieve a list of network interfaces present on the system.
 

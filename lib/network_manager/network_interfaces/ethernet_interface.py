@@ -1,11 +1,9 @@
 import logging
-from typing import Dict, List
 
-from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.network_interfaces.network_interface_factory import NetworkInterfaceGeneric
+from lib.network_manager.network_interfaces.network_interface_factory import NetworkInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.interface import Interface
 
@@ -13,7 +11,7 @@ class EthernetInterfaceError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class EthernetInterface(NetworkInterfaceGeneric):
+class EthernetInterface(NetworkInterface):
 
     def __init__(self, ethernet_name: str):
         super().__init__(interface_name=ethernet_name)
