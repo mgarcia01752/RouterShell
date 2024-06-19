@@ -9,6 +9,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
+from lib.network_manager.network_interfaces.ethernet_interface import EthernetInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.dhcp_client import DHCPVersion
@@ -28,7 +29,7 @@ class InterfaceConfigError(Exception):
 
 class InterfaceConfig(CmdPrompt):
 
-    def __init__(self, net_interface:NetworkInterface) -> None:
+    def __init__(self, net_interface:EthernetInterface) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)

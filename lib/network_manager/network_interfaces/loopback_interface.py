@@ -4,6 +4,7 @@ from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory, NetworkInterface
 from lib.network_manager.network_operations.interface import Interface
 

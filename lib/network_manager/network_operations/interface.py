@@ -61,13 +61,13 @@ class Interface(NetworkManager, InterfaceDatabase):
             List[str]: A list of network interface names of the specified type, or all if no type is specified.
         """
         command = ['lshw', '-class', 'network', '-short']
-        output = self.run_command(command)
+        output = self.run(command, suppress_error=True)
         
-        if not output:
+        if not output.stdout:
             return []
 
         interfaces = []
-        for line in output.split('\n')[2:]:  # Skip header lines
+        for line in output.stdout.split('\n')[2:]:
             if not line.strip():
                 continue
             parts = line.split()

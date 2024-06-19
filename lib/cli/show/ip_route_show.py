@@ -1,6 +1,6 @@
 import logging
-from lib.network_manager.route import Route
 
+from lib.network_manager.network_operations.route import Route
 
 class RouteShow(Route):
     
