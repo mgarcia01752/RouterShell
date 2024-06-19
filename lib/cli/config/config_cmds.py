@@ -5,6 +5,7 @@ from typing import List
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
+from lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
 from lib.cli.config.interface.interface_config_cmd import InterfaceConfigCmd
 from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
 from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
@@ -46,7 +47,7 @@ class ConfigCmd(CmdPrompt):
         
         elif args[0] ==  Interface().get_os_network_interfaces(InterfaceType.ETHERNET):
             self.log.debug(f'configcmd_interface() -> Ethernet: {args}')
-            InterfaceConfigCmd(interface_name=args).start()        
+            EthernetConfigCmd(interface_name=args).start()        
 
         elif args[0] ==  Interface().get_os_network_interfaces(InterfaceType.WIRELESS_WIFI):
             self.log.debug(f'configcmd_interface() -> WireLess WiFI: {args}')

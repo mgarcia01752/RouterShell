@@ -3,6 +3,7 @@ from typing import List
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.ethernet.ethernet_config import EthernetConfig
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 from lib.network_manager.network_operations.interface import Interface
 
@@ -22,7 +23,7 @@ class EthernetConfigCmd(ConfigurePrompt):
         self.log.debug(f'EthernetConfigCmd() -> Interface: {ethernet_name}')
         
         if Interface().db_lookup_interface_exists(ethernet_name):
-            net_if = NetInterfaceFactory(ethernet_name).getNetInterface()            
+            net_if = NetInterfaceFactory(ethernet_name, InterfaceType.ETHERNET).getNetInterface()            
         else:
             raise EthernetConfigCmdError(f'Invalid interface: {ethernet_name}')
                 

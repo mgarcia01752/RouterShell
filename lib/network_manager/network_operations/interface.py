@@ -70,7 +70,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             return []
 
         interfaces = []
-        for line in output.stdout.split('\n')[2:]:  # Skip header lines
+        for line in output.stdout.split('\n')[2:]:
             if not line.strip():
                 continue
             

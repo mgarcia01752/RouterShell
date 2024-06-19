@@ -118,7 +118,7 @@ class NetworkInterface:
         """
         pass
     
-class NetInterfaceError(Exception):
+class NetInterfaceFactoryError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
@@ -126,11 +126,13 @@ class NetInterfaceFactory:
     _interface_name_dict: Dict[str, NetworkInterface] = {}
 
     def __init__(self, interface_name: str, interface_type: InterfaceType):
-
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS.NET_INTERFACE_FACTORY)
         self.interface_name = interface_name
+        
+        if not interface_name or not interface_type:
+            raise NetInterfaceFactoryError('Arguments missing')
         
         if self.interface_name in NetInterfaceFactory._interface_name_dict:
             self.log.debug(f'Already created NetInterface Object for interface: {self.interface_name}')
