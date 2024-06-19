@@ -406,6 +406,43 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
 
+    def update_interface_loopback_inet(self, loopback_name: str, inet_address_cidr: str, negate: bool = False) -> bool:
+        """
+        Update the internet address on a loopback interface, optionally deleting the address.
+
+        Args:
+            loopback_name (str): The name of the loopback interface.
+            inet_address_cidr (str): The CIDR notation of the IP address to assign or delete.
+            negate (bool, optional): If True, delete the specified IP address from the loopback interface.
+                                    Defaults to False.
+
+        Returns:
+            bool: True if the address was successfully updated or deleted, False otherwise.
+        """
+        self.log.debug(f"update_interface_loopback_inet() - Loopback: {loopback_name}, "
+                    f"Inet: {inet_address_cidr}, Negate: {negate}")
+
+        if negate:
+            if self.del_inet_address_loopback(loopback_name, inet_address_cidr):
+                self.log.error(f"Unable to delete loopback: {loopback_name} address: {inet_address_cidr} from OS")
+                return STATUS_NOK
+            
+            if self.del_db_interface(loopback_name):
+                self.log.error(f"Unable to delete loopback: {loopback_name} address: {inet_address_cidr} from DB")
+                return STATUS_NOK
+        
+        else:
+            if self.set_inet_address_loopback(loopback_name, inet_address_cidr):
+                self.log.error(f"Unable to update loopback: {loopback_name} address: {inet_address_cidr} to OS")
+                return STATUS_NOK
+
+            if self.add_db_interface(loopback_name, inet_address_cidr):
+                self.log.error(f"Unable to update loopback: {loopback_name} address: {inet_address_cidr} to DB")
+                return STATUS_NOK
+
+        return STATUS_OK
+
+    
     def update_interface_duplex(self, interface_name: str, duplex: Duplex) -> bool:
         """
         Add or set the duplex mode for a network interface.

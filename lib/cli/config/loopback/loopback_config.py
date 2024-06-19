@@ -108,6 +108,7 @@ class LoopbackConfig(CmdPrompt):
             state = State.UP if negate else State.DOWN
             self.loopback_interface_obj.set_interface_shutdown_state(state)
             return STATUS_OK
+        
         except Exception as e:
             self.log.debug(f'Error in loopbackconfig_shutdown: {e}')
             return STATUS_NOK

@@ -226,6 +226,150 @@ class InetServiceLayer(MacServiceLayer):
 
         return addresses
     
+    def set_inet_address_loopback(self, loopback_name: str, inet_address_cidr: str) -> bool:
+        """
+        Set an internet address (IPv4 or IPv6) on a loopback interface. 
+        Appending to the local loopback (lo) interface 
+
+        Args:
+            loopback_name (str): The name of the loopback interface.
+            inet_address_cidr (str): The CIDR notation of the IP address to assign.
+
+        Returns:
+            bool: STATUS_OK if the address was successfully set, STATUS_NOK otherwise.
+        """
+        self.log.debug(f"set_inet_address_loopback() - Loopback: {loopback_name} -> inet: {inet_address_cidr}")
+
+        if not loopback_name:
+            self.log.error("set_inet_address_loopback() -> Loopback not defined")
+            return STATUS_NOK
+
+        try:
+            ip_interface = ipaddress.ip_interface(inet_address_cidr)
+            ip_version = ip_interface.version
+            
+        except ValueError:
+            self.log.error(f"set_inet_address_loopback() -> Invalid IP address: {inet_address_cidr}")
+            return STATUS_NOK
+
+        lo_name = f'lo:{loopback_name}'
+        cmd = ['ip', 'addr', 'add', inet_address_cidr, 'label', lo_name, 'dev', 'lo']
+
+        if ip_version == 6:
+            cmd.insert(1, '-6')
+            
+        self.log.info(f'set_inet_address_loopback() -> {cmd}')
+        out = self.run(cmd)
+
+        if out.exit_code:
+            self.log.error(f"set_inet_address_loopback() -> Unable to set inet address: "
+                           f"{inet_address_cidr} on loopback: {loopback_name}, Reason: {out.stderr}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def del_inet_address_loopback(self, loopback_name: str, inet_address_cidr: str) -> bool:
+        """
+        Delete an internet address (IPv4 or IPv6) from a loopback interface.
+
+        Args:
+            loopback_name (str): The name of the loopback interface.
+            inet_address_cidr (str): The CIDR notation of the IP address to remove.
+
+        Returns:
+            bool: STATUS_OK if the address was successfully removed, STATUS_NOK otherwise.
+        """
+        self.log.debug(f"del_inet_address_loopback() - Loopback: {loopback_name} -> inet: {inet_address_cidr}")
+
+        if not loopback_name:
+            self.log.error("del_inet_address_loopback() -> Loopback not defined")
+            return STATUS_NOK
+
+        try:
+            ip_interface = ipaddress.ip_interface(inet_address_cidr)
+            ip_version = ip_interface.version
+            
+        except ValueError:
+            self.log.error(f"del_inet_address_loopback() -> Invalid IP address: {inet_address_cidr}")
+            return STATUS_NOK
+
+        lo_name = f'lo:{loopback_name}'
+        cmd = ['ip', 'addr', 'del', inet_address_cidr, 'label', lo_name, 'dev', 'lo']
+
+        if ip_version == 6:
+            cmd.insert(1, '-6')
+
+        self.log.info(f'del_inet_address_loopback() -> {cmd}')
+        out = self.run(cmd)
+
+        if out.exit_code:
+            self.log.error(f"del_inet_address_loopback() -> Unable to delete inet address: "
+                        f"{inet_address_cidr} from loopback: {loopback_name}, Reason: {out.stderr}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def update_inet_address_loopback(self, loopback_name: str, old_inet_address_cidr: str, new_inet_address_cidr: str) -> bool:
+        """
+        # TODO Need to test, not sure if this works
+        
+        Update (overwrite) an internet address (IPv4 or IPv6) on a loopback interface.
+
+        Args:
+            loopback_name (str): The name of the loopback interface.
+            old_inet_address_cidr (str): The CIDR notation of the current IP address to be replaced.
+            new_inet_address_cidr (str): The CIDR notation of the new IP address to assign.
+
+        Returns:
+            bool: STATUS_OK if the address was successfully updated, STATUS_NOK otherwise.
+        """
+        self.log.debug(f"update_inet_address_loopback() - Loopback: {loopback_name} -> "
+                    f"Old Inet: {old_inet_address_cidr}, New Inet: {new_inet_address_cidr}")
+
+        if not loopback_name:
+            self.log.error("update_inet_address_loopback() -> Loopback not defined")
+            return STATUS_NOK
+
+        try:
+            old_ip_interface = ipaddress.ip_interface(old_inet_address_cidr)
+            new_ip_interface = ipaddress.ip_interface(new_inet_address_cidr)
+            old_ip_version = old_ip_interface.version
+            new_ip_version = new_ip_interface.version
+
+        except ValueError as e:
+            self.log.error(f"update_inet_address_loopback() -> Invalid IP address: {e}")
+            return STATUS_NOK
+
+        # Delete old IP address
+        lo_name = f'lo:{loopback_name}'
+        del_cmd = ['ip', 'addr', 'del', old_inet_address_cidr, 'label', lo_name, 'dev', 'lo']
+        if old_ip_version == 6:
+            del_cmd.insert(1, '-6')
+        
+        self.log.info(f'update_inet_address_loopback() - Deleting old address -> {del_cmd}')
+        out = self.run(del_cmd)
+        
+        if out.exit_code:
+            self.log.error(f"update_inet_address_loopback() -> Unable to delete old inet address: "
+                        f"{old_inet_address_cidr} from loopback: {loopback_name}, Reason: {out.stderr}")
+            return STATUS_NOK
+
+        # Add new IP address
+        add_cmd = ['ip', 'addr', 'add', new_inet_address_cidr, 'label', lo_name, 'dev', 'lo']
+        if new_ip_version == 6:
+            add_cmd.insert(1, '-6')
+
+        self.log.info(f'update_inet_address_loopback() - Adding new address -> {add_cmd}')
+        out = self.run(add_cmd)
+
+        if out.exit_code:
+            self.log.error(f"update_inet_address_loopback() -> Unable to set new inet address: "
+                        f"{new_inet_address_cidr} on loopback: {loopback_name}, Reason: {out.stderr}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+        
     def set_inet_address(self, interface_name: str, inet_address_cidr: str, secondary: bool = False) -> bool:
         """
         Set an IP address on an interface via OS.

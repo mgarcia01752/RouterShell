@@ -48,3 +48,8 @@ class LoopbackInterface(NetworkInterface):
         
         return STATUS_OK
 
+    def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
+        
+        Interface().set_inet_address()
+        
+        return STATUS_OK

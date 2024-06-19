@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, Union
 
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
@@ -11,6 +12,10 @@ class CreateLoopBackNetInterfaceError(Exception):
         super().__init__(message)
 
 class CreateLoopBackNetInterface:
+    
+    # Singleton {'interface_name': LoopbackInterface}
+    _loopback_net_interface_obj_dict: Dict[str, LoopbackInterface] = {}
+
     def __init__(self, loopback_name: str):
         """
         Initialize a CreateLoopBackNetInterface instance to create a loopback network interface.
@@ -44,14 +49,15 @@ class CreateLoopBackNetInterface:
         else:
             raise CreateLoopBackNetInterfaceError(f"Unable to create {loopback_name} interface.")
                 
-        self._net_interface = NetInterfaceFactory(self.loopback_name).get()
+        ni = NetInterfaceFactory(self.loopback_name, InterfaceType.LOOPBACK).getNetInterface(self.loopback_name)
+        CreateLoopBackNetInterface._loopback_net_interface_obj_dict[self.loopback_name] = ni
     
-    def getLoopbackInterface(self) -> LoopbackInterface:
+    def getLoopbackInterface(self, loopback_name:str) -> LoopbackInterface:
         """
         Get a NetInterfaceFactory instance for the created loopback network interface.
 
         Returns:
             NetInterface: A NetInterface object associated with the created loopback interface.
         """
-        self.log.debug(f'getLoopbackInterface() -> Interface: {self._net_interface.get_ifType()}')
-        return self._net_interface
+        self.log.debug(f'getLoopbackInterface() -> Interface: {loopback_name}')
+        return CreateLoopBackNetInterface._loopback_net_interface_obj_dict[loopback_name]

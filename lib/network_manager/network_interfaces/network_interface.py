@@ -31,7 +31,6 @@ class NetworkInterface:
         self.interface_name = interface_name
         pass
 
-
     def set_description(self, description:str=None) -> bool:
         """
         Set the description for the network interface.
