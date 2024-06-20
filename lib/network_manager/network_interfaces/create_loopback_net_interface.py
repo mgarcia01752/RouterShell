@@ -34,23 +34,22 @@ class CreateLoopBackNetInterface:
         self.log.debug(f'Loopback-Name: {loopback_name}')
         
         if Interface().does_os_interface_exist(loopback_name):
-            self.log.debug(f'Loopback: {loopback_name} exists')
-
-            if not Interface().db_lookup_interface_exists(loopback_name):
-                self.log.debug(f'Loopback: {loopback_name} does not exist in DB...adding')
-                Interface().update_interface_db_from_os(loopback_name)
-        
-        elif not Interface().create_os_dummy_interface(loopback_name):
-            self.log.debug(f'Loopback: {loopback_name} didn not exist on OS...Added to OS')
             
-            if Interface().add_db_interface_entry(interface_name=loopback_name, ifType=InterfaceType.LOOPBACK):
-                raise CreateLoopBackNetInterfaceError(f"Unable to add {loopback_name} interface db entry.")
-        
-        else:
-            raise CreateLoopBackNetInterfaceError(f"Unable to create {loopback_name} interface.")
+            if Interface().does_db_interface_exist(loopback_name):
                 
-        ni = NetInterfaceFactory(self.loopback_name, InterfaceType.LOOPBACK).getNetInterface(self.loopback_name)
-        CreateLoopBackNetInterface._loopback_net_interface_obj_dict[self.loopback_name] = ni
+                #If both exists, that mean we added it either at start-up or run-time
+                if not self.loopback_name in CreateLoopBackNetInterface._loopback_net_interface_obj_dict:
+                    self.log.error(f'Interface: {self.loopback_name} not found in NetInterface dict Object')
+                
+        else:
+            self.log.debug(f'Adding Loopback: {loopback_name} to OS')
+            ni = NetInterfaceFactory(self.loopback_name, InterfaceType.LOOPBACK).getNetInterface(self.loopback_name)            
+            
+            if ni.auto_inet_127_loopback():
+                self.log.error(f'Unable to auto-assign 127 subnet to looopback: {self.loopback_name}')
+            
+            ni.set_description(f'Auto Assign loopback')
+            CreateLoopBackNetInterface._loopback_net_interface_obj_dict[self.loopback_name] = ni
     
     def getLoopbackInterface(self, loopback_name:str) -> LoopbackInterface:
         """

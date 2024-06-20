@@ -178,7 +178,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                         if label == interface_name:
                             return True
 
-            self.log.debug(f"Interface '{interface_name}' does not exist")
+            self.log.debug(f"does_os_interface_exist() '{interface_name}' does not exist")
             return False
                 
         except Exception as e:
@@ -1180,4 +1180,45 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
     
-    
+    def get_next_loopback_address(self) -> str:
+        """
+        Search the lo interface, retrieve a list of IPv4 addresses in the 127.x.x.x range,
+        and find the next available address in that range.
+
+        Returns:
+            str: The next available 127.x.x.x address in CIDR notation.
+        """
+        try:
+            # Get the list of addresses on the loopback interface in JSON format
+            result = self.run(['ip', '-j', 'addr', 'show', 'dev', 'lo'], suppress_error=True)
+
+            if result.exit_code != 0:
+                self.log.error(f"Error retrieving IP addresses: {result.stderr}")
+                return None
+
+            data = json.loads(result.stdout)
+
+            # Collect all 127.x.x.x addresses
+            addresses = [
+                ipaddress.ip_interface(f"{addr_info['local']}/{addr_info['prefixlen']}").ip
+                for iface in data if iface['ifname'] == 'lo'
+                for addr_info in iface.get('addr_info', [])
+                if addr_info['family'] == 'inet' and ipaddress.ip_interface(f"{addr_info['local']}/{addr_info['prefixlen']}").ip.is_loopback
+            ]
+
+            # Sort addresses and find the highest one
+            addresses.sort()
+            last_address = addresses[-1] if addresses else ipaddress.IPv4Address('127.0.0.0')
+
+            # Calculate the next available address
+            next_address = last_address + 1
+            if next_address.is_loopback:
+                next_address_cidr = f"{next_address}/8"
+                return next_address_cidr
+            else:
+                self.log.error("No more available 127.x.x.x addresses")
+                return None
+
+        except Exception as e:
+            self.log.error(f"An error occurred: {e}")
+            return None

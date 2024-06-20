@@ -53,14 +53,9 @@ class NetInterfaceFactory:
         
         if self.interface_name in NetInterfaceFactory._net_interface_lookup_interface_name:
             self.log.debug(f'Already created NetInterface Object for interface: {self.interface_name}')
+        
         else:
-            if not Interface().does_os_interface_exist(interface_name):
-                if interface_type == InterfaceType.LOOPBACK and Common.is_loopback_if_name_valid(interface_name):
-                    if Interface().create_os_dummy_interface(interface_name):
-                        self.log.debug(f"Created loopback interface: {interface_name}")
-                else:
-                    raise NetInterfaceFactoryError(f"Invalid or non-existing interface: {interface_name}")
-
+            
             if interface_type == InterfaceType.LOOPBACK:
                 network_interface_obj = LoopbackInterface(self.interface_name)
                 

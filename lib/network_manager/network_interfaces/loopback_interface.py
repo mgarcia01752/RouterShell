@@ -1,4 +1,5 @@
 import logging
+from optparse import Option
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
@@ -18,7 +19,7 @@ class LoopbackInterface(NetworkInterface):
         log (Logger): Logger instance for the class.
     """
 
-    def __init__(self, loopback_name: str):
+    def __init__(self, loopback_name: str) -> None:
         """
         Initializes a LoopbackInterface instance.
 
@@ -28,6 +29,16 @@ class LoopbackInterface(NetworkInterface):
         super().__init__(interface_name=loopback_name)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS.LOOPBACK_INTERFACE)
+        self._127_inet_address = None
+        
+        if not Interface().does_os_interface_exist(loopback_name):
+            if self.auto_inet_127_loopback():
+                self.log.error(f'Unable to auto-assign 127 subnet to Loopback: {loopback_name}')
+            self.set_description(f'Auto Assigned Loopback Address: {self._127_inet_address}')
+        
+        else:
+            self.log.debug(f'Loopback: {loopback_name} already exists')
+        
 
     def destroy(self) -> bool:
         """
@@ -48,8 +59,33 @@ class LoopbackInterface(NetworkInterface):
         
         return STATUS_OK
 
-    def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
-        
-        Interface().set_inet_address()
-        
+    def auto_inet_127_loopback(self) -> bool:
+        """
+        Automatically assign the next available 127.x.x.x address to the loopback interface.
+
+        If the loopback interface does not have an assigned 127.x.x.x address,
+        this method will find the next available address in the 127.x.x.x range
+        and assign it to the loopback interface.
+
+        Returns:
+            bool: STATUS_OK if the address was successfully assigned, STATUS_NOK otherwise.
+        """
+        if not self._127_inet_address:
+            next_available_127 = Interface().get_next_loopback_address()
+
+            if not next_available_127:
+                self.log.error('Unable to determine the next available 127.x.x.x address.')
+                return STATUS_NOK
+
+            if Interface().set_inet_address_loopback(self.interface_name, next_available_127):
+                self.log.error(f'Unable to auto-assign: {next_available_127} to loopback: {self.get_interface_name()}')
+                return STATUS_NOK
+
+            self.log.debug(f'Auto Assign: {next_available_127} to loopback: {self.get_interface_name()} to OS')
+            self._127_inet_address = next_available_127
+
+        return STATUS_OK
+
+    
+    def add_inet_address(self, inet_address_cidr:str, secondary_address:bool=False, negate:bool=False) -> bool:
         return STATUS_OK

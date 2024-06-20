@@ -35,7 +35,7 @@ class ConfigCmd(CmdPrompt):
             print(f"{method.__doc__}")
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces())         
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces() + [InterfaceType.LOOPBACK.value])         
     def configcmd_interface(self, args: List[str]=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
         

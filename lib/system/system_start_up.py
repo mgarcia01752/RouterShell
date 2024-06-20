@@ -127,7 +127,7 @@ class SystemShutDown(RunCommand):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM_START_UP)
-        
+            
 class SystemReset(Interface):
     """
     Class for resetting system settings.

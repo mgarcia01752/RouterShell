@@ -11,13 +11,18 @@ from lib.network_manager.network_interfaces.loopback_interface import LoopbackIn
 
 class LoopbackConfig(CmdPrompt):
 
-    def __init__(self, loopback_interface_obj: LoopbackInterface) -> None:
+    """
+        To stay consistant with the CLI, we can't add the loopback without an IP address associated with the 
+    """
+    
+    def __init__(self, loopback_interface_obj:LoopbackInterface) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().LOOPBACK_CONFIG)
-        self.loopback_interface_obj = loopback_interface_obj
-        self.log.debug(f'Loopback: {loopback_interface_obj.get_interface_name()}')
+        
+        self.lio = loopback_interface_obj
+        self.log.debug(f'Loopback: {self.lio.get_interface_name}')
                
     def loopbackconfig_help(self, args: List=None) -> None:
         """
@@ -49,7 +54,7 @@ class LoopbackConfig(CmdPrompt):
             successful.
         """
         self.log.debug(f'loopbackconfig_description -> {line}')
-        self.loopback_interface_obj.set_description(Common.flatten_list(line))
+        self.lio.set_description(Common.flatten_list(line))
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'])         
@@ -76,7 +81,7 @@ class LoopbackConfig(CmdPrompt):
                 secondary_addr = 'secondary' in args
                 self.log.debug(f'Inet: {args[1]}, Secondary: {secondary_addr}, Negate: {negate}')
                 
-                self.loopback_interface_obj.add_inet_address(args[1], secondary_addr, negate)
+                self.lio.add_inet_address(args[1], secondary_addr, negate)
                 return STATUS_OK
             else:
                 self.log.debug(f'Invalid IP address or missing "address" keyword: {args}')
@@ -106,7 +111,7 @@ class LoopbackConfig(CmdPrompt):
         try:
             self.log.debug(f'loopbackconfig_shutdown -> {args}')
             state = State.UP if negate else State.DOWN
-            self.loopback_interface_obj.set_interface_shutdown_state(state)
+            self.lio.set_interface_shutdown_state(state)
             return STATUS_OK
         
         except Exception as e:
@@ -133,8 +138,8 @@ class LoopbackConfig(CmdPrompt):
                   configuration is destroyed successfully. STATUS_NOK otherwise.
         """
         if 'YES' in args:
-            self.log.debug(f'Destroying Loopback: {self.loopback_interface_obj.interface_name}')
-            return self.loopback_interface_obj.destroy()
+            self.log.debug(f'Destroying Loopback: {self.lio.interface_name}')
+            return self.lio.destroy()
         
         return STATUS_OK   
         
