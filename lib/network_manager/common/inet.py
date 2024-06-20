@@ -2,7 +2,6 @@ from enum import Enum
 import ipaddress
 import json
 import logging
-from typing import Tuple, Union
 
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -308,7 +307,7 @@ class InetServiceLayer(MacServiceLayer):
             return STATUS_NOK
 
         return STATUS_OK
-
+    
     def update_inet_address_loopback(self, loopback_name: str, old_inet_address_cidr: str, new_inet_address_cidr: str) -> bool:
         """
         # TODO Need to test, not sure if this works

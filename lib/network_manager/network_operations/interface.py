@@ -1,14 +1,13 @@
 import ipaddress
 import json
 import logging
-import re
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from lib.db.interface_db import InterfaceDatabase
 from lib.network_manager.common.interface import InterfaceType 
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.common.common import STATUS_NOK, STATUS_OK, Common
+from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge, BridgeProtocol
 from lib.network_manager.network_operations.dhcp_client import DHCPClient, DHCPVersion
@@ -406,43 +405,55 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
 
-    def update_interface_loopback_inet(self, loopback_name: str, inet_address_cidr: str, negate: bool = False) -> bool:
+    def update_interface_loopback_inet(self, loopback_name: str, inet_address_cidr: str = None, negate: bool = False) -> bool:
         """
-        Update the internet address on a loopback interface, optionally deleting the address.
+        Update or delete the inet address of a loopback interface.
 
-        Args:
-            loopback_name (str): The name of the loopback interface.
-            inet_address_cidr (str): The CIDR notation of the IP address to assign or delete.
-            negate (bool, optional): If True, delete the specified IP address from the loopback interface.
-                                    Defaults to False.
+        This function updates the inet address of a specified loopback interface. If the negate parameter is set to True,
+        it attempts to delete the specified inet address from the loopback interface. Otherwise, it sets the specified
+        inet address. If no address is provided, it attempts to auto-assign the next available inet address.
+
+        Parameters:
+        loopback_name (str): The name of the loopback interface to update.
+        inet_address_cidr (str, optional): The inet address in CIDR notation to set or delete. If None, the next available
+                                        address is auto-assigned. Defaults to None.
+        negate (bool): If True, the inet address is deleted from the loopback interface. If False, the address is set.
+                    Defaults to False.
 
         Returns:
-            bool: True if the address was successfully updated or deleted, False otherwise.
+        bool: STATUS_OK if the operation was successful, otherwise STATUS_NOK.
         """
         self.log.debug(f"update_interface_loopback_inet() - Loopback: {loopback_name}, "
                     f"Inet: {inet_address_cidr}, Negate: {negate}")
 
         if negate:
-            if self.del_inet_address_loopback(loopback_name, inet_address_cidr):
+            if not self.del_inet_address_loopback(loopback_name, inet_address_cidr):
                 self.log.error(f"Unable to delete loopback: {loopback_name} address: {inet_address_cidr} from OS")
                 return STATUS_NOK
-            
-            if self.del_db_interface(loopback_name):
+
+            if not self.del_db_interface(loopback_name):
                 self.log.error(f"Unable to delete loopback: {loopback_name} address: {inet_address_cidr} from DB")
                 return STATUS_NOK
-        
+
         else:
+            if not inet_address_cidr:
+                inet_address_cidr = self.get_next_loopback_address()
+                if not inet_address_cidr:
+                    self.log.error("Unable to get next available loopback address")
+                    return STATUS_NOK
+
+                self.log.debug(f'Auto-Assign Loopback: {loopback_name} - inet: {inet_address_cidr}')
+
             if self.set_inet_address_loopback(loopback_name, inet_address_cidr):
                 self.log.error(f"Unable to update loopback: {loopback_name} address: {inet_address_cidr} to OS")
                 return STATUS_NOK
 
-            if self.add_db_interface(loopback_name, inet_address_cidr):
-                self.log.error(f"Unable to update loopback: {loopback_name} address: {inet_address_cidr} to DB")
+            if self.add_db_interface(loopback_name, InterfaceType.LOOPBACK):
+                self.log.error(f"Unable to update loopback: {loopback_name} to DB")
                 return STATUS_NOK
 
         return STATUS_OK
 
-    
     def update_interface_duplex(self, interface_name: str, duplex: Duplex) -> bool:
         """
         Add or set the duplex mode for a network interface.

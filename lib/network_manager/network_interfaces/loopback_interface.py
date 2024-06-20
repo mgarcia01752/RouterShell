@@ -32,10 +32,14 @@ class LoopbackInterface(NetworkInterface):
         self._127_inet_address = None
         
         if not Interface().does_os_interface_exist(loopback_name):
-            if self.auto_inet_127_loopback():
-                self.log.error(f'Unable to auto-assign 127 subnet to Loopback: {loopback_name}')
-            self.set_description(f'Auto Assigned Loopback Address: {self._127_inet_address}')
-        
+            self.log.info(f'Adding loopback: {loopback_name} to system')
+
+            if Interface().update_interface_loopback_inet(loopback_name, inet_address_cidr=None):
+                self.log.info(f"Loopback: {loopback_name} created successfully.")
+            
+            if self.set_description(f'Auto Assigned Loopback Address: {self._127_inet_address}'):
+                self.log.error(f'Failed to set description for Loopback: {loopback_name}')
+            
         else:
             self.log.debug(f'Loopback: {loopback_name} already exists')
         
