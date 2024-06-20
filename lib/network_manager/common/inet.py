@@ -258,7 +258,7 @@ class InetServiceLayer(MacServiceLayer):
         if ip_version == 6:
             cmd.insert(1, '-6')
             
-        self.log.info(f'set_inet_address_loopback() -> {cmd}')
+        self.log.debug(f'set_inet_address_loopback() -> {cmd}')
         out = self.run(cmd)
 
         if out.exit_code:
