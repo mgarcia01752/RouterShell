@@ -75,18 +75,18 @@ class Arp(NetworkManager):
             self.log.error(f"Error: {e}")
             return False
 
-    def arp_clear(self, ifName: Optional[str] = None) -> str:
+    def arp_clear(self, ifName: str = 'all') -> str:
         """
         Clears the ARP cache for a specific network interface or all interfaces.
 
         This method constructs and runs the appropriate command to flush the ARP cache 
-        for a specified network interface if provided. If no interface is specified, 
-        it will flush the ARP cache for all interfaces.
+        for a specified network interface if provided. If 'all' is specified, it will 
+        flush the ARP cache for all interfaces.
 
         Args:
-            ifName (Optional[str]): The name of the network interface for which to flush 
-                                    the ARP cache. If None, the ARP cache for all interfaces 
-                                    will be flushed.
+            ifName (str): The name of the network interface for which to flush 
+                        the ARP cache. Default is 'all', which flushes the ARP cache 
+                        for all interfaces.
 
         Returns:
             str: A status string indicating the result of the operation. STATUS_OK if the 
@@ -94,10 +94,10 @@ class Arp(NetworkManager):
         """
         cmd = ['ip', 'neigh', 'flush']
 
-        if ifName:
-            cmd.extend(['dev', ifName])
-        else:
+        if ifName == 'all':
             cmd.append('all')
+        else:
+            cmd.extend(['dev', ifName])
 
         self.log.debug(f"CMD: {cmd}")
 
