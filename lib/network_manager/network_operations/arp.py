@@ -1,5 +1,6 @@
 from enum import Enum
 import logging
+from typing import Optional
 
 from tabulate import tabulate 
 from lib.network_manager.common.inet import InetServiceLayer
@@ -74,15 +75,23 @@ class Arp(NetworkManager):
             self.log.error(f"Error: {e}")
             return False
 
-
-    def arp_clear(self, ifName:str=None):
+    def arp_clear(self, ifName: Optional[str] = None) -> str:
         """
-        Clear the ARP cache for a specific network interface or all interfaces.
+        Clears the ARP cache for a specific network interface or all interfaces.
 
-        :param ifName: The name of the network interface. If None, clears the ARP cache for all interfaces.
-        :return: The output of the ARP cache clearing command.
+        This method constructs and runs the appropriate command to flush the ARP cache 
+        for a specified network interface if provided. If no interface is specified, 
+        it will flush the ARP cache for all interfaces.
+
+        Args:
+            ifName (Optional[str]): The name of the network interface for which to flush 
+                                    the ARP cache. If None, the ARP cache for all interfaces 
+                                    will be flushed.
+
+        Returns:
+            str: A status string indicating the result of the operation. STATUS_OK if the 
+                command was successful, STATUS_NOK otherwise.
         """
-        
         cmd = ['ip', 'neigh', 'flush']
 
         if ifName:
@@ -93,69 +102,103 @@ class Arp(NetworkManager):
         self.log.debug(f"CMD: {cmd}")
 
         result = self.run(cmd)
-        
+
         return STATUS_OK if result.exit_code else STATUS_NOK
 
     def set_os_timeout(self, arp_time_out: int = 300) -> bool:
         """
-        Set the ARP cache timeout using sysctl.
+        Sets the ARP cache timeout in the operating system.
 
-        :param arp_time_out: The ARP cache timeout value in seconds.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        This method writes the given ARP cache timeout value to the system configuration
+        using the `sysctl` interface. It sets the timeout value for the ARP cache entries.
+
+        Args:
+            arp_time_out (int): The desired timeout value for ARP cache entries in seconds.
+                                Default is 300 seconds.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         sysctl_param = "net.ipv4.neigh.default.gc_stale_time"
         
         if SysCtl().write_sysctl(sysctl_param, str(arp_time_out)):
-            print(f"Unable to setARP cache timeout set to {arp_time_out} seconds.")
+            print(f"Unable to set ARP cache timeout to {arp_time_out} seconds.")
             return STATUS_NOK
         else:
             print(f"Set ARP cache timeout to {arp_time_out} seconds.")
         
         return STATUS_OK
 
-    def set_os_arp_accept(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_accept(self, ifName: str = "all", enable: bool = True) -> bool:
         """
-        Enable or disable ARP request acceptance for a specific network interface.
+        Sets the ARP accept mode for a specific network interface or all interfaces.
 
-        :param ifName: The name of the network interface.
-        :param enable: True to enable ARP request acceptance, False to disable it.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        This method writes the given ARP accept mode value to the system configuration
+        file corresponding to the specified network interface. Enabling ARP accept mode
+        allows the system to respond to ARP requests that match the host.
+
+        Args:
+            ifName (str): The name of the network interface for which to set ARP accept mode.
+                        Default is "all", which applies the setting to all interfaces.
+            enable (bool): If True, enables ARP accept mode. If False, disables ARP accept mode.
+                        Default is True.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_accept_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_accept"
         value = "1" if enable else "0"
         
         return SysCtl().write_sysctl(arp_accept_file, value)
 
-    def set_os_arp_announce(self, ifName:str, value:int) -> bool:
-        """
-        Set the ARP announce value for a specific network interface.
+        def set_os_arp_announce(self, ifName:str, value:int) -> bool:
+            """
+            Set the ARP announce value for a specific network interface.
 
-        :param ifName: The name of the network interface.
-        :param value: The ARP announce value (0, 1, or 2).
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
-        """
-        arp_announce_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_announce"
-        return SysCtl().write_sysctl(arp_announce_file, str(value))
+            :param ifName: The name of the network interface.
+            :param value: The ARP announce value (0, 1, or 2).
+            :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            """
+            arp_announce_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_announce"
+            return SysCtl().write_sysctl(arp_announce_file, str(value))
 
-    def set_os_arp_evict_nocarrier(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_evict_nocarrier(self, ifName: str = "all", enable: bool = True) -> bool:
         """
-        Enable or disable ARP eviction on no carrier for a specific network interface.
+        Sets the ARP eviction behavior on carrier loss for a specific network interface or all interfaces.
 
-        :param ifName: The name of the network interface. Default is 'all' to apply to all interfaces.
-        :param enable: True to enable ARP eviction on no carrier, False to disable it.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        This method writes the given value to the system configuration file corresponding 
+        to the specified network interface. Enabling ARP eviction on carrier loss causes 
+        ARP entries to be removed when the carrier is lost.
+
+        Args:
+            ifName (str): The name of the network interface for which to set ARP eviction behavior.
+                        Default is "all", which applies the setting to all interfaces.
+            enable (bool): If True, enables ARP eviction on carrier loss. If False, disables it.
+                        Default is True.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_evict_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_evict_nocarrier"
         value = "1" if enable else "0"
         return SysCtl().write_sysctl(arp_evict_file, value)
 
-    def set_os_arp_filter(self, ifName: str="all", enable: bool=True) -> bool:
+    def set_os_arp_filter(self, ifName: str = "all", enable: bool = True) -> bool:
         """
-        Enable or disable ARP filtering for a specific network interface.
+        Sets the ARP filtering behavior for a specific network interface or all interfaces.
 
-        :param ifName: The name of the network interface. Default is 'all' to apply to all interfaces.
-        :param enable: True to enable ARP filtering, False to disable it.
-        :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        This method writes the given value to the system configuration file corresponding 
+        to the specified network interface. Enabling ARP filtering allows the system to use 
+        more stringent rules when selecting ARP responses.
+
+        Args:
+            ifName (str): The name of the network interface for which to set ARP filtering behavior.
+                        Default is "all", which applies the setting to all interfaces.
+            enable (bool): If True, enables ARP filtering. If False, disables it.
+                        Default is True.
+
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_filter_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_filter"
         value = "1" if enable else "0"

@@ -25,36 +25,22 @@ class ClearMode(CmdPrompt):
         
         self.log.debug(f"Entering Clear({arg})")
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['arp'], append_nested_sub_cmds=Interface().get_os_network_interfaces())
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['arp'], append_nested_sub_cmds=Interface().get_os_network_interfaces() + ['all'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['router-db'])
     def clearmode_clear(self, args: List):
 
         self.log.debug(f"Entering clear({args})")
 
-        parser = argparse.ArgumentParser(
-            description="Clear entries on router",
-            epilog="Supported subcommands:\n"
-                    "   arp [interface_name]           Clear ARP cache for a specific interface.\n"
-                    "   router-db                      Clear RouterShell DB cache.\n"
-        )
-
-        subparsers = parser.add_subparsers(dest='subcommand')
-
-        arp_parser = subparsers.add_parser('arp', help='Clear ARP cache')
-        arp_parser.add_argument('interface', type=str, help='Interface name')
-
-        router_db_parser = subparsers.add_parser('router-db', help='Clear RouterShell DB')
-
-        parsed_args = parser.parse_args(args)
-        print(f'ParseArgs: {parsed_args}')
-
-        if parsed_args.subcommand == 'arp':
-            interface = parsed_args.interface
+        if 'arp' in args[0]:
+            
+            interface = args[1]
+            
             self.log.debug(f"Clear ARP cache command -> Clear Arp Interface: {interface}")
+            
             Arp().arp_clear(interface)
             return STATUS_OK
         
-        if parsed_args.subcommand == 'router-db':
+        if 'router-db' in args[0]:
             self.log.debug(f"Clear RouterShell DB command")
             
             # TODO
