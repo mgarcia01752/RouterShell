@@ -1,4 +1,4 @@
-import argparse
+
 import logging
 from typing import List, Optional
 
@@ -51,19 +51,7 @@ class InterfaceConfig(CmdPrompt):
             
     @CmdPrompt.register_sub_commands() 
     def interfaceconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
-        """
-        Updates the interface configuration description in the database.
-        
-        Args:
-            line (Optional[str]): The description to be added. If None, the description will be empty.
-            negate (bool): If True, the line will be set to None.
-        
-        Returns:
-            bool: STATUS_OK indicating the operation was successful.
-        
-        Raises:
-            ValueError: If there is an issue updating the database description.
-        """
+        """"""
         if negate:
             self.log.debug(f'Negating description on interface: {self.ifName}')
             line = [""]
@@ -174,51 +162,22 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
     def interfaceconfig_ip(self, args: List[str], negate=False) -> bool:
-        """
-        Configure IP settings on the interface.
-
-        Args:
-            args (List[str]): Command arguments.
-            negate (bool, optional): True to negate the command, False otherwise. Defaults to False.
-
-        Available suboptions:
-        - `address <IP Address>/<CIDR> [secondary]`     : Set a static IP address.
-        Use `<suboption> --help` to get help for specific suboptions.
-        """
-
-        self.log.debug(f'interfaceconfig_ip4() -> ({args})')
-        if not args:
-            print('Missing command arguments')
-            return STATUS_NOK
-
-        if '?' in args:
-            args = [arg if arg != '?' else '--help' for arg in args]
-
-        parser = argparse.ArgumentParser(
-            description="Configure IP settings on the interface.",
-            epilog="Available suboptions:\n"
-                   "   address <IPv4 Address>/<CIDR> [secondary]   Set IP address/CIDR (optional secondary).\n"
-                   "Use <suboption> --help to get help for specific suboptions."
-        )
-
-        subparsers = parser.add_subparsers(dest="subcommand")
-
-        address_parser = subparsers.add_parser("address",
-                                               help="Set a static IP address on the interface (e.g., 'ip address 192.168.1.1/24 [secondary]').")
-        
-        address_parser.add_argument("ipv4_address_cidr",
-                                    help="IPv4 address/subnet to configure.")
-        address_parser.add_argument("secondary", nargs="?", const=True, default=False,
-                                    help="Indicate that this is a secondary IP address.")
-        
-        # Parse the arguments
-        parsed_args = parser.parse_args(args)
-
-        if parsed_args.subcommand == "address":
-            ipv4_address_cidr = parsed_args.ipv4_address_cidr
-            is_secondary = parsed_args.secondary
-            is_secondary = True if is_secondary else False
+        "ip address <> secondary"
+        if "address" in args:
+            if len(args) < 2:
+                self.log.error("Insufficient arguments for 'address' command.")
+                print("Insufficient arguments for 'address' command.")
+                return STATUS_NOK
+            
+            ipv4_address_cidr = args[1]
+            is_secondary = False
+            
+            if len(args) > 2 and args[2] == 'secondary':
+                is_secondary = True    
 
             self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
@@ -226,31 +185,45 @@ class InterfaceConfig(CmdPrompt):
             result = self.net_interface.add_inet_address(inet_address=ipv4_address_cidr, secondary_address=is_secondary, negate=negate)
 
             if result:
-                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName}, secondary: {is_secondary}")
             else:
-                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName}, secondary: {is_secondary}")
 
+        elif "proxy-arp" in args:
+            '''[no] [ip proxy-arp]'''
+            self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
+            return self.net_interface.set_proxy_arp(negate)
+                
+        elif "drop-gratuitous-arp" in args:
+            '''[no] [ip drop-gratuitous-arp]'''
+            self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
+            return self.net_interface.set_drop_gratuitous_arp(negate)
+
+        elif "static-arp" in args:
+            '''[no] [ip static-arp ip-address mac-address arpa]'''
+            if len(args) < 3:
+                self.log.error("Insufficient arguments for 'static-arp' command.")
+                print("Insufficient arguments for 'static-arp' command.")
+                return STATUS_NOK
+            
+            ipv4_addr_arp = args[1]
+            mac_addr_arp = args[2]
+            encap_arp = Encapsulate.ARPA  # Assuming Encapsulate is a predefined enum or constant.
+            
+            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
+            return self.net_interface.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
+        
         else:
-            self.log.debug(f'Invalid subcommand: {parsed_args.subcommand}')
+            self.log.debug(f'Invalid subcommand: {args}')
             print('Invalid subcommand')
             return STATUS_NOK
 
         return STATUS_OK
-    
+
+
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
     def interfaceconfig_duplex(self, args: List[str]) -> bool:
-        """
-        Updates the interface duplex mode based on the provided arguments.
-        
-        Args:
-            args (Optional[str]): The duplex mode argument, expected to be 'auto', 'half', or 'full'.
-        
-        Returns:
-            bool: STATUS_OK (True) indicating the operation was successful.
-        
-        Raises:
-            ValueError: If the duplex mode is invalid.
-        """
+        """ duplex """
         
         if not args:
             print("Usage: duplex <auto | half | full>")
@@ -328,17 +301,7 @@ class InterfaceConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands()    
     def interfaceconfig_shutdown(self, args=None, negate=False) -> bool:
-        """
-        This function is used to change the state of an interface to either UP or DOWN.
-
-        Args:
-            self: The instance of the class containing this method.
-            args (list): A list of arguments. If the list contains only the string 'no', the interface
-                        state will be set to DOWN; otherwise, it will be set to UP.
-
-        Returns:
-            str: A message indicating the result of the interface state change.
-        """
+        """ shutdown """
         ifState = State.DOWN
         
         if negate:
