@@ -86,12 +86,6 @@ class InterfaceConfig(CmdPrompt):
     def interfaceconfig_ip6(self, args, negate=False) -> bool:
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool', 'acl'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool', 'acl'])
     def X_ip(self, args: List, negate=False) -> bool:
 
         self.log.debug(f'interfaceconfig_ip() -> {args}')
@@ -161,10 +155,13 @@ class InterfaceConfig(CmdPrompt):
   
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
+    
+    @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'])        
+    @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'])
+    @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'])
+    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'inside', 'pool'])
+    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'outside', 'pool'])    
+    # @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'])
     def interfaceconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
