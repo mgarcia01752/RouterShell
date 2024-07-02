@@ -184,7 +184,7 @@ class EthernetConfig(CmdPrompt):
             self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
 
             action_description = "Removing" if negate else "Setting"
-            result = self.net_interface.add_inet_address(inet_address=ipv4_address_cidr, secondary_address=is_secondary, negate=negate)
+            result = self.eth_interface_obj.add_inet_address(inet_address=ipv4_address_cidr, secondary_address=is_secondary, negate=negate)
 
             if result:
                 self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName}, secondary: {is_secondary}")
@@ -194,12 +194,12 @@ class EthernetConfig(CmdPrompt):
         elif "proxy-arp" in args:
             '''[no] [ip proxy-arp]'''
             self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
-            return self.net_interface.set_proxy_arp(negate)
+            return self.eth_interface_obj.set_proxy_arp(negate)
                 
         elif "drop-gratuitous-arp" in args:
             '''[no] [ip drop-gratuitous-arp]'''
             self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
-            return self.net_interface.set_drop_gratuitous_arp(negate)
+            return self.eth_interface_obj.set_drop_gratuitous_arp(negate)
 
         elif "static-arp" in args:
             '''[no] [ip static-arp ip-address mac-address arpa]'''
@@ -213,7 +213,7 @@ class EthernetConfig(CmdPrompt):
             encap_arp = Encapsulate.ARPA  # Assuming Encapsulate is a predefined enum or constant.
             
             self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
-            return self.net_interface.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
+            return self.eth_interface_obj.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
         
         else:
             self.log.debug(f'Invalid subcommand: {args}')
