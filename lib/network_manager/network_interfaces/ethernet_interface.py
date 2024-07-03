@@ -5,6 +5,7 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from lib.network_manager.network_operations.arp import Encapsulate
+from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 
@@ -176,3 +177,25 @@ class EthernetInterface(NetworkInterface):
             self.log.error(f'Unable to add NAT-{nat_direction.name} to pool-name: {nat_pool_name} Negate: {negate}')
             return STATUS_NOK
         return STATUS_OK
+    
+    def set_dhcp_client(self, dhcp_version: DHCPStackVersion, negate: bool=False) -> bool:
+        """
+        Configure the DHCP client on the interface.
+
+        Args:
+            dhcp_version (DHCPVersion): The version of DHCP to configure (e.g., v4 or v6).
+            negate (bool): If True, disables the DHCP client; otherwise, enables it.
+
+        Returns:
+            bool: STATUS_OK if the command was successful, STATUS_NOK otherwise.
+        """
+        try:
+            Interface().update_interface_dhcp_client(self.interface_name, dhcp_version, negate)
+            self.log.debug(f"{'Disabling' if negate else 'Enabling'} DHCP {dhcp_version.name} client on interface {self.interface_name}")
+            return STATUS_OK
+        
+        except Exception as e:
+            self.log.error(f"Failed to {'disable' if negate else 'enable'} DHCP {dhcp_version.name} client on interface {self.interface_name}. Error: {e}")
+            return STATUS_NOK
+        
+

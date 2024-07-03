@@ -23,14 +23,14 @@ end
 cls
 configure terminal
 
-; Create DHCP Pools
+! Create DHCP Pools
 dhcp dhcpv4-home-office
     subnet 172.16.0.0/24
     pool 172.16.0.50 172.16.60.254 255.255.255.0
     option routers 172.16.0.1
 end
 
-; Apply DHCP Pool to Interface
+! Apply DHCP Pool to Interface
 interface Gig0
     ip address 172.16.0.1/24
     ip dhcp-server pool-name dhcpv4-home-office

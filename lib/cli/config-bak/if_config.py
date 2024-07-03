@@ -9,7 +9,7 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
-from lib.network_manager.network_operations.dhcp_client import DHCPVersion
+from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
@@ -168,7 +168,7 @@ class InterfaceConfig(cmd2.Cmd,
                 
         elif args.subcommand == "dhcp-client":
             self.log.debug(f"Enable DHCPv6 Client")
-            if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V6, negate):
+            if Interface().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V6, negate):
                 self.log.fatal(f"Unable to set DHCPv6 client on interface: {self.ifName}")      
 
     def complete_ip(self, text, line, begidx, endidx):
@@ -332,7 +332,7 @@ class InterfaceConfig(cmd2.Cmd,
         elif args.subcommand == "dhcp-client":
             '''[no] [ip dhcp-client]'''
             self.log.debug(f"Enable DHCPv4 Client")
-            if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V4, negate):
+            if Interface().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V4, negate):
                 self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
 
         elif args.subcommand == "dhcp-server":

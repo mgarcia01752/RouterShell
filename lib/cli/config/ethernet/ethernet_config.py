@@ -11,7 +11,7 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.network_interfaces.ethernet_interface import EthernetInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
-from lib.network_manager.network_operations.dhcp_client import DHCPVersion
+from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
@@ -151,7 +151,7 @@ class EthernetConfig(CmdPrompt):
         elif "dhcp-client" in args[0]:
             '''[no] [ip dhcp-client]'''
             self.log.debug(f"Enable DHCPv4 Client")
-            if Interface().update_interface_dhcp_client(self.ifName, DHCPVersion.DHCP_V4, negate):
+            if Interface().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V4, negate):
                 self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
 
         elif "dhcp-server" in args[0]:
@@ -217,6 +217,7 @@ class EthernetConfig(CmdPrompt):
             return self.eth_interface_obj.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
     
         elif "nat" in args:
+            
             if args[1] in ['inside', 'outside']:
                 self.log.debug(f"Set nat {args[1]} on Interface {self.ifName}")
                 
@@ -243,6 +244,12 @@ class EthernetConfig(CmdPrompt):
             else:
                 print(f"Error: Invalid NAT direction '{args[1]}'. Use 'inside' or 'outside'.")
                 return STATUS_NOK
+
+        elif "dhcp-client" in args[0]:
+            '''[no] [ip dhcp-client]'''
+            self.log.debug(f"Enable DHCPv4 Client")
+            if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_V4, negate):
+                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
        
         else:
             self.log.debug(f'Invalid subcommand: {args}')

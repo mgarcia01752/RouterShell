@@ -162,21 +162,6 @@ class ConfigCmd(CmdPrompt):
 
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
-                                     append_nested_sub_cmds=Bridge().get_bridge_list_os())
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['system'], append_nested_sub_cmds=['telnet-server', 'ssh-server'])
-    def configcmd_no(self, args: List) -> bool:
-
-        if args[0] == 'bridge':
-            self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
-            Bridge().destroy_bridge_cmd(args[1])
-
-        if args[0] == 'system':
-            self.log.debug(f"configcmd_no() -> system: {args[1]}")
-            self.configcmd_system(args=args, negate=True)
-
-        return STATUS_OK
-
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
     def configcmd_nat(self, args: List[str], negate: bool=False) -> bool:
 
@@ -200,3 +185,21 @@ class ConfigCmd(CmdPrompt):
             return STATUS_NOK
 
         return STATUS_OK
+
+
+
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
+                                     append_nested_sub_cmds=Bridge().get_bridge_list_os())
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['system'], append_nested_sub_cmds=['telnet-server', 'ssh-server'])
+    def configcmd_no(self, args: List) -> bool:
+
+        if args[0] == 'bridge':
+            self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
+            Bridge().destroy_bridge_cmd(args[1])
+
+        if args[0] == 'system':
+            self.log.debug(f"configcmd_no() -> system: {args[1]}")
+            self.configcmd_system(args=args, negate=True)
+
+        return STATUS_OK
+

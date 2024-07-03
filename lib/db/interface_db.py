@@ -6,7 +6,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.network_operations.dhcp_client import DHCPVersion
+from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.nat import NATDirection
 
 class InterfaceDatabase:
@@ -334,7 +334,7 @@ class InterfaceDatabase:
         """
         pass
 
-    def update_db_dhcp_client(cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
+    def update_db_dhcp_client(cls, interface_name: str, dhcp_version: DHCPStackVersion) -> bool:
         """
         Update the DHCP version for a specific network interface in the database.
 

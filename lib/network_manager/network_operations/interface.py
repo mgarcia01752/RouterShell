@@ -10,7 +10,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge, BridgeProtocol
-from lib.network_manager.network_operations.dhcp_client import DHCPClient, DHCPVersion
+from lib.network_manager.network_operations.dhcp_client import DHCPClient, DHCPStackVersion
 from lib.network_manager.network_operations.nat import NATDirection, Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan
@@ -700,7 +700,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_dhcp_client(self, interface_name: str, dhcp_version: DHCPVersion, negate=False) -> bool:
+    def update_interface_dhcp_client(self, interface_name: str, dhcp_version: DHCPStackVersion, negate=False) -> bool:
         """
         Update the DHCP configuration for a network interface via OS.
         Update the DHCP configuration for a network interface via DB.
