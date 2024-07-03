@@ -714,8 +714,15 @@ class Interface(NetworkManager, InterfaceDatabase):
             bool: STATUS_OK for success, STATUS_NOK for failure.
 
         """
-        dhcp_client = DHCPClient()
-        if not dhcp_client.is_dhclient_available:
+        try:
+            dhcp_client = DHCPClient()
+            self.log.debug(f"Updated DHCP client configuration for interface: {interface_name} via OS")
+        
+        except Exception as e:
+            self.log.critical(f"Unable to update DHCP client configuration for interface: {interface_name} via OS: {e}")
+            return STATUS_NOK
+        
+        if not dhcp_client.is_dhcp_client_available:
             self.log.critical(f"DHCP Client Service not available, check system logs")
             return STATUS_NOK
         

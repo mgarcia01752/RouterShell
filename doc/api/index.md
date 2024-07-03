@@ -4,6 +4,12 @@
 
 ## Interface Types
 
+### Ethernet
+
+### LoopBack
+
+### Wireless
+
 ## Interface Detection
 
 ## Interface Configuration
