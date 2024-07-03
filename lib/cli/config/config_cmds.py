@@ -14,6 +14,7 @@ from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.interface import Interface
+from lib.network_manager.network_operations.nat import Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan
 from lib.system.system_call import SystemCall
@@ -116,8 +117,7 @@ class ConfigCmd(CmdPrompt):
             return STATUS_NOK
 
         return STATUS_OK
-
-    
+  
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['if', 'if-alias'])
     def configcmd_rename(self, args: List) -> bool:
 
@@ -177,4 +177,26 @@ class ConfigCmd(CmdPrompt):
 
         return STATUS_OK
 
-    
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
+    def configcmd_nat(self, args: List[str], negate: bool=False) -> bool:
+
+        if args[0] == 'pool-name':
+            if len(args) < 2:
+                self.log.error("configcmd_nat() -> Missing pool name.")
+                print("Error: Missing pool name.")
+                return STATUS_NOK
+            
+            pool_name = args[1]
+            self.log.debug(f"configcmd_nat() -> pool-name: {pool_name}")
+            
+            if Nat().create_nat_pool(pool_name, negate):
+                self.log.error(f'Unable to add NAT pool {pool_name} to DB')
+                return STATUS_NOK
+            
+            self.log.debug(f"Successfully added NAT pool {pool_name} to DB")
+        else:
+            self.log.error(f"configcmd_nat() -> Invalid subcommand: {args[0]}")
+            print(f"Error: Invalid subcommand: {args[0]}")
+            return STATUS_NOK
+
+        return STATUS_OK

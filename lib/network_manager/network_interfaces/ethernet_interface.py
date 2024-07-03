@@ -6,6 +6,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.interface import Interface
+from lib.network_manager.network_operations.nat import NATDirection
 
 class EthernetInterfaceError(Exception):
     def __init__(self, message):
@@ -158,3 +159,20 @@ class EthernetInterface(NetworkInterface):
                 False otherwise.
         """
         return Interface().update_interface_static_arp(self.interface_name, inet_address, mac_addr, Encapsulate.ARPA, negate)
+    
+    def set_nat_domain_direction(self, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
+        """
+        Set the NAT domain direction on the specified NAT pool.
+
+        Args:
+            nat_pool_name (str): The name of the NAT pool.
+            nat_direction (NATDirection): The direction of NAT (inside or outside).
+            negate (bool): If True, remove the NAT direction; otherwise, set the NAT direction.
+
+        Returns:
+            bool: STATUS_OK if the NAT direction was successfully set, STATUS_NOK otherwise.
+        """
+        if Interface.set_nat_domain_status(self, self.interface_name, nat_pool_name, nat_direction, negate):
+            self.log.error(f'Unable to add NAT-{nat_direction.name} to pool-name: {nat_pool_name} Negate: {negate}')
+            return STATUS_NOK
+        return STATUS_OK

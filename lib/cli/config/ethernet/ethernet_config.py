@@ -1,4 +1,3 @@
-import argparse
 import logging
 from typing import List, Optional
 
@@ -144,6 +143,8 @@ class EthernetConfig(CmdPrompt):
 
             self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction.value} -> Pool: {nat_pool_name}")
 
+            self.eth_interface_obj
+            
             #if self.set_nat_domain_status(self.ifName, nat_pool_name, nat_direction):
             #    self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
 
@@ -161,12 +162,12 @@ class EthernetConfig(CmdPrompt):
   
         return STATUS_OK
 
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool'])    
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])    
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
@@ -214,7 +215,35 @@ class EthernetConfig(CmdPrompt):
             
             self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
             return self.eth_interface_obj.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
-        
+    
+        elif "nat" in args:
+            if args[1] in ['inside', 'outside']:
+                self.log.debug(f"Set nat {args[1]} on Interface {self.ifName}")
+                
+                try:
+                    nat_direction = NATDirection(args[1])
+                except ValueError:
+                    print(f"Error: Invalid NAT direction '{args[1]}'. Use 'inside' or 'outside'.")
+                    return STATUS_NOK
+
+                if args[2] == 'pool-name':
+                    if len(args) < 4:
+                        print("Error: 'pool-name' argument is missing.")
+                        return STATUS_NOK
+
+                    nat_pool_name = args[3]
+                    
+                    if not self.eth_interface_obj.set_nat_domain_direction(nat_pool_name, nat_direction, negate):
+                        self.log.debug(f"Successfully set NAT: {nat_pool_name} direction: {nat_direction.value} on interface: {self.ifName}")
+                    else:
+                        self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
+                        return STATUS_NOK
+                else:
+                    print(f"Error: Invalid NAT argument, expecting pool-name; {args[2]}")
+            else:
+                print(f"Error: Invalid NAT direction '{args[1]}'. Use 'inside' or 'outside'.")
+                return STATUS_NOK
+       
         else:
             self.log.debug(f'Invalid subcommand: {args}')
             print('Invalid subcommand')
