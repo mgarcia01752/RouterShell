@@ -166,6 +166,7 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-client'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])    
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
@@ -247,9 +248,9 @@ class EthernetConfig(CmdPrompt):
 
         elif "dhcp-client" in args[0]:
             '''[no] [ip dhcp-client]'''
-            self.log.debug(f"Enable DHCPv4 Client")
-            if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_V4, negate):
-                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
+            self.log.debug(f"Enable DHCP-DUAL-STACK Client")
+            if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, negate):
+                self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self.ifName}")
        
         else:
             self.log.debug(f'Invalid subcommand: {args}')
