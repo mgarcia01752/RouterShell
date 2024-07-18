@@ -355,7 +355,6 @@ class Arp(NetworkManager):
         self.log.debug(f"set_static_arp(ifName: {interface_name}) -> inet: {inet} -> mac: {mac_address}")
         return STATUS_OK
             
-
     def get_arp(self, args: Optional[List[str]] = None) -> None:
         """
         Retrieves the ARP table and prints it in a formatted table.
@@ -387,14 +386,20 @@ class Arp(NetworkManager):
                 # Parse the JSON output
                 arp_entries: List[Dict[str, Any]] = json.loads(output.stdout)
 
+                # Define headers for the ARP table
+                headers = ["IP Address", "Device", "MAC Address", "State"]
+
+                if not arp_entries:
+                    # Print an empty table with headers
+                    print(tabulate([], headers=headers, tablefmt='simple', colalign=("left", "left", "left", "left")))
+                    print("ARP table is empty.")
+                    return
+
                 # Transform the JSON data into a list of lists (rows) for tabulate
                 arp_table = [
                     [entry.get("dst", ""), entry.get("dev", ""), entry.get("lladdr", ""), entry.get("state", "")]
                     for entry in arp_entries
                 ]
-
-                # Define headers for the ARP table
-                headers = ["IP Address", "Device", "MAC Address", "State"]
 
                 # Pretty-print the ARP table using the 'tabulate' library
                 table = tabulate(arp_table, headers=headers, tablefmt='simple', colalign=("left", "left", "left", "left"))
