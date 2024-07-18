@@ -1,6 +1,7 @@
 from enum import Enum
+import json
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from tabulate import tabulate 
 from lib.network_manager.common.inet import InetServiceLayer
@@ -354,33 +355,53 @@ class Arp(NetworkManager):
         self.log.debug(f"set_static_arp(ifName: {interface_name}) -> inet: {inet} -> mac: {mac_address}")
         return STATUS_OK
             
-    def get_arp(self, args=None):
+
+    def get_arp(self, args: Optional[List[str]] = None) -> None:
+        """
+        Retrieves the ARP table and prints it in a formatted table.
+
+        This method runs the 'ip -json neighbor show' command to fetch the ARP table
+        and processes the JSON output to display it in a readable format using the
+        'tabulate' library.
+
+        Args:
+            args (Optional[List[str]]): Additional arguments to pass to the 'ip' command.
+                                        Default is None.
+
+        Raises:
+            ArpException: If an error occurs while executing the command.
+        """
         try:
-            
             self.log.debug("get_arp()")
-            
-            # Run the 'ip neighbor show' command and capture the output
-            output = self.run(['ip', 'neighbor', 'show'])
 
-            self.log.debug(f"get_arp() stderr: ({output.stderr}) -> exit_code: ({output.exit_code }) -> stdout: \n{output.stdout}")
-            
+            # Run the 'ip -json neighbor show' command and capture the output
+            cmd = ['ip', '-json', 'neighbor', 'show']
+            if args:
+                cmd.extend(args)
+
+            output = self.run(cmd)
+
+            self.log.debug(f"get_arp() stderr: ({output.stderr}) -> exit_code: ({output.exit_code}) -> stdout: \n{output.stdout}")
+
             if output.exit_code == 0:
-                
-                # Split the ARP table output into lines
-                arp_lines = output.stdout.strip().split('\n')
+                # Parse the JSON output
+                arp_entries: List[Dict[str, Any]] = json.loads(output.stdout)
 
-                # Parse the ARP table into a list of lists (rows)
-                arp_table = [line.split() for line in arp_lines]
+                # Transform the JSON data into a list of lists (rows) for tabulate
+                arp_table = [
+                    [entry.get("dst", ""), entry.get("dev", ""), entry.get("lladdr", ""), entry.get("state", "")]
+                    for entry in arp_entries
+                ]
 
-                # Define headers for the ARP table with proper column widths
-                headers = ["IP Address", "Device", "Interface", "Type", "MAC Address", "State"]
+                # Define headers for the ARP table
+                headers = ["IP Address", "Device", "MAC Address", "State"]
 
                 # Pretty-print the ARP table using the 'tabulate' library
-                table = tabulate(arp_table, headers=headers, tablefmt='simple', colalign=("left", "left", "left", "left", "left"))
+                table = tabulate(arp_table, headers=headers, tablefmt='simple', colalign=("left", "left", "left", "left"))
 
                 # Print the formatted ARP table
                 print(table)
             else:
-                print(f"Error executing 'ip neighbor show' command: {output.stderr}")
-        except ArpException as e:
-            print(f"Error: {e}")
+                print(f"Error executing 'ip -json neighbor show' command: {output.stderr}")
+        except Exception as e:
+            raise ArpException(f"Error: {e}")
