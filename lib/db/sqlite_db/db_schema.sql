@@ -3,8 +3,8 @@ CREATE TABLE IF NOT EXISTS SystemConfiguration (
     ID INTEGER PRIMARY KEY NOT NULL,
     BannerMotd TEXT DEFAULT '',
     Hostname VARCHAR(255) DEFAULT '',
-    TelnetServer_FK INT,
-    SshServer_FK INT
+    TelnetServer_FK INT DEFAULT 1,                      -- Only one port access at this time  
+    SshServer_FK INT DEFAULT 1                          -- Only one port access at this time
 );
 INSERT INTO SystemConfiguration DEFAULT VALUES;
 

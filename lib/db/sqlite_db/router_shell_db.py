@@ -5117,7 +5117,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error updating Telnet server configuration: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
 
-    
     def insert_global_telnet_server(self, telnet_status: bool) -> Result:
             """
             Insert or update the Telnet server status in the SystemConfiguration table.
@@ -5146,25 +5145,34 @@ class RouterShellDB(metaclass=Singleton):
 
     def select_global_ssh_server(self) -> Result:
         """
-        Select the status of the SSH server from the SystemConfiguration table.
+        Select the status and port of the Secure Shell (SSH) server from the SshServer table,
+        linked through the SystemConfiguration table.
 
         Returns:
-            Result: A Result object indicating the operation's success or failure and the SSH server status.
+            Result: A Result object indicating the operation's success or failure, 
+                    the SSH server status, and port.
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT SshServer FROM SystemConfiguration WHERE ID = 1")
+            cursor.execute("""
+                SELECT ssh.Enable, ssh.Port
+                FROM SshServer ssh
+                JOIN SystemConfiguration sc ON sc.SshServer_FK = ssh.ID
+                WHERE sc.ID = 1
+            """)
             result = cursor.fetchone()
 
             if not result:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
+                return Result(status=STATUS_NOK, 
+                              row_id=self.ROW_ID_NOT_FOUND, 
+                              reason="No entry found in 'SshServer' or 'SystemConfiguration' tables.")
             
-            status = result[0]
+            enable, port = result
 
-            return Result(status=STATUS_OK, row_id=1, result={'SshServerStatus': status})
+            return Result(status=STATUS_OK, row_id=1, result={'Enable': enable, 'Port': port})
         
         except sqlite3.Error as e:
-            self.log.error("Error selecting SSH server status: %s", e)
+            self.log.error("Error selecting SSH server status and port: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
 
     def insert_global_Ssh_server(self, ssh_status: bool) -> Result:

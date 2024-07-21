@@ -1,6 +1,9 @@
 # System
 
-# Telnet
+[API](../../lib/system/system.py)
 
-# Secure Shell (SSH)
+## Telnet
 
+## Secure Shell (SSH)
+
+## [CLI](../api/system.md)

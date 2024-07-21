@@ -73,14 +73,26 @@ class SystemDatabase:
 
         return result.status, result.result.get('BannerMotd')
 
-    def get_telnet_server_status(cls) -> bool:
+    def get_telnet_server_status(cls) -> Tuple[bool, Dict]:
         """
-        Get the status of the Telnet server.
+        Retrieve the Telnet server status and port from the database.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            Tuple[bool, Dict]: A tuple containing a boolean indicating the success of the operation and a dictionary.
+                            The dictionary contains the Telnet server status ('Enable') and port ('Port') if the 
+                            operation is successful. If the operation fails, the boolean is STATUS_NOK and the dictionary is empty.
         """
-        return cls.rsdb.select_global_telnet_server().status
+        try:
+            result = cls.rsdb.select_global_telnet_server()
+            if result.status:
+                cls.log.error(f"Failed to retrieve Telnet server status: {result.reason}")
+                return STATUS_NOK, {}
+            
+            return STATUS_OK, result.result
+        
+        except Exception as e:
+            cls.log.error(f"Unexpected error while retrieving Telnet server status: {e}")
+            return STATUS_NOK, {}
 
     def set_telnet_server_status(cls, telnet_server_status: Status, port:int) -> bool:
         """
@@ -95,14 +107,27 @@ class SystemDatabase:
         tss = telnet_server_status == Status.ENABLE
         return cls.rsdb.update_global_telnet_server(tss, port).status
 
-    def get_ssh_server_status(cls) -> bool:
+    def get_ssh_server_status(cls) -> Tuple[bool, Dict]:
         """
-        Get the status of the SSH server.
+        Retrieve the SSH server status and port from the database.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            Tuple[bool, Dict]: A tuple containing a boolean indicating the success of the operation 
+                               and a dictionary. The dictionary contains the SSH server status ('Enable') 
+                               and port ('Port') if the operation is successful. If the operation fails, 
+                               the boolean is STATUS_NOK and the dictionary is empty.
         """
-        return cls.rsdb.select_global_ssh_server().status
+        try:
+            result = cls.rsdb.select_global_ssh_server()
+            if result.status:
+                cls.log.error(f"Failed to retrieve SSH server status: {result.reason}")
+                return STATUS_NOK, {}
+            
+            return STATUS_OK, result.result
+        
+        except Exception as e:
+            cls.log.error(f"Unexpected error while retrieving SSH server status: {e}")
+            return STATUS_NOK, {}
 
     def set_ssh_server_status(cls, ssh_server_status: Status) -> bool:
         """

@@ -8,6 +8,7 @@ from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.router_config_db import RouterConfigurationDatabase
 from lib.db.system_db import SystemDatabase
+from lib.network_services.common.network_ports import NetworkPorts
 from lib.system.system_call import SystemCall
 
 class RouterConfiguration:
@@ -340,31 +341,56 @@ class RouterConfiguration:
 
     def _get_system_telnet_server(self) -> List[str]:
         """
-        Generate a list of system server configuration commands based on the telnet server status.
+        Generate a list of system server configuration commands based on the Telnet server status.
 
         Returns:
             List[str]: A list containing the system server configuration command.
         """
-        base_cmd = 'system telnet-server'
+        base_cmd = 'system telnet-server port'
+        status, result = SystemDatabase().get_telnet_server_status()
 
-        if SystemCall().get_telnetd_status():
-            base_cmd = f'no {base_cmd}'
+        if status:
+            self.log.error(f'Error retrieving telnet-server configurations')
+            return []
+        
+        enable = result.get('Enable', False)
+        port = result.get('Port', NetworkPorts.TELNET)
+
+        if enable:
+            base_cmd = f'{base_cmd} {port}'
+        else:
+            base_cmd = f'no {base_cmd} {port}'
 
         return [base_cmd]
 
     def _get_system_ssh_server(self) -> List[str]:
         """
-        Generate a list of system server configuration commands based on the ssh server status.
+        Generate a list of system server configuration commands based on the SSH server status.
 
         Returns:
             List[str]: A list containing the system server configuration command.
         """
-        base_cmd = 'system ssh-server'
+        base_cmd = 'system ssh-server port'
+        
+        # Retrieve the SSH server status from the database
+        status, result = SystemDatabase().get_ssh_server_status()
+        
+        # Check if the status retrieval was successful
+        if status == STATUS_NOK:
+            self.log.error(f"Error retrieving SSH server configurations")
+            return []
 
-        if SystemCall().get_ssh_server_status():
-            base_cmd = f'no {base_cmd}'
+        enable = result.get('Enable', False)
+        port = result.get('Port', NetworkPorts.SSH)
+        
+        # Construct the command based on the retrieved status
+        if enable:
+            base_cmd = f'{base_cmd} {port}'
+        else:
+            base_cmd = f'no {base_cmd} {port}'
 
         return [base_cmd]
+
 
     def _get_system_servers(self) -> List[str]:
         """
