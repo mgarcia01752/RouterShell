@@ -46,7 +46,6 @@ class SystemDatabase:
             return result.result.get('Hostname')
         return None
 
-    
     def set_banner_motd(cls, motd_banner:str) -> bool:
         """
         Set the banner Message of the Day (Motd) in the RouterShell configuration.
@@ -83,7 +82,7 @@ class SystemDatabase:
         """
         return cls.rsdb.select_global_telnet_server().status
 
-    def set_telnet_server_status(cls, telnet_server_status: Status) -> bool:
+    def set_telnet_server_status(cls, telnet_server_status: Status, port:int) -> bool:
         """
         Set the status of the Telnet server.
 
@@ -94,7 +93,7 @@ class SystemDatabase:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         tss = telnet_server_status == Status.ENABLE
-        return cls.rsdb.insert_global_telnet_server(tss).status
+        return cls.rsdb.update_global_telnet_server(tss, port).status
 
     def get_ssh_server_status(cls) -> bool:
         """

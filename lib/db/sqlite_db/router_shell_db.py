@@ -5045,27 +5045,79 @@ class RouterShellDB(metaclass=Singleton):
         
     def select_global_telnet_server(self) -> Result:
         """
-        Select the status of the Telnet server from the SystemConfiguration table.
+        Select the status and port of the Telnet server from the TelnetServer table,
+        linked through the SystemConfiguration table.
 
         Returns:
-            Result: A Result object indicating the operation's success or failure and the Telnet server status.
+            Result: A Result object indicating the operation's success or failure, 
+                    the Telnet server status, and port.
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT TelnetServer FROM SystemConfiguration WHERE ID = 1")
+            cursor.execute("""
+                SELECT ts.Enable, ts.Port
+                FROM TelnetServer ts
+                JOIN SystemConfiguration sc ON sc.TelnetServer_FK = ts.ID
+                WHERE sc.ID = 1
+            """)
             result = cursor.fetchone()
 
             if not result:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
+                return Result(status=STATUS_NOK, 
+                              row_id=self.ROW_ID_NOT_FOUND, 
+                              reason="No entry found in 'TelnetServer' or 'SystemConfiguration' tables.")
             
-            status = result[0]
+            enable, port = result
 
-            return Result(status=STATUS_OK, row_id=1, result={'TelnetServerStatus': status})
+            return Result(status=STATUS_OK, row_id=1, result={'Enable': enable, 'Port': port})
         
         except sqlite3.Error as e:
-            self.log.error("Error selecting Telnet server status: %s", e)
+            self.log.error("Error selecting Telnet server status and port: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
 
+    def update_global_telnet_server(self, enable: bool, port: int) -> Result:
+        """
+        Update the existing Telnet server configuration in the TelnetServer table
+        and ensure the SystemConfiguration table's foreign key reference is maintained.
+
+        Args:
+            enable (bool): The status of the Telnet server.
+            port (int): The port of the Telnet server.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure,
+                    including the updated values of the Telnet server configuration.
+        """
+        try:
+            cursor = self.connection.cursor()
+            
+            # Check if TelnetServer entry exists
+            cursor.execute("SELECT TelnetServer_FK FROM SystemConfiguration WHERE ID = 1")
+            result = cursor.fetchone()
+            
+            if not result:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table for ID 1.")
+            
+            telnet_server_id = result[0]
+
+            if telnet_server_id is None:
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No TelnetServer linked in 'SystemConfiguration' table.")
+            
+            # Update the Telnet server configuration
+            cursor.execute("""
+                UPDATE TelnetServer SET Enable = ?, Port = ? WHERE ID = ?
+            """, (enable, port, telnet_server_id))
+            
+            self.connection.commit()
+
+            return Result(status=STATUS_OK, row_id=telnet_server_id, result={'Enable': enable, 'Port': port})
+
+        except sqlite3.Error as e:
+            self.connection.rollback()
+            self.log.error("Error updating Telnet server configuration: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    
     def insert_global_telnet_server(self, telnet_status: bool) -> Result:
             """
             Insert or update the Telnet server status in the SystemConfiguration table.

@@ -76,6 +76,7 @@ class TelnetService(RunCommand):
                         else:
                             file.write(line)
                 return self.restart_service()
+            
             except IOError as e:
                 self.log.error(f"An error occurred while updating the config file: {e}")
                 return STATUS_NOK

@@ -19,6 +19,7 @@ from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.network_services.telnet.telnet_server import TelnetService
+from lib.system.system import System
 from lib.system.system_call import SystemCall
 
 class ConfigCmd(CmdPrompt):
@@ -74,8 +75,8 @@ class ConfigCmd(CmdPrompt):
         VlanConfigCmd()(bridge_name=args, negate=negate).start()        
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['telnet-server', 'port', '23'])
-    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['ssh-server', 'port', '22'])  
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['telnet-server', 'port', '23'])
+    # @CmdPrompt.register_sub_commands(sub_cmds=['ssh-server', 'port', '22'])  
     def configcmd_system(self, args: List=[str], negate: bool=False) -> bool:
         self.log.debug(f'configcmd_system() -> {args}')
 
@@ -110,8 +111,10 @@ class ConfigCmd(CmdPrompt):
                     print(f'error: invalid port value in command: {args}')
                     return STATUS_NOK
 
-            telnet_service.set_port(port)
-            telnet_service.start_service()
+            if System().update_telnet_server(not negate, port):
+                self.log.error('Unable to set telnet server parameter via cli')
+                return STATUS_NOK
+            
             return STATUS_OK
                     
         elif 'ssh-server' in args:
