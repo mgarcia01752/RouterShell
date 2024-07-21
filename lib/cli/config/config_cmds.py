@@ -8,7 +8,7 @@ from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
 from lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
 from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from lib.common.common import Common
-from lib.common.constants import STATUS_NOK, STATUS_OK, Status
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.interface import InterfaceType
@@ -76,7 +76,7 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['telnet-server', 'port', '23'])
-    # @CmdPrompt.register_sub_commands(sub_cmds=['ssh-server', 'port', '22'])  
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['ssh-server', 'port', '22'])  
     def configcmd_system(self, args: List=[str], negate: bool=False) -> bool:
         self.log.debug(f'configcmd_system() -> {args}')
 
@@ -85,9 +85,8 @@ class ConfigCmd(CmdPrompt):
 
             if negate:
                 self.log.debug('configcmd_system() -> Telnet Server: stopping service')
-                telnet_service.stop_service()
-                return STATUS_OK
-
+                return telnet_service.stop_service()
+                
             port = NetworkPorts.TELNET
 
             if 'port' in args:
@@ -111,19 +110,17 @@ class ConfigCmd(CmdPrompt):
                     print(f'error: invalid port value in command: {args}')
                     return STATUS_NOK
 
-            if System().update_telnet_server(not negate, port):
+            if System().update_telnet_server(enable=(not negate), port=port):
                 self.log.error('Unable to set telnet server parameter via cli')
                 return STATUS_NOK
-            
-            return STATUS_OK
-                    
+                                
         elif 'ssh-server' in args:
             self.log.debug(f'configcmd_system() -> ssh-server -> negate: {negate}')
-            SystemCall().set_sshd_status(negate)
-        
+            
         else:
             self.log.error(f'Invalid command: {args}')
             print(f'error: invalid command: {args}')
+            return STATUS_NOK
             
         return STATUS_OK
 

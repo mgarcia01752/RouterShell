@@ -1,8 +1,10 @@
-from typing import Optional, List
+import logging
+from typing import Optional
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.system.system_init import InitSystemChecker, InitSystem
+from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
 class TelnetService(RunCommand):
     """
@@ -32,6 +34,9 @@ class TelnetService(RunCommand):
         Args:
             port (int): The port number for the Telnet service. Default is 23.
         """
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().TELNET_SERVER)
+        
         self.init_system = InitSystemChecker().get_system_init()
         self.port = port
         
@@ -51,10 +56,25 @@ class TelnetService(RunCommand):
         Returns:
             bool: STATUS_OK if the operation was successful, False otherwise.
         """
+        self.log.info(f'set_port() -> {port}')
         self.port = port
+        
         if self.init_system == InitSystem.SYSV:
             return self.update_telnet_config()
+        
         # For Systemd, port configuration might be managed differently
+        return STATUS_OK
+    
+    def set_timeout(self, timeout: int=60) -> bool:
+        '''timeout in seconds if no login is achived'''
+        return STATUS_OK
+    
+    def set_max_login_attempts(self, max_attemps: int=3) -> bool:
+        '''max login attempts the restart login'''
+        return STATUS_OK
+    
+    def set_max_concurrent_users(self, max_users: int=5) -> bool:
+        '''max concurrent users'''
         return STATUS_OK
 
     def update_telnet_config(self) -> bool:
@@ -72,14 +92,17 @@ class TelnetService(RunCommand):
                 with open(self.telnet_config_file, 'w') as file:
                     for line in lines:
                         if line.strip().startswith('port ='):
+                            self.log.info(f'Overwriting port to {self.port}')
                             file.write(f'port = {self.port}\n')
                         else:
                             file.write(line)
+                            
                 return self.restart_service()
             
             except IOError as e:
                 self.log.error(f"An error occurred while updating the config file: {e}")
                 return STATUS_NOK
+            
         return STATUS_OK
 
     def start_service(self) -> bool:
@@ -117,6 +140,7 @@ class TelnetService(RunCommand):
             if rtn.exit_code:
                 self.log.error(f'Unable to stop telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
+            
         elif self.init_system == InitSystem.SYSTEMD:
             rtn = self.run(['systemctl', 'stop', 'telnet.service'])
             if rtn.exit_code:

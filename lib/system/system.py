@@ -4,7 +4,7 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.db.system_db import SystemDatabase
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.network_services.telnet.telnet_server import TelnetService
-from lib.system.system_call import SystemCall
+
 
 class System:
     def __init__(self):
