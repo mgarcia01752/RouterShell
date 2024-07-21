@@ -94,18 +94,19 @@ class SystemDatabase:
             cls.log.error(f"Unexpected error while retrieving Telnet server status: {e}")
             return STATUS_NOK, {}
 
-    def set_telnet_server_status(cls, telnet_server_status: Status, port:int) -> bool:
+    def set_telnet_server_status(cls, telnet_server_status: bool, port: int) -> bool:
         """
-        Set the status of the Telnet server.
+        Sets the status of the Telnet server and updates the port configuration.
 
-        Args:
-            telnet_server_status (Status): The desired status of the Telnet server (ENABLE or DISABLE).
+        Parameters:
+        telnet_server_status (bool): The desired status of the Telnet server (True to enable, False to disable).
+        port (int): The port number for the Telnet server.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        bool: The status indicating whether the update was successful.
         """
-        tss = telnet_server_status == Status.ENABLE
-        return cls.rsdb.update_global_telnet_server(tss, port).status
+        result = cls.rsdb.update_global_telnet_server(telnet_server_status, port)
+        return result.status
 
     def get_ssh_server_status(cls) -> Tuple[bool, Dict]:
         """
