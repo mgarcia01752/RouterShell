@@ -30,7 +30,7 @@ class System:
                 self.log.error(f'Unable to update telnet server port: {port} to OS')
                 return STATUS_NOK
             
-            if TelnetService.restart_service():
+            if TelnetService().restart_service():
                 self.log.error(f'Unable to restart telnet server on port: {port}')
                 return STATUS_NOK
             
