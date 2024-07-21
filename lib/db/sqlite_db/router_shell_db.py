@@ -5088,7 +5088,7 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object indicating the operation's success or failure,
                     including the updated values of the Telnet server configuration.
         """
-        self.log.info(f'update_global_telnet_server() -> Enable: {enable} -> Port: {port}')
+        self.log.debug(f'update_global_telnet_server() -> Enable: {enable} -> Port: {port}')
         try:
             cursor = self.connection.cursor()
             
