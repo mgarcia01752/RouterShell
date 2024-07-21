@@ -56,7 +56,7 @@ class TelnetService(RunCommand):
         Returns:
             bool: STATUS_OK if the operation was successful, False otherwise.
         """
-        self.log.info(f'set_port() -> {port}')
+        self.log.debug(f'set_port() -> {port}')
         self.port = port
         
         if self.init_system == InitSystem.SYSV:
@@ -92,7 +92,7 @@ class TelnetService(RunCommand):
                 with open(self.telnet_config_file, 'w') as file:
                     for line in lines:
                         if line.strip().startswith('port ='):
-                            self.log.info(f'Overwriting port to {self.port}')
+                            self.log.debug(f'Overwriting port to {self.port}')
                             file.write(f'port = {self.port}\n')
                         else:
                             file.write(line)
@@ -124,7 +124,7 @@ class TelnetService(RunCommand):
                 self.log.error(f'Unable to start telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
         
-        self.log.info(f'Telnet-Server-Start message: {rtn.stdout}')
+        self.log.debug(f'Telnet-Server-Start message: {rtn.stdout}')
         
         return STATUS_OK
 
@@ -147,7 +147,7 @@ class TelnetService(RunCommand):
                 self.log.error(f'Unable to stop telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
         
-        self.log.info(f'Telnet-Server-Stop message: {rtn.stdout}')
+        self.log.debug(f'Telnet-Server-Stop message: {rtn.stdout}')
             
         return STATUS_OK
 
@@ -170,7 +170,7 @@ class TelnetService(RunCommand):
                 self.log.error(f'Unable to restart telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
             
-        self.log.info(f'Telnet-Server-Restart message: {rtn.stdout}')
+        self.log.debug(f'Telnet-Server-Restart message: {rtn.stdout}')
             
         return STATUS_OK
 
@@ -195,5 +195,5 @@ class TelnetService(RunCommand):
             self.log.error(f'Unable to get status of telnet server service, reason: {result.stderr}')
             return STATUS_NOK
 
-        self.log.info(f'Telnet service status: {result.stdout}')
+        self.log.debug(f'Telnet service status: {result.stdout}')
         return STATUS_OK
