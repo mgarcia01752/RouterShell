@@ -5088,6 +5088,7 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object indicating the operation's success or failure,
                     including the updated values of the Telnet server configuration.
         """
+        self.log.info(f'update_global_telnet_server() -> Enable: {enable} -> Port: {port}')
         try:
             cursor = self.connection.cursor()
             
@@ -5096,11 +5097,13 @@ class RouterShellDB(metaclass=Singleton):
             result = cursor.fetchone()
             
             if not result:
+                self.log.error(f'update_global_telnet_server() -> TelnetServer_FK: No FK Key found')
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table for ID 1.")
             
             telnet_server_id = result[0]
 
             if telnet_server_id is None:
+                self.log.error(f'update_global_telnet_server() -> No TelnetServer linked in SystemConfiguration table.')
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No TelnetServer linked in 'SystemConfiguration' table.")
             
             # Update the Telnet server configuration
