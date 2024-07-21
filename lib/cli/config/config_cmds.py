@@ -74,8 +74,8 @@ class ConfigCmd(CmdPrompt):
         VlanConfigCmd()(bridge_name=args, negate=negate).start()        
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['telnet-server', 'port', '23']
-                                     append_nested_sub_cmds=['ssh-server', 'port', '22'])  
+    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['telnet-server', 'port', '23'])
+    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['ssh-server', 'port', '22'])  
     def configcmd_system(self, args: List=[str], negate: bool=False) -> bool:
         self.log.debug(f'configcmd_system() -> {args}')
 
