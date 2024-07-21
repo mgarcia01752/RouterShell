@@ -78,12 +78,13 @@ class ConfigCmd(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['telnet-server', 'port', '23'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['ssh-server', 'port', '22'])  
     def configcmd_system(self, args: List=[str], negate: bool=False) -> bool:
-        self.log.debug(f'configcmd_system() -> {args}')
+        
+        self.log.debug(f'configcmd_system() -> {args} -> negate: {negate}')
 
         if 'telnet-server' in args:
 
             if negate:
-                self.log.debug('configcmd_system() -> Telnet Server: stopping service')
+                self.log.info('configcmd_system() -> Telnet Server: stopping service')
                 return System().update_telnet_server(enable=(not negate))
             
             port = NetworkPorts.TELNET

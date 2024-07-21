@@ -25,6 +25,8 @@ class System:
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
+        self.log.info(f'update_telnet_server() - enable: {enable} -> port: {port}')
+        
         if enable:
             if TelnetService().set_port(port):
                 self.log.error(f'Unable to update telnet server port: {port} to OS')
