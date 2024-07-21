@@ -81,12 +81,11 @@ class ConfigCmd(CmdPrompt):
         self.log.debug(f'configcmd_system() -> {args}')
 
         if 'telnet-server' in args:
-            telnet_service = TelnetService()
 
             if negate:
                 self.log.debug('configcmd_system() -> Telnet Server: stopping service')
-                return telnet_service.stop_service()
-                
+                return System().update_telnet_server(enable=(not negate))
+            
             port = NetworkPorts.TELNET
 
             if 'port' in args:
