@@ -94,11 +94,15 @@ class TelnetService(RunCommand):
             if rtn.exit_code:
                 self.log.error(f'Unable to start telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
+            
         elif self.init_system == InitSystem.SYSTEMD:
             rtn = self.run(['systemctl', 'start', 'telnet.service'])
             if rtn.exit_code:
                 self.log.error(f'Unable to start telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
+        
+        self.log.info(f'Telnet-Server-Start message: {rtn.stdout}')
+        
         return STATUS_OK
 
     def stop_service(self) -> bool:
@@ -118,6 +122,9 @@ class TelnetService(RunCommand):
             if rtn.exit_code:
                 self.log.error(f'Unable to stop telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
+        
+        self.log.info(f'Telnet-Server-Stop message: {rtn.stdout}')
+            
         return STATUS_OK
 
     def restart_service(self) -> bool:
@@ -132,11 +139,15 @@ class TelnetService(RunCommand):
             if rtn.exit_code:
                 self.log.error(f'Unable to restart telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
+            
         elif self.init_system == InitSystem.SYSTEMD:
             rtn = self.run(['systemctl', 'restart', 'telnet.service'])
             if rtn.exit_code:
                 self.log.error(f'Unable to restart telnet server service, reason: {rtn.stderr}')
                 return STATUS_NOK
+            
+        self.log.info(f'Telnet-Server-Restart message: {rtn.stdout}')
+            
         return STATUS_OK
 
     def status_service(self) -> bool:
