@@ -17,6 +17,8 @@ from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan
+from lib.network_services.common.network_ports import NetworkPorts
+from lib.network_services.telnet.telnet_server import TelnetService
 from lib.system.system_call import SystemCall
 
 class ConfigCmd(CmdPrompt):
@@ -72,24 +74,55 @@ class ConfigCmd(CmdPrompt):
         VlanConfigCmd()(bridge_name=args, negate=negate).start()        
         return STATUS_OK
     
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['telnet-server', 'ssh-server'])  
-    def configcmd_system(self, args: List=None, negate: bool=False) -> bool:
+    @CmdPrompt.register_sub_commands(append_nested_sub_cmds=['telnet-server', 'port', '23']
+                                     append_nested_sub_cmds=['ssh-server', 'port', '22'])  
+    def configcmd_system(self, args: List=[str], negate: bool=False) -> bool:
         self.log.debug(f'configcmd_system() -> {args}')
 
-        status = Status.DISABLE if negate else Status.ENABLE
-
         if 'telnet-server' in args:
-            self.log.debug(f'configcmd_system() -> telnet-server -> negate: {negate}')    
-            SystemCall().set_telnetd_status(status)
+            telnet_service = TelnetService()
 
+            if negate:
+                self.log.debug('configcmd_system() -> Telnet Server: stopping service')
+                telnet_service.stop_service()
+                return STATUS_OK
+
+            port = NetworkPorts.TELNET
+
+            if 'port' in args:
+                try:
+                    port_index = args.index('port') + 1
+                    if port_index < len(args):
+                        port = int(args[port_index])
+
+                        if port < 1 or port > 65535:
+                            self.log.error(f'configcmd_system() -> Invalid port number: {port}')
+                            return STATUS_NOK
+
+                        self.log.debug(f'configcmd_system() -> telnet-server -> port: {port} -> negate: {negate}')
+                    else:
+                        self.log.error('Port number not specified after "port" keyword.')
+                        print(f'error: port number not specified in command: {args}')
+                        return STATUS_NOK
+
+                except (ValueError, IndexError) as e:
+                    self.log.error(f'Invalid port value or index error: {e}')
+                    print(f'error: invalid port value in command: {args}')
+                    return STATUS_NOK
+
+            telnet_service.set_port(port)
+            telnet_service.start_service()
+            return STATUS_OK
+                    
         elif 'ssh-server' in args:
-            self.log.debug(f'configcmd_system() -> ssh-server -> negate: {negate}') 
-            pass
-
+            self.log.debug(f'configcmd_system() -> ssh-server -> negate: {negate}')
+            SystemCall().set_sshd_status(negate)
+        
         else:
+            self.log.error(f'Invalid command: {args}')
             print(f'error: invalid command: {args}')
-
-        return STATUS_OK    
+            
+        return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
     def configcmd_hostname(self, args: List = None) -> bool:

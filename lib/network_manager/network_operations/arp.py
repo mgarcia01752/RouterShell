@@ -378,13 +378,15 @@ class Arp(NetworkManager):
             if args:
                 cmd.extend(args)
 
-            output = self.run(cmd)
+            output = self.run(cmd, suppress_error=True)
 
             self.log.debug(f"get_arp() stderr: ({output.stderr}) -> exit_code: ({output.exit_code}) -> stdout: \n{output.stdout}")
 
             if output.exit_code == 0:
                 # Parse the JSON output
                 arp_entries: List[Dict[str, Any]] = json.loads(output.stdout)
+
+                self.log.debug(f"get_arp() JSON Arp Entries: {arp_entries}")
 
                 # Define headers for the ARP table
                 headers = ["IP Address", "Device", "MAC Address", "State"]
@@ -393,7 +395,7 @@ class Arp(NetworkManager):
                     # Print an empty table with headers
                     print(tabulate([], headers=headers, tablefmt='simple', colalign=("left", "left", "left", "left")))
                     print("ARP table is empty.")
-                    return
+                    return None
 
                 # Transform the JSON data into a list of lists (rows) for tabulate
                 arp_table = [
