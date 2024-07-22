@@ -4,7 +4,7 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.db.system_db import SystemDatabase
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.network_services.telnet.telnet_server import TelnetService
-
+from lib.system.system_call import SystemCall
 
 class System:
     def __init__(self):
@@ -13,7 +13,29 @@ class System:
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().SYSTEM)
-        
+    
+    def update_hostname(self, hostname: str) -> bool:
+        """
+        Update the hostname of the system both in the OS and the system database.
+
+        Parameters:
+        hostname (str): The new hostname to set.
+
+        Returns:
+        bool: STATUS_OK if successful, STATUS_NOK otherwise.
+        """
+        # Set hostname in the operating system
+        if not SystemCall().set_hostname_os(hostname):
+            self.log.error(f"Error: Failed to set the hostname: ({hostname}) to OS")
+            return STATUS_NOK
+
+        # Set hostname in the system database
+        if not SystemDatabase().set_hostname_db(hostname):
+            self.log.error(f"Error: Failed to set the hostname: ({hostname}) to DB")
+            return STATUS_NOK
+
+        return STATUS_OK
+
     def update_telnet_server(self, enable: bool = True, port: int = NetworkPorts.TELNET) -> bool:
         """
         Update the Telnet server configuration.

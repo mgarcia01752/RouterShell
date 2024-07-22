@@ -10,7 +10,6 @@ from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.interface import Interface
@@ -18,9 +17,7 @@ from lib.network_manager.network_operations.nat import Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan
 from lib.network_services.common.network_ports import NetworkPorts
-from lib.network_services.telnet.telnet_server import TelnetService
 from lib.system.system import System
-from lib.system.system_call import SystemCall
 
 class ConfigCmd(CmdPrompt):
 
@@ -138,18 +135,11 @@ class ConfigCmd(CmdPrompt):
             bool: STATUS_OK if the hostname is successfully set in both the OS and the database, STATUS_NOK otherwise.
         """
         self.log.debug(f"configcmd_hostname() -> args: {args}")
-
-        # Set hostname in the operating system
-        if SystemCall().set_hostname_os(args[0]):
-            self.log.error(f"Error: Failed to set the hostname: ({args[0]}) to OS")
+        if None == args:
+            self.log.error('No hostname specified.')
             return STATUS_NOK
-
-        # Set hostname in the system database
-        if SystemDatabase().set_hostname_db(args[0]):
-            self.log.error(f"Error: Failed to set the hostname: ({args[0]}) to DB")
-            return STATUS_NOK
-
-        return STATUS_OK
+        
+        return System().update_hostname(args[0])
   
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['if', 'if-alias'])
     def configcmd_rename(self, args: List) -> bool:

@@ -25,7 +25,7 @@ class RouterShellLoggingGlobalSettings():
     
     TELNET_SERVER              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     
-    SYSTEM                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    SYSTEM_CALL                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_CONFIG               = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_START_UP             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_INIT                 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
@@ -127,6 +127,8 @@ class RouterShellLoggingGlobalSettings():
     ETHERNET_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ETHERNET_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ETHERNET_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+
+    SYSTEM                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     WIRELESS_WIFI_CONFIG_CMD    = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     WIRELESS_WIFI_CONFIG        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
