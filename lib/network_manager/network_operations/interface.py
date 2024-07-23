@@ -551,7 +551,9 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return Vlan().del_interface_to_vlan(vlan_id)
 
-    def rename_interface(self, initial_interface_name:str, alias_interface_name:str) -> bool:
+    def rename_interface(self, initial_interface_name:str, 
+                         alias_interface_name:str, 
+                         suppress_error:bool=True) -> bool:
         """
         Rename a network interface
 
@@ -565,7 +567,8 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.debug(f"rename_interface() -> if: {initial_interface_name} -> alias-if: {alias_interface_name}")
         
         if not self.does_os_interface_exist(initial_interface_name):
-            self.log.error(f"Interface: {initial_interface_name} does not exists")
+            if not suppress_error:
+                self.log.error(f"Interface: {initial_interface_name} does not exists")
             return STATUS_NOK        
 
         bus_info = self.get_os_interface_hardware_info(initial_interface_name)['businfo']
@@ -577,11 +580,13 @@ class Interface(NetworkManager, InterfaceDatabase):
             return STATUS_OK
         
         if result.exit_code:
-            self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name} to OS")
+            if not suppress_error:
+                self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name} to OS")
             return STATUS_NOK
         
         if self.update_db_rename_alias(bus_info, initial_interface_name, alias_interface_name):
-            self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
+            if not suppress_error:
+                self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
             return STATUS_NOK
         
         return STATUS_OK        
