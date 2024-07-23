@@ -27,8 +27,10 @@ class DhcpPoolConfig(CmdPrompt):
         self.log.setLevel(RSLGS().DHCP_POOL_CONFIG)
         
         if negate:
-            self._dhcp_pool_fact = DhcpPoolFactory(dhcp_pool_name).delete_pool_name()
+            DhcpPoolFactory(dhcp_pool_name).delete_pool_name()
             return None
+        
+        self._dhcp_pool_fact = DhcpPoolFactory(dhcp_pool_name)
     
     def get_dhcp_pool_list(self) -> List[str]:
         return []
@@ -45,16 +47,25 @@ class DhcpPoolConfig(CmdPrompt):
             print(f"{method.__doc__}")
     
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_subnet(self, inet_subnet_cidr: str) -> bool:
+    def dhcppoolconfig_subnet(self, inet_subnet_cidr: str | list[str]) -> bool:
         """
         Configure a subnet for the DHCP pool.
         
         Args:
-            inet_subnet_cidr (str): The CIDR notation of the subnet.
+            inet_subnet_cidr (str | list[str]): The CIDR notation of the subnet or a list containing one CIDR notation.
         
         Returns:
-            bool: True if the subnet was added successfully, False otherwise.
+            bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
         """
+        # Check if inet_subnet_cidr is a list and ensure it has only one entry
+        if isinstance(inet_subnet_cidr, list):
+            if len(inet_subnet_cidr) != 1:
+                self.log.error(f'Invalid subnet list: {inet_subnet_cidr}. The list must contain exactly one entry.')
+                return STATUS_NOK
+            inet_subnet_cidr = inet_subnet_cidr[0]  # Flatten the list by taking the first entry
+
+        # Proceed with the subnet configuration
+        self.log.info(f'DHCP pool configuration -> subnet: {inet_subnet_cidr}')
         return self._dhcp_pool_fact.add_pool_subnet(inet_subnet_cidr)
 
     @CmdPrompt.register_sub_commands()
@@ -72,9 +83,9 @@ class DhcpPoolConfig(CmdPrompt):
             self.log.error(f'pool must have 3 arguments')
             return STATUS_NOK
             
-        return self._dhcp_pool_fact.add_inet_pool_range(inet_start=args[0], 
-                                                           inet_end=args[1], 
-                                                           inet_subnet_cidr=args[2])
+        return self._dhcp_pool_fact.add_inet_pool_range(inet_start=args[0],
+                                                        inet_end=args[1],
+                                                        inet_subnet_cidr=args[2])
 
     @CmdPrompt.register_sub_commands()
     def dhcppoolconfig_option(self, args: List[str]) -> bool:

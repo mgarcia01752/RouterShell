@@ -98,8 +98,6 @@ class DHCPServer(NetworkManager):
             return STATUS_NOK
         return DSD().del_dhcp_pool_name(dhcp_pool_name)
 
-
-      
     def add_dhcp_pool_subnet(self, dhcp_pool_name: str, dhcp_pool_subnet_cidr: str) -> bool:
         """
         Add a DHCP subnet to the DHCP server for the specified DHCP pool if it does not already exist.
@@ -306,7 +304,6 @@ class DhcpPoolFactory():
         """
         return self.dhcp_srv_obj.del_dhcp_pool_name(self.dhcp_pool_name)
 
-        
     def status(self) -> bool:
         """
         Get the status of the DhcpPoolFactory.
@@ -316,7 +313,7 @@ class DhcpPoolFactory():
         """
         return self.factory_status
     
-    def add_pool_subnet(self, inet_subnet_cidr:str) -> bool:
+    def add_pool_subnet(self, inet_subnet_cidr: str) -> bool:
         """
         Add a subnet to the DHCP pool.
 
@@ -326,19 +323,25 @@ class DhcpPoolFactory():
         Returns:
             bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
         """     
+
+        is_valid, error_msg = InetServiceLayer.validate_subnet_format(inet_subnet_cidr)
         
-        if not InetServiceLayer.validate_subnet_format(inet_subnet_cidr):
-            self.log.error(f'Invalid subnet: {inet_subnet_cidr}')
+        if not is_valid:
+            self.log.error(f'Invalid subnet: {inet_subnet_cidr}. Error: {error_msg}')
             self._update_status(False)
             return STATUS_NOK
-           
+
         if not self.status():
             self.log.error(f"Unable to add DHCP Pool subnet - ERROR: DhcpPoolFactory()")
             return STATUS_NOK        
-        
+
         self.dhcp_pool_inet_subnet_cidr = inet_subnet_cidr
-        
-        return self.dhcp_srv_obj.add_dhcp_pool_subnet(self.dhcp_pool_name, inet_subnet_cidr)
+
+        if self.dhcp_srv_obj.add_dhcp_pool_subnet(self.dhcp_pool_name, inet_subnet_cidr):
+            self.log.error(f"Failed to add subnet {inet_subnet_cidr} to the DHCP pool")
+            return STATUS_NOK
+
+        return STATUS_OK
 
     def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
         """

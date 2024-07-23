@@ -18,12 +18,8 @@ class DhcpPoolConfigCmd(ConfigurePrompt):
 
     def __init__(self, dhcp_pool_name: str, negate: bool=False):
         super().__init__(sub_cmd_name='dhcp')
-        
-        if negate:
-            DhcpPoolConfig()
-            pass
-            
-        self.register_top_lvl_cmds(DhcpPoolConfig())
+                    
+        self.register_top_lvl_cmds(DhcpPoolConfig(dhcp_pool_name, negate))
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_POOL_CONFIG_CMD)

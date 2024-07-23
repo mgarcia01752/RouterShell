@@ -4721,8 +4721,8 @@ class RouterShellDB(metaclass=Singleton):
 
             query = """
                 SELECT DISTINCT
-                    'dhcp '     || DHCPServer.DhcpPoolname AS DhcpServerPollName,
-                    'subnet '   || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
+                    'dhcp pool-name '   || DHCPServer.DhcpPoolname AS DhcpServerPollName,
+                    'subnet '           || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
                 FROM DHCPServer
                 LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK;
             """

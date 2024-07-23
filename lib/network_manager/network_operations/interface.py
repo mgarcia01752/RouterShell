@@ -551,58 +551,71 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return Vlan().del_interface_to_vlan(vlan_id)
 
-    def rename_interface(self, initial_interface_name:str, 
-                         alias_interface_name:str, 
-                         suppress_error:bool=True) -> bool:
+    def rename_interface(self, initial_interface_name: str, 
+                        alias_interface_name: str, 
+                        suppress_error: bool=True) -> bool:
         """
-        Rename a network interface
-
+        Rename a network interface to a specified alias name.
+        
+        This method renames a network interface from `initial_interface_name` to `alias_interface_name`. If the initial 
+        interface does not exist, or if the renaming process fails, it logs an error unless `suppress_error` is set to `True`.
+        
         Args:
-            initial_interface_name (str): The current name of the network interface.
-            alias_interface_name (str): The new name to assign to the network interface.
-
+            initial_interface_name (str): The current name of the network interface to be renamed.
+            alias_interface_name (str): The new alias name for the network interface.
+            suppress_error (bool, optional): If True, suppresses error logging when renaming fails. Defaults to True.
+        
         Returns:
-            bool: STATUS_OK if the interface was successfully renamed, STATUS_NOK otherwise.
+            bool: STATUS_OK if the interface was renamed successfully, STATUS_NOK otherwise.
         """
         self.log.debug(f"rename_interface() -> if: {initial_interface_name} -> alias-if: {alias_interface_name}")
         
+        # Check if the initial interface exists
         if not self.does_os_interface_exist(initial_interface_name):
             if not suppress_error:
-                self.log.error(f"Interface: {initial_interface_name} does not exists")
+                self.log.error(f"Interface: {initial_interface_name} does not exist")
             return STATUS_NOK        
 
+        # Get the hardware bus info for the initial interface
         bus_info = self.get_os_interface_hardware_info(initial_interface_name)['businfo']
         
+        # Attempt to rename the interface using the `ip` command
         result = self.run(['ip', 'link', 'set', initial_interface_name, 'name', alias_interface_name], suppress_error=True)
-                
+        
+        # Check if the alias interface already exists in the database
         if self.db_lookup_interface_alias_exist(initial_interface_name, alias_interface_name):
             self.log.debug(f"Alias-Interface already exists: {alias_interface_name} assigned to initial-interface: {initial_interface_name}")
             return STATUS_OK
         
+        # If the `ip` command failed, handle the error
         if result.exit_code:
             if not suppress_error:
-                self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name} to OS")
+                self.log.error(f"Unable to rename interface {initial_interface_name} to {alias_interface_name} in the OS")
             return STATUS_NOK
         
+        # Update the database with the new alias name
         if self.update_db_rename_alias(bus_info, initial_interface_name, alias_interface_name):
             if not suppress_error:
-                self.log.error(f"Unable to add init-interface: {initial_interface_name} to alias-interface: {alias_interface_name} to DB")
+                self.log.error(f"Unable to add initial-interface: {initial_interface_name} to alias-interface: {alias_interface_name} in the DB")
             return STATUS_NOK
         
-        return STATUS_OK        
-
-    def set_os_rename_interface(self, reverse=False) -> bool:
+        return STATUS_OK
+       
+    def set_os_rename_interface(self, reverse=False, suppress_error: bool=True) -> bool:
         """
-        Update and rename network interfaces via the operating system.
-
-        This method iterates through the list of interface aliases and uses the '_rename_os_interface' method
-        to update and rename each network interface via the operating system.
-
+        Rename network interfaces based on database aliases.
+        
+        This method renames network interfaces as specified in the database. It can also reverse the renaming process
+        if the `reverse` parameter is set to `True`. If an error occurs during the renaming process, it logs an error 
+        message unless `suppress_error` is set to `True`.
+        
         Args:
-            reverse (bool, optional): If True, reverses the renaming process, restoring original names.
-
+            reverse (bool, optional): If True, reverses the renaming process by swapping original and alias names. 
+                                    Defaults to False.
+            suppress_error (bool, optional): If True, suppresses error logging when renaming fails. Defaults to True.
+        
         Returns:
-            bool: STATUS_OK if the update and rename process is successful for all interfaces, STATUS_NOK otherwise.
+            bool: STATUS_OK if all interfaces were renamed successfully, STATUS_NOK otherwise.
         """
         for alias in self.get_db_interface_aliases():
             original_name = alias['InterfaceName']
@@ -614,7 +627,8 @@ class Interface(NetworkManager, InterfaceDatabase):
                 original_name, alias_name = alias_name, original_name
 
             if self._rename_os_interface(original_name, alias_name):
-                self.log.error(f"Failed to update and rename interface: {original_name} to {alias_name}")
+                if not suppress_error:
+                    self.log.error(f"Failed to update and rename interface: {original_name} to {alias_name}")
                 return STATUS_NOK
 
             self.log.debug(f"Interface {original_name} successfully updated and renamed to {alias_name}")

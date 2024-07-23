@@ -2,6 +2,7 @@ from enum import Enum
 import ipaddress
 import json
 import logging
+from typing import Optional, Tuple
 
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -569,7 +570,7 @@ class InetServiceLayer(MacServiceLayer):
                 return InetVersion.UNKNOWN
 
     @staticmethod
-    def validate_subnet_format(subnet: str) -> bool:
+    def validate_subnet_format(subnet: str) -> Tuple[bool, Optional[str]]:
         """
         Validate the format of an IPv4 or IPv6 subnet.
 
@@ -577,18 +578,18 @@ class InetServiceLayer(MacServiceLayer):
             subnet (str): The subnet in CIDR notation.
 
         Returns:
-            True if valid, otherwise False
+            tuple: (bool, Optional[str]) where the first element is True if valid, otherwise False.
+                The second element is an error message or None if valid.
+
         Example:
             subnet = "172.16.0.0/24"
             subnet = "fd00:1::/64"
-        
         """
         try:
             ipaddress.ip_network(subnet)
             return True, None
-
         except ValueError as e:
-            return False
+            return False, str(e)
 
     @staticmethod
     def validate_inet_ranges(subnet_cidr: str, pool_start: str, pool_end: str) -> bool:

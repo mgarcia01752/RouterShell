@@ -327,8 +327,11 @@ class RouterConfigurationDatabase:
         if all(result.status == STATUS_OK for result in dhcp_server_config_result):
             
             for dsc_result in dhcp_server_config_result:
-                pool_name = dsc_result.result.get('DhcpServerPoolName').split()[1]
-
+                
+                #config line -> dhcp pool-name <dhcp-pool-name> -> index 2
+                dhcp_pool_name_index = 2
+                pool_name = dsc_result.result.get('DhcpServerPoolName').split()[dhcp_pool_name_index]
+                
                 combined_data = dsc_result.result
 
                 dhcp_server_pool_results = cls.rsdb.select_global_dhcp_server_pool(pool_name)

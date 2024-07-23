@@ -391,7 +391,6 @@ class RouterConfiguration:
 
         return [base_cmd]
 
-
     def _get_system_servers(self) -> List[str]:
         """
         Generate a list of system server configuration commands based on the statuses of telnet and ssh servers.
