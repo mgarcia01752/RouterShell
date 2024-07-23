@@ -30,8 +30,8 @@ class DhcpPoolConfig(CmdPrompt):
             self._dhcp_pool_fact = DhcpPoolFactory(dhcp_pool_name).delete_pool_name()
             return None
     
-    def get_dhcp_pool_list(self) -> List[]:
-        DHCPServerDatabase().get
+    def get_dhcp_pool_list(self) -> List[str]:
+        return []
                
     def dhcppoolconfig_help(self, args: List = None) -> None:
         """

@@ -186,7 +186,7 @@ class ConfigCmd(CmdPrompt):
 
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'], append_nested_sub_cmds=DhcpPoo)
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
     def configcmd_nat(self, args: List[str], negate: bool=False) -> bool:
 
         if args[0] == 'pool-name':
