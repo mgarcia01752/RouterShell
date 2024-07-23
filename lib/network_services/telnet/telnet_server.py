@@ -3,7 +3,7 @@ from typing import Optional
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_services.common.network_ports import NetworkPorts
-from lib.system.system_init import InitSystemChecker, InitSystem
+from lib.system.init_system import InitSystemChecker, InitSystem
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
 class TelnetService(RunCommand):
@@ -37,7 +37,7 @@ class TelnetService(RunCommand):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().TELNET_SERVER)
         
-        self.init_system = InitSystemChecker().get_system_init()
+        self.init_system = InitSystemChecker().get_init_system()
         self.port = port
         
         # Set configuration file path based on init system

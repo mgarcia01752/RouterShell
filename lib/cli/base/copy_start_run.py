@@ -1,13 +1,10 @@
 import logging
-import os
-from time import sleep
-from typing import List
+
 from lib.cli.common.router_prompt import PromptFeeder, RouterPrompt
 from lib.cli.config.config import Configure
 from lib.common.common import Common
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
-from lib.cli.show.router_configuration import RouterConfiguration
-from lib.common.constants import ROUTER_CONFIG_DIR, STATUS_NOK, STATUS_OK
+from lib.common.constants import STATUS_OK
 
 class CopyStartRunError(Exception):
     """
@@ -74,6 +71,3 @@ class CopyStartRun(RouterPrompt):
         self.start(pf)
 
         return STATUS_OK
-
-
-    

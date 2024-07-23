@@ -32,6 +32,7 @@ class RouterShellLoggingGlobalSettings():
     SYSTEM_RESET                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_SHUT_DOWN            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSTEM_DB                   = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    SYSTEM_SERVICE_CTRL              = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     LINUX_SYSTEM                = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 

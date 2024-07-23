@@ -1,4 +1,3 @@
-from enum import Enum
 import logging
 import os
 
@@ -13,8 +12,10 @@ from lib.network_manager.common.mac import MacServiceLayer
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
-from lib.network_services.dhcp.dnsmasq.dnsmasq import Action, DNSMasqDeploy, DNSMasqInterfaceService
-from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
+from lib.network_services.dhcp.dnsmasq.dnsmasq import DNSMasqDeploy, DNSMasqInterfaceService
+from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
+from lib.system.system_service_control.system_service_control import SysServCntrlAction
+
 
 class InvalidDhcpServer(Exception):
     def __init__(self, message):
@@ -244,7 +245,7 @@ class DHCPServer(NetworkManager):
             self.log.error(f"Unable to set DNSMasq interface configuration")
             return STATUS_NOK
         
-        if DMIS.control_service(Action.RESTART):
+        if DMIS.control_service(SysServCntrlAction.RESTART):
             self.log.error(f"Unable to restart DNSMasq")
             return STATUS_NOK    
         

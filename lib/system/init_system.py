@@ -79,7 +79,7 @@ class InitSystemChecker(RunCommand):
         """
         return self._init_system == InitSystem.SYSV
     
-    def get_system_init(self) -> InitSystem:
+    def get_init_system(self) -> InitSystem:
         """
         Gets the current init system.
 
