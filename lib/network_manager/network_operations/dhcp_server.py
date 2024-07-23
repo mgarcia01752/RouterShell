@@ -1,13 +1,10 @@
 from enum import Enum
-import ipaddress
 import logging
 import os
 
 from typing import Dict, List
 
-
 from lib.common.constants import DNSMASQ_LEASE_FILE_PATH
-
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
@@ -85,6 +82,23 @@ class DHCPServer(NetworkManager):
             return STATUS_OK
 
         return DSD().add_dhcp_pool_name_db(dhcp_pool_name)
+    
+    def del_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+        """
+        Delete a DHCP pool by its name.
+        
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to be deleted.
+        
+        Returns:
+            bool: STATUS_NOK if the DHCP pool does not exist, otherwise the status of the delete operation.
+        """
+        if not self.dhcp_pool_name_exists(dhcp_pool_name):
+            self.log.debug(f"DHCP pool-name: {dhcp_pool_name} does not exist")
+            return STATUS_NOK
+        return DSD().del_dhcp_pool_name(dhcp_pool_name)
+
+
       
     def add_dhcp_pool_subnet(self, dhcp_pool_name: str, dhcp_pool_subnet_cidr: str) -> bool:
         """
@@ -282,6 +296,16 @@ class DhcpPoolFactory():
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_inet_subnet_cidr = self.dhcp_srv_obj.get_dhcp_pool_subnet(dhcp_pool_name)
         self.log.debug(f"Create DhcpPoolFactory({dhcp_pool_name} , {self.dhcp_pool_inet_subnet_cidr}) ")
+
+    def delete_pool_name(self) -> bool:
+        """
+        Delete a DHCP pool by its name.
+                
+        Returns:
+            bool: The status of the delete operation.
+        """
+        return self.dhcp_srv_obj.del_dhcp_pool_name(self.dhcp_pool_name)
+
         
     def status(self) -> bool:
         """

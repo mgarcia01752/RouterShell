@@ -4,6 +4,7 @@ from typing import List
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
+from lib.cli.config.dhcp.pool.dhcp_pool_config_cmd import DhcpPoolConfigCmd
 from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
 from lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
 from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
@@ -185,7 +186,7 @@ class ConfigCmd(CmdPrompt):
 
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'], append_nested_sub_cmds=DhcpPoo)
     def configcmd_nat(self, args: List[str], negate: bool=False) -> bool:
 
         if args[0] == 'pool-name':
@@ -208,6 +209,13 @@ class ConfigCmd(CmdPrompt):
             return STATUS_NOK
 
         return STATUS_OK
+
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
+    def configcmd_dhcp(self, args:List[str], negate: bool=False) -> bool:
+        if 'pool-name' in args:
+            self.log.info(f'pool-name: {args[1]}')
+            DhcpPoolConfigCmd(args[1], negate).start()
+            return STATUS_OK
 
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 

@@ -3,20 +3,18 @@ import logging
 
 import cmd2
 
-from lib.network_manager.dhcp_server import DHCPServer, DhcpPoolFactory
-
+from lib.network_manager.network_operations.dhcp_server import DHCPServer, DhcpPoolFactory
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.cli.common.cmd2_global import Cmd2GlobalSettings as cgs
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
 
-class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
+class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
     
     GLOBAL_CONFIG_MODE = 'global'
     PROMPT_CMD_ALIAS = 'dhcp'    
@@ -30,7 +28,7 @@ class DHCPServerConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_SERVER_CONFIG)
-        self.debug = cgs.DEBUG_GLOBAL
+
         
         self.log.debug(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")
         

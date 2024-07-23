@@ -24,7 +24,7 @@ cls
 configure terminal
 
 ! Create DHCP Pools
-dhcp dhcpv4-home-office
+dhcp pool-name dhcpv4-home-office
     subnet 172.16.0.0/24
     pool 172.16.0.50 172.16.60.254 255.255.255.0
     option routers 172.16.0.1

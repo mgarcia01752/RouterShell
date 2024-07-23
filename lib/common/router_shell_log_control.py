@@ -120,6 +120,10 @@ class RouterShellLoggingGlobalSettings():
                             ##########################
                             # HIGH LEVEL API LOGGING #
                             ##########################
+                            
+    DHCP_POOL_CONFIG            = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    DHCP_POOL_CONFIG_CMD        = logging.DEBUG if GLOBAL_DEBUG else logging.INFO                                
+    
     LOOPBACK_CONFIG             = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     LOOPBACK_CONFIG_CMD         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     LOOPBACK_INTERFACE          = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

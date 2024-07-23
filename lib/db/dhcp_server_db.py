@@ -173,6 +173,18 @@ class DHCPServerDatabase:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return RSDB().insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
+    
+    def del_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+        """
+        Delete a DHCP pool by its name from the DB.
+        
+        Args:
+            dhcp_pool_name (str): The name of the DHCP pool to be deleted.
+        
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        return RSDB().delete_dhcp_pool_name(dhcp_pool_name).status
 
     def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str, negate: bool=False) -> bool:
         """
