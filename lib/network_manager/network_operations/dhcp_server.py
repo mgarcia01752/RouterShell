@@ -41,6 +41,18 @@ class DHCPServer(NetworkManager):
             bool: True if the pool exists, False otherwise.
         """
         return DSD().dhcp_pool_name_exists_db(dhcp_pool_name)
+
+    def get_dhcp_pool_name_list(self) -> List[str]:
+        """
+        Retrieve a list of DHCP pool names from the DSD class.
+
+        This method calls the dhcp_pool_name_list method from an instance
+        of the DSD class to get the list of DHCP pool names.
+
+        Returns:
+            List[str]: A list of DHCP pool names.
+        """
+        return DSD().dhcp_pool_name_list()
     
     def dhcp_pool_subnet_exists(self, dhcp_pool_subnet_cidr: str) -> bool:
         """
@@ -202,7 +214,7 @@ class DHCPServer(NetworkManager):
             interface_name (str): The name of the interface to associate with the DHCP pool.
 
         Returns:
-            bool: True if the DHCP pool was successfully added to the interface, False otherwise.
+            bool: STATUS_OK if the DHCP pool was successfully added to the interface, STATUS_NOK otherwise.
 
         """
         

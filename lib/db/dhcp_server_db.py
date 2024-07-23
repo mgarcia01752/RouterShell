@@ -59,7 +59,27 @@ class DHCPServerDatabase:
             bool: True if the DHCP pool name exists, False otherwise.
         """
         return RSDB().dhcp_pool_name_exist(dhcp_pool_name).status
-    
+
+    def dhcp_pool_name_list(self) -> List[str]:
+        """
+        Retrieve a list of DHCP pool names from the database.
+
+        This method queries the RSDB to get the list of DHCP server pools,
+        and filters the results based on the status. Only pools with STATUS_OK
+        are included in the returned list.
+
+        Returns:
+            List[str]: A list of DHCP pool names with STATUS_OK.
+        """
+        
+        dhcp_pool_names = []
+        
+        for result in RSDB().select_dhcp_server_pool_list():
+            if result.status == STATUS_OK:
+                dhcp_pool_names.append(result.result['DhcpPoolname'])
+        
+        return dhcp_pool_names
+
     def dhcp_pool_subnet_exist_db(self, inet_subnet_cidr: str) -> bool:
         """
         Check if a DHCP pool subnet with the given subnet CIDR exists in the database.
@@ -113,7 +133,10 @@ class DHCPServerDatabase:
         """
         return RSDB().insert_dhcp_pool_subnet(dhcp_pool_name, inet_subnet_cidr).status
 
-    def add_dhcp_subnet_inet_address_range_db(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> bool:
+    def add_dhcp_subnet_inet_address_range_db(self, inet_subnet_cidr: str, 
+                                              inet_address_start: str, 
+                                              inet_address_end: str, 
+                                              inet_address_subnet_cidr: str) -> bool:
         """
         Add an address range to a DHCP subnet in the database.
 
@@ -219,7 +242,7 @@ class DHCPServerDatabase:
     def get_global_options(self) -> List[List]:
         return []
     
-    def get_dhcp_poll_interfaces_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_interfaces_db(self, dhcp_pool_name: str) -> List[Dict]:
         """
         Retrieve the interfaces associated with a DHCP pool name from the database.
 

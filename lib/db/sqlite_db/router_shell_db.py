@@ -1259,12 +1259,13 @@ class RouterShellDB(metaclass=Singleton):
     '''
                         DHCP-SERVER DATABASE
     '''
-    def select_dhcp_server_pool_list(self) -> List[Result]:
+    def select_dhcp_server_pool_list(self) -> List['Result']:
         """
         Retrieve a list of DHCP server pool names from the 'DHCPServer' table.
 
         Returns:
             List[Result]: A list of Result objects, each representing a row from the 'DHCPServer' table.
+                          Each Result contains a dictionary with the key 'DhcpPoolname' and its value.
 
         Note:
         - This method assumes that the 'DHCPServer' table exists with the specified schema.
@@ -1275,15 +1276,18 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query)
             
-            dhcp_pool_names = [row[0] for row in cursor.fetchall()]
-
+            # Fetch all rows from the executed query
+            rows = cursor.fetchall()
+            
             # Build Result objects for each DHCP server pool name.
             results = [
-                Result(status=STATUS_OK, row_id=dhcp_pool_name[0],
-                        reason=f"Retrieved DHCP server pool '{dhcp_pool_name}' successfully",
-                        result={"DhcpPoolname": dhcp_pool_name[1]},
+                Result(
+                    status=STATUS_OK, 
+                    row_id=row[0],
+                    reason=f"Retrieved DHCP server pool '{row[1]}' successfully",
+                    result={"DhcpPoolname": row[1]}
                 )
-                for dhcp_pool_name in dhcp_pool_names
+                for row in rows
             ]
 
             return results
@@ -1292,6 +1296,7 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Failed to retrieve DHCP server pool names. Error: {str(e)}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
 
     def insert_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
         """

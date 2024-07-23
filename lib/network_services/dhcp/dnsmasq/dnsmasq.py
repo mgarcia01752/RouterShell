@@ -193,7 +193,7 @@ class DNSMasqInterfaceService(DNSMasqService):
             bool: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
         """
         # Get the interface names for the DHCP pool
-        interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
+        interface_names = self.dhcp_srv_db.get_dhcp_pool_interfaces_db(self.dhcp_pool_name)
         self.log.debug(f"Number of interfaces: {len(interface_names)} -> {interface_names[0]}")
 
         # Get the DHCP pool ranges

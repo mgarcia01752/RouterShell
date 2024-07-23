@@ -167,6 +167,8 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-client'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-server', 'pool-name'], 
+                                     append_nested_sub_cmds=DHCPServer().get_dhcp_pool_name_list())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])    
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
@@ -251,6 +253,16 @@ class EthernetConfig(CmdPrompt):
             self.log.debug(f"Enable DHCP-DUAL-STACK Client")
             if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, negate):
                 self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self.ifName}")
+
+        elif "dhcp-server" in args:
+            '''[no] [ip dhcp-server pool-name <dhcp-pool-name>]'''
+            if 'pool-name' in args[1:]:
+                pool_name = args[2]
+                return DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
+                
+            else:
+                print("Invalid arguments for 'dhcp-server' command.")
+                return STATUS_NOK
        
         else:
             self.log.debug(f'Invalid subcommand: {args}')

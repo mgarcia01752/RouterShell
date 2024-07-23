@@ -156,12 +156,11 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
 
     
+    @CmdPrompt.register_sub_commands(sub_cmds=['dhcp-server', 'pool-name'])
     @CmdPrompt.register_sub_commands(sub_cmds=['drop-gratuitous-arp'])        
     @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'])
-    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'inside', 'pool'])
-    @CmdPrompt.register_sub_commands(sub_cmds=['nat', 'outside', 'pool'])    
-    # @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'])
+    @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'])
     def interfaceconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
@@ -210,6 +209,16 @@ class InterfaceConfig(CmdPrompt):
             self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
             return self.net_interface.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
         
+        elif "dhcp-server" in args:
+            
+            if 'pool-name' in args[1:]:
+                pool_name = args[2]
+                return DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
+                
+            else:
+                print("Invalid arguments for 'dhcp-server' command.")
+                return STATUS_NOK
+            
         else:
             self.log.debug(f'Invalid subcommand: {args}')
             print('Invalid subcommand')
