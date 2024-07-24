@@ -66,9 +66,9 @@ class SystemServiceControl(RunCommand):
         Returns:
             List[str]: The command to run.
         """
-        if self.init_system == InitSystem.SYSV.value:
+        if self.init_system == InitSystem.SYSV:
             return ['service', service_name, service_action.value]
-        elif self.init_system == InitSystem.SYSTEMD.value:
+        elif self.init_system == InitSystem.SYSTEMD:
             return ['systemctl', service_action.value, service_name]
         else:
             self.log.error(f"Unsupported init system: {self.init_system}")
