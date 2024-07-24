@@ -30,10 +30,7 @@ class DhcpPoolConfig(CmdPrompt):
             return None
         
         self._dhcp_pool_fact = DhcpPoolFactory(dhcp_pool_name)
-    
-    def get_dhcp_pool_list(self) -> List[str]:
-        return []
-               
+                   
     def dhcppoolconfig_help(self, args: List = None) -> None:
         """
         Display help for available commands.

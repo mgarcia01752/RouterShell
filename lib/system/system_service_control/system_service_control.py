@@ -71,5 +71,5 @@ class SystemServiceControl(RunCommand):
         elif self.init_system == InitSystem.SYSTEMD.value:
             return ['systemctl', service_action.value, service_name]
         else:
-            self.log.error("Unsupported init system")
+            self.log.error(f"Unsupported init system: {self.init_system}")
             return []
