@@ -1,9 +1,11 @@
-from enum import Enum
-from ipaddress import ip_address
 import ipaddress
 import logging
-from abc import ABC, abstractmethod
+import shutil
+
+from enum import Enum
 from typing import List
+from abc import ABC, abstractmethod
+from ipaddress import ip_address
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.inet import InetServiceLayer
@@ -21,14 +23,14 @@ class SupportedDhcpClients(Enum):
         DHCPCD (str): The ISC DHCP client with dual stack support (IPv4 and IPv6), suitable for a variety of systems and scenarios.
         DHCLIENT (str): The ISC DHCP client with dual stack support, which was deprecated in 2022. This client is still available but not recommended for new deployments.
     """
-    # BusyBox
+    # BusyBox (Need both to Support Dual-Stack)
     UDHCPC = 'udhcpc'
     UDHCPC6 = 'udhcpc6'
     
-    # ISC (Dual Stack Support)
+    # ISC (Dual-Stack Support)
     DHCPCD = 'dhcpcd'
     
-    # ISC Deprecated 2022 (Dual Stack Support)
+    # ISC Deprecated 2022 (Dual-Stack Support)
     DHCLIENT = 'dhclient'
 
 class SupportedDhcpClientsDHCPVersion(Enum):
@@ -54,7 +56,6 @@ class SupportedDhcpClientsDHCPVersion(Enum):
     # ISC Deprecated 2022 (Dual Stack Support)
     DHCLIENT_V4 = 'dhclient'
     DHCLIENT_V6 = 'dhclient'
-
 
 class DHCPClientFactory:
     """
@@ -140,7 +141,6 @@ class DHCPClientFactory:
         Returns:
             bool: True if the command exists, False otherwise.
         """
-        import shutil
         return shutil.which(command) is not None
             
 class DHCPClientException(Exception):
@@ -165,7 +165,7 @@ class DHCPClientException(Exception):
 class DHCPClientOperations(ABC, RunCommand):
     """
     Abstract base class for DHCP client operations on a network interface.
-    
+
     This class provides a template for implementing various DHCP client operations
     such as checking client availability, configuring network settings, and managing
     the DHCP client lifecycle.
@@ -174,18 +174,21 @@ class DHCPClientOperations(ABC, RunCommand):
         _interface_name (str): The name of the network interface.
 
     Methods:
-        is_client_available(): Check if the DHCP client is available.
-        get_interface(): Get the name of the network interface.
-        remove_interface(): Remove the network interface configuration.
-        set_inet4(): Configure the interface with IPv4 settings.
-        set_inet6(): Configure the interface with IPv6 settings.
-        set_dual_stack(): Configure the interface with both IPv4 and IPv6 settings.
-        start(): Start the DHCP client.
-        stop(): Stop the DHCP client.
-        restart(): Restart the DHCP client.
-        get_inet(): Retrieve the current IP address assigned to the interface.
-        release_inet(): Release the current IP address.
-        renew_inet(): Renew the IP address for the interface.
+        Implemented Methods:
+            get_interface(): Get the name of the network interface.
+            set_dual_stack(): Configure the interface with both IPv4 and IPv6 settings.
+            get_inet(): Retrieve the current IP address assigned to the interface.
+            is_client_available(): Check if the DHCP client is available.
+
+        Abstract Methods:
+            remove_interface(): Remove the network interface configuration.
+            set_inet4(): Configure the interface with IPv4 settings.
+            set_inet6(): Configure the interface with IPv6 settings.
+            start(): Start the DHCP client.
+            stop(): Stop the DHCP client.
+            restart(): Restart the DHCP client.
+            release_inet(): Release the current IP address.
+            renew_inet(): Renew the IP address for the interface.
     """
 
     def __init__(self, interface_name: str, sdc: SupportedDhcpClients):
@@ -206,7 +209,6 @@ class DHCPClientOperations(ABC, RunCommand):
         Returns:
             bool: True if udhcpc is available, False otherwise.
         """
-        import shutil
         return shutil.which(self._sdc.value) is not None
 
     def get_interface(self) -> str:
