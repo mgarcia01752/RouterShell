@@ -42,8 +42,7 @@ class DHCPClientFactory:
     def __init__(self):
         pass
 
-    def get_supported_dhcp_client(self, interface_name: str, 
-                                  auto_sdc_override: SupportedDhcpClients = None) -> 'DHCPClientOperations':
+    def get_supported_dhcp_client(self, interface_name: str, auto_sdc_override) -> 'DHCPClientOperations':
         """
         Get the supported DHCP client for the specified interface.
 
@@ -56,20 +55,24 @@ class DHCPClientFactory:
         """
 
         if auto_sdc_override:
+            
             if auto_sdc_override == SupportedDhcpClients.UDHCPC:
                 return DHCPClientOperations_udhcpc(interface_name)
+            
             elif auto_sdc_override == SupportedDhcpClients.DHCPCD:
                 return DHCPClientOperations_dhcpcd(interface_name)
+            
             elif auto_sdc_override == SupportedDhcpClients.DHCLIENT:
                 return DHCPClientOperations_dhclient(interface_name)
+            
         else:
             current_os = OSChecker().get_current_os()
+            
             if current_os == SupportedOS.BUSY_BOX:
-                # Assume UDHCPC is the default for BusyBox
                 return DHCPClientOperations_udhcpc(interface_name)
+
             elif current_os == SupportedOS.UBUNTU:
-                print("++++++++++++++++++++++++++++++")
-                # Assume DHCLIENT is the default for Ubuntu
+
                 return None
         
         # If no supported DHCP client is found, raise an exception or handle it appropriately
@@ -122,12 +125,6 @@ class DHCPClientOperations(ABC, RunCommand):
     """
 
     def __init__(self, interface_name: str, sdc: SupportedDhcpClients):
-        """
-        Initialize the DHCPClientOperations with a network interface name.
-
-        Args:
-            interface_name (str): The name of the network interface.
-        """
         super().__init__()
         RunCommand.__init__()
         self.log = logging.getLogger(self.__class__.__name__)
@@ -279,11 +276,8 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC)
 
+        self._dco_udhcpc6 = DHCPClientOperations_udhcpc6(interface_name)
         
-
-        DHCPClientOperations_udhcpc6(interface_name)
-        
-
     def remove_interface(self) -> bool:
         """
         Remove the network interface configuration by stopping udhcpc.
@@ -312,8 +306,7 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        result = self.run(['udhcpc6', '-i', self._interface_name])
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
+        return self._dco_udhcpc6.set_inet6()
 
     def start(self) -> bool:
         """
