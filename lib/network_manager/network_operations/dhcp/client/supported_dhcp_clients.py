@@ -206,8 +206,8 @@ class DHCPClientOperations(ABC, RunCommand):
         Returns:
             bool: True if udhcpc is available, False otherwise.
         """
-        result = self.run(['which', self._sdc.value], suppress_error=True)
-        return result.exit_code == 0
+        import shutil
+        return shutil.which(self._sdc.value) is not None
 
     def get_interface(self) -> str:
         """
