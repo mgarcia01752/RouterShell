@@ -3,7 +3,7 @@ import logging
 
 import cmd2
 
-from lib.network_manager.network_operations.dhcp_server import DHCPServer, DhcpPoolFactory
+from lib.network_manager.network_operations.dhcp.client.server.dhcp_server import DHCPServer, DhcpPoolFactory
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt

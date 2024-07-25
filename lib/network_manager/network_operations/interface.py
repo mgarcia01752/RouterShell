@@ -10,7 +10,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge, BridgeProtocol
-from lib.network_manager.network_operations.dhcp_client import DHCPClient, DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient, DHCPStackVersion
 from lib.network_manager.network_operations.nat import NATDirection, Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan

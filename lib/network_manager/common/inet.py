@@ -2,7 +2,7 @@ from enum import Enum
 import ipaddress
 import json
 import logging
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -195,7 +195,7 @@ class InetServiceLayer(MacServiceLayer):
         # Add your network interface validation logic here
         return True  # Replace with actual validation logic
 
-    def get_interface_ip_addresses(self, interface_name, ip_version=None) -> list:
+    def get_interface_ip_addresses(self, interface_name, ip_version=None) -> List:
         """
         Get IP addresses of a network interface using iproute2 --json option.
 

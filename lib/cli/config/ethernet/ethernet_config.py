@@ -11,8 +11,8 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.network_interfaces.ethernet_interface import EthernetInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
-from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
-from lib.network_manager.network_operations.dhcp_server import DHCPServer
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.server.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -166,7 +166,7 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['drop-gratuitous-arp'])        
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-client'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-client', 'dual-stack'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-server', 'pool-name'], 
                                      append_nested_sub_cmds=DHCPServer().get_dhcp_pool_name_list())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
@@ -249,10 +249,15 @@ class EthernetConfig(CmdPrompt):
                 return STATUS_NOK
 
         elif "dhcp-client" in args[0]:
-            '''[no] [ip dhcp-client]'''
-            self.log.debug(f"Enable DHCP-DUAL-STACK Client")
-            if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, negate):
-                self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self.ifName}")
+            '''[no] [ip dhcp-client dual-stack]'''
+            
+            if len(args) == 2 and 'dual-stack' in args:
+                
+                if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, negate):
+                    self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self.ifName}")
+
+            if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_V4, negate):
+                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
 
         elif "dhcp-server" in args:
             '''[no] [ip dhcp-server pool-name <dhcp-pool-name>]'''

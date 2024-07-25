@@ -5,7 +5,7 @@ from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from lib.network_manager.network_operations.arp import Encapsulate
-from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 

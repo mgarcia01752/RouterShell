@@ -12,8 +12,8 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
-from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
-from lib.network_manager.network_operations.dhcp_server import DHCPServer
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.server.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 

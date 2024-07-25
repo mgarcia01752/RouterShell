@@ -6,7 +6,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.network_operations.dhcp_client import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.nat import NATDirection
 
 class InterfaceDatabase:
