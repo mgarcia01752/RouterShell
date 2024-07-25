@@ -1,20 +1,19 @@
-from enum import Enum
+from enum import Enum, auto
 import logging
 from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import DHCPClientFactory, DHCPClientOperations
+from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
 
-class DHCPStackVersion(Enum):
-    """An enumeration of DHCP versions: DHCPv4, DHCPv6, DUAL_STACK"""
-    DHCP_V4 = 'DHCPv4'
-    DHCP_V6 = 'DHCPv6'
-    DHCP_DUAL_STACK = 'DHCPv4v6'
 
 class DHCPClientException(Exception):
     """
     Custom exception for DHCP client operations.
+
+    Attributes:
+        message (str): Error message for the exception.
     """
     def __init__(self, message: str):
         super().__init__(message)
@@ -25,46 +24,79 @@ class DHCPClientException(Exception):
 
 class DHCPClient:
     """
-    A class for managing DHCP clients.
+    A class for managing DHCP client operations on a network interface.
 
-    This class provides methods to enable and disable DHCP clients for IPv4 and IPv6 on
-    specific network interfaces, as well as restarting the DHCP client service.
+    This class provides methods to start, stop, and restart DHCP clients for IPv4,
+    IPv6, or dual stack configurations on a specific network interface. It also retrieves
+    DHCP client flow logs.
+
+    Attributes:
+        _interface_name (str): The name of the network interface.
+        _dhcp_stack_version (DHCPStackVersion): The DHCP stack version to use.
+        _dhcp_client (DHCPClientOperations): The specific DHCP client instance for the network interface.
+        _last_status (DHCPClientStatus): The last status of the DHCP client.
+
+    Methods:
+        start(): Start the DHCP client with the configured stack version.
+        stop(): Stop the DHCP client.
+        restart(): Restart the DHCP client service.
+        get_flow_log(): Retrieve DHCP client flow logs from the system journal.
+        get_last_status(): Get the last status of the DHCP client.
     """
     
-    def __init__(self):
+    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+        """
+        Initialize the DHCPClient with the network interface name and DHCP stack version.
+
+        Args:
+            interface_name (str): The name of the network interface.
+            dhcp_stack_version (DHCPStackVersion): The DHCP stack version to use.
+        """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT)
         
-        if not self.is_dhcp_client_available():
-            raise EnvironmentError("No supported DHCP client (udhcpc or dhclient) is installed.")
-
-    def is_dhcp_client_available(self) -> bool:
-            return True
-
-    def set_dhcp_client_interface_service(self, interface_name:str, 
-                                          dhcp_stack_version: DHCPStackVersion, 
-                                          enable_dhcp_client: bool=True) -> bool:
+        self._interface_name = interface_name
+        self._dhcp_stack_version = dhcp_stack_version
+        
+        self._dhcp_client : DHCPClientOperations = DHCPClientFactory().get_supported_dhcp_client(interface_name)
+        self._last_status = None
+    
+    def get_last_status(self) -> DHCPStatus:
         """
-        Set the DHCP client service for the specified interface and version.
+        Get the last status of the DHCP client.
 
-        Args:
-            interface_name (str): The name of the network interface to configure DHCP on.
-            dhcp_stack_version (DHCPStackVersion): The DHCP version (DHCP_V4 or DHCP_V6 or DHCP_DUAL_STACK).
-            enable_dhcp_client (bool): If True, enable DHCP; if False, disable DHCP.
+        Returns:
+            DHCPClientStatus: The last status of the DHCP client.
+        """
+        return self._dhcp_client.get_last_status()
+                
+    def start(self) -> bool:
+        """
+        Start the DHCP client with the configured stack version.
 
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return STATUS_OK
+        self.log.debug(f'Start DHCP client on interface {self._dhcp_client.get_interface()}')
+        return  self._dhcp_client.start()
+        
+    def stop(self) -> bool:
+        """
+        Stop the DHCP client.
 
-    def restart_dhcp_service(self) -> bool:
+        Returns:
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+        """
+        return  self._dhcp_client.stop()
+    
+    def restart(self) -> bool:
         """
         Restart the DHCP client service.
 
         Returns:
             bool: STATUS_OK if the DHCP client service restart was successful, STATUS_NOK otherwise.
         """        
-        return STATUS_OK
+        return  self._dhcp_client.restart()
 
     def get_flow_log(self) -> List[str]:
         """
@@ -73,7 +105,6 @@ class DHCPClient:
         Returns:
             List[str]: A list of DHCP client flow log entries.
         """
+        # Implement log retrieval from the system journal if necessary
         return []
 
-    def _get_supported_dhcp_client(self) -> DHCPClientOperations:
-        return DHCPClientFactory

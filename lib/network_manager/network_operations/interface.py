@@ -719,14 +719,14 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_dhcp_client(self, interface_name: str, dhcp_version: DHCPStackVersion, negate=False) -> bool:
+    def update_interface_dhcp_client(self, interface_name: str, dhcp_stack_ver: DHCPStackVersion, negate=False) -> bool:
         """
         Update the DHCP configuration for a network interface via OS.
         Update the DHCP configuration for a network interface via DB.
         
         Args:
             interface_name (str): The name of the network interface.
-            dhcp_version (DHCPVersion): The DHCP version (DHCP_V4 or DHCP_V6).
+            dhcp_stack_ver (DHCPStackVersion): The DHCP version (DHCP_V4 or DHCP_V6).
             negate (bool): If True, disable DHCP; if False, enable DHCP.
 
         Returns:
@@ -738,23 +738,19 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.debug(f"Updated DHCP client configuration for interface: {interface_name} via OS")
         
         except Exception as e:
-            self.log.critical(f"Unable to update DHCP client configuration for interface: {interface_name} via OS: {e}")
+            self.log.critical(f"Failed to update DHCP client configuration for interface: {interface_name} via OS: {e}")
             return STATUS_NOK
-        
-        if not dhcp_client.is_dhcp_client_available:
-            self.log.critical(f"DHCP Client Service not available, check system logs")
-            return STATUS_NOK
-        
+                
         if not self.net_mgr_interface_exist(interface_name):
-            self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name}. Interface does not exist.")
+            self.log.error(f"Interface {interface_name} does not exist.")
             return STATUS_NOK
-        
-        if self.update_db_dhcp_client(interface_name, dhcp_version):
-            self.log.error(f"Failed to update {dhcp_version.value} client on interface: {interface_name}. Database update error.")
+                
+        if dhcp_client.start(interface_name, dhcp_stack_ver, (not negate)):
+            self.log.error(f"Failed to update {dhcp_stack_ver.value} client on interface: {interface_name} OS update error.")
             return STATUS_NOK
-        
-        if dhcp_client.set_dhcp_client_interface_service(interface_name, dhcp_version, (not negate)):
-            self.log.error(f"Unable to update {dhcp_version.value} client on interface: {interface_name} OS update error.")
+
+        if self.update_db_dhcp_client(interface_name, dhcp_stack_ver):
+            self.log.error(f"Failed to update {dhcp_stack_ver.value} client on interface: {interface_name}. DB update error.")
             return STATUS_NOK
 
         return STATUS_OK            
