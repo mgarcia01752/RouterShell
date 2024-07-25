@@ -12,8 +12,18 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.system.os.os import OSChecker, SupportedOS
 
 class SupportedDhcpClients(Enum):
+    """
+    Enumeration of supported DHCP clients.
+
+    Attributes:
+        UDHCPC (str): The DHCP (IPv4) client provided by BusyBox, commonly used in lightweight and embedded Linux systems.
+        UDHCPC6 (str): The DHCP (IPv6) client provided by BusyBox, commonly used in lightweight and embedded Linux systems.
+        DHCPCD (str): The ISC DHCP client with dual stack support (IPv4 and IPv6), suitable for a variety of systems and scenarios.
+        DHCLIENT (str): The ISC DHCP client with dual stack support, which was deprecated in 2022. This client is still available but not recommended for new deployments.
+    """
     # BusyBox
     UDHCPC = 'udhcpc'
+    UDHCPC6 = 'udhcpc6'
     
     # ISC (Dual Stack Support)
     DHCPCD = 'dhcpcd'
@@ -22,6 +32,17 @@ class SupportedDhcpClients(Enum):
     DHCLIENT = 'dhclient'
 
 class SupportedDhcpClientsDHCPVersion(Enum):
+    """
+    Enumeration of supported DHCP clients with specific versions for IPv4 and IPv6.
+
+    Attributes:
+        UDHCPC_V4 (str): The BusyBox DHCP client for IPv4, commonly used in lightweight and embedded Linux systems.
+        UDHCPC_V6 (str): The BusyBox DHCP client for IPv6.
+        DHCPCD_V4 (str): The ISC DHCP client (dhcpcd) with dual stack support for IPv4, suitable for a variety of systems and scenarios.
+        DHCPCD_V6 (str): The ISC DHCP client (dhcpcd) with dual stack support for IPv6.
+        DHCLIENT_V4 (str): The ISC DHCP client (dhclient) with dual stack support for IPv4, which was deprecated in 2022. This client is still available but not recommended for new deployments.
+        DHCLIENT_V6 (str): The ISC DHCP client (dhclient) with dual stack support for IPv6, which was deprecated in 2022. This client is still available but not recommended for new deployments.
+    """
     # BusyBox
     UDHCPC_V4 = 'udhcpc'
     UDHCPC_V6 = 'udhcpc6'
@@ -34,15 +55,17 @@ class SupportedDhcpClientsDHCPVersion(Enum):
     DHCLIENT_V4 = 'dhclient'
     DHCLIENT_V6 = 'dhclient'
 
+
 class DHCPClientFactory:
     """
     A factory class to get the supported DHCP client based on the interface name and optional override.
     """
     
     def __init__(self):
-        pass
-
-    def get_supported_dhcp_client(self, interface_name: str, auto_sdc_override) -> 'DHCPClientOperations':
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().DHCP_CLIENT_FACTORY)      
+          
+    def get_supported_dhcp_client(self, interface_name: str, auto_sdc_override=None) -> 'DHCPClientOperations':
         """
         Get the supported DHCP client for the specified interface.
 
@@ -55,29 +78,70 @@ class DHCPClientFactory:
         """
 
         if auto_sdc_override:
-            
             if auto_sdc_override == SupportedDhcpClients.UDHCPC:
+                self.log.debug(f'Selecting Dhcp Client: {auto_sdc_override.name}')
                 return DHCPClientOperations_udhcpc(interface_name)
-            
+
             elif auto_sdc_override == SupportedDhcpClients.DHCPCD:
+                self.log.debug(f'Selecting Dhcp Client: {auto_sdc_override.name}')
                 return DHCPClientOperations_dhcpcd(interface_name)
-            
+
             elif auto_sdc_override == SupportedDhcpClients.DHCLIENT:
+                self.log.debug(f'Selecting Dhcp Client: {auto_sdc_override.name}')
                 return DHCPClientOperations_dhclient(interface_name)
-            
         else:
             current_os = OSChecker().get_current_os()
             
             if current_os == SupportedOS.BUSY_BOX:
+                self.log.debug(f'Auto Selecting Dhcp Client: {SupportedDhcpClients.UDHCPC.name} on {current_os.name} OS')
                 return DHCPClientOperations_udhcpc(interface_name)
 
             elif current_os == SupportedOS.UBUNTU:
+                auto_sdc = self._auto_find_dhcp_client()
+                
+                if auto_sdc == SupportedDhcpClients.DHCPCD:
+                    self.log.debug(f'Auto Selecting Dhcp Client: {auto_sdc.name} on {current_os.name} OS')
+                    return DHCPClientOperations_dhcpcd(interface_name)
 
-                return None
-        
+                elif auto_sdc == SupportedDhcpClients.DHCLIENT:
+                    self.log.debug(f'Auto Selecting Dhcp Client: {auto_sdc.name} on {current_os.name} OS')
+                    return DHCPClientOperations_dhclient(interface_name)
+                
         # If no supported DHCP client is found, raise an exception or handle it appropriately
         raise DHCPClientException(f"No supported DHCP client found for interface: {interface_name}")
- 
+    
+    def _auto_find_dhcp_client(self) -> SupportedDhcpClients:
+        """
+        Automatically find a supported DHCP client.
+
+        Returns:
+            SupportedDhcpClients: The DHCP client found.
+        """
+        # Maintain this order BusyBox -> General Linux Distro
+        if self._check_command_exists("udhcpc"):
+            return SupportedDhcpClients.UDHCPC
+        
+        elif self._check_command_exists("dhcpcd"):
+            return SupportedDhcpClients.DHCPCD
+        
+        elif self._check_command_exists("dhclient"):
+            return SupportedDhcpClients.DHCLIENT
+        
+        else:
+            raise DHCPClientException("No supported DHCP client found.")
+    
+    def _check_command_exists(self, command: str) -> bool:
+        """
+        Check if a command exists in the system.
+
+        Args:
+            command (str): The command to check.
+
+        Returns:
+            bool: True if the command exists, False otherwise.
+        """
+        import shutil
+        return shutil.which(command) is not None
             
 class DHCPClientException(Exception):
     """
@@ -126,16 +190,15 @@ class DHCPClientOperations(ABC, RunCommand):
 
     def __init__(self, interface_name: str, sdc: SupportedDhcpClients):
         super().__init__()
-        RunCommand.__init__()
+        RunCommand().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SUPPORTED_CLIENTS)
+        self.log.setLevel(RSLGS().DHCP_SUPPORTED_CLIENTS_ABC)
         self._interface_name = interface_name
         self._sdc = sdc
         
         if not self.is_client_available():
             raise DHCPClientException(f"DHCP client is not available.", self._sdc.value)        
 
-    @abstractmethod
     def is_client_available(self) -> bool:
         """
         Check if the udhcpc DHCP client is available on the system.
@@ -143,10 +206,9 @@ class DHCPClientOperations(ABC, RunCommand):
         Returns:
             bool: True if udhcpc is available, False otherwise.
         """
-        result = self.run(['which', self._sdc], suppress_error=True)
+        result = self.run(['which', self._sdc.value], suppress_error=True)
         return result.exit_code == 0
 
-    @abstractmethod
     def get_interface(self) -> str:
         """
         Get the name of the network interface.
@@ -186,7 +248,6 @@ class DHCPClientOperations(ABC, RunCommand):
         """
         return STATUS_OK
 
-    @abstractmethod
     def set_dual_stack(self) -> bool:
         """
         Configure the interface with both IPv4 and IPv6 settings.
@@ -233,7 +294,6 @@ class DHCPClientOperations(ABC, RunCommand):
         """
         return STATUS_OK
 
-    @abstractmethod
     def get_inet(self) -> List[ip_address]:
         """
         Retrieve all IP addresses assigned to the interface, including both IPv4 and IPv6 addresses.
@@ -272,7 +332,7 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         Args:
             interface_name (str): The name of the network interface.
         """
-        super().__init__(self, interface_name)
+        super().__init__(interface_name,SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC)
 
@@ -365,7 +425,7 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         Args:
             interface_name (str): The name of the network interface.
         """
-        DHCPClientOperations.__init__(self, interface_name)
+        super().__init__(interface_name,SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC6)
 
@@ -376,7 +436,7 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        result = self.run(['pkill', '-f', f'udhcpc6 -i {self._interface_name}'])
+        result = self.run(['pkill', f'udhcpc6 -i {self._interface_name}'])
         return STATUS_OK if result.exit_code == 0 else STATUS_NOK
 
     def set_inet4(self) -> bool:
@@ -456,7 +516,7 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         Args:
             interface_name (str): The name of the network interface.
         """
-        DHCPClientOperations.__init__(self, interface_name)
+        super().__init__(interface_name,SupportedDhcpClients.DHCPCD)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_DHCPCD)
 
@@ -549,7 +609,7 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         Args:
             interface_name (str): The name of the network interface.
         """
-        DHCPClientOperations.__init__(self, interface_name)
+        super().__init__(interface_name,SupportedDhcpClients.DHCLIENT)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_DHCLIENT)
 
