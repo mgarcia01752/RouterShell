@@ -179,6 +179,7 @@ class DHCPClientOperations(ABC, RunCommand):
             set_dual_stack(): Configure the interface with both IPv4 and IPv6 settings.
             get_inet(): Retrieve the current IP address assigned to the interface.
             is_client_available(): Check if the DHCP client is available.
+            get_dhcp_client(): Retrieve the supported DHCP client.
 
         Abstract Methods:
             remove_interface(): Remove the network interface configuration.
@@ -200,7 +201,16 @@ class DHCPClientOperations(ABC, RunCommand):
         self._sdc = sdc
         
         if not self.is_client_available():
-            raise DHCPClientException(f"DHCP client is not available.", self._sdc.value)        
+            raise DHCPClientException(f"DHCP client is not available.", self._sdc.value)
+        
+    def get_dhcp_client(self) -> SupportedDhcpClients:
+        """
+        Retrieve the supported DHCP client.
+
+        Returns:
+            SupportedDhcpClients: The supported DHCP client.
+        """
+        return self._sdc    
 
     def is_client_available(self) -> bool:
         """
