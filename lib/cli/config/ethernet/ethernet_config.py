@@ -258,6 +258,8 @@ class EthernetConfig(CmdPrompt):
 
             if self.eth_interface_obj.set_dhcp_client(DHCPStackVersion.DHCP_V4, negate):
                 self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
+            
+            self.log.debug(f'Added dhcp-client to interface: {self.ifName}')
 
         elif "dhcp-server" in args:
             '''[no] [ip dhcp-server pool-name <dhcp-pool-name>]'''
