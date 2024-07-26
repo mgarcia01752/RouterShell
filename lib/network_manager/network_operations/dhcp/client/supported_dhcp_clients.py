@@ -43,8 +43,10 @@ class SupportedDhcpClientsDHCPVersion(Enum):
         UDHCPC_V6 (str): The BusyBox DHCP client for IPv6.
         DHCPCD_V4 (str): The ISC DHCP client (dhcpcd) with dual stack support for IPv4, suitable for a variety of systems and scenarios.
         DHCPCD_V6 (str): The ISC DHCP client (dhcpcd) with dual stack support for IPv6.
-        DHCLIENT_V4 (str): The ISC DHCP client (dhclient) with dual stack support for IPv4, which was deprecated in 2022. This client is still available but not recommended for new deployments.
-        DHCLIENT_V6 (str): The ISC DHCP client (dhclient) with dual stack support for IPv6, which was deprecated in 2022. This client is still available but not recommended for new deployments.
+        DHCLIENT_V4 (str): The ISC DHCP client (dhclient) with dual stack support for IPv4, which was deprecated in 2022. 
+                           This client is still available but not recommended for new deployments.
+        DHCLIENT_V6 (str): The ISC DHCP client (dhclient) with dual stack support for IPv6, which was deprecated in 2022. 
+                           This client is still available but not recommended for new deployments.
     """
     # BusyBox
     UDHCPC_V4 = 'udhcpc'
@@ -365,6 +367,26 @@ class DHCPClientOperations(ABC, RunCommand):
         """
         return self._get_last_status
 
+    def _execute_command(self, command: List[str]) -> bool:
+        """
+        Executes a shell command and logs the result.
+
+        Args:
+            command (List[str]): The command to be executed as a list of strings.
+
+        Returns:
+            bool: STATUS_OK if the command executed successfully, STATUS_NOK otherwise.
+        """
+        self.log.debug(f"Executing command: {command}")
+        result = self.run_command(command)
+        
+        if result.return_code:
+            self.log.error(f"Command failed with error: {result.stderr}")
+            return STATUS_NOK
+        
+        self.log.info(f"Command executed successfully: {result.stdout}")
+        return STATUS_OK
+
 class DHCPClientOperations_udhcpc(DHCPClientOperations):
     def __init__(self, interface_name: str):
         """
@@ -387,11 +409,8 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
         #Busy Box pkill implementation
-        cmd = ['pkill', f'udhcpc -i {self._interface_name}']
-        self.log.debug(f'remove_interface() -> cmd: {cmd}')
-        result = self.run(cmd)         
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['pkill', f'udhcpc -i {self._interface_name}'])
+        
     def set_inet4(self) -> bool:
         """
         Configure the interface with IPv4 settings using udhcpc.
@@ -399,11 +418,8 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['udhcpc', '-i', self._interface_name]
-        self.log.debug(f'set_inet() -> cmd: {cmd}')
-        result = self.run(cmd)
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['udhcpc', '-i', self._interface_name])
+    
     def set_inet6(self) -> bool:
         """
         Configure the interface with IPv6 settings. Note: udhcpc does not support IPv6 natively.
@@ -462,11 +478,8 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['pkill', f'udhcpc6 -i {self._interface_name}']
-        self.log.debug(f'remove_interface() -> cmd: {cmd}')
-        result = self.run(cmd)         
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['pkill', f'udhcpc6 -i {self._interface_name}'])
+    
     def set_inet4(self) -> bool:
         """
         Configure the interface with IPv4 settings. Note: udhcpc6 does not support IPv4.
@@ -484,11 +497,8 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['udhcpc6', '-i', self._interface_name]
-        self.log.debug(f'set_inet6() -> cmd: {cmd}')
-        result = self.run(cmd)         
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['udhcpc6', '-i', self._interface_name])
+    
     def start(self) -> bool:
         """
         Start the DHCP client (udhcpc6) on the interface.
@@ -546,9 +556,8 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        result = self.run(['dhcpcd', '--release', self._interface_name])
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhcpcd', '--release', self._interface_name])
+    
     def set_inet4(self) -> bool:
         """
         Configure the interface with IPv4 settings using dhcpcd.
@@ -556,11 +565,8 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhcpcd', '-4', self._interface_name]
-        self.log.debug(f'set_inet() -> cmd: {cmd}')
-        result = self.run(cmd)
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhcpcd', '-4', self._interface_name])
+    
     def set_inet6(self) -> bool:
         """
         Configure the interface with IPv6 settings using dhcpcd.
@@ -568,11 +574,8 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhcpcd', '-6', self._interface_name]
-        self.log.debug(f'set_inet6() -> cmd: {cmd}')
-        result = self.run(cmd)        
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhcpcd', '-6', self._interface_name])
+    
     def stop(self) -> bool:
         """
         Stop the DHCP client (dhcpcd) on the interface.
@@ -580,11 +583,8 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhcpcd', '--release', self._interface_name]
-        self.log.debug(f'stop -> cmd: {cmd}')
-        result = self.run(cmd) 
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhcpcd', '--release', self._interface_name])
+        
     def release_inet(self) -> bool:
         """
         Release the current IP address by stopping dhcpcd.
@@ -624,11 +624,8 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhclient', '-r', self._interface_name]
-        self.log.debug(f'remove_interface() -> cmd: {cmd}')
-        result = self.run(cmd) 
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhclient', '-r', self._interface_name])
+        
     def set_inet4(self) -> bool:
         """
         Configure the interface with IPv4 settings using dhclient.
@@ -636,11 +633,8 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhclient', '-4', self._interface_name]
-        self.log.debug(f'set_inet() -> cmd: {cmd}')
-        result = self.run(cmd)        
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhclient', '-4', self._interface_name])
+        
     def set_inet6(self) -> bool:
         """
         Configure the interface with IPv6 settings using dhclient.
@@ -648,11 +642,8 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhclient', '-6', self._interface_name]
-        self.log.debug(f'set_inet6() -> cmd: {cmd}')
-        result = self.run(cmd)         
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhclient', '-6', self._interface_name])
+        
     def stop(self) -> bool:
         """
         Stop the DHCP client (dhclient) on the interface.
@@ -660,11 +651,8 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        cmd = ['dhclient', '-r', self._interface_name]
-        self.log.debug(f'stop() -> cmd: {cmd}')
-        result = self.run(cmd)         
-        return STATUS_OK if result.exit_code == 0 else STATUS_NOK
-
+        return self._execute_command(['dhclient', '-r', self._interface_name])
+        
     def release_inet(self) -> bool:
         """
         Release the current IP address by stopping dhclient.
