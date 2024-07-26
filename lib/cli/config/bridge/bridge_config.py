@@ -86,24 +86,26 @@ class BridgeConfig(CmdPrompt, Bridge):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
-    def bridgeconfig_shutdown(self, args: List=None, negate: bool=False) -> bool:
-        """Shutdown or bring up the bridge interface.
+    def bridgeconfig_shutdown(self, args: List = None, negate: bool = False) -> bool:
+        """
+        Shutdown or bring up the bridge interface.
         
         Args:
             args (List, optional): List of arguments for the command.
-            negate (bool, optional): If True, brings up the bridge interface instead of shutting it down.
+            negate (bool, optional): If True, shuts down the bridge interface. If False, brings up the bridge interface. Defaults to False.
         
         Returns:
-            bool: Status of the command execution.
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         
-        self.log.debug("bridgeconfig_shutdown() -> Bridge: %s -> negate: %s", self.bridge_name, negate)
-        state = State.DOWN
-        if negate:
-            state = State.UP
-        if self.set_interface_shutdown(self.bridge_name, state):
-            print(f'Error: unable to set bridge: {self.bridge_name}')
+        self.log.debug(f"bridgeconfig_shutdown() -> Bridge: {self.bridge_name} -> negate: {negate}")
+
+        state = State.DOWN if negate else State.UP
+
+        if self.shutdown_cmd(self.bridge_name, state) == STATUS_NOK:
+            print(f"Error: unable to set bridge: {self.bridge_name}")
             return STATUS_NOK
+        
         return STATUS_OK
       
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'stp', 'protocol'])

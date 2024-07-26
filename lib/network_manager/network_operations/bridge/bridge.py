@@ -85,7 +85,6 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Unexpected data format: {e}")
             return []
 
-
     def add_bridge_global(self, bridge_name: str, 
                           bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, 
                           stp_status: bool=True) -> bool:
@@ -356,30 +355,26 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"stp_status_cmd() -> STP status for bridge {bridge_name} set to {stp}.")
         return STATUS_OK
 
-    def shutdown_cmd(self, bridge_name: str, negate=False) -> bool:
+    def shutdown_cmd(self, bridge_name: str, state: State = State.DOWN) -> bool:
         """
-        Change bridge state UP/DOWN.
+        Change the state of the specified bridge.
+
+        Args:
+            bridge_name (str): The name of the bridge to be shut down or brought up.
+            state (State): The desired state for the bridge (State.DOWN or State.UP). Defaults to State.DOWN.
 
         Returns:
-            bool: STATUS_OK if the bridge was successfully change state, STATUS_NOK otherwise.
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        
-        if not bridge_name or self.does_bridge_exist_os(bridge_name):
-            self.log.error(f"No Bridge name provided")
+        if not bridge_name or not self.does_bridge_exist_os(bridge_name):
+            self.log.error("No Bridge name provided or bridge does not exist.")
             return STATUS_NOK
 
-        state = State.DOWN
-        
-        if negate:
-            state = State.UP
-        
-        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, state])
-        
-        if result.exit_code:
-            print(f"Failed to change bridge {bridge_name} to STATE: {state}.")
+        if self.run(['ip', 'link', 'set', 'dev', bridge_name, state.value]).returncode != 0:
+            self.log.error(f"Failed to change bridge {bridge_name} to STATE: {state.value}.")
             return STATUS_NOK
-        
-        self.log.debug(f"bridge {bridge_name} -> state: {state}.")
+
+        self.log.debug(f"Bridge {bridge_name} -> state: {state.value}.")
         return STATUS_OK
 
     def destroy_bridge_cmd(self, bridge_name) -> bool:

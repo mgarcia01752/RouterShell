@@ -63,7 +63,7 @@ class ConfigCmd(CmdPrompt):
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         
     def configcmd_bridge(self, bridge_name: List[str], negate: bool=False) -> bool:
-        self.log.info(f'configcmd_bridge -> {bridge_name}')
+        self.log.debug(f'configcmd_bridge -> {bridge_name}')
         BridgeConfigCmd(bridge_name, negate).start()        
         return STATUS_OK
 
