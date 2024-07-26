@@ -115,9 +115,7 @@ class DHCPClient:
         isc = InitSystemChecker()
         
         if isc.is_sysv():
-            
             dhcp_msgs = SysV().get_messages("DHCP")
-
             return [DHCPClientLogParser.parse_log_line(line) for line in dhcp_msgs if line.strip()]
                     
         elif isc.is_systemd():
@@ -138,11 +136,18 @@ class DHCPClientLogParser:
         Returns:
             dict: A dictionary with the parsed components.
         """
-        regex = (r"(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+\w+\[\d+\]:\s+"
-                 r"(?P<dhcp>(DHCPDISCOVER|DHCPOFFER|DHCPREQUEST|DHCPACK))"
-                 r"\((?P<interface>\w+)\)\s+(?P<ip_address>\d+\.\d+\.\d+\.\d+)?\s*"
+        # Example log line:
+        # Jul 26 14:48:41 Router daemon.info dnsmasq-dhcp[573]: DHCPDISCOVER(eth4) 192.168.100.90 94:c6:91:15:14:3e
+        regex = (r"(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+"
+                 r"(?P<host>\w+).*"
+                 r"(?P<dhcp>DHCPDISCOVER|DHCPOFFER|DHCPREQUEST|DHCPACK)"
+                 r"\((?P<interface>\w+)\)\s+"
+                 r"(?P<ip_address>\d+\.\d+\.\d+\.\d+)?\s*"
                  r"(?P<mac_address>[0-9a-f:]{17})")
+                
         match = re.match(regex, line)
+        
         if match:
             return match.groupdict()
+        
         return {}
