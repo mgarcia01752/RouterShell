@@ -194,7 +194,7 @@ class DHCPClientOperations(ABC, RunCommand):
         self._interface_name = interface_name
         self._dsv = dhcp_stack_version
         self._sdc = sdc
-        self._get_last_status = DHCPStatus.STOP
+        self._last_dhcp_client_status = DHCPStatus.STOP
         
         if not self.is_client_available():
             raise DHCPClientException(f"DHCP client is not available.", self._sdc.value)
@@ -305,7 +305,7 @@ class DHCPClientOperations(ABC, RunCommand):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        self._get_last_status = DHCPStatus.START
+        self._last_dhcp_client_status = DHCPStatus.START
         return self.set_auto()
 
     @abstractmethod
@@ -316,7 +316,7 @@ class DHCPClientOperations(ABC, RunCommand):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        self._get_last_status = DHCPStatus.STOP
+        self._last_dhcp_client_status = DHCPStatus.STOP
         return STATUS_OK
 
     def restart(self) -> bool:
@@ -328,7 +328,7 @@ class DHCPClientOperations(ABC, RunCommand):
         """
         stop_status = self.stop()
         start_status = self.start()
-        self._get_last_status = DHCPStatus.RESTART
+        self._last_dhcp_client_status = DHCPStatus.RESTART
         return STATUS_OK if stop_status == STATUS_OK and start_status == STATUS_OK else STATUS_NOK
 
     def get_inet(self) -> List[ip_address]:
@@ -365,7 +365,7 @@ class DHCPClientOperations(ABC, RunCommand):
         """
         Get the last status of the DHCP client.
         """
-        return self._get_last_status
+        return self._last_dhcp_client_status
 
     def _execute_command(self, command: List[str]) -> bool:
         """
@@ -515,6 +515,7 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
+        self._last_dhcp_client_status = DHCPStatus.STOP
         return self.remove_interface()
 
     def release_inet(self) -> bool:
@@ -583,6 +584,7 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
+        self._last_dhcp_client_status = DHCPStatus.STOP
         return self._execute_command(['dhcpcd', '--release', self._interface_name])
         
     def release_inet(self) -> bool:
@@ -651,6 +653,7 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
+        self._last_dhcp_client_status = DHCPStatus.STOP
         return self._execute_command(['dhclient', '-r', self._interface_name])
         
     def release_inet(self) -> bool:
