@@ -47,9 +47,15 @@ class Show(CmdPrompt):
         ArpShow().arp(args)
         STATUS_OK
     
-    @CmdPrompt.register_sub_commands()      
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'])      
     def show_bridge(self, args: List=None) -> None:
-        BridgeShow().show_bridges()
+        
+        if args:
+            BridgeShow().show_bridges()
+            
+        elif 'group' in args:
+            BridgeShow().show_bridge_group_interface_table()    
+            
         STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['client' , 'log'])

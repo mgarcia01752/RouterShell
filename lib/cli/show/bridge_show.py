@@ -1,11 +1,14 @@
 import json
 import logging
+from typing import Any, Dict, List
 
 from tabulate import tabulate
 
+from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_operations.bridge.bridge import Bridge
 
-class BridgeShow(Bridge):
+class BridgeShow(RunCommand):
     """Command set for showing Bridge-Show-Command"""
 
     def __init__(self, arg=None):
@@ -14,7 +17,43 @@ class BridgeShow(Bridge):
         self.arg = arg
 
     def bridge(self, arg=None):
-        self.get_bridge()
+        Bridge().get_bridge()
+
+    def show_bridge_group_interface_table(self) -> bool:
+        
+        json_data = self.run(['ip', '-json', 'addr'])
+        
+        if json_data.exit_code:
+            self.log.error(f"Failed to get bridge group interface table: {json_data.stderr}")
+            return STATUS_NOK
+        
+        try:
+            network_data: List[Dict[str, Any]] = json.loads(json_data)
+        except json.JSONDecodeError as e:
+            print(f"Error loading JSON data: {e}")
+            exit()        
+        
+        bridge_group_interfacess: List[Dict[str, str]] = []
+
+        for item in network_data:
+            # Check if the item has a 'master' key
+            if 'master' in item:
+                bridge_name = item['master']
+                # Collect INET addresses
+                inet_addresses = [
+                    f"{info['local']}/{info['prefixlen']}"
+                    for info in item.get('addr_info', [])
+                    if info['family'] == 'inet'
+                ]
+                bridge_group_interfacess.append({
+                    'Bridge Name': bridge_name,
+                    'Interface': item['ifname'],
+                    'INET Address': '\n'.join(inet_addresses)
+                })
+                    
+        print(tabulate(bridge_group_interfacess, headers='keys', tablefmt='simple'))
+        
+        return STATUS_OK
 
     def show_bridges(self, args=None):
         # Run the 'ip -json link show type bridge' command and capture its output
