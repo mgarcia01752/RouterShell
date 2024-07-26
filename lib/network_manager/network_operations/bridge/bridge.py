@@ -370,7 +370,7 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.error("No Bridge name provided or bridge does not exist.")
             return STATUS_NOK
 
-        if self.run(['ip', 'link', 'set', 'dev', bridge_name, state.value]).returncode != 0:
+        if self.run(['ip', 'link', 'set', 'dev', bridge_name, state.value]).exit_code != 0:
             self.log.error(f"Failed to change bridge {bridge_name} to STATE: {state.value}.")
             return STATUS_NOK
 
