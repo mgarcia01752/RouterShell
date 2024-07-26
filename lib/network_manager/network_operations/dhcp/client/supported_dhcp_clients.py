@@ -9,7 +9,7 @@ from ipaddress import ip_address
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.inet import InetServiceLayer
-from lib.network_manager.common.run_commands import RunCommand
+from lib.network_manager.common.run_commands import RunCommand, RunResult
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
 from lib.system.os.os import OSChecker, SupportedOS
@@ -405,9 +405,9 @@ class DHCPClientOperations(ABC, RunCommand):
             bool: STATUS_OK if the command executed successfully, STATUS_NOK otherwise.
         """
         self.log.debug(f"Executing command: {command}")
-        result = self.run_command(command)
+        result : RunResult = self.run(command)
         
-        if result.return_code:
+        if result.exit_code:
             self.log.error(f"Command failed with error: {result.stderr}")
             return STATUS_NOK
         
