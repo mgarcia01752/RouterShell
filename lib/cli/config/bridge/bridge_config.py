@@ -98,11 +98,11 @@ class BridgeConfig(CmdPrompt, Bridge):
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         
-        self.log.debug(f"bridgeconfig_shutdown() -> Bridge: {self.bridge_name} -> negate: {negate}")
+        self.log.info(f"bridgeconfig_shutdown() -> Bridge: {self.bridge_name} -> current-state: {Bridge().get_bridge_state(self.bridge_name).value} -> negate: {negate}")
 
-        state = State.DOWN if negate else State.UP
+        state = State.UP if negate else State.DOWN
 
-        if self.shutdown_cmd(self.bridge_name, state) == STATUS_NOK:
+        if self.shutdown_cmd(self.bridge_name, state):
             print(f"Error: unable to set bridge: {self.bridge_name}")
             return STATUS_NOK
         
@@ -118,21 +118,21 @@ class BridgeConfig(CmdPrompt, Bridge):
         Returns:
             bool: Status of the command execution.
         """
-        self.log.debug("ifconfig_no() -> Line -> %s", args)
-
-        start_cmd = args[0]
-                
-        if start_cmd == 'shutdown':
-            self.log.debug("up/down interface -> %s", self.bridge_name)
-            self.bridgeconfig_shutdown(None, negate=True)
+        self.log.info(f"bridgeconfig_no() -> {args}")
         
-        elif start_cmd == 'stp':
-            self.log.debug("Remove stp -> (%s)", args)
-            self.bridgeconfig_stp(args[1:], negate=True)
+        negate:bool = True
+                
+        if 'shutdown' in args:
+            self.log.debug("up/down interface -> %s", self.bridge_name)
+            self.bridgeconfig_shutdown(None, negate)
+        
+        elif 'stp' in args:
+            self.log.debug(f"Remove stp -> {args}")
+            self.bridgeconfig_stp(args[1:], negate)
 
-        elif start_cmd == 'protocol':
-            self.log.debug("Remove protocol -> (%s)", args)
-            self.bridgeconfig_protocol(args[1:], negate=True)
+        elif 'protocol' in args:
+            self.log.debug(f"Remove protocol -> {args}")
+            self.bridgeconfig_protocol(args[1:], negate)
         
         else:
             print(f'error: invalid command: {args}')

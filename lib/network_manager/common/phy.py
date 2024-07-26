@@ -9,6 +9,7 @@ from enum import Enum, auto
 class State(Enum):
     UP = 'up'
     DOWN = 'down'
+    UNKNOWN = 'unknown'
     
 class Duplex(Enum):
     

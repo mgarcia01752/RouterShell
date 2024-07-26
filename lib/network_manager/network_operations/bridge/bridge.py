@@ -366,15 +366,18 @@ class Bridge(RunCommand, BridgeDatabase):
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
+        self.log.info(f"shutdown_cmd() -> Bridge: {bridge_name} -> current-state: {self.get_bridge_state(self.bridge_name).value} -> change-state: {state.value}")    
+        
         if not bridge_name or not self.does_bridge_exist_os(bridge_name):
             self.log.error("No Bridge name provided or bridge does not exist.")
             return STATUS_NOK
 
-        if self.run(['ip', 'link', 'set', 'dev', bridge_name, state.value]).exit_code != 0:
+        if self.run(['ip', 'link', 'set', 'dev', bridge_name, state.value]).exit_code:
             self.log.error(f"Failed to change bridge {bridge_name} to STATE: {state.value}.")
             return STATUS_NOK
 
-        self.log.debug(f"Bridge {bridge_name} -> state: {state.value}.")
+        self.log.info(f"shutdown_cmd() -> Bridge: {bridge_name} -> current-state: {self.get_bridge_state(self.bridge_name).value} -> change-state: {state.value}")
+
         return STATUS_OK
 
     def destroy_bridge_cmd(self, bridge_name) -> bool:
@@ -510,4 +513,41 @@ class Bridge(RunCommand, BridgeDatabase):
         headers = ["Bridge", "Mac", "IPv4", "IPv6", "State", "Interfaces"]
         print(tabulate(bridge_info, headers, tablefmt="simple"))
         
+    def get_bridge_state(self, bridge_name: str) -> State:
+        """
+        Get the current state of the specified network bridge.
+
+        Parameters:
+        bridge_name (str): The name of the bridge whose state is to be retrieved.
+
+        Returns:
+        State: The state of the bridge, which can be 'UP', 'DOWN', or 'UNKNOWN'.
+        """
+                
+        # Run the ip link show command to get information about the bridge
+        result = self.run(['ip', '-json', 'link', 'show', bridge_name], suppress_error=True)
         
+        try:
+
+            bridge_info = json.loads(result.stdout)
+            
+            for interface in bridge_info:
+                if interface.get('ifname') == bridge_name:
+                    operstate = interface.get('operstate', 'UNKNOWN').upper()
+                    
+                    if operstate == State.UP.name:
+                        return State.UP
+                    elif operstate == State.DOWN.name:
+                        return State.DOWN
+                    else:
+                        return State.UNKNOWN
+            
+            return State.UNKNOWN
+        
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON output for bridge: {bridge_name}")
+            return State.UNKNOWN
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return State.UNKNOWN
+
