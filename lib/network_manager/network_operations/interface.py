@@ -734,24 +734,24 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         """
         try:
-            dhcp_client = DHCPClient()
+            dhcp_client = DHCPClient(interface_name, dhcp_stack_ver)
             self.log.debug(f"Updated DHCP client configuration for interface: {interface_name} via OS")
         
         except Exception as e:
             self.log.critical(f"Failed to update DHCP client configuration for interface: {interface_name} via OS: {e}")
             return STATUS_NOK
-                
-        if not self.net_mgr_interface_exist(interface_name):
-            self.log.error(f"Interface {interface_name} does not exist.")
-            return STATUS_NOK
-                
-        if dhcp_client.start(interface_name, dhcp_stack_ver, (not negate)):
-            self.log.error(f"Failed to update {dhcp_stack_ver.value} client on interface: {interface_name} OS update error.")
-            return STATUS_NOK
+        
+        if negate:
+            
+            if dhcp_client.stop():
+                self.log.error(f"Failed to stop client on interface: {interface_name} OS update error.")
+                return STATUS_NOK
+        
+        else:                                            
+            if dhcp_client.start():
+                self.log.error(f"Failed to start {dhcp_stack_ver.value} client on interface: {interface_name} OS update error.")
+                return STATUS_NOK
 
-        if self.update_db_dhcp_client(interface_name, dhcp_stack_ver):
-            self.log.error(f"Failed to update {dhcp_stack_ver.value} client on interface: {interface_name}. DB update error.")
-            return STATUS_NOK
 
         return STATUS_OK            
 

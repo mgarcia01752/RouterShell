@@ -7,10 +7,8 @@ from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK
 from lib.common.singleton import Singleton
 from lib.network_manager.common.interface import InterfaceType
 
-
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
-
 
 class Result:
     """

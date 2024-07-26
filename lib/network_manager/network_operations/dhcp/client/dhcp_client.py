@@ -1,11 +1,11 @@
-from enum import Enum, auto
 import logging
 from typing import List
 
+from lib.common.constants import STATUS_NOK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.db.dhcp_client_db import DHCPClientDatabase
 from lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import DHCPClientFactory, DHCPClientOperations
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
-
 
 class DHCPClientException(Exception):
     """
@@ -57,8 +57,7 @@ class DHCPClient:
         self._interface_name = interface_name
         self._dhcp_stack_version = dhcp_stack_version
         
-        self._dhcp_client : DHCPClientOperations = DHCPClientFactory().get_supported_dhcp_client(interface_name, 
-                                                                                                 dhcp_stack_version)
+        self._dhcp_client : DHCPClientOperations = DHCPClientFactory().get_supported_dhcp_client(interface_name, dhcp_stack_version)
     
     def get_last_status(self) -> DHCPStatus:
         """
@@ -77,7 +76,10 @@ class DHCPClient:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         self.log.debug(f'Start DHCP client on interface {self._dhcp_client.get_interface()}')
-        return  self._dhcp_client.start()
+        if self._dhcp_client.start():
+            return STATUS_NOK
+        
+        return DHCPClientDatabase().update_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version.value)
         
     def stop(self) -> bool:
         """
@@ -86,7 +88,11 @@ class DHCPClient:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return  self._dhcp_client.stop()
+        self.log.debug(f'Stop DHCP client on interface {self._dhcp_client.get_interface()}')
+        if self._dhcp_client.stop():
+            return STATUS_NOK
+        
+        return DHCPClientDatabase().remove_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version.value)
     
     def restart(self) -> bool:
         """
@@ -95,7 +101,7 @@ class DHCPClient:
         Returns:
             bool: STATUS_OK if the DHCP client service restart was successful, STATUS_NOK otherwise.
         """        
-        return  self._dhcp_client.restart()
+        return self._dhcp_client.restart()
 
     def get_flow_log(self) -> List[str]:
         """
@@ -106,4 +112,3 @@ class DHCPClient:
         """
         # Implement log retrieval from the system journal if necessary
         return []
-

@@ -178,24 +178,25 @@ class EthernetInterface(NetworkInterface):
             return STATUS_NOK
         return STATUS_OK
     
-    def set_dhcp_client(self, dhcp_version: DHCPStackVersion, negate: bool=False) -> bool:
+    def set_dhcp_client(self, dhcp_stack_version: DHCPStackVersion, negate: bool=False) -> bool:
         """
         Configure the DHCP client on the interface.
 
         Args:
-            dhcp_version (DHCPVersion): The version of DHCP to configure (e.g., v4 or v6).
+            dhcp_stack_version (DHCPStackVersion): The version of DHCP to configure (e.g., v4 or v6).
             negate (bool): If True, disables the DHCP client; otherwise, enables it.
 
         Returns:
             bool: STATUS_OK if the command was successful, STATUS_NOK otherwise.
         """
         try:
-            Interface().update_interface_dhcp_client(self.interface_name, dhcp_version, negate)
-            self.log.debug(f"{'Disabling' if negate else 'Enabling'} DHCP {dhcp_version.name} client on interface {self.interface_name}")
+            if Interface().update_interface_dhcp_client(self.interface_name, dhcp_stack_version, negate):
+                self.log.error(f"Faiiled {'Disabling' if negate else 'Enabling'} DHCP {dhcp_stack_version.name} client on interface {self.interface_name}")
+                return STATUS_NOK
             return STATUS_OK
         
         except Exception as e:
-            self.log.error(f"Failed to {'disable' if negate else 'enable'} DHCP {dhcp_version.name} client on interface {self.interface_name}. Error: {e}")
+            self.log.error(f"Failed to {'disable' if negate else 'enable'} DHCP {dhcp_stack_version.name} client on interface {self.interface_name}. Error: {e}")
             return STATUS_NOK
         
 
