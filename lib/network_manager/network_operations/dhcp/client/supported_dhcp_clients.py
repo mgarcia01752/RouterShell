@@ -415,14 +415,14 @@ class DHCPClientOperations(ABC, RunCommand):
         return STATUS_OK
 
 class DHCPClientOperations_udhcpc(DHCPClientOperations):
-    def __init__(self, interface_name: str):
+    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_udhcpc with a network interface name.
         
         Args:
             interface_name (str): The name of the network interface.
         """
-        super().__init__(interface_name, SupportedDhcpClients.UDHCPC)
+        super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC)
 
@@ -487,14 +487,14 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         return None
 
 class DHCPClientOperations_udhcpc6(DHCPClientOperations):
-    def __init__(self, interface_name: str):
+    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_udhcpc6 with a network interface name.
         
         Args:
             interface_name (str): The name of the network interface.
         """
-        super().__init__(interface_name,SupportedDhcpClients.UDHCPC)
+        super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC6)
 
@@ -566,14 +566,14 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         return None
 
 class DHCPClientOperations_dhcpcd(DHCPClientOperations):
-    def __init__(self, interface_name: str):
+    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_dhcpcd with a network interface name.
         
         Args:
             interface_name (str): The name of the network interface.
         """
-        super().__init__(interface_name,SupportedDhcpClients.DHCPCD)
+        super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.DHCPCD)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_DHCPCD)
 
@@ -635,14 +635,14 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         return None
 
 class DHCPClientOperations_dhclient(DHCPClientOperations):
-    def __init__(self, interface_name: str):
+    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_dhclient with a network interface name.
 
         Args:
             interface_name (str): The name of the network interface.
         """
-        super().__init__(interface_name,SupportedDhcpClients.DHCLIENT)
+        super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.DHCLIENT)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_DHCLIENT)
 
