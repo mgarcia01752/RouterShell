@@ -123,6 +123,8 @@ class RouterShellLoggingGlobalSettings():
     PHY                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     RUN                         = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     SYSCTL                      = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
+    OS_CHECKER                  = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
                             ##########################
                             # HIGH LEVEL API LOGGING #

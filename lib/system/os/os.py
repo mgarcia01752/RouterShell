@@ -1,6 +1,9 @@
+import logging
 import platform
 from enum import Enum, auto
 import shutil
+
+from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 class SupportedOS(Enum):
     BUSY_BOX = auto()
@@ -23,6 +26,9 @@ class OSChecker:
     """
     
     def __init__(self):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLGS().OS_CHECKER)
+                
         self.supported_os = {
             SupportedOS.BUSY_BOX: "BusyBox",
             SupportedOS.UBUNTU: "Ubuntu"
