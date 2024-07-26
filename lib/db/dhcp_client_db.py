@@ -27,7 +27,7 @@ class DHCPClientDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        cls.log.info(f'add_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
+        cls.log.debug(f'add_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
         return cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_stack_version.value)
 
     @classmethod
@@ -43,7 +43,7 @@ class DHCPClientDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        cls.log.info(f'update_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
+        cls.log.debug(f'update_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
         return cls.rsdb.update_interface_dhcp_client(interface_name, dhcp_stack_version.value).status
 
     @classmethod
@@ -59,5 +59,5 @@ class DHCPClientDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        cls.log.info(f'remove_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
+        cls.log.debug(f'remove_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
         return cls.rsdb.remove_interface_dhcp_client(interface_name, dhcp_stack_version.value).status

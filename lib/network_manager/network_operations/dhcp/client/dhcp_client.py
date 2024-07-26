@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List
 
 from lib.common.constants import STATUS_NOK
@@ -6,6 +7,7 @@ from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings
 from lib.db.dhcp_client_db import DHCPClientDatabase
 from lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import DHCPClientFactory, DHCPClientOperations
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
+from lib.system.init_system import InitSystemChecker, SysV
 
 class DHCPClientException(Exception):
     """
@@ -102,12 +104,43 @@ class DHCPClient:
         """        
         return self._dhcp_client.restart()
 
-    def get_flow_log(self) -> List[str]:
+    def get_flow_log(self) -> List[dict]:
         """
         Retrieve DHCP client flow logs (DORA/SAAR) from the system journal.
 
         Returns:
-            List[str]: A list of DHCP client flow log entries.
+            List[dict]: A list of DHCP client flow log entries.
         """
-        # Implement log retrieval from the system journal if necessary
+        isc = InitSystemChecker()
+        
+        if isc.is_sysv():
+            
+            dhcp_msgs = SysV().get_messages("DHCP")
+
+            return [self.parse_log_line(line) for line in dhcp_msgs if line.strip()]
+                    
+        elif isc.is_systemd():
+            return []
+            
         return []
+
+class DHCPClientLogParser:
+    
+    def parse_log_line(self, line: str) -> dict:
+        """
+        Parses a single log line into its components.
+
+        Args:
+            line (str): The log line to parse.
+
+        Returns:
+            dict: A dictionary with the parsed components.
+        """
+        regex = (r"(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+\w+\s+\w+\[\d+\]:\s+"
+                 r"(?P<dhcp>(DHCPDISCOVER|DHCPOFFER|DHCPREQUEST|DHCPACK))"
+                 r"\((?P<interface>\w+)\)\s+(?P<ip_address>\d+\.\d+\.\d+\.\d+)?\s*"
+                 r"(?P<mac_address>[0-9a-f:]{17})")
+        match = re.match(regex, line)
+        if match:
+            return match.groupdict()
+        return {}

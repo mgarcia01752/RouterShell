@@ -1,5 +1,6 @@
 import os
-from typing import Optional
+import re
+from typing import List, Optional
 from lib.network_manager.common.run_commands import RunCommand
 from enum import Enum
 
@@ -87,3 +88,59 @@ class InitSystemChecker(RunCommand):
             InitSystem: The enum representing the current init system.
         """
         return self._init_system
+    
+class SysV:
+    """
+    A class for running commands on a SysV init system.
+    """
+
+    def __init__(self):
+        self.run_command = RunCommand()
+    
+    def get_messages(self, grep: Optional[str] = None) -> List[str]:
+        """
+        Retrieves the system messages from the /var/log/messages file.
+
+        Args:
+            grep (Optional[str]): A regular expression string to filter the log messages. If None, all messages are returned.
+
+        Returns:
+            List[str]: A list of log messages from /var/log/messages. If the command fails, an empty list is returned.
+        """
+        command = ['cat', '/var/log/messages']
+        result = self.run_command.run(command, suppress_error=True)
+        
+        if result.exit_code:
+            return []
+
+        lines = result.stdout.split('\n')
+        if grep:
+            pattern = re.compile(grep)
+            lines = [line for line in lines if pattern.search(line)]
+        
+        return lines
+    
+    def get_boot_log(self, grep: Optional[str] = None) -> List[str]:
+        """
+        Retrieves the system messages from the /var/log/boot file.
+
+        Args:
+            grep (Optional[str]): A regular expression string to filter the log messages. If None, all messages are returned.
+
+        Returns:
+            List[str]: A list of boot log messages from /var/log/boot. If the command fails, an empty list is returned.
+        """
+        command = ['cat', '/var/log/boot']
+        result = self.run_command.run(command, suppress_error=True)
+        
+        if result.exit_code:
+            return []
+
+        lines = result.stdout.split('\n')
+        if grep:
+            pattern = re.compile(grep)
+            lines = [line for line in lines if pattern.search(line)]
+        
+        return lines
+        
+        
