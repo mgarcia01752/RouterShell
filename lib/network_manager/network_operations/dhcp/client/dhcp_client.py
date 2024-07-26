@@ -104,7 +104,8 @@ class DHCPClient:
         """        
         return self._dhcp_client.restart()
 
-    def get_flow_log(self) -> List[dict]:
+    @staticmethod
+    def get_flow_log() -> List[dict]:
         """
         Retrieve DHCP client flow logs (DORA/SAAR) from the system journal.
 
@@ -117,7 +118,7 @@ class DHCPClient:
             
             dhcp_msgs = SysV().get_messages("DHCP")
 
-            return [self.parse_log_line(line) for line in dhcp_msgs if line.strip()]
+            return [DHCPClientLogParser.parse_log_line(line) for line in dhcp_msgs if line.strip()]
                     
         elif isc.is_systemd():
             return []
@@ -126,7 +127,8 @@ class DHCPClient:
 
 class DHCPClientLogParser:
     
-    def parse_log_line(self, line: str) -> dict:
+    @staticmethod
+    def parse_log_line(line: str) -> dict:
         """
         Parses a single log line into its components.
 

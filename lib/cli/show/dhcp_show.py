@@ -21,7 +21,7 @@ class DHCPClientShow():
         Returns:
             List[str]: A list of DHCP client flow log entries related to IPv4 address assignment.
         """
-        for line in DHCPClient().get_flow_log():
+        for line in DHCPClient.get_flow_log():
             print(line)    
 
 class DHCPServerShow():
