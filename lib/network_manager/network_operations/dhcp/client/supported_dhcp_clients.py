@@ -426,7 +426,7 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC)
 
-        self._dco_udhcpc6 = DHCPClientOperations_udhcpc6(interface_name)
+        self._dco_udhcpc6 = DHCPClientOperations_udhcpc6(interface_name, DHCPStackVersion.DHCP_V6)
         
     def remove_interface(self) -> bool:
         """
