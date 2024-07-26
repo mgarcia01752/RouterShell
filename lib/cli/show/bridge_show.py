@@ -28,7 +28,7 @@ class BridgeShow(RunCommand):
             return STATUS_NOK
         
         try:
-            network_data: List[Dict[str, Any]] = json.loads(json_data)
+            network_data: List[Dict[str, Any]] = json.loads(json_data.stdout)
         except json.JSONDecodeError as e:
             print(f"Error loading JSON data: {e}")
             exit()        

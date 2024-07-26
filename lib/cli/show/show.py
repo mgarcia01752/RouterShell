@@ -49,9 +49,7 @@ class Show(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'])      
     def show_bridge(self, args: List=None) -> None:
-        
-        self.log.info(f'show_bridge() -> args: {args}')
-        
+                
         if not args:
             BridgeShow().show_bridges()
             
