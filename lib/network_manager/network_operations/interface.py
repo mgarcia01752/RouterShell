@@ -742,7 +742,6 @@ class Interface(NetworkManager, InterfaceDatabase):
             return STATUS_NOK
         
         if negate:
-            
             if dhcp_client.stop():
                 self.log.error(f"Failed to stop client on interface: {interface_name} OS update error.")
                 return STATUS_NOK
@@ -751,7 +750,6 @@ class Interface(NetworkManager, InterfaceDatabase):
             if dhcp_client.start():
                 self.log.error(f"Failed to start {dhcp_stack_ver.value} client on interface: {interface_name} OS update error.")
                 return STATUS_NOK
-
 
         return STATUS_OK            
 

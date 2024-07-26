@@ -196,7 +196,7 @@ class EthernetInterface(NetworkInterface):
             return STATUS_OK
         
         except Exception as e:
-            self.log.error(f"Failed to {'disable' if negate else 'enable'} DHCP {dhcp_stack_version.name} client on interface {self.interface_name}. Error: {e}")
+            self.log.error(f"Failed to {'disable' if negate else 'enable'} {dhcp_stack_version.name} on interface {self.interface_name}. Error: {e}")
             return STATUS_NOK
         
 

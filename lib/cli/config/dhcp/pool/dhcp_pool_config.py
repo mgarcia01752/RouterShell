@@ -62,7 +62,7 @@ class DhcpPoolConfig(CmdPrompt):
             inet_subnet_cidr = inet_subnet_cidr[0]  # Flatten the list by taking the first entry
 
         # Proceed with the subnet configuration
-        self.log.info(f'DHCP pool configuration -> subnet: {inet_subnet_cidr}')
+        self.log.debug(f'DHCP pool configuration -> subnet: {inet_subnet_cidr}')
         return self._dhcp_pool_fact.add_pool_subnet(inet_subnet_cidr)
 
     @CmdPrompt.register_sub_commands()

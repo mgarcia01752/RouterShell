@@ -213,7 +213,7 @@ class ConfigCmd(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
     def configcmd_dhcp(self, args:List[str], negate: bool=False) -> bool:
         if 'pool-name' in args:
-            self.log.info(f'pool-name: {args[1]}')
+            self.log.debug(f'pool-name: {args[1]}')
             DhcpPoolConfigCmd(args[1], negate).start()
             return STATUS_OK
 

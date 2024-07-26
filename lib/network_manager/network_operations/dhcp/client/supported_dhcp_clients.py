@@ -411,7 +411,7 @@ class DHCPClientOperations(ABC, RunCommand):
             self.log.error(f"Command failed with error: {result.stderr}")
             return STATUS_NOK
         
-        self.log.info(f"Command executed successfully: {result.stdout}")
+        self.log.debug(f"Command executed successfully: {result.stdout}")
         return STATUS_OK
 
 class DHCPClientOperations_udhcpc(DHCPClientOperations):

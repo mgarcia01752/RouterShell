@@ -78,7 +78,7 @@ class DHCPClient:
         if self._dhcp_client.start():
             return STATUS_NOK
         
-        return DHCPClientDatabase().update_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version.value)
+        return DHCPClientDatabase().update_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version)
         
     def stop(self) -> bool:
         """

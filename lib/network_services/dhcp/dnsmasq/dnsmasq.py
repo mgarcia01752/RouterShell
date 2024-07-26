@@ -80,7 +80,7 @@ class DNSMasqService(NetworkManager):
         """
         result = SystemServiceControl().service_control('dnsmasq', service_action)
         if result == STATUS_OK:
-            self.log.info(f"DNSMasq service {service_action.value}ed successfully.")
+            self.log.debug(f"DNSMasq service {service_action.value}ed successfully.")
         else:
             self.log.error(f"Failed to {service_action.value} DNSMasq service.")
         return result
