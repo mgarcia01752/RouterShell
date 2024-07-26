@@ -16,18 +16,19 @@ class DHCPClientDatabase:
 
     @classmethod
     def add_db_dhcp_client(
-        cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
+        cls, interface_name: str, dhcp_stack_version: DHCPStackVersion) -> bool:
         """
         Adds a DHCP client entry to the database for a specified interface.
 
         Args:
             interface_name (str): The name of the network interface to update.
-            dhcp_version (DHCPVersion): The version of the DHCP stack to add.
+            dhcp_stack_version (DHCPStackVersion): The version of the DHCP stack to add.
 
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_version.value)
+        cls.log.info(f'add_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
+        return cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_stack_version.value)
 
     @classmethod
     def update_db_dhcp_client(
@@ -42,19 +43,21 @@ class DHCPClientDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
+        cls.log.info(f'update_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
         return cls.rsdb.update_interface_dhcp_client(interface_name, dhcp_stack_version.value).status
 
     @classmethod
     def remove_db_dhcp_client(
-        cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
+        cls, interface_name: str, dhcp_stack_version: DHCPVersion) -> bool:
         """
         Removes a DHCP client entry from the database for a specified interface.
 
         Args:
             interface_name (str): The name of the network interface to update.
-            dhcp_version (DHCPVersion): The version of the DHCP stack to remove.
+            dhcp_stack_version (DHCPStackVersion): The version of the DHCP stack to remove.
 
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return cls.rsdb.remove_interface_dhcp_client(interface_name, dhcp_version.value).status
+        cls.log.info(f'remove_db_dhcp_client() -> interface; {interface_name} -> dhcp_stack: {dhcp_stack_version.value}')
+        return cls.rsdb.remove_interface_dhcp_client(interface_name, dhcp_stack_version.value).status
