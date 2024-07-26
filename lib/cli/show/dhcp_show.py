@@ -21,8 +21,17 @@ class DHCPClientShow():
         Returns:
             List[str]: A list of DHCP client flow log entries related to IPv4 address assignment.
         """
-        for line in DHCPClient.get_flow_log():
-            print(line)    
+
+        parsed_logs = [log for log in DHCPClient.get_flow_log() if log]
+        
+        if parsed_logs:
+            headers = list(parsed_logs[0].keys())
+            data = [list(log.values()) for log in parsed_logs]
+            table = tabulate(data, headers=headers, tablefmt='simple')
+            print(table)
+        else:
+            print("No valid log entries found.")
+        
 
 class DHCPServerShow():
     """Command set for showing DHCPServer-Show-Command"""
