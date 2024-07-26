@@ -2206,6 +2206,7 @@ class RouterShellDB(metaclass=Singleton):
     def update_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
         """
         Update the DHCP version for an existing DHCP client entry in the database.
+        If the update fails because the entry does not exist, insert a new entry.
 
         Args:
             interface_name (str): The name of the network interface.
@@ -2217,21 +2218,39 @@ class RouterShellDB(metaclass=Singleton):
         """
         result = self.interface_exists(interface_name)
         
-        if result.status:
-            err = f"Unable to update DHCP client to interface: {interface_name} does not exist"
+        if not result.status:
+            err = f"Unable to update DHCP client because interface '{interface_name}' does not exist in the DB"
             self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
-        
+
+        interface_row_id = result.row_id
+
         try:
             cursor = self.connection.cursor()
+            # Begin a transaction
+            self.connection.execute('BEGIN')
+
+            # Try to update the existing entry
             cursor.execute(
-            "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interface_FK = ?", (dhcp_version, result.row_id))
+                "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interface_FK = ?",
+                (dhcp_version, interface_row_id)
+            )
+
+            if cursor.rowcount == 0:
+                # If no rows were updated, the entry does not exist, insert a new entry
+                cursor.execute(
+                    "INSERT INTO DHCPClient (Interface_FK, DHCPVersion) VALUES (?, ?)",
+                    (interface_row_id, dhcp_version)
+                )
+
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(STATUS_OK, row_id=row_id)
-        
+
         except Exception as e:
-            self.log.error(f"Failed to update DHCP client: {e}")
+            self.connection.rollback()
+            err = f"Failed to update or insert DHCP client: {e}"
+            self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
     def remove_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
