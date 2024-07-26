@@ -13,13 +13,13 @@ class BridgeConfigCmdError(Exception):
         return f'BridgeConfigError: {self.message}'
    
 class BridgeConfigCmd(ConfigurePrompt):
-    def __init__(self, bridge_name:str):
+    def __init__(self, bridge_name:str, negate=False):
         super().__init__(sub_cmd_name='br')
-
-        self.register_top_lvl_cmds(BridgeConfig(bridge_name=bridge_name))
+        bridge_name = bridge_name[0]
+        self.register_top_lvl_cmds(BridgeConfig(bridge_name, negate))
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
+        self.log.setLevel(RSLGS().BRIDGE_CONFIG_CMD)
     
     def intro(self) -> str:
         return f'Starting Test Config....'

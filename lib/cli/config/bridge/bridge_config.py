@@ -7,7 +7,7 @@ from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.phy import State
-from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.bridge.bridge import Bridge
 
 class BridgeConfigError(Exception):
     """Custom exception for BridgeConfigError errors."""
@@ -31,7 +31,7 @@ class BridgeConfigError(Exception):
 class BridgeConfig(CmdPrompt, Bridge):
     """BridgeConfig class for managing network bridges via command-line interface."""
 
-    def __init__(self, bridge_name: str) -> None:
+    def __init__(self, bridge_name: str, negate:bool=False) -> None:
         """Initialize the BridgeConfig class.
         
         Args:
@@ -41,7 +41,7 @@ class BridgeConfig(CmdPrompt, Bridge):
         Bridge().__init__()
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().BRIDGE_CONTROL)
+        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
         self.bridge_name = bridge_name
 
         if self.add_bridge_global(bridge_name):

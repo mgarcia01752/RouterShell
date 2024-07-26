@@ -12,7 +12,7 @@ from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
-from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.bridge.bridge import Bridge
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -62,9 +62,9 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         
-    def configcmd_bridge(self, args: List[str]=None, negate: bool=False) -> bool:
-        self.log.debug(f'configcmd_bridge -> {args}')
-        BridgeConfigCmd(bridge_name=args, negate=negate).start()        
+    def configcmd_bridge(self, bridge_name: List[str], negate: bool=False) -> bool:
+        self.log.info(f'configcmd_bridge -> {bridge_name}')
+        BridgeConfigCmd(bridge_name, negate).start()        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Vlan().get_vlan_interfaces())         
@@ -217,7 +217,6 @@ class ConfigCmd(CmdPrompt):
             DhcpPoolConfigCmd(args[1], negate).start()
             return STATUS_OK
 
-
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['system'], append_nested_sub_cmds=['telnet-server', 'ssh-server'])
@@ -225,7 +224,9 @@ class ConfigCmd(CmdPrompt):
 
         if args[0] == 'bridge':
             self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
-            Bridge().destroy_bridge_cmd(args[1])
+            if Bridge().destroy_bridge_cmd(args[1]):
+                self.log.error(f"Unable to destroy bridge {args[1]}")
+                return STATUS_OK
 
         if args[0] == 'system':
             self.log.debug(f"configcmd_no() -> system: {args[1]}")

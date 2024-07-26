@@ -23,7 +23,7 @@ class DHCPClientException(Exception):
     def __str__(self):
         return f"DHCPClientException: {self.message}"
 
-class DHCPClient:
+class DHCPClient(DHCPClientDatabase):
     """
     A class for managing DHCP client operations on a network interface.
 
@@ -52,6 +52,7 @@ class DHCPClient:
             interface_name (str): The name of the network interface.
             dhcp_stack_version (DHCPStackVersion): The DHCP stack version to use.
         """
+        super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT)
         
@@ -80,7 +81,7 @@ class DHCPClient:
         if self._dhcp_client.start():
             return STATUS_NOK
         
-        return DHCPClientDatabase().update_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version)
+        return self.update_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version)
         
     def stop(self) -> bool:
         """
@@ -93,7 +94,7 @@ class DHCPClient:
         if self._dhcp_client.stop():
             return STATUS_NOK
         
-        return DHCPClientDatabase().remove_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version.value)
+        return self.remove_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version.value)
     
     def restart(self) -> bool:
         """

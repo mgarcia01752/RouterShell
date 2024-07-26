@@ -26,7 +26,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug(f"__init__() -> Bridge: {bridge_name}")
-        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
+        self.log.setLevel(RSLGS().BRIDGE_CONFIG_CMD)
         self.debug = CGS().DEBUG_BRIDGE_CONFIG
         
         GlobalUserCommand.__init__(self)

@@ -6,11 +6,13 @@ from typing import List, Optional
 
 from tabulate import tabulate
 from lib.db.bridge_db import BridgeDatabase 
+from lib.db.sqlite_db.router_shell_db import Result
 from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.network_operations.network_mgr import NetworkManager
+from lib.network_manager.common.run_commands import RunCommand
+
 
 
 class BridgeProtocol(Enum):
@@ -48,15 +50,14 @@ class STP_STATE(Enum):
     STP_DISABLE='0'
     STP_ENABLE='1'
     
-class Bridge(NetworkManager, BridgeDatabase):
+class Bridge(RunCommand, BridgeDatabase):
 
-    def __init__(self, arg=None):
+    def __init__(self):
         super().__init__()
         BridgeDatabase().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE)
-        self.arg = arg
         
     def get_bridge_list_os(self) -> List[str]:
         """
@@ -119,7 +120,7 @@ class Bridge(NetworkManager, BridgeDatabase):
             if not bridge_exist_db:
                 self.log.debug(f"Adding bridge: {bridge_name} to DB")
                 
-                add_result = self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
+                add_result : Result = self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
 
                 if add_result.status:
                     self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
@@ -198,26 +199,29 @@ class Bridge(NetworkManager, BridgeDatabase):
         
         return True
 
-    def get_assigned_bridge_from_interface(self, ifName: str) -> str:
+    def get_assigned_bridge_from_interface(self, interface_name: str) -> str:
         """
         Get the name of the bridge to which a network interface is assigned.
 
         Args:
-            ifName (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
 
         Returns:
             str: The name of the assigned bridge, or an empty string if not assigned.
         """
-        result = self.run(["ip", "link", "show", "type", "bridge_slave", ifName], suppress_error=True)
-
-        for line in result.stdout.split('\n'):
-            if "master" in line:
-                tokens = line.strip().split()
-                for i in range(len(tokens)):
-                    if tokens[i] == "master" and i + 1 < len(tokens):
-                        return tokens[i + 1]
-
-        return ""     
+        result = self.run(["ip", "-details", "-json", "link", "show", interface_name])
+        
+        try:
+            interfaces = json.loads(result.stdout)
+            for interface in interfaces:
+                if "ifname" in interface and interface["ifname"] == interface_name:
+                    if "linkinfo" in interface and "info_slave_data" in interface["linkinfo"]:
+                        if "master" in interface["linkinfo"]["info_slave_data"]:
+                            return interface["linkinfo"]["info_slave_data"]["master"]
+        except json.JSONDecodeError:
+                raise
+        
+        return ""    
 
     def del_bridge_from_interface(self, interface_name: str, bridge_name:str) -> bool:
         """

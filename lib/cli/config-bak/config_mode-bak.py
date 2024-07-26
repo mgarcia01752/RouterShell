@@ -11,7 +11,7 @@ from lib.common.common import Common
 from lib.cli.common.router_prompt import RouterPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.network_operations.bridge import Bridge
+from lib.network_manager.network_operations.bridge.bridge import Bridge
 from lib.network_manager.network_operations.interface import Interface
 from lib.system.system_call import SystemCall
 
