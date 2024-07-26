@@ -9,6 +9,7 @@ from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
 from lib.common.constants import *
 from lib.network_manager.network_operations.arp import Arp
 from lib.network_manager.network_operations.interface import Interface
+from lib.system.system_start_up import SystemStartUp
 
 
 class InvalidClearMode(Exception):
@@ -40,16 +41,16 @@ class ClearMode(CmdPrompt):
                 
         if 'router-db' in args[0]:
             self.log.debug(f"Clear RouterShell DB command")
-            
-            # TODO
-            # if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            #    print(f"Unable to clear router-db, must be in Privilege Mode")
                        
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':
                 RSDB().reset_database()
             else:
                 print("Command canceled.")
+            
+            confirmation = input("Rebuild Router? (yes/no): ").strip().lower()
+            if confirmation == 'yes':
+                SystemStartUp()
             
             return STATUS_OK
 
