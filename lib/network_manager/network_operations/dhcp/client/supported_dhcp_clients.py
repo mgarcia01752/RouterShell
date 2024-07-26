@@ -91,7 +91,7 @@ class DHCPClientFactory:
                 class based on the provided arguments and conditions.
         """
         # Track DHCPClientOperations
-        dco: DHCPClientOperations
+        dco: DHCPClientOperations = None
         
         if auto_sdc_override:
 
@@ -120,6 +120,12 @@ class DHCPClientFactory:
 
                 elif auto_sdc == SupportedDhcpClients.DHCLIENT:
                     dco = DHCPClientOperations_dhclient(interface_name, dhcp_stack_version)
+
+            else:
+                raise NotImplementedError(f'Unsupported OS: {current_os.name}')
+            
+        if not dco:
+            raise Exception(f'Failed to determine DHCP Client Operations object for {interface_name}')
         
         DHCPClientFactory._DHCPClientOperationsList.append(dco)
         return dco

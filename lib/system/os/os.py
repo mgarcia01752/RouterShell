@@ -1,5 +1,6 @@
 import platform
 from enum import Enum, auto
+import shutil
 
 class SupportedOS(Enum):
     BUSY_BOX = auto()
@@ -39,15 +40,17 @@ class OSChecker:
         system = uname_info.system
         version = uname_info.version
         release = uname_info.release
+        
+        self.log.debug(f'System: {system} Version: {version} Release: {release}')
 
         if system == "Linux":
-            # Further checks for specific Linux distributions
-            if "BusyBox" in version or "BusyBox" in release:
+            
+            if shutil.which('busybox'):
                 return SupportedOS.BUSY_BOX
+            
             elif "Ubuntu" in version or "Ubuntu" in release:
                 return SupportedOS.UBUNTU
 
-        # Return UNKNOWN if the OS is not recognized
         return SupportedOS.UNKNOWN
 
     def is_supported(self) -> bool:

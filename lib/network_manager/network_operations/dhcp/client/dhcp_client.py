@@ -42,7 +42,6 @@ class DHCPClient:
         get_flow_log(): Retrieve DHCP client flow logs from the system journal.
         get_last_status(): Get the last status of the DHCP client.
     """
-    
     def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient with the network interface name and DHCP stack version.
