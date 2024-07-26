@@ -65,45 +65,68 @@ class DHCPClientFactory:
     A factory class to get the supported DHCP client based on the interface name and optional override.
     """
     
+    _DHCPClientOperationsList:List['DHCPClientOperations'] = []
+    
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_FACTORY)      
           
-    def get_supported_dhcp_client(self, interface_name: str, dhcp_stack_version: DHCPStackVersion, auto_sdc_override=None) -> 'DHCPClientOperations':
+    def get_supported_dhcp_client(
+        self, 
+        interface_name: str, 
+        dhcp_stack_version: DHCPStackVersion, 
+        auto_sdc_override=None
+    ) -> 'DHCPClientOperations':
+        """
+        Determines and returns the appropriate DHCP client operations object based on 
+        the specified interface name, DHCP stack version, and optional override.
 
+        Args:
+            interface_name (str): The name of the network interface.
+            dhcp_stack_version (DHCPStackVersion): The version of the DHCP stack to use.
+            auto_sdc_override (Optional[SupportedDhcpClients]): Optional override for 
+                selecting the DHCP client. If provided, it determines which DHCP client 
+                will be used regardless of the current OS. If not provided, the selection 
+                is based on the current OS.
+
+        Returns:
+            DHCPClientOperations: An instance of the appropriate DHCP client operations 
+                class based on the provided arguments and conditions.
+        """
+        # Track DHCPClientOperations
+        dco: DHCPClientOperations
+        
         if auto_sdc_override:
+
+            self.log.debug(f'Selecting DHCP Client: {auto_sdc_override.name}')
             if auto_sdc_override == SupportedDhcpClients.UDHCPC:
-                self.log.debug(f'Selecting Dhcp Client: {auto_sdc_override.name}')
-                return DHCPClientOperations_udhcpc(interface_name)
+                dco = DHCPClientOperations_udhcpc(interface_name, dhcp_stack_version)
 
             elif auto_sdc_override == SupportedDhcpClients.DHCPCD:
-                self.log.debug(f'Selecting Dhcp Client: {auto_sdc_override.name}')
-                return DHCPClientOperations_dhcpcd(interface_name)
+                dco = DHCPClientOperations_dhcpcd(interface_name, dhcp_stack_version)
 
             elif auto_sdc_override == SupportedDhcpClients.DHCLIENT:
-                self.log.debug(f'Selecting Dhcp Client: {auto_sdc_override.name}')
-                return DHCPClientOperations_dhclient(interface_name)
+                dco = DHCPClientOperations_dhclient(interface_name, dhcp_stack_version)
+
         else:
             current_os = OSChecker().get_current_os()
+            self.log.debug(f'Auto Selecting DHCP Client on {current_os.name} OS')
             
             if current_os == SupportedOS.BUSY_BOX:
-                self.log.debug(f'Auto Selecting Dhcp Client: {SupportedDhcpClients.UDHCPC.name} on {current_os.name} OS')
-                return DHCPClientOperations_udhcpc(interface_name)
+                dco = DHCPClientOperations_udhcpc(interface_name, dhcp_stack_version)
 
             elif current_os == SupportedOS.UBUNTU:
                 auto_sdc = self._auto_find_dhcp_client()
-                
+
                 if auto_sdc == SupportedDhcpClients.DHCPCD:
-                    self.log.debug(f'Auto Selecting Dhcp Client: {auto_sdc.name} on {current_os.name} OS')
-                    return DHCPClientOperations_dhcpcd(interface_name)
+                    dco = DHCPClientOperations_dhcpcd(interface_name, dhcp_stack_version)
 
                 elif auto_sdc == SupportedDhcpClients.DHCLIENT:
-                    self.log.debug(f'Auto Selecting Dhcp Client: {auto_sdc.name} on {current_os.name} OS')
-                    return DHCPClientOperations_dhclient(interface_name)
-                
-        # If no supported DHCP client is found, raise an exception or handle it appropriately
-        raise DHCPClientException(f"No supported DHCP client found for interface: {interface_name}")
-    
+                    dco = DHCPClientOperations_dhclient(interface_name, dhcp_stack_version)
+        
+        DHCPClientFactory._DHCPClientOperationsList.append(dco)
+        return dco
+
     def _auto_find_dhcp_client(self) -> SupportedDhcpClients:
         """
         Automatically find a supported DHCP client.
@@ -395,7 +418,7 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         Args:
             interface_name (str): The name of the network interface.
         """
-        super().__init__(interface_name,SupportedDhcpClients.UDHCPC)
+        super().__init__(interface_name, SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC)
 

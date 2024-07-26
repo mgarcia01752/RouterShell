@@ -57,8 +57,8 @@ class DHCPClient:
         self._interface_name = interface_name
         self._dhcp_stack_version = dhcp_stack_version
         
-        self._dhcp_client : DHCPClientOperations = DHCPClientFactory().get_supported_dhcp_client(interface_name)
-        self._last_status = None
+        self._dhcp_client : DHCPClientOperations = DHCPClientFactory().get_supported_dhcp_client(interface_name, 
+                                                                                                 dhcp_stack_version)
     
     def get_last_status(self) -> DHCPStatus:
         """
