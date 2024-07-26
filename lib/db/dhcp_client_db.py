@@ -15,8 +15,7 @@ class DHCPClientDatabase:
 
     @classmethod
     def add_db_dhcp_client(
-        cls, interface_name: str, dhcp_version: DHCPVersion
-    ) -> bool:
+        cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
         """
         Adds a DHCP client entry to the database for a specified interface.
 
@@ -25,14 +24,13 @@ class DHCPClientDatabase:
             dhcp_version (DHCPVersion): The version of the DHCP stack to add.
 
         Returns:
-            bool: True if the operation was successful, False otherwise.
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_version.value)
 
     @classmethod
     def update_db_dhcp_client(
-        cls, interface_name: str, dhcp_version: DHCPVersion
-    ) -> bool:
+        cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
         """
         Updates the DHCP client entry in the database for a specified interface.
 
@@ -41,14 +39,13 @@ class DHCPClientDatabase:
             dhcp_version (DHCPVersion): The version of the DHCP stack to set.
 
         Returns:
-            bool: True if the operation was successful, False otherwise.
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return cls.rsdb.update_interface_dhcp_client(interface_name, dhcp_version.value).status
 
     @classmethod
     def remove_db_dhcp_client(
-        cls, interface_name: str, dhcp_version: DHCPVersion
-    ) -> bool:
+        cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
         """
         Removes a DHCP client entry from the database for a specified interface.
 
@@ -57,6 +54,6 @@ class DHCPClientDatabase:
             dhcp_version (DHCPVersion): The version of the DHCP stack to remove.
 
         Returns:
-            bool: True if the operation was successful, False otherwise.
+            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return cls.rsdb.remove_interface_dhcp_client(interface_name, dhcp_version.value).status
