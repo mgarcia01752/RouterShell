@@ -1,14 +1,82 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 from lib.common.constants import STATUS_OK, STATUS_NOK
 from lib.network_manager.network_operations.bridge.bridge import STP_STATE, Bridge, BridgeProtocol, State
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 
 class BridgeConfigFactory:
+    """
+    Factory class for creating and managing bridge configuration commands.
+
+    Attributes:
+        _bridge_config_command_list (List['BridgeConfigCommands']): A list that holds the bridge configuration commands 
+        for different bridges. This list is used to store and manage the configuration commands for bridges 
+        created by the factory.
+        
+    Methods:
+        __init__(bridge_name: str):
+            Initializes the BridgeConfigFactory with the given bridge name and sets up logging.
+        
+        get_bridge_config_cmds() -> 'BridgeConfigCommands':
+            Creates a new BridgeConfigCommands object for the current bridge and adds it to the list of commands.
+            Returns the newly created BridgeConfigCommands object.
+    """
+    
+    _bridge_config_command_list: List['BridgeConfigCommands'] = []
+    
     def __init__(self, bridge_name: str):
+        """
+        Initializes the BridgeConfigFactory with the given bridge name and sets up logging.
+
+        Args:
+            bridge_name (str): The name of the bridge for which configuration commands will be created.
+        """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG_FACTORY)        
         self.bridge_name = bridge_name
+        
+    def get_bridge_config_cmds(self) -> 'BridgeConfigCommands':
+        """
+        Creates a new BridgeConfigCommands object for the current bridge and adds it to the list of commands.
+
+        This method initializes a new BridgeConfigCommands object with the bridge name and appends it to 
+        the class-level list of bridge configuration commands.
+
+        Returns:
+            BridgeConfigCommands: The newly created BridgeConfigCommands object.
+        """
+        bcc = BridgeConfigCommands(self.bridge_name)
+        BridgeConfigFactory._bridge_config_command_list.append(bcc)
+        return bcc
+    
+    def set_shutdown_status_all_bridges(self, shutdown_state: State) -> bool:
+        """
+        Sets the shutdown status for all bridges managed by the system using the BridgeConfigCommands class.
+
+        This method performs the following actions:
+        1. Iterates over each bridge configuration command in the singleton list.
+        2. Applies the specified shutdown status to each bridge.
+        3. Logs the result of the operation.
+
+        Args:
+            shutdown_state (State): The desired shutdown status to set for all bridges. 
+                This should be an instance of the `State` enum, such as `State.UP` or `State.DOWN`.
+
+        Returns:
+            bool: STATUS_OK if the shutdown status was successfully set for all bridges, STATUS_NOK otherwise.
+        """
+        if not BridgeConfigFactory._bridge_config_command_list:
+            self.log.error("No BridgeConfigCommands Found")
+            return STATUS_NOK
+        
+        success = STATUS_OK
+
+        for bcc in BridgeConfigFactory._bridge_config_command_list:
+            if not bcc.set_shutdown_status(shutdown_state):
+                self.log.error(f"Failed to set bridge {bcc.bridge_name} to {shutdown_state}")
+                success = STATUS_NOK
+
+        return success
 
 class BridgeConfigCommands:
     def __init__(self, bridge_name: str):
