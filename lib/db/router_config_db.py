@@ -2,7 +2,7 @@ import logging
 from itertools import count
 from typing import Dict, List, Tuple
 
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -10,7 +10,7 @@ from lib.network_manager.common.interface import InterfaceType
 
 class RouterConfigurationDatabase:
 
-    rsdb = RSDB()
+    rsdb = DB()
     counter = count(start=1)
     
     def __init__(cls):
@@ -19,7 +19,7 @@ class RouterConfigurationDatabase:
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()
+            cls.rsdb = DB()
             
     def get_interface_name_list(cls, interface_type: InterfaceType = InterfaceType.UNKNOWN) -> List[str]:
         """

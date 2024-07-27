@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List
 
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
@@ -35,7 +35,7 @@ class DHCPServerDatabase:
             print(f"The DHCP version for pool 'your_dhcp_pool_name' is {dhcp_version}")
         """
         try:
-            sql_result = RSDB().dhcp_pool_dhcp_version(dhcp_pool_name)
+            sql_result = DB().dhcp_pool_dhcp_version(dhcp_pool_name)
 
             if sql_result.status == STATUS_OK:
                 if sql_result.result.get('DHCPVersion') == DHCPVersion.DHCP_V4.value:
@@ -58,7 +58,7 @@ class DHCPServerDatabase:
         Returns:
             bool: True if the DHCP pool name exists, False otherwise.
         """
-        return RSDB().dhcp_pool_name_exist(dhcp_pool_name).status
+        return DB().dhcp_pool_name_exist(dhcp_pool_name).status
 
     def dhcp_pool_name_list(self) -> List[str]:
         """
@@ -74,7 +74,7 @@ class DHCPServerDatabase:
         
         dhcp_pool_names = []
         
-        for result in RSDB().select_dhcp_server_pool_list():
+        for result in DB().select_dhcp_server_pool_list():
             if result.status == STATUS_OK:
                 dhcp_pool_names.append(result.result['DhcpPoolname'])
         
@@ -90,7 +90,7 @@ class DHCPServerDatabase:
         Returns:
             bool: True if the DHCP pool subnet exists, False otherwise.
         """
-        return RSDB().dhcp_pool_subnet_exist(inet_subnet_cidr).status
+        return DB().dhcp_pool_subnet_exist(inet_subnet_cidr).status
 
     def get_dhcp_pool_subnet_name_db(self, dhcp_pool_name: str) -> str:
         """
@@ -102,7 +102,7 @@ class DHCPServerDatabase:
         Returns:
             str or None: The DHCP pool subnet information retrieved from the RouterShell database, or None if no match is found.
         """        
-        result = RSDB().select_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name)
+        result = DB().select_dhcp_pool_subnet_via_dhcp_pool_name(dhcp_pool_name)
         if not result.status:
             return result.result['InetSubnet']
         else:
@@ -118,7 +118,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().insert_dhcp_pool_name(dhcp_pool_name).status
+        return DB().insert_dhcp_pool_name(dhcp_pool_name).status
 
     def add_dhcp_pool_subnet_db(self, dhcp_pool_name: str, inet_subnet_cidr: str) -> bool:
         """
@@ -131,7 +131,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().insert_dhcp_pool_subnet(dhcp_pool_name, inet_subnet_cidr).status
+        return DB().insert_dhcp_pool_subnet(dhcp_pool_name, inet_subnet_cidr).status
 
     def add_dhcp_subnet_inet_address_range_db(self, inet_subnet_cidr: str, 
                                               inet_address_start: str, 
@@ -149,7 +149,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().insert_dhcp_subnet_inet_address_range(inet_subnet_cidr, 
+        return DB().insert_dhcp_subnet_inet_address_range(inet_subnet_cidr, 
                                                           inet_address_start, 
                                                           inet_address_end, 
                                                           inet_address_subnet_cidr).status
@@ -166,7 +166,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().insert_dhcp_subnet_reservation(inet_subnet_cidr, hw_address, inet_address).status
+        return DB().insert_dhcp_subnet_reservation(inet_subnet_cidr, hw_address, inet_address).status
 
     def add_dhcp_subnet_option_db(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> bool:
         """
@@ -180,7 +180,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().insert_dhcp_subnet_option(inet_subnet_cidr, dhcp_option, option_value).status
+        return DB().insert_dhcp_subnet_option(inet_subnet_cidr, dhcp_option, option_value).status
 
     def add_dhcp_subnet_reservation_option_db(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> bool:
         """
@@ -195,7 +195,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
+        return DB().insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
     
     def del_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
         """
@@ -207,7 +207,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().delete_dhcp_pool_name(dhcp_pool_name).status
+        return DB().delete_dhcp_pool_name(dhcp_pool_name).status
 
     def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str, negate: bool=False) -> bool:
         """
@@ -220,7 +220,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        return RSDB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate).status
+        return DB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate).status
 
     def update_dhcp_pool_mode_db(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
         """
@@ -233,7 +233,7 @@ class DHCPServerDatabase:
         Returns:
             bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
-        return RSDB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, mode.value).status
+        return DB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, mode.value).status
 
     '''
                                 DHCP-DNSMasq - Configuration Building
@@ -253,7 +253,7 @@ class DHCPServerDatabase:
             List[Dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
             or an empty list if none are found.
         """
-        sql_result = RSDB().select_dhcp_pool_interfaces(dhcp_pool_name)
+        sql_result = DB().select_dhcp_pool_interfaces(dhcp_pool_name)
                 
         results = []
 
@@ -281,7 +281,7 @@ class DHCPServerDatabase:
                 - 'inet_end' (str): The end of the internet range.
                 - 'inet_subnet' (str): The subnet of the internet range.
         """
-        sql_result = RSDB().select_dhcp_pool_inet_range(dhcp_pool_name)
+        sql_result = DB().select_dhcp_pool_inet_range(dhcp_pool_name)
         results = []
 
         for result in sql_result:
@@ -309,7 +309,7 @@ class DHCPServerDatabase:
                 - 'mac_address' (str): The MAC address of the reserved device.
                 - 'inet_address' (str): The internet address reserved for the device.
         """
-        sql_result = RSDB().select_dhcp_pool_reservation(dhcp_pool_name)
+        sql_result = DB().select_dhcp_pool_reservation(dhcp_pool_name)
         results = []
 
         for result in sql_result:
@@ -336,7 +336,7 @@ class DHCPServerDatabase:
                 - 'option' (str): The DHCP option.
                 - 'value' (str): The value associated with the option.
         """
-        sql_result = RSDB().select_dhcp_pool_options(dhcp_pool_name)
+        sql_result = DB().select_dhcp_pool_options(dhcp_pool_name)
         results = []
         
         for result in sql_result:

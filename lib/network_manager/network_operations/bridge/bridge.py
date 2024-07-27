@@ -6,50 +6,13 @@ from typing import List, Optional
 
 from tabulate import tabulate
 from lib.db.bridge_db import BridgeDatabase 
-from lib.db.sqlite_db.router_shell_db import Result
 from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.run_commands import RunCommand
+from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
 
-
-
-class BridgeProtocol(Enum):
-    
-    IEEE_802_1D = auto()
-    '''
-    IEEE 802.1D STP: STP is the original Spanning Tree Protocol, and it was designed 
-    to prevent loops in bridged networks. However, it has relatively slow convergence times. 
-    When a network topology change occurs (e.g., a link failure or recovery), 
-    STP can take several seconds or even longer to recompute the spanning tree 
-    and re-converge the network. During this time, some network segments may be blocked, 
-    leading to suboptimal network performance.
-    '''
-    
-    IEEE_802_1W = auto()
-    '''
-                            !!!!!!!!Currently not Supported!!!!!!!!
-    IEEE 802.1W RSTP: Rapid Spanning Tree Protocol is designed to provide rapid convergence. 
-    It improves upon the slow convergence of STP.  RSTP is much faster at detecting network 
-    topology changes and re-converging the network. In many cases, RSTP can converge within 
-    a few seconds or less. This rapid convergence is achieved by introducing new port states 
-    and mechanisms to minimize the time it takes to transition to a new topology.
-    '''
-    
-    IEEE_802_1S = auto()
-    '''
-                            !!!!!!!!Currently not Supported!!!!!!!!
-    IEEE 802.1S is a network standard that defines the Multiple Spanning Tree Protocol (MSTP). 
-    MSTP is an extension of the original Spanning Tree Protocol (STP) defined in IEEE 802.1D 
-    and is designed to improve the efficiency of loop prevention in Ethernet networks, 
-    especially in environments with multiple VLANs (Virtual LANs).
-    '''
-
-class STP_STATE(Enum):
-    STP_DISABLE='0'
-    STP_ENABLE='1'
-    
 class Bridge(RunCommand, BridgeDatabase):
 
     def __init__(self):
@@ -85,6 +48,13 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Unexpected data format: {e}")
             return []
 
+    def add_bridge(self, bridge_name:str) -> bool:
+        """
+        Add bridge to OS
+        Add bridge to DB
+        """
+        return STATUS_OK
+        
     def add_bridge_global(self, bridge_name: str, 
                           bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, 
                           stp_status: bool=True) -> bool:
@@ -119,13 +89,10 @@ class Bridge(RunCommand, BridgeDatabase):
             if not bridge_exist_db:
                 self.log.debug(f"Adding bridge: {bridge_name} to DB")
                 
-                add_result : Result = self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
-
-                if add_result.status:
-                    self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
+                if self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status):
+                    self.log.error(f'Unable to add bridge: {bridge_name} to DB')
                     return STATUS_NOK
                             
-                '''Exit if bridge exist and added to DB '''
                 return STATUS_OK            
         
         else:
@@ -150,32 +117,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"Bridge {bridge_name} created.")
         return STATUS_OK
 
-    def _create_bridge_os(self, bridge_name: str) -> bool:
-        """
-        Create a bridge with Spanning Tree Protocol (STP) enabled.
-
-        Args:
-            bridge_name (str): The name of the bridge to create.
-
-        Returns:
-            bool: STATUS_OK (False) if the bridge is created with STP enabled successfully, STATUS_NOK (True) if creation fails.
-        """
-        self.log.debug(f"_create_bridge_with_stp() -> Adding bridge: {bridge_name} to os")
-        
-        result = self.run(['ip', 'link', 'add', 'name', bridge_name, 'type', 'bridge'])
-        if result.exit_code:
-            self.log.warning(f"Bridge {bridge_name} cannot be created - exit-code: {result.exit_code}")
-            return STATUS_NOK
-
-        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(STP_STATE.STP_ENABLE.value)])
-        if result.exit_code:
-            self.log.warning(f"Bridge {bridge_name} unable to enable IEEE_802_1D - exit-code: {result.exit_code}")
-            return STATUS_NOK
-
-        self.log.debug(f"_create_bridge_with_stp() -> Added bridge: {bridge_name} to os")
-        return STATUS_OK
-
-    def does_bridge_exist_os(self, bridge_name, suppress_error=False) -> bool:
+    def does_bridge_exist_os(self, bridge_name:str, suppress_error=False) -> bool:
         """
         Check if a bridge with the given name exists via iproute.
         Will also remove bridge name in db if the interface is not available
@@ -254,23 +196,6 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return STATUS_OK
 
-    def _del_bridge_from_interface_bridge_group(self, bridge_name: str) -> bool:
-        """
-        Set an interface to have no master.
-
-        Args:
-            bridge_name (str): The name of the bridge to set to have no master.
-
-        Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
-        """
-        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'nomaster'])
-        if result.exit_code:
-            self.log.warning(f"Failed to set {bridge_name} to have no master - exit-code: {result.exit_code}")
-            return STATUS_NOK
-
-        return STATUS_OK
-
     def add_bridge_to_interface(self, interface_name: str, bridge_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
         """
         Add bridge to interface bridge-group via os.
@@ -302,31 +227,6 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via db")
             return STATUS_NOK        
     
-        return STATUS_OK
-
-    def _set_bridge_to_interface_bridge_group(self, interface_name: str, bridge_name: str) -> bool:
-        """
-        Set an interface as a master of a bridge.
-
-        Args:
-            interface_name (str): The name of the network interface to set as the master.
-            bridge_name (str): The name of the bridge.
-
-        Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
-        """
-        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface: {interface_name} -> Bridge: {bridge_name}")
-
-        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', bridge_name])
-
-        if result.exit_code:
-            self.log.error(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} unable to be set as the master of bridge {bridge_name}.")
-            return STATUS_NOK
-
-        self.stp_status_cmd(bridge_name)
-
-        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} set as the master of bridge {bridge_name}.")
-
         return STATUS_OK
 
     def stp_status_cmd(self, bridge_name: str, stp_status: Optional[str] = 'enable') -> bool:
@@ -551,3 +451,96 @@ class Bridge(RunCommand, BridgeDatabase):
             print(f"Unexpected error: {e}")
             return State.UNKNOWN
 
+    def create_bridge(self, bridge_name:str, stp:STP_STATE = STP_STATE.STP_ENABLE) -> bool:
+        """
+        Create a new network bridge.
+        """
+        if self.does_bridge_exist_os(bridge_name): 
+            self.log.info(f'Can not create bridge {bridge_name}, already exists on OS')
+            return STATUS_NOK
+        
+        if self.does_bridge_exists_db(bridge_name):
+            self.log.info(f'Can not create bridge {bridge_name}, already exists on DB')
+            return STATUS_NOK
+        
+        if self._create_bridge_os(bridge_name):
+            self.log.info(f'Can not create bridge {bridge_name} on OS')
+            return STATUS_NOK
+        
+        if self.add_bridge_db(bridge_name):
+            return STATUS_OK
+        
+            
+
+    def _create_bridge_os(self, bridge_name: str) -> bool:
+        """
+        Create a bridge with Spanning Tree Protocol (STP) enabled.
+
+        Args:
+            bridge_name (str): The name of the bridge to create.
+
+        Returns:
+            bool: STATUS_OK (False) if the bridge is created with STP enabled successfully, STATUS_NOK (True) if creation fails.
+        """
+        self.log.debug(f"_create_bridge_with_stp() -> Adding bridge: {bridge_name} to os")
+        
+        result = self.run(['ip', 'link', 'add', 'name', bridge_name, 'type', 'bridge'])
+        if result.exit_code:
+            self.log.warning(f"Bridge {bridge_name} cannot be created - exit-code: {result.exit_code}")
+            return STATUS_NOK
+
+        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(STP_STATE.STP_ENABLE.value)])
+        if result.exit_code:
+            self.log.warning(f"Bridge {bridge_name} unable to enable IEEE_802_1D - exit-code: {result.exit_code}")
+            return STATUS_NOK
+
+        self.log.debug(f"_create_bridge_with_stp() -> Added bridge: {bridge_name} to os")
+        return STATUS_OK
+    
+    def _set_bridge_to_interface_bridge_group(self, interface_name: str, bridge_name: str) -> bool:
+        """
+        Set an interface as a master of a bridge.
+
+        Args:
+            interface_name (str): The name of the network interface to set as the master.
+            bridge_name (str): The name of the bridge.
+
+        Returns:
+            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
+        """
+        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface: {interface_name} -> Bridge: {bridge_name}")
+
+        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', bridge_name])
+
+        if result.exit_code:
+            self.log.error(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} unable to be set as the master of bridge {bridge_name}.")
+            return STATUS_NOK
+
+        self.stp_status_cmd(bridge_name)
+
+        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} set as the master of bridge {bridge_name}.")
+
+        return STATUS_OK
+    
+    def _del_bridge_from_interface_bridge_group(self, bridge_name: str) -> bool:
+        """
+        Set an interface to have no master.
+
+        Args:
+            bridge_name (str): The name of the bridge to set to have no master.
+
+        Returns:
+            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
+        """
+        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'nomaster'])
+        if result.exit_code:
+            self.log.warning(f"Failed to set {bridge_name} to have no master - exit-code: {result.exit_code}")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+
+
+
+    
+    

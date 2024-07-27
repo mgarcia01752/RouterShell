@@ -1,13 +1,14 @@
 import sqlite3
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK, ROUTER_SHELL_DB
 from lib.common.singleton import Singleton
 from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
 class Result:
@@ -362,30 +363,207 @@ class RouterShellDB(metaclass=Singleton):
                         BRIDGE DATABASE
     '''
 
-    def bridge_exist_db(self, bridge_name) -> Result:
+    def bridge_exist_db(self, bridge_name: str) -> Result:
         """
-        Check if a bridge with the given name exists in the 'Bridges' table.
+        Check if a bridge with the given name exists in the Interfaces table.
 
         Args:
             bridge_name (str): The name of the bridge to check.
 
         Returns:
-            Result: An instance of Result with status True if the bridge exists, False otherwise.
+            Result: A Result object indicating if the bridge exists.
         """
-        self.log.debug(f"bridge_exist_db() -> Bridge: {bridge_name}")
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ? AND InterfaceType = ?", 
+                           (bridge_name, InterfaceType.BRIDGE.value))
+            row = cursor.fetchone()
+
+            if row:
+                bridge_id = row[0]
+                return Result(status=STATUS_OK, row_id=bridge_id)
+            else:
+                return Result(status=STATUS_NOK, reason=f"Bridge with name '{bridge_name}' does not exist")
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, reason=str(e))
+ 
+    def insert_interface_bridge(self, bridge_name: str, shutdown_status: bool = True) -> Result:
+        """
+        Insert a new bridge interface into the 'Interfaces' and 'Bridges' tables.
+
+        This method first inserts an entry into the 'Interfaces' table with the type set to 'BRIDGE'. 
+        It then inserts a corresponding entry into the 'Bridges' table.
+
+        Args:
+            bridge_name (str): The name of the bridge interface.
+            shutdown_status (bool): True if the interface is shutdown, False otherwise.
+
+        Returns:
+            Result: A Result object with the status of the insertion.
+        """
+        ifType = InterfaceType.BRIDGE.value
 
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ROWID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
-            row_id = cursor.fetchone()
-            if row_id:
-                return Result(True, row_id[0], None)
-            else:
-                return Result(False, self.ROW_ID_NOT_FOUND, f"Bridge: {bridge_name} not found")
+
+            # Insert into Interfaces table
+            cursor.execute(
+                "INSERT INTO Interfaces (InterfaceName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
+                (bridge_name, ifType, shutdown_status)
+            )
+            interface_id = cursor.lastrowid
+
+            # Insert into Bridges table
+            cursor.execute(
+                "INSERT INTO Bridges (BridgeName, ManagmentInterface_FK) VALUES (?, ?)",
+                (bridge_name, interface_id)
+            )
+            self.connection.commit()
+
+            self.log.debug(f"Bridge interface {bridge_name} inserted with interface ID {interface_id}")
+            return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            return Result(False, self.ROW_ID_NOT_FOUND, f"Error while checking for bridge: {bridge_name}")
+            self.log.error(f"Error inserting bridge interface {bridge_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
+    def delete_interface_bridge(self, bridge_name: str) -> Result:
+        """
+        Delete a bridge interface from the 'Bridges' table and the corresponding entry from the 'Interfaces' table.
+
+        Args:
+            bridge_name (str): The name of the bridge interface to delete.
+
+        Returns:
+            Result: A Result object with the status of the deletion.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Check if the bridge exists in the Bridges table
+            cursor.execute(
+                "SELECT BridgeName FROM Bridges WHERE BridgeName = ?",
+                (bridge_name,)
+            )
+            row = cursor.fetchone()
+
+            if row is None:
+                self.log.debug(f"Bridge interface {bridge_name} does not exist")
+                return Result(status=STATUS_NOK, row_id=0, reason=f"Bridge interface {bridge_name} does not exist")
+
+            # Delete from Bridges table
+            cursor.execute(
+                "DELETE FROM Bridges WHERE BridgeName = ?",
+                (bridge_name,)
+            )
+
+            self.connection.commit()
+
+            self.log.debug(f"Bridge interface {bridge_name} deleted successfully")
+            return Result(status=STATUS_OK, row_id=0)
+
+        except sqlite3.Error as e:
+            self.log.error(f"Error deleting bridge interface {bridge_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
+
+    def update_bridge(self, bridge_name: str, 
+                    protocol: Optional[BridgeProtocol] = None, 
+                    stp_status: Optional[STP_STATE] = None,
+                    management_inet: Optional[str] = None,
+                    description: Optional[str] = None,
+                    shutdown_status: Optional[bool] = None) -> Result:
+        """
+        Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
+
+        Args:
+            bridge_name (str): The name of the bridge to update.
+            protocol (Optional[BridgeProtocol]): The new protocol for the bridge (if changing).
+            stp_status (Optional[STP_STATE]): The new STP status (if changing).
+            management_inet (Optional[str]): The management IP address for the bridge (if changing).
+            description (Optional[str]): The new description for the bridge interface (if changing).
+            shutdown_status (Optional[bool]): The new shutdown status for the bridge interface (if changing).
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Check if the bridge exists
+            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
+            bridge_row = cursor.fetchone()
+
+            if not bridge_row:
+                return Result(status=STATUS_NOK, reason=f"Bridge {bridge_name} does not exist")
+
+            bridge_id = bridge_row[0]
+
+            # Update Bridges table
+            update_columns = []
+            parameters = []
+
+            if protocol is not None:
+                update_columns.append("Protocol = ?")
+                parameters.append(protocol.name)
+            if stp_status is not None:
+                update_columns.append("StpStatus = ?")
+                parameters.append(stp_status.value)
+
+            if management_inet is not None:
+                # Check if the management IP address exists in InterfaceIpAddress
+                cursor.execute("SELECT ID FROM InterfaceIpAddress WHERE IpAddress = ?", (management_inet,))
+                inet_row = cursor.fetchone()
+
+                if inet_row:
+                    # Update existing entry
+                    inet_id = inet_row[0]
+                    cursor.execute(
+                        "UPDATE InterfaceIpAddress SET IpAddress = ? WHERE ID = ?",
+                        (management_inet, inet_id)
+                    )
+                else:
+                    # Insert new entry
+                    cursor.execute(
+                        "INSERT INTO InterfaceIpAddress (IpAddress, Interface_FK) VALUES (?, ?)",
+                        (management_inet, bridge_id)
+                    )
+                    inet_id = cursor.lastrowid
+
+                update_columns.append("ManagmentInterface_FK = ?")
+                parameters.append(inet_id)
+
+            if update_columns:
+                parameters.append(bridge_name)
+                update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE BridgeName = ?"
+                cursor.execute(update_query, tuple(parameters))
+
+            # Update Interfaces table
+            update_columns = []
+            parameters = []
+
+            if description is not None:
+                update_columns.append("Description = ?")
+                parameters.append(description)
+            if shutdown_status is not None:
+                update_columns.append("ShutdownStatus = ?")
+                parameters.append(shutdown_status)
+            
+            if update_columns:
+                parameters.append(bridge_name)
+                update_query = f"UPDATE Interfaces SET {', '.join(update_columns)} WHERE InterfaceName = ?"
+                cursor.execute(update_query, tuple(parameters))
+
+            self.connection.commit()
+
+            if cursor.rowcount == 0:
+                return Result(status=STATUS_NOK, reason="No bridge found with the given name")
+
+            return Result(status=STATUS_OK, row_id=bridge_id)
+        
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, reason=str(e))
+         
     def get_bridge_id(self, bridge_name: str) -> int:
         """
         Retrieve the ID of a bridge by its name.
@@ -409,7 +587,11 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
         return None
 
-    def insert_bridge(self, bridge_name: str, bridge_protocol: str = None, stp_status: bool = False, bridge_group_fk: int = ROW_ID_NOT_FOUND, shutdown:bool = True) -> Result:
+    def insert_bridge(self, bridge_name: str, 
+                      bridge_protocol: str = None, 
+                      stp_status: bool = False, 
+                      bridge_group_fk: int = ROW_ID_NOT_FOUND, 
+                      shutdown:bool = True) -> Result:
         """
         Insert a new bridge configuration into the 'Bridges' table.
 
@@ -446,35 +628,6 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error inserting data into 'Bridges': {e}"
             self.log.error(error_message)
             return Result(STATUS_NOK, -1, error_message)
-
-    def delete_bridge_entry(self, bridge_name) -> bool:
-        try:
-            cursor = self.connection.cursor()
-
-            # Get the associated Bridge ID
-            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
-            bridge_id = cursor.fetchone()
-            
-            if not bridge_id:
-                self.log.error(f"Bridge entry not found for BridgeName: {bridge_name}")
-                return STATUS_NOK  # Bridge entry not found
-
-            bridge_id = bridge_id[0]  # Get the Bridge ID from the result
-
-            # Delete records in the associated table VlanInterfaces
-            cursor.execute("DELETE FROM VlanInterfaces WHERE Bridge_FK = ?", (bridge_id,))
-
-            # Delete the bridge entry
-            cursor.execute("DELETE FROM Bridges WHERE ID = ?", (bridge_id,))
-
-            # Commit the changes
-            self.connection.commit()
-
-            return STATUS_OK
-
-        except sqlite3.Error as e:
-            self.log.error("Error deleting bridge entry: %s", e)
-            return STATUS_NOK
 
     '''
                         VLAN DATABASE

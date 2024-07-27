@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
@@ -36,7 +36,7 @@ class WifiDB:
         - It returns True if the policy exists, and False if it doesn't.
 
         """
-        return RSDB().wifi_policy_exist(wifi_policy_name).status
+        return DB().wifi_policy_exist(wifi_policy_name).status
 
     def add_wifi_policy(self, wifi_policy_name: str) -> bool:
         """
@@ -54,7 +54,7 @@ class WifiDB:
 
         """
         
-        sql_result = RSDB().insert_wifi_policy(wifi_policy_name)
+        sql_result = DB().insert_wifi_policy(wifi_policy_name)
         
         if sql_result.status:
             self.log.error(f"Unable to add wifi-policy: {wifi_policy_name} -> Reason: {sql_result.reason}")
@@ -81,7 +81,7 @@ class WifiDB:
 
         """
         self.log.debug(f"{wifi_policy_name}, {ssid}, {pass_phrase}, {mode}")
-        return RSDB().insert_wifi_access_security_group(wifi_policy_name, ssid, pass_phrase, mode).status
+        return DB().insert_wifi_access_security_group(wifi_policy_name, ssid, pass_phrase, mode).status
 
     def add_wifi_security_access_group_default(self, wifi_policy_name: str) -> bool:
         """
@@ -99,7 +99,7 @@ class WifiDB:
         - Returns True if the default Wi-Fi security access group is added successfully, and False otherwise.
         """
         self.log.debug(f"Adding default Wi-Fi security access group to policy '{wifi_policy_name}'")
-        return RSDB().insert_wifi_access_security_group_default(wifi_policy_name).status
+        return DB().insert_wifi_access_security_group_default(wifi_policy_name).status
   
     def add_wifi_key_management(self, wifi_policy_name:str, key_management:str) -> bool:
         return STATUS_OK
@@ -125,7 +125,7 @@ class WifiDB:
             - The hardware mode should be a valid mode from the HardwareMode enum.
             - If the Wi-Fi policy or hardware mode is not found, respective errors will be raised.
         """
-        sql_result = RSDB().update_wifi_hardware_mode(wifi_policy_name, hardware_mode)
+        sql_result = DB().update_wifi_hardware_mode(wifi_policy_name, hardware_mode)
         if sql_result.status:
             self.log.error(f"Unable update wifi-hardware-mode: {hardware_mode} -> Reason: {sql_result.reason}")
             return STATUS_NOK
@@ -152,12 +152,12 @@ class WifiDB:
             return STATUS_NOK
 
         # Check if the Wi-Fi interface exists
-        if not RSDB().interface_exists(wifi_interface_name):
+        if not DB().interface_exists(wifi_interface_name):
             self.log.error(f"Wi-Fi interface '{wifi_interface_name}' not found.")
             return STATUS_NOK
 
         # Associate the Wi-Fi policy with the Wi-Fi interface
-        sql_result = RSDB().insert_wifi_policy_to_wifi_interface(wifi_policy_name, wifi_interface_name)
+        sql_result = DB().insert_wifi_policy_to_wifi_interface(wifi_policy_name, wifi_interface_name)
 
         if sql_result.status:
             self.log.error(f"Unable to associate wifi-policy '{wifi_policy_name}' with wifi-interface '{wifi_interface_name}' -> Reason: {sql_result.reason}")
@@ -179,7 +179,7 @@ class WifiDB:
         Note:
         - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
         """
-        return RSDB().insert_wifi_channel(wifi_policy_name, channel).status
+        return DB().insert_wifi_channel(wifi_policy_name, channel).status
 
     def get_wifi_security_policy(self, wifi_policy_name: str) -> List[dict]:
         """
@@ -191,7 +191,7 @@ class WifiDB:
         Returns:
             List[dict]: A list of dictionaries containing security policy information.
         """
-        return Result.sql_result_to_value_list(RSDB().select_wifi_security_policy(wifi_policy_name))
+        return Result.sql_result_to_value_list(DB().select_wifi_security_policy(wifi_policy_name))
 
     def del_wifi_security_access_group(self, wifi_policy_name: str, ssid: str) -> bool:
         """
@@ -208,5 +208,5 @@ class WifiDB:
         - This method deletes a Wi-Fi security access group with the specified SSID from the wireless Wi-Fi policy.
         - Returns True if the deletion is successful, and False otherwise.
         """
-        return RSDB().delete_wifi_ssid(wifi_policy_name, ssid).status
+        return DB().delete_wifi_ssid(wifi_policy_name, ssid).status
 

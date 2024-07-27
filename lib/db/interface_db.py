@@ -1,7 +1,7 @@
 import logging
 import re
 from typing import List
-from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as RSDB
+from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as DB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
 
@@ -10,7 +10,7 @@ from lib.network_manager.network_operations.nat import NATDirection
 
 class InterfaceDatabase:
 
-    rsdb = RSDB()
+    rsdb = DB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
@@ -18,7 +18,7 @@ class InterfaceDatabase:
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()  
+            cls.rsdb = DB()  
             
     def db_lookup_interface_exists(cls, interface_name: str) -> Result:
         """

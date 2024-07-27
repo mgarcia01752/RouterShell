@@ -107,6 +107,11 @@ class BridgeConfig(CmdPrompt, Bridge):
             return STATUS_NOK
         
         return STATUS_OK
+    
+    def bridgeconfig_ip(self, args: List[str], negate: bool = False) -> bool:
+        
+        return STATUS_OK
+        
       
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'stp', 'protocol'])
     def bridgeconfig_no(self, args: List) -> bool:

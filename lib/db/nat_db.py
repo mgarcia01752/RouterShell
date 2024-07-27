@@ -2,13 +2,13 @@ import logging
 from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 
 class NatDB:
 
-    rsdb = RSDB()
+    rsdb = DB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
@@ -16,7 +16,7 @@ class NatDB:
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()  
+            cls.rsdb = DB()  
 
     def pool_name_exists(cls, pool_name: str) -> bool:
         """

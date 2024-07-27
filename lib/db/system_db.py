@@ -2,13 +2,13 @@ import logging
 import textwrap
 from typing import Dict, Tuple
 
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK, Status
 class SystemDatabase:
 
-    rsdb = RSDB()
+    rsdb = DB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
@@ -16,7 +16,7 @@ class SystemDatabase:
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()
+            cls.rsdb = DB()
     
     def set_hostname_db(cls, host_name: str) -> bool:
         """

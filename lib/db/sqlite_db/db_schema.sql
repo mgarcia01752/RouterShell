@@ -105,8 +105,9 @@ CREATE TABLE IF NOT EXISTS Bridges (
     BridgeName VARCHAR(50) UNIQUE,
     Protocol VARCHAR(15),                -- Bridge Protocol
     StpStatus BOOLEAN,                   -- STB STATUS ENABLE = 1 , DISABLE = 0
-    ShutdownStatus BOOLEAN DEFAULT TRUE,
-    CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID) ON DELETE CASCADE
+    ManagmentInterface_FK,
+    CONSTRAINT FK_Bridges_BridgeGroups FOREIGN KEY (BridgeGroups_FK) REFERENCES BridgeGroups(ID) ON DELETE CASCADE,
+    CONSTRAINT FK_ManagementInterface_Interfaces FOREIGN KEY (ManagmentInterface_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS Vlans;

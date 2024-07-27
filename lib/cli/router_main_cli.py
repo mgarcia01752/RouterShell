@@ -25,7 +25,7 @@ class RouterCLI(RouterPrompt):
     def __init__(self):
         super().__init__()
         
-        # SystemStartUp()
+        SystemStartUp()
         
         RouterPrompt.__init__(self)
         

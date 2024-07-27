@@ -5,7 +5,7 @@ from typing import List
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.common.exec_priv_mode import ExecMode, ExecException
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.constants import *
 from lib.network_manager.network_operations.arp import Arp
 from lib.network_manager.network_operations.interface import Interface
@@ -44,7 +44,7 @@ class ClearMode(CmdPrompt):
                        
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':
-                RSDB().reset_database()
+                DB().reset_database()
             else:
                 print("Command canceled.")
             
