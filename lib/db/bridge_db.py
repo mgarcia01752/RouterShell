@@ -31,16 +31,19 @@ class BridgeDatabase():
 
         return cls.rsdb.bridge_exist_db(bridge_name).status
 
-    def add_bridge_db(cls, bridge_name: str, bridge_protocol:str=None, stp_status:bool=True) -> bool:
+    def add_bridge_db(cls, bridge_name: str, bridge_protocol: str = None, stp_status: bool = True) -> bool:
         """
-        Add a new bridge to the database.
+        Add a new bridge to the database. This method performs the following actions:
+        1. Inserts a new bridge interface into the `Interfaces` table.
+        2. Updates the corresponding bridge entry in the `Bridges` table with optional protocol and STP status.
 
         Args:
-            cls: The class reference.
-            bridge_name (str): The name of the bridge to add.
+            bridge_name (str): The name of the bridge to be added.
+            bridge_protocol (str, optional): The protocol for the bridge. Defaults to None.
+            stp_status (bool, optional): The STP status of the bridge. Defaults to True (enabled).
 
         Returns:
-            Result: An instance of the Result class with status, row_id, and result attributes.
+            bool: STATUS_OK if the bridge was successfully added or updated, STATUS_NOK otherwise.
         """
         cls.log.debug(f"add_bridge_db() -> BridgeName: {bridge_name}")
 

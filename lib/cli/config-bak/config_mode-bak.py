@@ -388,7 +388,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug(f"do_no(bridge) -> {line_parts}")
             if len(line_parts) == 2:
                 self.log.debug(f"Remove bridge -> {line_parts}")
-                if Bridge().destroy_bridge_cmd(line_parts[1]):
+                if Bridge().destroy_bridge_cmd_os(line_parts[1]):
                     self.log.error(f'do_no() -> {line_parts}')
                     print(f"Unable to remove bridge: {line_parts[1]}")
             else:

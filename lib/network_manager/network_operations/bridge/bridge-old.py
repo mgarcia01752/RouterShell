@@ -83,8 +83,6 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return STATUS_OK
 
-
-
     def add_bridge_global(self, bridge_name: str, 
                           bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, 
                           stp_status: bool=True) -> bool:
@@ -567,8 +565,3 @@ class Bridge(RunCommand, BridgeDatabase):
 
         return STATUS_OK
 
-
-
-
-    
-    
