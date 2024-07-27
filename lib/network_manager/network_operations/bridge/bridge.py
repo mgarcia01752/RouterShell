@@ -81,10 +81,11 @@ class Bridge(RunCommand, BridgeDatabase):
         return STATUS_OK
 
     def update_bridge(self, bridge_name: str, 
-                    protocol: Optional[BridgeProtocol] = None, 
-                    stp_status: Optional[STP_STATE] = None,
-                    management_inet: Optional[str] = None,
-                    shutdown_status: Optional[State] = None) -> bool:
+                        protocol: Optional[BridgeProtocol] = None, 
+                        stp_status: Optional[STP_STATE] = None,
+                        management_inet: Optional[str] = None,
+                        description: Optional[str] = None,
+                        shutdown_status: Optional[State] = None) -> bool:
         """
         Update the bridge configuration both on the operating system and in the database.
 
@@ -97,6 +98,7 @@ class Bridge(RunCommand, BridgeDatabase):
             protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
             stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
             management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
+            description (Optional[str]): The new description for the bridge. Defaults to None.
             shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
@@ -108,12 +110,98 @@ class Bridge(RunCommand, BridgeDatabase):
             return STATUS_NOK
 
         # Update the bridge in the database
-        if not self.update_bridge_db(bridge_name, protocol, stp_status, management_inet, shutdown_status):
-            self.log.error(f"Failed to update bridge {bridge_name} in DB")
+        update_result = self.update_bridge_db(
+            bridge_name=bridge_name,
+            protocol=protocol,
+            stp_status=stp_status,
+            management_inet=management_inet,
+            description=description,
+            shutdown_status=shutdown_status
+        )
+        
+        if not update_result:
+            self.log.error(
+                f"Failed to update bridge {bridge_name} in DB with parameters: "
+                f"protocol={protocol}, stp_status={stp_status}, "
+                f"management_inet={management_inet}, description={description}, "
+                f"shutdown_status={shutdown_status}"
+            )
             return STATUS_NOK
 
         self.log.debug(f"Bridge {bridge_name} successfully updated in both OS and DB")
         return STATUS_OK
+
+    def get_bridge_shutdown_status_os(self, bridge_name: str) -> State:
+        """
+        Retrieve the shutdown status of a bridge from the operating system.
+
+        Args:
+            bridge_name (str): The name of the bridge to query.
+
+        Returns:
+            State: The shutdown status of the bridge (UP, DOWN, UNKNOWN).
+        """
+        # Execute the command and capture the output
+        result = self.run(['ip', '-j', 'link', 'show', bridge_name])
+        
+        if result.exit_code != 0:
+            self.log.error(f"Failed to get status for bridge {bridge_name}: {result.stderr}")
+            return State.UNKNOWN
+
+        # Parse the JSON output
+        try:
+            bridges = json.loads(result.stdout)
+            for bridge in bridges:
+                if bridge.get('ifname') == bridge_name:
+                    # Check the 'operstate' field for status
+                    operstate = bridge.get('operstate')
+                    if operstate == 'down':
+                        return State.DOWN
+                    elif operstate == 'up':
+                        return State.UP
+                    else:
+                        return State.UNKNOWN
+        except json.JSONDecodeError as e:
+            self.log.error(f"Failed to parse JSON output for bridge {bridge_name}: {e}")
+            return State.UNKNOWN
+
+        return State.UNKNOWN
+
+    def get_bridge_stp_status_os(self, bridge_name: str) -> STP_STATE:
+        """
+        Retrieve the STP status of a bridge from the operating system.
+
+        Args:
+            bridge_name (str): The name of the bridge to query.
+
+        Returns:
+            STP_STATE: The STP status of the bridge (STP_DISABLE or STP_ENABLE).
+        """
+        # Execute the command and capture the output
+        result = self.run(['bridge', 'stp', 'show', bridge_name, '-json'])
+
+        if result.exit_code != 0:
+            self.log.error(f"Failed to get STP status for bridge {bridge_name}: {result.stderr}")
+            return STP_STATE.STP_DISABLE  # Default to STP_DISABLE if there's an error
+
+        # Parse the output to determine the STP status
+        output = result.stdout
+        try:
+            # Assuming output is a JSON string and we need to parse it
+            import json
+            status_info = json.loads(output)
+
+            # Check if 'stp_state' field is present and determine the status
+            stp_state = status_info.get('stp_state', None)
+            if stp_state == 'enabled':
+                return STP_STATE.STP_ENABLE
+            elif stp_state == 'disabled':
+                return STP_STATE.STP_DISABLE
+            else:
+                return STP_STATE.STP_DISABLE  # Default to STP_DISABLE if state is unknown
+        except (json.JSONDecodeError, KeyError) as e:
+            self.log.error(f"Error parsing STP status for bridge {bridge_name}: {e}")
+            return STP_STATE.STP_DISABLE
 
     def del_bridge(self, bridge_name: str) -> bool:
         """
