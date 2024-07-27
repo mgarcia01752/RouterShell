@@ -18,14 +18,9 @@ class BridgeConfigCommands:
         self.bridge_name = bridge_name
     
     def does_bridge_exist(self) -> bool:
-        if Bridge().does_bridge_exist_os(self.bridge_name):
-            self.log.debug(f'does_bridge_exist_os() -> {self.bridge_name} does not exisit on OS')
-            return False
-            
-        if Bridge().does_bridge_exists_db(self.bridge_name):
-            self.log.debug(f'does_bridge_exist_os() -> {self.bridge_name} does not exisit on DB')
-            return False
-        
+        if not Bridge().does_bridge_exist(self.bridge_name):
+            self.log.debug(f'does_bridge_exist() -> {self.bridge_name} does not exist')
+            return False         
         return True
     
     def create_bridge_interface(self) -> bool:

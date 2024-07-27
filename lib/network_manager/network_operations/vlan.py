@@ -135,7 +135,7 @@ class Vlan(NetworkManager):
             print(f"Bridge successfully added to VLAN: {status}")
         ```
         """
-        if Bridge().does_bridge_exist_os(bridge_name):
+        if Bridge().does_bridge_exist(bridge_name):
             self.log.debug(f"Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         

@@ -1,10 +1,7 @@
-from enum import Enum, auto
 import json
 import logging
-import re
 from typing import List, Optional
 
-from tabulate import tabulate
 from lib.db.bridge_db import BridgeDatabase 
 from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
@@ -59,7 +56,7 @@ class Bridge(RunCommand, BridgeDatabase):
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        if self.does_bridge_exist_os(bridge_name):
+        if self._does_bridge_exist_os(bridge_name):
             if not self.does_bridge_exists_db(bridge_name):
                 self.log.warn(f'Bridge {bridge_name} not in DB, adding to DB')
                 if self.add_bridge_db(bridge_name):
@@ -83,71 +80,93 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return STATUS_OK
 
-
-
-    def add_bridge_global(self, bridge_name: str, 
-                          bridge_protocol: BridgeProtocol = BridgeProtocol.IEEE_802_1D, 
-                          stp_status: bool=True) -> bool:
+    def update_bridge(self, bridge_name: str, 
+                    protocol: Optional[BridgeProtocol] = None, 
+                    stp_status: Optional[STP_STATE] = None,
+                    management_inet: Optional[str] = None,
+                    shutdown_status: Optional[State] = None) -> bool:
         """
-        Add a bridge using global commands and store in the database
+        Update the bridge configuration both on the operating system and in the database.
 
-        Args:bridge_exists
-            bridge_name (str): The name of the bridge to add.
-            bridge_protocol (BridgeProtocol, optional): The bridge protocol to use (default is IEEE 802.1D).
-            stp_status (bool, optional): Whether to enable STP on the bridge (default is True).
+        This method performs the following actions:
+        1. Updates the bridge on the operating system.
+        2. Updates the bridge in the database with the new configuration.
+
+        Args:
+            bridge_name (str): The name of the bridge to update.
+            protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
+            stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
+            management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
+            shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
-            bool: STATUS_OK if the bridge was added successfully, STATUS_NOK otherwise.
+            bool: True if both OS and DB updates were successful, False otherwise.
         """
-        self.log.debug(f"add_bridge_global() - Bridge: {bridge_name} -> Protocol: {bridge_protocol.value} -> STP: {stp_status}")
-
-        if not bridge_name:
-            self.log.fatal(f"No Bridge name provided")
+        # Update the bridge on the operating system
+        if not self._update_bridge_via_os(bridge_name, protocol, stp_status, management_inet, shutdown_status):
+            self.log.error(f"Failed to update bridge {bridge_name} on OS")
             return STATUS_NOK
 
-        # Check if the bridge already exists in the database
-        bridge_exist_db = self.does_bridge_exists_db(bridge_name)
-        self.log.debug(f"add_bridge_global() - Bridge: {bridge_name} -> Exists in DB: {bridge_exist_db}")
-        
-        # Check if the bridge already exists in Linux system
-        bridge_exist_os = self.does_bridge_exist_os(bridge_name)
-        self.log.debug(f"add_bridge_global - Bridge: {bridge_name} -> Exists in OS: {bridge_exist_os}")
-        
-        if bridge_exist_os:          
-            self.log.debug(f"Bridge {bridge_name} exists in os")
+        # Update the bridge in the database
+        if not self.update_bridge_db(bridge_name, protocol, stp_status, management_inet, shutdown_status):
+            self.log.error(f"Failed to update bridge {bridge_name} in DB")
+            return STATUS_NOK
 
-            if not bridge_exist_db:
-                self.log.debug(f"Adding bridge: {bridge_name} to DB")
-                
-                if self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status):
-                    self.log.error(f'Unable to add bridge: {bridge_name} to DB')
-                    return STATUS_NOK
-                            
-                return STATUS_OK            
-        
-        else:
-            self.log.debug(f"Bridge {bridge_name} does not exists in os")
-            
-            if self._create_bridge_os(bridge_name):
-                self.log.error(f"add_bridge_global() - Unable to configure bridge: {bridge_name} to os")
-                
-                if bridge_exist_db:
-                    self.del_bridge_db(bridge_name, bridge_protocol.value, stp_status)
-                    
-                return STATUS_NOK
-
-        if not bridge_exist_db:
-            self.log.debug(f"add_bridge_global() - Adding bridge: {bridge_name} to db")
-            add_result = self.add_bridge_db(bridge_name, bridge_protocol.value, stp_status)
-
-            if add_result.status:
-                self.log.error(f"Unable to add bridge: {bridge_name}, result: {add_result.reason}")
-                return STATUS_NOK
-
-        self.log.debug(f"Bridge {bridge_name} created.")
+        self.log.debug(f"Bridge {bridge_name} successfully updated in both OS and DB")
         return STATUS_OK
 
-    def does_bridge_exist_os(self, bridge_name:str, suppress_error=False) -> bool:
+    def del_bridge(self, bridge_name: str) -> bool:
+        """
+        Delete a bridge from the operating system and the database.
+
+        This method performs the following actions:
+        1. Attempts to delete the bridge from the operating system using `_del_bridge_via_os`.
+        2. If successful, proceeds to delete the bridge from the database using `del_bridge_db`.
+        3. Returns `STATUS_OK` if both operations are successful, or `STATUS_NOK` if any operation fails.
+
+        Args:
+            bridge_name (str): The name of the bridge to delete.
+
+        Returns:
+            bool: `STATUS_OK` if the bridge was successfully deleted from both the OS and the DB,
+                `STATUS_NOK` otherwise.
+        """
+        if not self._del_bridge_via_os(bridge_name):
+            self.log.error('Unable to delete bridge via OS')
+            return STATUS_NOK
+        
+        if not self.del_bridge_db(bridge_name):
+            self.log.error(f"Failed to delete bridge {bridge_name} from DB")
+            return STATUS_NOK
+        
+        return STATUS_OK
+    
+    def does_bridge_exist(self, bridge_name: str) -> bool:
+        """
+        Check if a bridge exists both on the operating system and in the database.
+
+        This method performs the following checks:
+        1. Verifies if the bridge exists on the operating system.
+        2. Checks if the bridge also exists in the database.
+
+        Args:
+            bridge_name (str): The name of the bridge to check.
+
+        Returns:
+            bool: True if the bridge exists on the operating system and does not exist in the database, 
+                indicating that it needs to be added to the database. False otherwise.
+        """
+        if not self._does_bridge_exist_os(bridge_name):
+            self.log.debug(f'Bridge {bridge_name} does not exist on OS')
+            return False
+
+        if self.does_bridge_exists_db(bridge_name):
+            self.log.debug(f'Bridge {bridge_name} exists in DB, but does not exist on OS')
+            return False
+
+        return True
+    
+    def _does_bridge_exist_os(self, bridge_name:str, suppress_error=False) -> bool:
         """
         Check if a bridge with the given name exists via iproute.
         Will also remove bridge name in db if the interface is not available
@@ -170,405 +189,125 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return True
 
-    def get_assigned_bridge_from_interface(self, interface_name: str) -> str:
+    def _del_bridge_via_os(self, bridge_name: str) -> bool:
         """
-        Get the name of the bridge to which a network interface is assigned.
+        Delete a bridge from the operating system. If there are any interfaces linked to the bridge,
+        they will be unlinked before the bridge is deleted.
+
+        This method first checks if the bridge exists on the OS. If it does, it will also ensure that
+        all interfaces linked to the bridge are unlinked before attempting to delete the bridge itself.
 
         Args:
-            interface_name (str): The name of the network interface.
+            bridge_name (str): The name of the bridge to delete.
 
         Returns:
-            str: The name of the assigned bridge, or an empty string if not assigned.
+            bool: True if the bridge was successfully deleted from the OS, False otherwise.
         """
-        result = self.run(["ip", "-details", "-json", "link", "show", interface_name])
-        
-        try:
-            interfaces = json.loads(result.stdout)
-            for interface in interfaces:
-                if "ifname" in interface and interface["ifname"] == interface_name:
-                    if "linkinfo" in interface and "info_slave_data" in interface["linkinfo"]:
-                        if "master" in interface["linkinfo"]["info_slave_data"]:
-                            return interface["linkinfo"]["info_slave_data"]["master"]
-        except json.JSONDecodeError:
-                raise
-        
-        return ""    
-
-    def del_bridge_from_interface(self, interface_name: str, bridge_name:str) -> bool:
-        """
-        Delete bridge from interface via os
-        Delete bridge from interface bridge-group via db
-        
-        This is applied at the interface level
-
-        Args:
-            interface_name (str): The name of the interface to add to the bridge.
-            bridge_name (str): The name of the bridge.
-
-        Returns:
-            bool: STATUS_OK if the interface is added to the bridge successfully, STATUS_NOK otherwise.
-        """
-        if not (bridge_name and self.does_bridge_exist_os(bridge_name)):
-            self.log.error(f"del_bridge_from_interface() -> Bridge does not exist: {bridge_name}")
-            return STATUS_NOK
-        
-        if not interface_name:
-            self.log.fatal(f"del_bridge_from_interface()-> No Interface provided")
+        if not self._does_bridge_exist_os(bridge_name):
+            self.log.debug(f"Bridge {bridge_name} does not exist on OS. No deletion performed.")
             return STATUS_NOK
 
-        if self._del_bridge_from_interface_bridge_group(bridge_name):
-            self.log.error(f"del_bridge_from_interface()-> Interface {interface_name} unable to delete from bridge {bridge_name}.")
-            return STATUS_NOK
+        # Find and unlink any interfaces associated with the bridge
+        linked_interfaces = self._get_linked_interfaces(bridge_name)
         
-        if self.update_interface_bridge_group(interface_name, bridge_name, True):
-            self.log.error(f"del_bridge_from_interface90 -> Unable to delete bridge: {bridge_name} from interface: {interface_name} bridge-group via db")
-            return STATUS_NOK
+        if linked_interfaces:
+            self.log.debug(f"Unlinking interfaces {linked_interfaces} from bridge {bridge_name}.")
+            for iface in linked_interfaces:
+                result = self.run(['ip', 'link', 'set', iface, 'nomaster', '-json'])
+                if result.exit_code != 0:
+                    self.log.error(f"Failed to unlink interface {iface} from bridge {bridge_name}: {result.stderr.strip()}")
+                    return STATUS_NOK
         
-        return STATUS_OK
-
-    def add_bridge_to_interface(self, interface_name: str, bridge_name:str=None, stp:BridgeProtocol=BridgeProtocol.IEEE_802_1D) -> bool:
-        """
-        Add bridge to interface bridge-group via os.
-        Add bridge to interface bridge-group via db
-        This is applied at the interface level
-
-        Args:
-            interface_name (str): The name of the interface to add to the bridge.
-            bridge_name (str): The name of the bridge.
-
-        Returns:
-            bool: STATUS_OK if the interface is added to the bridge successfully, STATUS_NOK otherwise.
-        """
-        self.log.debug(f"add_interface_cmd() -> Interface: {interface_name} -> Bridge: {bridge_name} STP: {stp}")
-        
-        if not (bridge_name and self.does_bridge_exist_os(bridge_name)):
-            self.log.error(f"add_interface_cmd() -> Bridge does not exist: {bridge_name}")
-            return STATUS_NOK
-        
-        if not interface_name:
-            self.log.fatal(f"No Interface provided")
-            return STATUS_NOK
-        
-        if self._set_bridge_to_interface_bridge_group(interface_name, bridge_name):
-            self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via os")
-            return STATUS_NOK        
-
-        if self.update_interface_bridge_group(interface_name, bridge_name):
-            self.log.error(f"Unable to add bridge: {bridge_name} to interface: {interface_name} bridge-group via db")
-            return STATUS_NOK        
-    
-        return STATUS_OK
-
-    def stp_status_cmd(self, bridge_name: str, stp_status: Optional[str] = 'enable') -> bool:
-        """
-        Set the STP (Spanning Tree Protocol) status for a bridge.
-
-        Args:
-            bridge_name (str): The name of the bridge.
-            stp_status (str, optional): The STP status ('enable' or 'disable'). Defaults to 'enable'.
-
-        Returns:
-            bool: STATUS_OK if the interface is added to the bridge successfully, otherwise (STATUS_OK).
-        """
-        if not self.does_bridge_exist_os(bridge_name):
-            self.log.error(f"stp_status_cmd() -> No Bridge name provided")
-            return STATUS_NOK
-        
-        stp = '1' if stp_status == 'enable' else '0'
-
-        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', stp])
-
-        if result.exit_code:
-            self.log.debug(f"stp_status_cmd() -> STP status for bridge {bridge_name} was NOT set to {stp}.")
-            return STATUS_NOK
-
-        self.log.debug(f"stp_status_cmd() -> STP status for bridge {bridge_name} set to {stp}.")
-        return STATUS_OK
-
-    def shutdown_cmd(self, bridge_name: str, state: State = State.DOWN) -> bool:
-        """
-        Change the state of the specified bridge.
-
-        Args:
-            bridge_name (str): The name of the bridge to be shut down or brought up.
-            state (State): The desired state for the bridge (State.DOWN or State.UP). Defaults to State.DOWN.
-
-        Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
-        """
-        self.log.info(f"shutdown_cmd() -> Bridge: {bridge_name} -> current-state: {self.get_bridge_state(self.bridge_name).value} -> change-state: {state.value}")    
-        
-        if not bridge_name or not self.does_bridge_exist_os(bridge_name):
-            self.log.error("No Bridge name provided or bridge does not exist.")
-            return STATUS_NOK
-
-        if self.run(['ip', 'link', 'set', 'dev', bridge_name, state.value]).exit_code:
-            self.log.error(f"Failed to change bridge {bridge_name} to STATE: {state.value}.")
-            return STATUS_NOK
-
-        self.log.info(f"shutdown_cmd() -> Bridge: {bridge_name} -> current-state: {self.get_bridge_state(self.bridge_name).value} -> change-state: {state.value}")
-
-        return STATUS_OK
-
-    def destroy_bridge_cmd_os(self, bridge_name) -> bool:
-        """
-        Destroy the current bridge using iproute2 with sudo.
-
-        Returns:
-            bool: STATUS_OK if the bridge was successfully destroyed, STATUS_NOK otherwise.
-        """
-        self.log.debug(f"destroy_bridge_cmd() -> Bridge: {bridge_name}")
-        if not bridge_name:
-            self.log.error("No bridge selected. Use 'bridge <bridge_name>' to select a bridge.")
-            return STATUS_NOK
-        
-        if not self.does_bridge_exist_os(bridge_name):
-            self.log.debug(f"Invalid Bridge Name: {bridge_name}")
-            return STATUS_NOK
-        
-        result = self.run(['ip', 'link', 'delete', bridge_name, 'type', 'bridge'])
+        # Now delete the bridge
+        result = self.run(['ip', 'link', 'delete', bridge_name, '-json'])
         
         if result.exit_code:
-            self.log.error(f"Failed to destroy bridge {bridge_name}")
-            return STATUS_NOK
+            self.log.debug(f"Bridge {bridge_name} successfully deleted from OS")
+            return STATUS_OK
         else:
-            self.log.debug(f"Destroyed bridge {bridge_name}.")
-            return STATUS_OK
-        
-    def is_interface_connect_to_bridge(self, ifName:str, bridge_name:str) -> bool:
-        """
-        Check if a network interface is connected to a specific bridge.
-
-        Args:
-            ifName (str): The name of the network interface to check.
-            bridge_name (str): The name of the bridge to check against.
-
-        Returns:
-            bool: STATUS_OK if the network interface is connected to the bridge, STATUS_NOK otherwise.
-        """
-
-        result = self.run(['ip', 'link', 'show', 'type', 'bridge_slave', ifName, 'master', bridge_name], suppress_error=True)
-
-        if result.exit_code:
-            self.log.debug(f"Interface: {ifName} is not part of Bridge: {bridge_name}")
+            self.log.error(f"Failed to delete bridge {bridge_name} from OS: {result.stderr.strip()}")
             return STATUS_NOK
 
-        return STATUS_OK
-        
-    def get_bridge(self, arg=None):
-
+    def _get_linked_interfaces(self, bridge_name: str) -> List[str]:
         """
-        Get information about bridge interfaces.
-
-        This method retrieves information about bridge interfaces, including their names, MAC addresses, IPv4 and IPv6
-        addresses, state, and associated interfaces. The information is displayed in a tabulated format.
+        Retrieve a list of interfaces linked to the given bridge using JSON output for parsing.
 
         Args:
-            arg (Any, optional): Additional argument (not used).
+            bridge_name (str): The name of the bridge to check.
 
         Returns:
-            None
+            List[str]: A list of interface names that are linked to the bridge.
         """
-                
-        '''21: br0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default qlen 1000'''
-        interface_patter = r'(\d+):(.*):\s+<(.*)>\s+(.*)'
+        result = self.run(['bridge', 'link', 'show', bridge_name, '-json'])
         
-        '''link/ether 8e:a5:07:16:1c:be brd ff:ff:ff:ff:ff:ff'''
-        mac_pattern = r'\s+link/ether\s+(..:..:..:..:..:.[0-9a-fA-F])\s+.*'
-        
-        '''inet 192.168.0.11/24 brd 192.168.0.255 scope global dynamic noprefixroute eno1'''
-        inet_pattern = r'\s+inet\s+(.*/\d+)\s+.*'
-        
-        '''inet6 2601:586:8300:5760:8790:b4f7:f663:b93/64 scope global temporary dynamic '''
-        inet6_pattern = r'\s+inet6\s+(.*/\d+)\s+.*'
-        
-        bridge_info = []
-        bridge_mac = ""
-        bridge_inet = ""
+        if result.exit_code:
+            self.log.error(f"Failed to retrieve linked interfaces for bridge {bridge_name}: {result.stderr.strip()}")
+            return []
 
-        # Get a list of all bridges
-        ip_arr_out = self.run(["ip", "address", "show", "type", "bridge"])
-        
-        for line in ip_arr_out.stdout.splitlines():
-            
-            self.log.debug(f"ip_rte_br_out -> {line}")
-            bridge_match = re.match(interface_patter, line)
-            if bridge_match:    
-                bridge_idx = bridge_match.group(1).strip()
-                bridge_name = bridge_match.group(2).strip()
-                bridge_flags = bridge_match.group(3).strip()
-                bridge_state = bridge_match.group(4).strip().split("state")[1].strip().split(" ")[0]
-            
-                # Print the extracted information
-                self.log.debug(f"Bridge Index: ({bridge_idx}), Bridge Name: ({bridge_name}), Bridge Flags: ({bridge_flags}), Bridge State: ({bridge_state})")
-
-            # Match the MAC address pattern
-            mac_match = re.match(mac_pattern, line)
-            if mac_match:
-                # Extract the MAC address
-                bridge_mac = mac_match.group(1).strip()
-                
-                # Print the extracted MAC address
-                self.log.debug(f"Bridge MAC Address: ({bridge_mac})")
-
-            # Match the IPv4 address pattern
-            inet_match = re.match(inet_pattern, line)
-            if inet_match:
-                # Extract the IPv4 address
-                bridge_inet = inet_match.group(1).strip()
-                
-                # Print the extracted IPv4 address
-                self.log.debug(f"Bridge IPv4 Address: ({bridge_inet})")
-
-            # Match the IPv6 address pattern
-            inet6_match = re.match(inet6_pattern, line)
-            if inet6_match:
-                # Extract the IPv6 address
-                bridge_inet6 = inet6_match.group(1).strip()
-                
-                # Print the extracted IPv6 address
-                self.log.debug(f"Bridge IPv6 Address: ({bridge_inet6})")
-
-                # Get details for each bridge
-                bridge_details = self.run(["ip", "link", "show", bridge_name])
-
-                # Get associated interfaces
-                bridge_interfaces = self.run(["ip", "link", "show", "type", "bridge_slave", "master", bridge_name])
-                interface_list = "\n".join([re.search(r"(\S+)(?:@|$)", iface).group(1) for iface in bridge_interfaces.stdout.splitlines() if "@" in iface])
-
-                # TODO Need to figure out why I put bridge_debug HERE??
-                # bridge_debug.append([bridge_name, bridge_mac, bridge_inet, bridge_inet6, bridge_state, interface_list])
-
-        # Display the information in a tabulated format
-        headers = ["Bridge", "Mac", "IPv4", "IPv6", "State", "Interfaces"]
-        print(tabulate(bridge_info, headers, tablefmt="simple"))
-        
-    def get_bridge_state(self, bridge_name: str) -> State:
-        """
-        Get the current state of the specified network bridge.
-
-        Parameters:
-        bridge_name (str): The name of the bridge whose state is to be retrieved.
-
-        Returns:
-        State: The state of the bridge, which can be 'UP', 'DOWN', or 'UNKNOWN'.
-        """
-                
-        # Run the ip link show command to get information about the bridge
-        result = self.run(['ip', '-json', 'link', 'show', bridge_name], suppress_error=True)
-        
         try:
+            data = json.loads(result.stdout)
+            interfaces = [entry['ifname'] for entry in data if 'ifname' in entry]
+        except json.JSONDecodeError as e:
+            self.log.error(f"Failed to parse JSON for bridge {bridge_name}: {e}")
+            return []
 
-            bridge_info = json.loads(result.stdout)
-            
-            for interface in bridge_info:
-                if interface.get('ifname') == bridge_name:
-                    operstate = interface.get('operstate', 'UNKNOWN').upper()
-                    
-                    if operstate == State.UP.name:
-                        return State.UP
-                    elif operstate == State.DOWN.name:
-                        return State.DOWN
-                    else:
-                        return State.UNKNOWN
-            
-            return State.UNKNOWN
-        
-        except json.JSONDecodeError:
-            print(f"Error decoding JSON output for bridge: {bridge_name}")
-            return State.UNKNOWN
-        except Exception as e:
-            print(f"Unexpected error: {e}")
-            return State.UNKNOWN
+        return interfaces
 
-    def create_bridge(self, bridge_name:str, stp:STP_STATE = STP_STATE.STP_ENABLE) -> bool:
+    def _update_bridge_via_os(self, bridge_name: str, 
+                            protocol: Optional[BridgeProtocol] = None, 
+                            stp_status: Optional[STP_STATE] = None,
+                            management_inet: Optional[str] = None,
+                            shutdown_status: Optional[State] = None) -> bool:
         """
-        Create a new network bridge.
+        Update a bridge on the operating system with the specified parameters.
+
+        This method updates the bridge's protocol, STP status, management IP address, 
+        and shutdown status on the operating system.
+
+        Args:
+            bridge_name (str): The name of the bridge to update.
+            protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
+            stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
+            management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
+            shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
+
+        Returns:
+            bool: True if the bridge was successfully updated, False otherwise.
         """
-        if self.does_bridge_exist_os(bridge_name): 
-            self.log.info(f'Can not create bridge {bridge_name}, already exists on OS')
+        if not self._does_bridge_exist_os(bridge_name):
+            self.log.debug(f"Bridge {bridge_name} does not exist on OS. No update performed.")
             return STATUS_NOK
+
+        # Initialize command list
+        cmd = ['ip', 'link', 'set', bridge_name]
+
+        if protocol:
+            # Example: Set protocol; modify as per actual command syntax
+            cmd.extend(['bridge', 'protocol', protocol.name])
         
-        if self.does_bridge_exists_db(bridge_name):
-            self.log.info(f'Can not create bridge {bridge_name}, already exists on DB')
-            return STATUS_NOK
+        if stp_status:
+            # Example: Set STP status; modify as per actual command syntax
+            stp_command = 'enable' if stp_status == STP_STATE.STP_ENABLE else 'disable'
+            cmd.extend(['bridge', 'stp', stp_command])
+
+        if management_inet:
+            # Example: Set management IP address; modify as per actual command syntax
+            cmd.extend(['addr', 'add', management_inet, 'dev', bridge_name])
         
-        if self._create_bridge_os(bridge_name):
-            self.log.info(f'Can not create bridge {bridge_name} on OS')
-            return STATUS_NOK
-        
-        if self.add_bridge_db(bridge_name):
+        if shutdown_status:
+            shutdown_command = 'down' if shutdown_status == State.DOWN else 'up'
+            cmd.extend(['net', 'link', shutdown_command])
+
+        result = self.run(cmd)
+
+        if result.exit_code == 0:
+            self.log.debug(f"Bridge {bridge_name} successfully updated on OS")
             return STATUS_OK
-        
-    def _create_bridge_os(self, bridge_name: str) -> bool:
-        """
-        Create a bridge with Spanning Tree Protocol (STP) enabled.
-
-        Args:
-            bridge_name (str): The name of the bridge to create.
-
-        Returns:
-            bool: STATUS_OK (False) if the bridge is created with STP enabled successfully, STATUS_NOK (True) if creation fails.
-        """
-        self.log.debug(f"_create_bridge_with_stp() -> Adding bridge: {bridge_name} to os")
-        
-        result = self.run(['ip', 'link', 'add', 'name', bridge_name, 'type', 'bridge'])
-        if result.exit_code:
-            self.log.warning(f"Bridge {bridge_name} cannot be created - exit-code: {result.exit_code}")
+        else:
+            self.log.error(f"Failed to update bridge {bridge_name} on OS: {result.stderr.strip()}")
             return STATUS_NOK
 
-        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(STP_STATE.STP_ENABLE.value)])
-        if result.exit_code:
-            self.log.warning(f"Bridge {bridge_name} unable to enable IEEE_802_1D - exit-code: {result.exit_code}")
-            return STATUS_NOK
 
-        self.log.debug(f"_create_bridge_with_stp() -> Added bridge: {bridge_name} to os")
-        return STATUS_OK
-    
-    def _set_bridge_to_interface_bridge_group(self, interface_name: str, bridge_name: str) -> bool:
-        """
-        Set an interface as a master of a bridge.
+            
 
-        Args:
-            interface_name (str): The name of the network interface to set as the master.
-            bridge_name (str): The name of the bridge.
-
-        Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
-        """
-        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface: {interface_name} -> Bridge: {bridge_name}")
-
-        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', bridge_name])
-
-        if result.exit_code:
-            self.log.error(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} unable to be set as the master of bridge {bridge_name}.")
-            return STATUS_NOK
-
-        self.stp_status_cmd(bridge_name)
-
-        self.log.debug(f"_set_bridge_to_interface_bridge_group() -> Interface {interface_name} set as the master of bridge {bridge_name}.")
-
-        return STATUS_OK
-    
-    def _del_bridge_from_interface_bridge_group(self, bridge_name: str) -> bool:
-        """
-        Set an interface to have no master.
-
-        Args:
-            bridge_name (str): The name of the bridge to set to have no master.
-
-        Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK if the operation fails.
-        """
-        result = self.run(['ip', 'link', 'set', 'dev', bridge_name, 'nomaster'])
-        if result.exit_code:
-            self.log.warning(f"Failed to set {bridge_name} to have no master - exit-code: {result.exit_code}")
-            return STATUS_NOK
-
-        return STATUS_OK
-
-
-
-
-    
-    
+                
