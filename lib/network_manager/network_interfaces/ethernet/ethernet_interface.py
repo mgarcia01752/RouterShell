@@ -4,9 +4,8 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
-from lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from lib.network_manager.network_operations.arp import Encapsulate
-from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 
@@ -14,7 +13,7 @@ class EthernetInterfaceError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class EthernetInterface(NetworkInterface, BridgeGroup):
+class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
 
     def __init__(self, ethernet_name: str):
         super().__init__(interface_name=ethernet_name)
@@ -178,26 +177,4 @@ class EthernetInterface(NetworkInterface, BridgeGroup):
             self.log.error(f'Unable to add NAT-{nat_direction.name} to pool-name: {nat_pool_name} Negate: {negate}')
             return STATUS_NOK
         return STATUS_OK
-    
-    def set_dhcp_client(self, dhcp_stack_version: DHCPStackVersion, negate: bool=False) -> bool:
-        """
-        Configure the DHCP client on the interface.
-
-        Args:
-            dhcp_stack_version (DHCPStackVersion): The version of DHCP to configure (e.g., v4 or v6).
-            negate (bool): If True, disables the DHCP client; otherwise, enables it.
-
-        Returns:
-            bool: STATUS_OK if the command was successful, STATUS_NOK otherwise.
-        """
-        try:
-            if Interface().update_interface_dhcp_client(self.interface_name, dhcp_stack_version, negate):
-                self.log.error(f"Faiiled {'Disabling' if negate else 'Enabling'} DHCP {dhcp_stack_version.name} client on interface {self.interface_name}")
-                return STATUS_NOK
-            return STATUS_OK
-        
-        except Exception as e:
-            self.log.error(f"Failed to {'disable' if negate else 'enable'} {dhcp_stack_version.name} on interface {self.interface_name}. Error: {e}")
-            return STATUS_NOK
-        
 

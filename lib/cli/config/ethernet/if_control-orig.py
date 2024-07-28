@@ -12,7 +12,8 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge.bridge import Bridge
-from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient, DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
 from lib.network_manager.network_operations.dhcp.client.server.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
@@ -160,7 +161,8 @@ class InterfaceConfig(CmdPrompt, Interface):
         elif "dhcp-client" in args[0]:
             '''[no] [ip dhcp-client]'''
             self.log.debug(f"Enable DHCPv4 Client")
-            if Interface().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V4, negate):
+            state = State.UP if negate else State.DOWN
+            if DHCPInterfaceClient().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V4, state):
                 self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
 
         elif "dhcp-server" in args[0]:

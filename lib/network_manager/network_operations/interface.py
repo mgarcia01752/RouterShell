@@ -720,40 +720,6 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_dhcp_client(self, interface_name: str, dhcp_stack_ver: DHCPStackVersion, negate=False) -> bool:
-        """
-        Update the DHCP configuration for a network interface via OS.
-        Update the DHCP configuration for a network interface via DB.
-        
-        Args:
-            interface_name (str): The name of the network interface.
-            dhcp_stack_ver (DHCPStackVersion): The DHCP version (DHCP_V4 or DHCP_V6).
-            negate (bool): If True, disable DHCP; if False, enable DHCP.
-
-        Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
-
-        """
-        try:
-            dhcp_client = DHCPClient(interface_name, dhcp_stack_ver)
-            self.log.debug(f"Updated DHCP client configuration for interface: {interface_name} via OS")
-        
-        except Exception as e:
-            self.log.critical(f"Failed to update DHCP client configuration for interface: {interface_name} via OS: {e}")
-            return STATUS_NOK
-        
-        if negate:
-            if dhcp_client.stop():
-                self.log.error(f"Failed to stop client on interface: {interface_name} OS update error.")
-                return STATUS_NOK
-        
-        else:                                            
-            if dhcp_client.start():
-                self.log.error(f"Failed to start {dhcp_stack_ver.value} client on interface: {interface_name} OS update error.")
-                return STATUS_NOK
-
-        return STATUS_OK            
-
     def set_nat_domain_status_1(self, interface_name:str, nat_in_out:NATDirection, negate=False):
         
         if nat_in_out is NATDirection.INSIDE:
