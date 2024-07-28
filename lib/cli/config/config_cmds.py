@@ -222,10 +222,13 @@ class ConfigCmd(CmdPrompt):
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['system'], append_nested_sub_cmds=['telnet-server', 'ssh-server'])
     def configcmd_no(self, args: List) -> bool:
-
+                
         if args[0] == 'bridge':
-            self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
-            BridgeConfigFactory()
+            bridge_name = args[1]
+            self.log.debug(f"configcmd_no() -> bridge: {bridge_name}")
+            if Bridge().del_bridge(bridge_name):
+                print(f"Unable to destroy bridge: {bridge_name}")
+                return STATUS_NOK
 
         if args[0] == 'system':
             self.log.debug(f"configcmd_no() -> system: {args[1]}")
