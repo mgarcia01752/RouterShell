@@ -14,7 +14,7 @@ class RouterShellLoggingGlobalSettings():
         LOGGING LEVELS: INFO WARN ERROR FATAL CRITICAL
     '''
 
-    GLOBAL_DEBUG = False
+    GLOBAL_DEBUG = True
 
     TEMPLATE_CONFIG = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
@@ -49,7 +49,7 @@ class RouterShellLoggingGlobalSettings():
 
     BRIDGE = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONFIG_FACTORY = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_CONFIG_COMMANDS = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_CONFIG_COMMANDS = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
     BRIDGE_CONFIG = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_DB = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONFIG_CMD = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

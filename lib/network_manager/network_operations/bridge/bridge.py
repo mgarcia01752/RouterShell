@@ -45,38 +45,35 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Unexpected data format: {e}")
             return []
 
-    def add_bridge(self, bridge_name: str) -> bool:
+    def add_bridge(self, bridge_name: str, fix_os_db_inconsistency: bool = False) -> bool:
         """
-        Add a bridge to the system and database. The method checks if the bridge exists in the OS and the database,
-        and performs appropriate actions based on its presence.
+        Adds a bridge to both the operating system (OS) and the database (DB).
+
+        If the bridge already exists in either the OS or the DB, it checks for inconsistencies 
+        and can optionally fix them based on the `fix_os_db_inconsistency` flag.
 
         Args:
-            bridge_name (str): The name of the bridge to be added.
+            bridge_name (str): The name of the bridge to add.
+            fix_os_db_inconsistency (bool): Flag to indicate if inconsistencies between 
+                                            the OS and DB should be fixed.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
         if self._does_bridge_exist_os(bridge_name):
-            if not self.does_bridge_exists_db(bridge_name):
-                self.log.warn(f'Bridge {bridge_name} not in DB, adding to DB')
-                if self.add_bridge_db(bridge_name):
-                    self.log.error(f'Failed to add bridge: {bridge_name} to DB')
-                    return STATUS_NOK
-                return STATUS_OK
-            
-            self.log.debug(f"Bridge {bridge_name} already exists in DB")
-            return STATUS_NOK
+            return self._handle_bridge_os_db_inconsistencies(bridge_name, fix_os_db_inconsistency, os_exists=True)
         
-        # If bridge does not exist in the OS, it might still exist in the DB, so handle this case
-        if self.does_bridge_exists_db(bridge_name):
-            self.log.debug(f"Bridge {bridge_name} already exists in DB - Deleting and re-adding")
-            if self.del_bridge_db(bridge_name):
-                self.log.debug(f"Failed to delete existing bridge {bridge_name} from DB")
+        elif self.does_bridge_exists_db(bridge_name):
+            return self._handle_bridge_os_db_inconsistencies(bridge_name, fix_os_db_inconsistency, os_exists=False)
+        
+        else:
+            self.log.debug(f"Adding bridge {bridge_name} to both OS and DB")
+            if self._add_bridge_os(bridge_name):
+                self.log.error(f'Unable to add bridge {bridge_name} to OS')
                 return STATUS_NOK
-        
-        if self.add_bridge_db(bridge_name):
-            self.log.error(f"Failed to add bridge {bridge_name} to DB")
-            return STATUS_NOK
+            if self.add_bridge_db(bridge_name):
+                self.log.error(f'Unable to add bridge {bridge_name} to DB')
+                return STATUS_NOK                
         
         return STATUS_OK
 
@@ -265,16 +262,15 @@ class Bridge(RunCommand, BridgeDatabase):
         Returns:
             bool: True if the bridge exists, False otherwise.
         """
-        self.log.debug(f"does_bridge_exist_os() -> Checking bridge name exists: {bridge_name}")
+        self.log.debug(f"_does_bridge_exist_os() -> Checking bridge name exists: {bridge_name}")
         
         output = self.run(['ip', 'link', 'show', 'dev', bridge_name], suppress_error=True)
         
         if output.exit_code:
-            self.log.debug(f"does_bridge_exist_os() -> Bridge does NOT exist: {bridge_name} - exit-code: {output.exit_code}")
+            self.log.debug(f"_does_bridge_exist_os(return:{False}) -> Bridge does NOT exist: {bridge_name} - iproute: exit-code: {output.exit_code}")
             return False
             
-        self.log.debug(f"does_bridge_exist_os(exit-code({output.exit_code})) -> Bridge does exist: {bridge_name}")
-        
+        self.log.debug(f"_does_bridge_exist_os(exit-code({output.exit_code})) -> Bridge does exist: {bridge_name}")
         return True
 
     def _del_bridge_via_os(self, bridge_name: str) -> bool:
@@ -395,7 +391,62 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.error(f"Failed to update bridge {bridge_name} on OS: {result.stderr.strip()}")
             return STATUS_NOK
 
+    def _handle_bridge_os_db_inconsistencies(self, bridge_name: str, fix_os_db_inconsistency: bool, os_exists: bool) -> bool:
+        """
+        Handles inconsistencies between the operating system (OS) and the database (DB) for a bridge.
 
+        Args:
+            bridge_name (str): The name of the bridge.
+            fix_os_db_inconsistency (bool): Flag to indicate if inconsistencies should be fixed.
+            os_exists (bool): Flag indicating if the bridge exists in the OS.
+
+        Returns:
+            bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
+        """
+        if os_exists:
+            self.log.debug(f"Bridge {bridge_name} already exists in the OS")
+            if not self.does_bridge_exists_db(bridge_name):
+                self.log.debug(f"Bridge {bridge_name} does not exist in the database")
+                self.log.critical(f'Inconsistency between the OS and DB: bridge {bridge_name} not found in the DB but found in the OS')
+
+                if fix_os_db_inconsistency:
+                    self.log.debug(f"Fixing the DB to match the OS")
+                    if self.add_bridge_db(bridge_name):
+                        return STATUS_OK
+                    return STATUS_NOK
+                return STATUS_NOK
+        else:
+            self.log.debug(f"Bridge {bridge_name} does not exist in the OS but exists in the database")
+
+            if fix_os_db_inconsistency:
+                self.log.debug(f"Fixing the OS to match the DB")
+                if self.del_bridge_db(bridge_name):
+                    if self._add_bridge_os(bridge_name):
+                        self.add_bridge_db(bridge_name)
+                        return STATUS_OK
+                return STATUS_NOK
+            return STATUS_NOK
+
+    def _add_bridge_os(self, bridge_name: str) -> bool:
+        """
+        Create a bridge with Spanning Tree Protocol (STP) enabled.
+
+        Args:
+            bridge_name (str): The name of the bridge to create.
+
+        Returns:
+            bool: STATUS_OK if the bridge is created with STP enabled successfully, STATUS_NOK if creation fails.
+        """
+        self.log.debug(f"_add_bridge_os() -> Adding bridge: {bridge_name} to OS")
+        
+        result = self.run(['ip', 'link', 'add', 'name', bridge_name, 'type', 'bridge'])
+        
+        if result.exit_code:
+            self.log.warning(f"Bridge {bridge_name} cannot be created - exit-code: {result.exit_code}")
+            return STATUS_NOK
+
+        self.log.debug(f"_add_bridge_os() -> Added bridge: {bridge_name} to OS")
+        return STATUS_OK
             
 
                 

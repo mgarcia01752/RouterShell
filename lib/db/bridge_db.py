@@ -29,9 +29,10 @@ class BridgeDatabase():
         Returns:
             bool: True if the bridge exists, False otherwise.
         """
-        cls.log.debug(f"does_bridge_exists_db() -> Bridge: {bridge_name}")
-
-        return cls.rsdb.bridge_exist_db(bridge_name).status
+    
+        status = cls.rsdb.bridge_exist_db(bridge_name).status
+        cls.log.debug(f"does_bridge_exists_db() -> Bridge: {bridge_name} - status: {status}")
+        return status
 
     def add_bridge_db(cls, bridge_name: str, bridge_protocol: str = None, stp_status: bool = True) -> bool:
         """

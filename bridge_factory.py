@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 
+import logging
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_operations.bridge.bridge_factory import BridgeConfigFactory
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('/tmp/log/routershell.log')
+    ]
+)
 
 bridge_name = "brlan0"
 mgt_inet = "10.10.10.1"
@@ -14,7 +24,8 @@ bcc = BridgeConfigFactory(bridge_name=bridge_name).get_bridge_config_cmds()
 print(f"Checking if bridge {bridge_name} exists")
 if not bcc.does_bridge_exist():
     print(f"Bridge {bridge_name} does not exist. Creating bridge.")
-    bcc.create_bridge()
+    if bcc.create_bridge():
+        print(f"Failed to creae Bridge {bridge_name}")
 else:
     print(f"Bridge {bridge_name} already exists.")
 

@@ -33,7 +33,7 @@ class BridgeConfigFactory:
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG_FACTORY)        
-        self.bridge_name = bridge_name
+        self._bridge_name = bridge_name
         
     def get_bridge_config_cmds(self) -> 'BridgeConfigCommands':
         """
@@ -45,7 +45,7 @@ class BridgeConfigFactory:
         Returns:
             BridgeConfigCommands: The newly created BridgeConfigCommands object.
         """
-        bcc = BridgeConfigCommands(self.bridge_name)
+        bcc = BridgeConfigCommands(self._bridge_name)
         BridgeConfigFactory._bridge_config_command_list.append(bcc)
         return bcc
     
@@ -102,7 +102,7 @@ class BridgeConfigCommands:
             return False         
         return True
     
-    def create_bridge_interface(self) -> bool:
+    def create_bridge(self) -> bool:
         """
         Create a bridge interface if it does not already exist.
 
@@ -110,18 +110,19 @@ class BridgeConfigCommands:
             bool: STATUS_OK if the bridge was successfully created or already exists, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
+            
             if Bridge().add_bridge(self.bridge_name):
-                self.log.debug(f'create_bridge_interface() -> Bridge {self.bridge_name} successfully created')
-                return STATUS_OK
+                self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create Bridge {self.bridge_name}')
+                return STATUS_NOK
             
             else:
-                self.log.error(f'create_bridge_interface() -> Failed to create bridge {self.bridge_name}')
+                self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create bridge {self.bridge_name}')
                 return STATUS_NOK
         
-        self.log.debug(f'create_bridge_interface() -> Bridge {self.bridge_name} already exists')
+        self.log.debug(f'create_bridge(return {STATUS_OK}) -> Bridge {self.bridge_name} already exists')
         return STATUS_OK
     
-    def set_management_inet(self, inet: str) -> bool:
+    def set_inet_management(self, inet: str) -> bool:
         """
         Set the IPv4 or IPv6 address for the bridge.
 
@@ -135,12 +136,12 @@ class BridgeConfigCommands:
             current_inet = Bridge().get_inet(self.bridge_name)
             if current_inet != inet:
                 if Bridge().update_bridge(bridge_name=self.bridge_name, management_inet=inet):
-                    self.log.debug(f'set_inet() -> Inet address {inet} set for bridge {self.bridge_name}')
+                    self.log.debug(f'set_inet_management() -> Inet address {inet} set for bridge {self.bridge_name}')
                     return STATUS_OK
                 else:
-                    self.log.error(f'set_inet() -> Failed to set inet address {inet} for bridge {self.bridge_name}')
+                    self.log.error(f'set_inet_management() -> Failed to set inet address {inet} for bridge {self.bridge_name}')
                     return STATUS_NOK
-            self.log.debug(f'set_inet() -> Inet address {inet} is already set for bridge {self.bridge_name}')
+            self.log.debug(f'set_inet_management() -> Inet address {inet} is already set for bridge {self.bridge_name}')
         return STATUS_OK
     
     def set_shutdown_status(self, negate: bool) -> bool:

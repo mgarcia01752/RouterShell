@@ -372,6 +372,7 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object indicating if the bridge exists.
+                - If the bridge exists, the Result object will have 'status' set to True, othewise False
         """
         try:
             cursor = self.connection.cursor()
@@ -381,12 +382,12 @@ class RouterShellDB(metaclass=Singleton):
 
             if row:
                 bridge_id = row[0]
-                return Result(status=STATUS_OK, row_id=bridge_id)
+                return Result(status=True, row_id=bridge_id)
             else:
-                return Result(status=STATUS_NOK, reason=f"Bridge with name '{bridge_name}' does not exist")
+                return Result(status=False, reason=f"Bridge with name '{bridge_name}' does not exist")
 
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, reason=str(e))
+            return Result(status=False, reason=str(e))
  
     def insert_interface_bridge(self, bridge_name: str, shutdown_status: bool = True) -> Result:
         """
@@ -405,24 +406,20 @@ class RouterShellDB(metaclass=Singleton):
         """
         ifType = InterfaceType.BRIDGE.value
 
-        # Check if the bridge already exists using the bridge_exist_db method
         existing_result = self.bridge_exist_db(bridge_name)
         
-        if existing_result.status == STATUS_OK:
-            # Bridge already exists
+        if existing_result.status:
             return Result(status=STATUS_NOK, reason=f"Bridge with name '{bridge_name}' already exists")
 
         try:
             cursor = self.connection.cursor()
 
-            # Insert into Interfaces table
             cursor.execute(
                 "INSERT INTO Interfaces (InterfaceName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
                 (bridge_name, ifType, shutdown_status)
             )
             interface_id = cursor.lastrowid
 
-            # Insert into Bridges table
             cursor.execute(
                 "INSERT INTO Bridges (BridgeName, ManagmentInterface_FK) VALUES (?, ?)",
                 (bridge_name, interface_id)
@@ -451,7 +448,7 @@ class RouterShellDB(metaclass=Singleton):
             # Check if the bridge exists using the existing method
             bridge_result = self.bridge_exist_db(bridge_name)
 
-            if bridge_result.status == STATUS_NOK:
+            if not bridge_result.status:
                 self.log.debug(f"Bridge interface {bridge_name} does not exist")
                 return Result(status=STATUS_NOK, row_id=0, reason=f"Bridge interface {bridge_name} does not exist")
 
