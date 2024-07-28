@@ -109,19 +109,17 @@ class BridgeConfigCommands:
         Returns:
             bool: STATUS_OK if the bridge was successfully created or already exists, STATUS_NOK otherwise.
         """
-        if not self.does_bridge_exist():
+        if self.does_bridge_exist():
+            self.log.error(f'Can not create bridge: {self.bridge_name}, already exists')
+            return STATUS_NOK
             
-            if Bridge().add_bridge(self.bridge_name):
-                self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create Bridge {self.bridge_name}')
-                return STATUS_NOK
-            
-            else:
-                self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create bridge {self.bridge_name}')
-                return STATUS_NOK
+        if Bridge().add_bridge(self.bridge_name):
+            self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create Bridge {self.bridge_name}')
+            return STATUS_NOK
         
-        self.log.debug(f'create_bridge(return {STATUS_OK}) -> Bridge {self.bridge_name} already exists')
+        self.log.debug(f'create_bridge(return {STATUS_NOK}) -> successfully created bridge {self.bridge_name}')
         return STATUS_OK
-    
+                
     def set_inet_management(self, inet: str) -> bool:
         """
         Set the IPv4 or IPv6 address for the bridge.
@@ -132,41 +130,43 @@ class BridgeConfigCommands:
         Returns:
             bool: STATUS_OK if the IP address was successfully set, STATUS_NOK otherwise.
         """
-        if self.does_bridge_exist():
-            current_inet = Bridge().get_inet(self.bridge_name)
-            if current_inet != inet:
-                if Bridge().update_bridge(bridge_name=self.bridge_name, management_inet=inet):
-                    self.log.debug(f'set_inet_management() -> Inet address {inet} set for bridge {self.bridge_name}')
-                    return STATUS_OK
-                else:
-                    self.log.error(f'set_inet_management() -> Failed to set inet address {inet} for bridge {self.bridge_name}')
-                    return STATUS_NOK
-            self.log.debug(f'set_inet_management() -> Inet address {inet} is already set for bridge {self.bridge_name}')
+        if not self.does_bridge_exist():
+            self.log.error(f'Unable to set management inet {inet} to bridge: {self.bridge_name} does not exists')
+            return STATUS_NOK
+        
+        if Bridge().update_bridge(bridge_name=self.bridge_name, management_inet=inet):
+            self.log.debug(f'set_inet_management() -> Failed to set inet address {inet} to bridge {self.bridge_name}')
+            return STATUS_NOK
+
+        self.log.debug(f'set_inet_management() -> Inet address {inet} is set to bridge {self.bridge_name}')
         return STATUS_OK
     
-    def set_shutdown_status(self, negate: bool) -> bool:
+    def set_shutdown_status(self, state: State) -> bool:
         """
-        Set the shutdown status of the bridge.
+        Set the shutdown status for a specified bridge.
 
-        Args:
-            negate (bool): If True, sets the bridge to DOWN state, otherwise UP state.
+        This method checks if the bridge exists. If it does, it compares the current shutdown status 
+        with the desired new status. If they differ, it updates the bridge's shutdown status. 
+
+        Parameters:
+            state (State): The desired shutdown status to set for the bridge. 
+                        It can be State.UP, State.DOWN, or State.UNKNOWN.
 
         Returns:
-            bool: STATUS_OK if the shutdown status was successfully set, STATUS_NOK otherwise.
+            bool: STATUS_OK (True) if the shutdown status was successfully set or if it was already set to the desired status.
+                STATUS_NOK (False) if there was an error setting the shutdown status.
         """
-        if self.does_bridge_exist():
-            new_status = State.DOWN if negate else State.UP
-            current_status = Bridge().get_bridge_shutdown_status_os(self.bridge_name)
-            if current_status != new_status:
-                if Bridge().update_bridge(bridge_name=self.bridge_name, shutdown_status=new_status):
-                    self.log.debug(f'set_shutdown_status() -> Shutdown status {new_status} set for bridge {self.bridge_name}')
-                    return STATUS_OK
-                else:
-                    self.log.error(f'set_shutdown_status() -> Failed to set shutdown status {new_status} for bridge {self.bridge_name}')
-                    return STATUS_NOK
-            self.log.debug(f'set_shutdown_status() -> Shutdown status {new_status} is already set for bridge {self.bridge_name}')
+        if not self.does_bridge_exist():
+            self.log.error(f'Unable to set stp {state} to bridge: {self.bridge_name} does not exists')
+            return STATUS_NOK
+        
+        if Bridge().update_bridge(bridge_name=self.bridge_name, shutdown_status=state):
+            self.log.debug(f'set_shutdown_status() -> Shutdown status {state} set for bridge {self.bridge_name}')
+            return STATUS_NOK
+
+        self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self.bridge_name}')
         return STATUS_OK
-    
+
     def set_stp(self, stp: STP_STATE) -> bool:
         """
         Set the Spanning Tree Protocol (STP) state for the bridge.
@@ -177,16 +177,16 @@ class BridgeConfigCommands:
         Returns:
             bool: STATUS_OK if the STP state was successfully set, STATUS_NOK otherwise.
         """
-        if self.does_bridge_exist():
-            current_stp = Bridge().get_bridge_stp_status_os(self.bridge_name)
-            if current_stp != stp:
-                if Bridge().update_bridge(bridge_name=self.bridge_name, stp_status=stp):
-                    self.log.debug(f'set_stp() -> STP status {stp} set for bridge {self.bridge_name}')
-                    return STATUS_OK
-                else:
-                    self.log.error(f'set_stp() -> Failed to set STP status {stp} for bridge {self.bridge_name}')
-                    return STATUS_NOK
-            self.log.debug(f'set_stp() -> STP status {stp} is already set for bridge {self.bridge_name}')
+        if not self.does_bridge_exist():
+            self.log.error(f'Unable to set stp {stp} to bridge: {self.bridge_name} does not exists')
+            return STATUS_NOK
+           
+        if Bridge().update_bridge(bridge_name=self.bridge_name, stp_status=stp):
+            self.log.debug(f'set_stp() -> Failed to set STP status {stp} to bridge {self.bridge_name}')
+            return STATUS_NOK
+        
+        self.log.debug(f'set_stp() -> STP status {stp} is set for bridge {self.bridge_name}')
+        
         return STATUS_OK
     
     def set_bridge_protocol(self, protocol: BridgeProtocol) -> bool:
@@ -199,15 +199,14 @@ class BridgeConfigCommands:
         Returns:
             bool: STATUS_OK if the bridge protocol was successfully set, STATUS_NOK otherwise.
         """
-        if self.does_bridge_exist():
+        if not self.does_bridge_exist():
+            self.log.error(f'Unable to set protocol {protocol} to bridge: {self.bridge_name} does not exists')
+            return STATUS_NOK
 
-            if Bridge().update_bridge(bridge_name=self.bridge_name, protocol=protocol):
-                self.log.debug(f'set_bridge_protocol() -> Bridge protocol {protocol} set for bridge {self.bridge_name}')
-                return STATUS_OK
-            else:
-                self.log.error(f'set_bridge_protocol() -> Failed to set bridge protocol {protocol} for bridge {self.bridge_name}')
-                return STATUS_NOK
-        
+        if Bridge().update_bridge(bridge_name=self.bridge_name, protocol=protocol):
+            self.log.error(f'set_bridge_protocol() -> Failed to set description "{protocol}" to bridge {self.bridge_name}')
+            return STATUS_NOK
+            
         self.log.debug(f'set_bridge_protocol() -> Bridge protocol {protocol} is already set for bridge {self.bridge_name}')
         return STATUS_OK
     
@@ -221,14 +220,13 @@ class BridgeConfigCommands:
         Returns:
             bool: STATUS_OK if the description was successfully set, STATUS_NOK otherwise.
         """
-        if self.does_bridge_exist():
+        if not self.does_bridge_exist():
+            self.log.error(f'Unable to set description {description} to bridge: {self.bridge_name} does not exists')
+            return STATUS_NOK
 
-            if Bridge().update_bridge(bridge_name=self.bridge_name, description=description):
-                self.log.debug(f'set_description() -> Description "{description}" set for bridge {self.bridge_name}')
-                return STATUS_OK
-            else:
-                self.log.error(f'set_description() -> Failed to set description "{description}" for bridge {self.bridge_name}')
-                return STATUS_NOK
-
-        self.log.debug(f'set_description() -> Description "{description}" is already set for bridge {self.bridge_name}')
+        if Bridge().update_bridge(bridge_name=self.bridge_name, description=description):
+            self.log.error(f'set_description() -> Failed to set description "{description}" to bridge {self.bridge_name}')
+            return STATUS_NOK
+            
+        self.log.debug(f'set_description() -> Description "{description}" set to bridge {self.bridge_name}')
         return STATUS_OK

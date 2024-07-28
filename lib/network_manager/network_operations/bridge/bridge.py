@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from lib.db.bridge_db import BridgeDatabase 
 from lib.network_manager.common.phy import State
-from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.common.common import STATUS_NOK, STATUS_OK, Common
 
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.common.run_commands import RunCommand
@@ -99,10 +99,10 @@ class Bridge(RunCommand, BridgeDatabase):
             shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
-            bool: True if both OS and DB updates were successful, False otherwise.
+            bool: STATUS_OK if both OS and DB updates were successful, STATUS_NOK otherwise.
         """
         # Update the bridge on the operating system
-        if not self._update_bridge_via_os(bridge_name, protocol, stp_status, management_inet, shutdown_status):
+        if self._update_bridge_via_os(bridge_name, protocol, stp_status, management_inet, shutdown_status):
             self.log.error(f"Failed to update bridge {bridge_name} on OS")
             return STATUS_NOK
 
@@ -116,7 +116,7 @@ class Bridge(RunCommand, BridgeDatabase):
             shutdown_status=shutdown_status
         )
         
-        if not update_result:
+        if update_result:
             self.log.error(
                 f"Failed to update bridge {bridge_name} in DB with parameters: "
                 f"protocol={protocol}, stp_status={stp_status}, "
@@ -242,13 +242,19 @@ class Bridge(RunCommand, BridgeDatabase):
                 indicating that it needs to be added to the database. False otherwise.
         """
         if not self._does_bridge_exist_os(bridge_name):
-            self.log.debug(f'Bridge {bridge_name} does not exist on OS')
+            self.log.info(f'Bridge {bridge_name} does not exist on OS')
+            
+            if self.does_bridge_exists_db(bridge_name):
+                self.log.warn(f'Bridge {bridge_name} does exists in DB, but not in OS')            
+            
+            return False
+        
+        if not self.does_bridge_exists_db(bridge_name):
+            self.log.info(f'Bridge {bridge_name} does not exists in DB, but does in OS')
             return False
 
-        if self.does_bridge_exists_db(bridge_name):
-            self.log.debug(f'Bridge {bridge_name} exists in DB, but does not exist on OS')
-            return False
-
+        self.log.info(f'Bridge {bridge_name} does exists in both OS and DB')
+        
         return True
     
     def _does_bridge_exist_os(self, bridge_name:str, suppress_error=False) -> bool:
@@ -285,7 +291,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to delete.
 
         Returns:
-            bool: True if the bridge was successfully deleted from the OS, False otherwise.
+            bool: STATUS_OK if the bridge was successfully deleted from the OS, STATUS_NOK otherwise.
         """
         if not self._does_bridge_exist_os(bridge_name):
             self.log.debug(f"Bridge {bridge_name} does not exist on OS. No deletion performed.")
@@ -303,7 +309,7 @@ class Bridge(RunCommand, BridgeDatabase):
                     return STATUS_NOK
         
         # Now delete the bridge
-        result = self.run(['ip', 'link', 'delete', bridge_name, '-json'])
+        result = self.run(['ip', 'link', 'delete', bridge_name, 'type', 'bridge'])
         
         if result.exit_code:
             self.log.debug(f"Bridge {bridge_name} successfully deleted from OS")
@@ -362,35 +368,42 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Bridge {bridge_name} does not exist on OS. No update performed.")
             return STATUS_NOK
 
+        if protocol is None and stp_status is None and management_inet is None and shutdown_status is None:
+            self.log.info('_update_bridge_via_os() - All Arguments None - no action needed')
+            return STATUS_OK
+        
         # Initialize command list
-        cmd = ['ip', 'link', 'set', bridge_name]
+        cmd = []
 
         if protocol:
             # Example: Set protocol; modify as per actual command syntax
-            cmd.extend(['bridge', 'protocol', protocol.name])
-        
+            cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(protocol.value)])
+
         if stp_status:
             # Example: Set STP status; modify as per actual command syntax
-            stp_command = 'enable' if stp_status == STP_STATE.STP_ENABLE else 'disable'
-            cmd.extend(['bridge', 'stp', stp_command])
+            stp_command = 'on' if stp_status == STP_STATE.STP_ENABLE else 'off'
+            cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', stp_command])
 
         if management_inet:
             # Example: Set management IP address; modify as per actual command syntax
-            cmd.extend(['addr', 'add', management_inet, 'dev', bridge_name])
+            cmd.append(['ip', 'addr', 'add', management_inet, 'dev', bridge_name])
         
         if shutdown_status:
             shutdown_command = 'down' if shutdown_status == State.DOWN else 'up'
-            cmd.extend(['net', 'link', shutdown_command])
+            cmd.append(['ip', 'link', 'set', 'dev', bridge_name, shutdown_command])
 
-        result = self.run(cmd)
+        for command in cmd:
+            self.log.info(f'_update_bridge_via_os() -> cmd: {" ".join(command)}')
+            result = self.run(command)
+            
+            if result.exit_code != 0:            
+                self.log.error(f"Failed to update bridge {bridge_name} on OS: {result.stderr.strip()}")
+                return STATUS_NOK
 
-        if result.exit_code == 0:
-            self.log.debug(f"Bridge {bridge_name} successfully updated on OS")
-            return STATUS_OK
-        else:
-            self.log.error(f"Failed to update bridge {bridge_name} on OS: {result.stderr.strip()}")
-            return STATUS_NOK
+        self.log.debug(f"Bridge {bridge_name} successfully updated on OS")
+        return STATUS_OK
 
+        
     def _handle_bridge_os_db_inconsistencies(self, bridge_name: str, fix_os_db_inconsistency: bool, os_exists: bool) -> bool:
         """
         Handles inconsistencies between the operating system (OS) and the database (DB) for a bridge.

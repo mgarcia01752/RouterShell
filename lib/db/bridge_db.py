@@ -6,6 +6,7 @@ from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
 from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
 
+
 class BridgeDatabase():
     
     rsdb = DB()
@@ -31,19 +32,15 @@ class BridgeDatabase():
         """
     
         status = cls.rsdb.bridge_exist_db(bridge_name).status
-        cls.log.debug(f"does_bridge_exists_db() -> Bridge: {bridge_name} - status: {status}")
+        cls.log.info(f"does_bridge_exists_db() -> Bridge: {bridge_name} - status: {status}")
         return status
 
-    def add_bridge_db(cls, bridge_name: str, bridge_protocol: str = None, stp_status: bool = True) -> bool:
+    def add_bridge_db(cls, bridge_name: str) -> bool:
         """
-        Add a new bridge to the database. This method performs the following actions:
-        1. Inserts a new bridge interface into the `Interfaces` table.
-        2. Updates the corresponding bridge entry in the `Bridges` table with optional protocol and STP status.
-
+        Add a new bridge to the database.
+        
         Args:
             bridge_name (str): The name of the bridge to be added.
-            bridge_protocol (str, optional): The protocol for the bridge. Defaults to None.
-            stp_status (bool, optional): The STP status of the bridge. Defaults to True (enabled).
 
         Returns:
             bool: STATUS_OK if the bridge was successfully added or updated, STATUS_NOK otherwise.
@@ -53,7 +50,7 @@ class BridgeDatabase():
         if cls.rsdb.insert_interface_bridge(bridge_name).status:
             cls.log.debug(f"Bridge {bridge_name} FAILED add to DB")
         
-        return cls.rsdb.update_bridge(bridge_name=bridge_name, protocol=bridge_protocol, stp_status=stp_status).status
+        return cls.rsdb.update_bridge(bridge_name=bridge_name).status
         
     def del_bridge_db(cls, bridge_name: str) -> bool:
         """
@@ -203,7 +200,7 @@ class BridgeDatabase():
             shutdown_status=shutdown_status
         )
         
-        cls.log.debug(f"update_bridge() -> BridgeName: {bridge_name}, Result: {result.result}, Status: {result.status}")
+        cls.log.info(f"update_bridge_db() -> BridgeName: {bridge_name}, Result: {result.reason}, Status: {result.status}")
 
         return result.status
 

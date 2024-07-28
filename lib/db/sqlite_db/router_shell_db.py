@@ -506,7 +506,6 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            # Check if the bridge exists and get the corresponding interface ID
             cursor.execute(
                 "SELECT B.ManagmentInterface_FK, I.ID FROM Bridges B JOIN Interfaces I ON B.ManagmentInterface_FK = I.ID WHERE B.BridgeName = ?",
                 (bridge_name,)
@@ -516,9 +515,8 @@ class RouterShellDB(metaclass=Singleton):
             if not bridge_row:
                 return Result(status=STATUS_NOK, reason=f"Bridge {bridge_name} does not exist")
 
-            interface_id = bridge_row[0]  # ID from the Interfaces table
+            interface_id = bridge_row[0]
 
-            # Update Bridges table
             update_columns = []
             parameters = []
 
@@ -531,10 +529,9 @@ class RouterShellDB(metaclass=Singleton):
 
             if update_columns:
                 update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE ManagmentInterface_FK = ?"
-                parameters.append(interface_id)  # Append the interface ID to parameters
+                parameters.append(interface_id)
                 cursor.execute(update_query, tuple(parameters))
 
-            # Update Interfaces table
             update_columns = []
             parameters = []
 
@@ -547,24 +544,20 @@ class RouterShellDB(metaclass=Singleton):
 
             if update_columns:
                 update_query = f"UPDATE Interfaces SET {', '.join(update_columns)} WHERE ID = ?"
-                parameters.append(interface_id)  # Append the interface ID to parameters
+                parameters.append(interface_id)
                 cursor.execute(update_query, tuple(parameters))
 
-            # Update InterfaceIpAddress table
             if management_inet is not None:
-                # Check if the management IP address exists in InterfaceIpAddress
                 cursor.execute("SELECT ID FROM InterfaceIpAddress WHERE IpAddress = ? AND Interface_FK = ?", (management_inet, interface_id))
                 inet_row = cursor.fetchone()
 
                 if inet_row:
-                    # Update existing entry
                     inet_id = inet_row[0]
                     cursor.execute(
                         "UPDATE InterfaceIpAddress SET IpAddress = ? WHERE ID = ?",
                         (management_inet, inet_id)
                     )
                 else:
-                    # Insert new entry
                     cursor.execute(
                         "INSERT INTO InterfaceIpAddress (IpAddress, Interface_FK) VALUES (?, ?)",
                         (management_inet, interface_id)
