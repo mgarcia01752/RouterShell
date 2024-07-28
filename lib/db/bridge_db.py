@@ -65,7 +65,7 @@ class BridgeDatabase():
         """
         cls.log.debug(f"del_bridge() -> BridgeName: {bridge_name}")
 
-        if cls.rsdb.delete_interface_bridge(bridge_name):
+        if cls.rsdb.delete_interface_bridge(bridge_name).status:
             cls.log.error(f"Unable to delete Bridge: {bridge_name}")
             return STATUS_NOK
         return STATUS_OK

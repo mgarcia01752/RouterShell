@@ -206,7 +206,7 @@ class BridgeConfigCommands:
             return STATUS_NOK
         
         if Bridge().update_bridge(bridge_name=self._bridge_name, shutdown_status=state):
-            self.log.debug(f'set_shutdown_status() -> Shutdown status {state} set for bridge {self._bridge_name}')
+            self.log.debug(f'set_shutdown_status() -> Failed shutdown status {state} set for bridge {self._bridge_name}')
             return STATUS_NOK
 
         self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')

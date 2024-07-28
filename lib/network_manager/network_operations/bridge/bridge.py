@@ -129,7 +129,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"Bridge {bridge_name} successfully updated in both OS and DB")
         return STATUS_OK
 
-    def get_bridge_shutdown_status_os(self, bridge_name: str) -> State:
+    def get_shutdown_status_os(self, bridge_name: str) -> State:
         """
         Retrieve the shutdown status of a bridge from the operating system.
 
@@ -218,7 +218,7 @@ class Bridge(RunCommand, BridgeDatabase):
                 `STATUS_NOK` otherwise.
         """
         if self._del_bridge_via_os(bridge_name):
-            self.log.error('Unable to delete bridge via OS')
+            self.log.error(f'Failed to delete bridge {bridge_name} from OS')
             return STATUS_NOK
         
         if self.del_bridge_db(bridge_name):
@@ -301,17 +301,17 @@ class Bridge(RunCommand, BridgeDatabase):
         linked_interfaces = self._get_linked_interfaces(bridge_name)
         
         if linked_interfaces:
-            self.log.debug(f"Unlinking interfaces {linked_interfaces} from bridge {bridge_name}.")
+            self.log.debug(f"Unlinking interfaces {linked_interfaces} from bridge {bridge_name}")
             for iface in linked_interfaces:
-                result = self.run(['ip', 'link', 'set', iface, 'nomaster'])
+                result = self.run(['ip', 'link', 'set', iface, 'nomaster'], suppress_error=True)
                 if result.exit_code:
                     self.log.error(f"Failed to unlink interface {iface} from bridge {bridge_name}")
                     return STATUS_NOK
         
-        result = self.run(['ip', 'link', 'delete', bridge_name, 'type', 'bridge'])
+        result = self.run(['ip', 'link', 'delete', bridge_name, 'type', 'bridge'], suppress_error=True)
         
         if result.exit_code:
-            self.log.error(f"Failed to delete bridge {bridge_name} from OS: {result.stderr.strip()}")
+            self.log.error(f"Failed to delete bridge {bridge_name} from OS")
             return STATUS_NOK            
         
         self.log.debug(f"Bridge {bridge_name} successfully deleted from OS")
@@ -327,15 +327,16 @@ class Bridge(RunCommand, BridgeDatabase):
         Returns:
             List[str]: A list of interface names that are linked to the bridge.
         """
-        result = self.run(['ip','-json','show', 'master', bridge_name])
+        result = self.run(['ip','-json','show', 'master', bridge_name], suppress_error=True)
         
         if result.exit_code:
-            self.log.error(f"Failed to retrieve linked interfaces for bridge {bridge_name}")
+            self.log.debug(f"Failed to retrieve linked interfaces for bridge {bridge_name}")
             return []
 
         try:
             data = json.loads(result.stdout)
             interfaces = [entry['ifname'] for entry in data if 'ifname' in entry]
+            
         except json.JSONDecodeError as e:
             self.log.error(f"Failed to parse JSON for bridge {bridge_name}: {e}")
             return []

@@ -81,4 +81,7 @@ print("Setting bridge to shutdown")
 bcc.set_shutdown_status(state=State.DOWN)
 input("Press Enter to continue...")
 
+print(f"Delete bridge: {bcc.get_bridge_name()}")
+Bridge().del_bridge(bcc.get_bridge_name())
+
 print("Manual test completed.")
