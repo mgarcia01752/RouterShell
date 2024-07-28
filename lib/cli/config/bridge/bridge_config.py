@@ -45,7 +45,7 @@ class BridgeConfig(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG)
         self._bridge_name = bridge_name
-        self._bridge_config_cmd : BridgeConfigCommands = BridgeConfigFactory().get_bridge_config_cmds(self._bridge_name)
+        self._bridge_config_cmd : BridgeConfigCommands = BridgeConfigFactory(self._bridge_name).get_bridge_config_cmds()
                
     def bridgeconfig_help(self, args: List[str]=None) -> None:
         """Display help for all available bridge control commands.
@@ -108,8 +108,8 @@ class BridgeConfig(CmdPrompt):
         if negate:
             description = ""
 
-        if not self._bridge_config_cmd.set_description(description):
-            print(f"Unable to set description for bridge {self._bridge_name}")
+        if self._bridge_config_cmd.set_description(description):
+            print(f"Unable to set description: {description} for bridge {self._bridge_name} ")
             return STATUS_NOK
 
         return STATUS_OK

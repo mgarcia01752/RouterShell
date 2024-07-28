@@ -47,6 +47,10 @@ class BridgeConfigFactory:
         """
         bcc = BridgeConfigCommands(self._bridge_name)
         BridgeConfigFactory._bridge_config_command_list.append(bcc)
+
+        if not bcc.does_bridge_exist() and not bcc.create_bridge():
+            self.log.info(f"Bridge {self._bridge_name} created successfully.")
+            
         return bcc
     
     def set_shutdown_status_all_bridges(self, shutdown_state: State) -> bool:
@@ -108,7 +112,7 @@ class BridgeConfigCommands:
 
         Returns:
             bool: STATUS_OK if the bridge was successfully created or already exists, STATUS_NOK otherwise.
-        """
+        """        
         if self.does_bridge_exist():
             self.log.error(f'Can not create bridge: {self.bridge_name}, already exists')
             return STATUS_NOK
@@ -229,4 +233,5 @@ class BridgeConfigCommands:
             return STATUS_NOK
             
         self.log.debug(f'set_description() -> Description "{description}" set to bridge {self.bridge_name}')
+        
         return STATUS_OK

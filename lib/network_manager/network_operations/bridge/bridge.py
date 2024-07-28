@@ -71,6 +71,7 @@ class Bridge(RunCommand, BridgeDatabase):
             if self._add_bridge_os(bridge_name):
                 self.log.error(f'Unable to add bridge {bridge_name} to OS')
                 return STATUS_NOK
+            
             if self.add_bridge_db(bridge_name):
                 self.log.error(f'Unable to add bridge {bridge_name} to DB')
                 return STATUS_NOK                
