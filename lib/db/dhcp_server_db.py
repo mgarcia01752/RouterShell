@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
-from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.common.constants import STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
 

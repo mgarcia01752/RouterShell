@@ -8,10 +8,10 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_operations.arp import Encapsulate
-from lib.network_manager.network_operations.bridge.bridge import Bridge
-from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient, DHCPStackVersion
+from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
-from lib.network_manager.network_operations.dhcp.client.server.dhcp_server import DHCPServer
+from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
+from lib.network_manager.network_operations.dhcp.server.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import NATDirection
 from lib.network_manager.network_operations.wireless_wifi import HardwareMode, WifiChannel, WifiInterface

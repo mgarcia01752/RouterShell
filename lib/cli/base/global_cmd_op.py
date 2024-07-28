@@ -1,10 +1,9 @@
 import logging
 import subprocess
-import inspect
 import os
 
 from lib.cli.common.exec_priv_mode import ExecMode
-from lib.cli.common.CommandClassInterface import CmdInterface, CmdPrompt
+from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_operations.interface import Interface

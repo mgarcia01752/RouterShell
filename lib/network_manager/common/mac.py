@@ -3,12 +3,8 @@ import random
 import re
 
 from typing import Tuple
-
 from tabulate import tabulate 
-
-from lib.common.common import Common
 from lib.network_manager.common.interface import InterfaceLayer
-from lib.network_manager.common.phy import PhyServiceLayer
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 

@@ -5,7 +5,6 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
-
 class NatDB:
 
     rsdb = DB()

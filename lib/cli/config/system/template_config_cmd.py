@@ -1,9 +1,7 @@
 import logging
 from typing import List
-from lib.cli.base.global_cmd_op import Global
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.template.template_config import TemplateConfig
-from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 class TemplateConfigCmdError(Exception):
