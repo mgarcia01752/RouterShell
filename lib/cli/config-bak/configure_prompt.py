@@ -3,7 +3,7 @@ import logging
 from lib.cli.common.exec_priv_mode import ExecMode
 
 from lib.cli.common.router_prompt import RouterPrompt
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 
 

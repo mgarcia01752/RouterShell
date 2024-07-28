@@ -3,7 +3,7 @@ import json
 import logging
 
 from tabulate import tabulate
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.run_commands import RunCommand
 
 

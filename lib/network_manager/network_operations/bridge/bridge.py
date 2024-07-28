@@ -4,9 +4,9 @@ from typing import List, Optional
 
 from lib.db.bridge_db import BridgeDatabase 
 from lib.network_manager.common.phy import State
-from lib.common.common import STATUS_NOK, STATUS_OK, Common
+from lib.common.common import STATUS_NOK, STATUS_OK
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
 
@@ -377,12 +377,14 @@ class Bridge(RunCommand, BridgeDatabase):
 
         if protocol:
             # Example: Set protocol; modify as per actual command syntax
-            cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', str(protocol.value)])
-
+            # cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp', str(protocol.value)])
+            self.log.debug(f'Bridge Protocol is not supported with iproute')
+            cmd.append([])
+            
         if stp_status:
-            # Example: Set STP status; modify as per actual command syntax
-            stp_command = 'on' if stp_status == STP_STATE.STP_ENABLE else 'off'
-            cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp_state', stp_command])
+            # Set STP status using the `bridge` command
+            stp_command = '1' if stp_status == STP_STATE.STP_ENABLE else '0'
+            cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type','bridge', 'stp_state', stp_command])
 
         if management_inet:
             # Example: Set management IP address; modify as per actual command syntax
@@ -402,8 +404,7 @@ class Bridge(RunCommand, BridgeDatabase):
 
         self.log.debug(f"Bridge {bridge_name} successfully updated on OS")
         return STATUS_OK
-
-        
+  
     def _handle_bridge_os_db_inconsistencies(self, bridge_name: str, fix_os_db_inconsistency: bool, os_exists: bool) -> bool:
         """
         Handles inconsistencies between the operating system (OS) and the database (DB) for a bridge.
@@ -460,6 +461,4 @@ class Bridge(RunCommand, BridgeDatabase):
 
         self.log.debug(f"_add_bridge_os() -> Added bridge: {bridge_name} to OS")
         return STATUS_OK
-            
-
-                
+                       

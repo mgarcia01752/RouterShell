@@ -5,7 +5,7 @@ import logging
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.network_manager.common.mac import MacServiceLayer
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.constants import *
 from lib.network_manager.network_operations.arp import Arp
 

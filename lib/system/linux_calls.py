@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 
 class InvalidLinuxSystem(Exception):

@@ -4,7 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.system.init_system import InitSystemChecker, InitSystem
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 
 class TelnetService(RunCommand):
     """

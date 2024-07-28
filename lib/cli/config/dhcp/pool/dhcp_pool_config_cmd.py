@@ -2,7 +2,7 @@ import logging
 
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.dhcp.pool.dhcp_pool_config import DhcpPoolConfig
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 class DhcpPoolConfigCmdError(Exception):
     """Custom exception for TestConfig errors."""

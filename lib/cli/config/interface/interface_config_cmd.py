@@ -4,7 +4,7 @@ from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.interface.interface_config import InterfaceConfig
 from lib.common.common import Common
 from lib.common.constants import STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 from lib.network_manager.network_operations.interface import Interface
 

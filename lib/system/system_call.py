@@ -4,7 +4,7 @@ import platform
 import textwrap
 from typing import List
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand, RunLog

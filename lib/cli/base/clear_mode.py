@@ -4,7 +4,7 @@ from typing import List
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.cli.common.exec_priv_mode import ExecMode, ExecException
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.constants import *
 from lib.network_manager.network_operations.arp import Arp

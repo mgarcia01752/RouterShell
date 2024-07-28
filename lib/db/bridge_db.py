@@ -3,7 +3,8 @@ from typing import Optional
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.network_manager.common.phy import State
 from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
 
 
@@ -176,7 +177,7 @@ class BridgeDatabase():
                         stp_status: Optional[STP_STATE] = None,
                         management_inet: Optional[str] = None,
                         description: Optional[str] = None,
-                        shutdown_status: Optional[bool] = None) -> bool:
+                        shutdown_status: Optional[State] = None) -> bool:
         """
         Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
 

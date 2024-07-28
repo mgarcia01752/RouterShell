@@ -6,7 +6,7 @@ from datetime import datetime
 
 from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.constants import ROUTER_CONFIG
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 from lib.common.common import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 class InvalidCopyMode(Exception):

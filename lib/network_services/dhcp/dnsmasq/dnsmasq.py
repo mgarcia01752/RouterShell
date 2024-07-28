@@ -8,7 +8,7 @@ from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 from lib.system.system_service_control.system_service_control import SysServCntrlAction, SystemServiceControl
 
 class DNSMasqExitCode(Enum):

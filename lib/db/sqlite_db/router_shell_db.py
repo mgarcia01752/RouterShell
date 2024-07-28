@@ -7,7 +7,8 @@ from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK
 from lib.common.singleton import Singleton
 from lib.network_manager.common.interface import InterfaceType
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.network_manager.common.phy import State
 from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
@@ -488,7 +489,7 @@ class RouterShellDB(metaclass=Singleton):
                         stp_status: Optional[STP_STATE] = None,
                         management_inet: Optional[str] = None,
                         description: Optional[str] = None,
-                        shutdown_status: Optional[bool] = None) -> Result:
+                        shutdown_status: Optional[State] = None) -> Result:
         """
         Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
 
@@ -523,6 +524,7 @@ class RouterShellDB(metaclass=Singleton):
             if protocol is not None:
                 update_columns.append("Protocol = ?")
                 parameters.append(protocol.name)
+                
             if stp_status is not None:
                 update_columns.append("StpStatus = ?")
                 parameters.append(stp_status.value)
@@ -538,9 +540,11 @@ class RouterShellDB(metaclass=Singleton):
             if description is not None:
                 update_columns.append("Description = ?")
                 parameters.append(description)
+            
             if shutdown_status is not None:
                 update_columns.append("ShutdownStatus = ?")
-                parameters.append(shutdown_status)
+                shutdown_status_value = False if shutdown_status == State.DOWN else True
+                parameters.append(shutdown_status_value)
 
             if update_columns:
                 update_query = f"UPDATE Interfaces SET {', '.join(update_columns)} WHERE ID = ?"

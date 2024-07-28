@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from lib.cli.base.copy_start_run import CopyStartRun
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.run_commands import RunCommand
 from lib.db.sqlite_db.router_shell_db import RouterShellDB
 from lib.network_manager.network_operations.interface import Interface

@@ -3,7 +3,7 @@ from typing import Dict, Union
 
 from lib.common.common import Common
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_interfaces.ethernet_interface import EthernetInterface
 from lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 from lib.network_manager.network_interfaces.wireless_wifi_interface import WirelessWifiInterface

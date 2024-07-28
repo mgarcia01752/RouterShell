@@ -1,7 +1,7 @@
 import logging
 
 from lib.network_manager.common.run_commands import RunCommand
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 
 from enum import Enum, auto

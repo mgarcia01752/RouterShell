@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 from lib.common.constants import STATUS_OK, STATUS_NOK
 from lib.network_manager.network_operations.bridge.bridge import STP_STATE, Bridge, BridgeProtocol, State
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 
 class BridgeConfigFactory:
     """

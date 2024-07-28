@@ -8,7 +8,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.cmd2_global import Cmd2GlobalSettings
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 from lib.network_manager.wireless_wifi import HardwareMode, Pairwise, WPAVersion, WPAkeyManagement, WifiAccessPoint, WifiChannel, WifiPolicy
 

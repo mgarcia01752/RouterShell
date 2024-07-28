@@ -9,7 +9,7 @@ from lib.system.system_call import SystemCall
 from system.system_start_up import SystemStartUp
 from common.constants import ROUTER_CONFIG, STATUS_OK
 from lib.cli.base.global_cmd_op import Global
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 logging.basicConfig(
     level=logging.INFO,

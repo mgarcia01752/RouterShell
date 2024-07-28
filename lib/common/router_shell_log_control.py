@@ -9,7 +9,7 @@ from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSetting
 '''
 
 
-class RouterShellLoggingGlobalSettings():
+class RouterShellLoggerSettings():
     '''
         LOGGING LEVELS: INFO WARN ERROR FATAL CRITICAL
     '''

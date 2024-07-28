@@ -1,6 +1,6 @@
 import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 from lib.db.system_db import SystemDatabase
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.network_services.telnet.telnet_server import TelnetService

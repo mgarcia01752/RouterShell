@@ -2,7 +2,7 @@ import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 
 class VLANDatabase():

@@ -1,7 +1,7 @@
 import logging
 
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_services.dhcp.dnsmasq.dnsmasq import DNSMasqService
 
 from lib.common.common import STATUS_NOK, STATUS_OK

@@ -10,7 +10,7 @@ from lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
 from lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_operations.bridge.bridge import Bridge
 from lib.network_manager.network_operations.interface import Interface

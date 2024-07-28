@@ -4,7 +4,7 @@ import os
 from typing import Dict, List
 
 from lib.common.constants import DNSMASQ_LEASE_FILE_PATH
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.common.inet import InetServiceLayer, InetVersion

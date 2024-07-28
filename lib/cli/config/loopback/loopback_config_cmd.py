@@ -2,7 +2,7 @@ import logging
 from typing import List
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.loopback.loopback_config import LoopbackConfig
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_interfaces.create_loopback_net_interface import CreateLoopBackNetInterface
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory

@@ -1,7 +1,7 @@
 import logging
 from lib.cli.config.config_cmds import ConfigCmd
 from lib.cli.config.configure_prompt import ConfigurePrompt
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 class ConfigMode(ConfigurePrompt):
 

@@ -8,7 +8,7 @@ from lib.network_manager.common.inet import InetServiceLayer
 from lib.network_manager.common.sysctl import SysCtl
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 
 

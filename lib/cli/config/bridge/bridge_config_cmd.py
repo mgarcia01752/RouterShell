@@ -1,7 +1,7 @@
 import logging
 from lib.cli.config.bridge.bridge_config import BridgeConfig
 from lib.cli.config.configure_prompt import ConfigurePrompt
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 class BridgeConfigCmdError(Exception):
     """Custom exception for BridgeConfigError errors."""

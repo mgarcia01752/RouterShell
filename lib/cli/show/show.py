@@ -11,7 +11,7 @@ from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.cli.show.router_configuration import RouterConfiguration
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.string_formats import StringFormats
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.vlan_db import VLANDatabase

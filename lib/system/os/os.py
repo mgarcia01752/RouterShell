@@ -3,7 +3,7 @@ import platform
 from enum import Enum, auto
 import shutil
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 
 class SupportedOS(Enum):
     BUSY_BOX = auto()
