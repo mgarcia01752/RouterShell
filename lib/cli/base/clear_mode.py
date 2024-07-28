@@ -1,9 +1,8 @@
 import logging
-import argparse
 from typing import List
 
 from lib.cli.common.CommandClassInterface import CmdPrompt
-from lib.cli.common.exec_priv_mode import ExecMode, ExecException
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.constants import *

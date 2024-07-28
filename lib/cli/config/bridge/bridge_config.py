@@ -7,9 +7,10 @@ from lib.cli.common.CommandClassInterface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.phy import State
-from lib.network_manager.network_operations.bridge.bridge import Bridge
-from lib.network_manager.network_operations.bridge.bridge_factory import BridgeConfigCommands, BridgeConfigFactory
-from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE
+from lib.network_manager.network_interfaces.bridge.bridge_factory import BridgeInterface, BridgeInterfaceFactory
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE
+from lib.network_manager.network_operations.bridge import Bridge
+
 
 class BridgeConfigError(Exception):
     """Custom exception for BridgeConfigError errors."""
@@ -45,7 +46,7 @@ class BridgeConfig(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG)
         self._bridge_name = bridge_name
-        self._bridge_config_cmd : BridgeConfigCommands = BridgeConfigFactory(self._bridge_name).get_bridge_config_cmds()
+        self._bridge_config_cmd : BridgeInterface = BridgeInterfaceFactory(self._bridge_name).get_bridge_interface()
                
     def bridgeconfig_help(self, args: List[str]=None) -> None:
         """Display help for all available bridge control commands.

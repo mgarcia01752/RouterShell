@@ -17,7 +17,7 @@ class EthernetConfigCmdError(Exception):
    
 class EthernetConfigCmd(ConfigurePrompt):
     def __init__(self, eth_name:List[str]):
-        super().__init__(sub_cmd_name=InterfaceType.ETHERNET.value)
+        super().__init__(sub_cmd_name=InterfaceType.ETHERNET.value) 
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_CONFIG_CMD)
         eth_name = eth_name[0]

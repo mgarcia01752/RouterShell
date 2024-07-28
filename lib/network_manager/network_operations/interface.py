@@ -8,8 +8,9 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import BridgeProtocol
+from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
-from lib.network_manager.network_operations.bridge.bridge import Bridge, BridgeProtocol
 from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient, DHCPStackVersion
 from lib.network_manager.network_operations.nat import NATDirection, Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager

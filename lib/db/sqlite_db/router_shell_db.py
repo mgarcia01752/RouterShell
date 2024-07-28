@@ -9,7 +9,7 @@ from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.phy import State
-from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
 class Result:

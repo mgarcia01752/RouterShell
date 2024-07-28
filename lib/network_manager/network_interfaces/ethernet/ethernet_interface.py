@@ -3,6 +3,7 @@ import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
 from lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
@@ -13,10 +14,11 @@ class EthernetInterfaceError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class EthernetInterface(NetworkInterface):
+class EthernetInterface(NetworkInterface, BridgeGroup):
 
     def __init__(self, ethernet_name: str):
         super().__init__(interface_name=ethernet_name)
+        BridgeGroup.__init__(interface_name=ethernet_name)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_INTERFACE)        
             
@@ -131,7 +133,6 @@ class EthernetInterface(NetworkInterface):
         """
         return Interface().update_interface_duplex(self.interface_name, duplex)
     
-
     def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
         """
         Add or modify an IP address on the network interface.

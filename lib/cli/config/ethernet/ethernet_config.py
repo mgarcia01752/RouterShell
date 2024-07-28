@@ -8,9 +8,9 @@ from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.network_manager.network_interfaces.ethernet_interface import EthernetInterface
+from lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
 from lib.network_manager.network_operations.arp import Encapsulate
-from lib.network_manager.network_operations.bridge.bridge import Bridge
+from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
 from lib.network_manager.network_operations.dhcp.server.dhcp_server import DHCPServer
 from lib.network_manager.network_operations.interface import Interface
@@ -170,7 +170,8 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['dhcp-server', 'pool-name'], 
                                      append_nested_sub_cmds=DHCPServer().get_dhcp_pool_name_list())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])    
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])        
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
@@ -270,7 +271,16 @@ class EthernetConfig(CmdPrompt):
             else:
                 print("Invalid arguments for 'dhcp-server' command.")
                 return STATUS_NOK
-       
+        
+        elif 'bridge' in args:
+            '''[no] [bridge <bridge-name>]'''
+            if len(args) == 2 and 'group' in args:
+                bridge_group = args[1]
+                if self.eth_interface_obj.set_bridge_group(bridge_group):
+                    self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self.ifName}")
+                    return STATUS_OK
+            else:
+                print('Missing bridge group name')
         else:
             self.log.debug(f'Invalid subcommand: {args}')
             print('Invalid subcommand')

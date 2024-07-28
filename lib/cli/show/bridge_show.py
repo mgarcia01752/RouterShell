@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
-from lib.network_manager.network_operations.bridge.bridge import Bridge
+from lib.network_manager.network_operations.bridge import Bridge
 
 class BridgeShow(RunCommand):
     """Command set for showing Bridge-Show-Command"""

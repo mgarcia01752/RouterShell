@@ -48,8 +48,8 @@ class RouterShellLoggerSettings():
     CONFIGURE_CMD = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     BRIDGE = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_CONFIG_FACTORY = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
-    BRIDGE_CONFIG_COMMANDS = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_INTERFACE_FACTORY = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    BRIDGE_INTERFACE = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONFIG = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_DB = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     BRIDGE_CONFIG_CMD = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
