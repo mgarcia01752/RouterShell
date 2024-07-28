@@ -16,8 +16,8 @@ class EthernetInterfaceError(Exception):
 class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
 
     def __init__(self, ethernet_name: str):
-        super().__init__(interface_name=ethernet_name)
-        BridgeGroup.__init__(interface_name=ethernet_name)
+        BridgeGroup().__init__(interface_name=ethernet_name)
+        DHCPInterfaceClient().__init__(interface_name=ethernet_name)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_INTERFACE)        
             
