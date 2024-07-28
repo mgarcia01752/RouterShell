@@ -243,7 +243,7 @@ class Bridge(RunCommand, BridgeDatabase):
                 indicating that it needs to be added to the database. False otherwise.
         """
         if not self._does_bridge_exist_os(bridge_name):
-            self.log.info(f'Bridge {bridge_name} does not exist on OS')
+            self.log.debug(f'Bridge {bridge_name} does not exist on OS')
             
             if self.does_bridge_exists_db(bridge_name):
                 self.log.warn(f'Bridge {bridge_name} does exists in DB, but not in OS')            
@@ -251,10 +251,10 @@ class Bridge(RunCommand, BridgeDatabase):
             return False
         
         if not self.does_bridge_exists_db(bridge_name):
-            self.log.info(f'Bridge {bridge_name} does not exists in DB, but does in OS')
+            self.log.debug(f'Bridge {bridge_name} does not exists in DB, but does in OS')
             return False
 
-        self.log.info(f'Bridge {bridge_name} does exists in both OS and DB')
+        self.log.debug(f'Bridge {bridge_name} does exists in both OS and DB')
         
         return True
     
@@ -369,7 +369,7 @@ class Bridge(RunCommand, BridgeDatabase):
             return STATUS_NOK
 
         if protocol is None and stp_status is None and management_inet is None and shutdown_status is None:
-            self.log.info('_update_bridge_via_os() - All Arguments None - no action needed')
+            self.log.debug('_update_bridge_via_os() - All Arguments None - no action needed')
             return STATUS_OK
         
         # Initialize command list
@@ -395,7 +395,7 @@ class Bridge(RunCommand, BridgeDatabase):
             cmd.append(['ip', 'link', 'set', 'dev', bridge_name, shutdown_command])
 
         for command in cmd:
-            self.log.info(f'_update_bridge_via_os() -> cmd: {" ".join(command)}')
+            self.log.debug(f'_update_bridge_via_os() -> cmd: {" ".join(command)}')
             result = self.run(command)
             
             if result.exit_code != 0:            

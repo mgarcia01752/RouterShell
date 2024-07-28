@@ -70,7 +70,7 @@ class BridgeConfigFactory:
         BridgeConfigFactory._bridge_config_command_list.append(bcc)
 
         if not bcc.does_bridge_exist() and not bcc.create_bridge():
-            self.log.info(f"Bridge {self._bridge_name} created successfully.")
+            self.log.debug(f"Bridge {self._bridge_name} created successfully.")
             
         return bcc
     

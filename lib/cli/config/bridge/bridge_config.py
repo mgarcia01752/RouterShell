@@ -169,7 +169,7 @@ class BridgeConfig(CmdPrompt):
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         
-        self.log.info(f"bridgeconfig_shutdown() -> Bridge: {self._bridge_name} -> current-state: {Bridge().get_shutdown_status_os(self._bridge_name).value} -> negate: {negate}")
+        self.log.debug(f"bridgeconfig_shutdown() -> Bridge: {self._bridge_name} -> current-state: {Bridge().get_shutdown_status_os(self._bridge_name).value} -> negate: {negate}")
 
         state = State.UP if negate else State.DOWN
 
@@ -189,7 +189,7 @@ class BridgeConfig(CmdPrompt):
         Returns:
             bool: Status of the command execution.
         """
-        self.log.info(f"bridgeconfig_no() -> {args}")
+        self.log.debug(f"bridgeconfig_no() -> {args}")
         
         negate:bool = True
                 

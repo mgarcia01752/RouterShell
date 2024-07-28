@@ -33,7 +33,7 @@ class BridgeDatabase():
         """
     
         status = cls.rsdb.bridge_exist_db(bridge_name).status
-        cls.log.info(f"does_bridge_exists_db() -> Bridge: {bridge_name} - status: {status}")
+        cls.log.debug(f"does_bridge_exists_db() -> Bridge: {bridge_name} - status: {status}")
         return status
 
     def add_bridge_db(cls, bridge_name: str) -> bool:
@@ -201,7 +201,7 @@ class BridgeDatabase():
             shutdown_status=shutdown_status
         )
         
-        cls.log.info(f"update_bridge_db() -> BridgeName: {bridge_name}, Result: {result.reason}, Status: {result.status}")
+        cls.log.debug(f"update_bridge_db() -> BridgeName: {bridge_name}, Result: {result.reason}, Status: {result.status}")
 
         return result.status
 
