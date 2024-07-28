@@ -13,6 +13,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_operations.bridge.bridge import Bridge
+from lib.network_manager.network_operations.bridge.bridge_factory import BridgeConfigFactory
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -224,9 +225,7 @@ class ConfigCmd(CmdPrompt):
 
         if args[0] == 'bridge':
             self.log.debug(f"configcmd_no() -> bridge: {args[1]}")
-            if Bridge().destroy_bridge_cmd_os(args[1]):
-                self.log.error(f"Unable to destroy bridge {args[1]}")
-                return STATUS_OK
+            BridgeConfigFactory()
 
         if args[0] == 'system':
             self.log.debug(f"configcmd_no() -> system: {args[1]}")

@@ -34,7 +34,28 @@ class BridgeConfigFactory:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG_FACTORY)        
         self._bridge_name = bridge_name
-        
+    
+    def destroy_bridge(self) -> bool:
+        """
+        Destroy the bridge associated with the current object.
+
+        This method iterates through the list of bridge configuration commands and 
+        destroys the bridge if it matches the current bridge name.
+
+        Returns:
+            bool: STATUS_OK if the bridge was successfully destroyed, STATUS_NOK otherwise.
+        """
+        if BridgeConfigFactory._bridge_config_command_list:
+            for bcc in BridgeConfigFactory._bridge_config_command_list:
+                if self._bridge_name == bcc.get_bridge_name():
+                    if bcc.destroy_bridge():
+                        self.log.debug(f'Failed to destroy bridge {bcc.get_bridge_name()}')
+                        return STATUS_NOK
+                    else:
+                        self.log.debug(f'Destroyed bridge {bcc.get_bridge_name()}')
+                        return STATUS_OK
+        return STATUS_NOK
+
     def get_bridge_config_cmds(self) -> 'BridgeConfigCommands':
         """
         Creates a new BridgeConfigCommands object for the current bridge and adds it to the list of commands.
@@ -77,7 +98,7 @@ class BridgeConfigFactory:
 
         for bcc in BridgeConfigFactory._bridge_config_command_list:
             if not bcc.set_shutdown_status(shutdown_state):
-                self.log.error(f"Failed to set bridge {bcc.bridge_name} to {shutdown_state}")
+                self.log.error(f"Failed to set bridge {bcc._bridge_name} to {shutdown_state}")
                 success = STATUS_NOK
 
         return success
@@ -92,8 +113,19 @@ class BridgeConfigCommands:
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_CONFIG_COMMANDS)
-        self.bridge_name = bridge_name
+        self._bridge_name = bridge_name
     
+    def get_bridge_name(self):
+        """
+        Retrieve the name of the current bridge.
+
+        This method returns the bridge name stored in the instance's _bridge_name attribute.
+
+        Returns:
+            str: The name of the bridge.
+        """
+        return self._bridge_name
+
     def does_bridge_exist(self) -> bool:
         """
         Check if the specified bridge exists.
@@ -101,8 +133,8 @@ class BridgeConfigCommands:
         Returns:
             bool: True if the bridge exists, False otherwise.
         """
-        if not Bridge().does_bridge_exist(self.bridge_name):
-            self.log.debug(f'does_bridge_exist() -> {self.bridge_name} does not exist')
+        if not Bridge().does_bridge_exist(self._bridge_name):
+            self.log.debug(f'does_bridge_exist() -> {self._bridge_name} does not exist')
             return False         
         return True
     
@@ -114,16 +146,25 @@ class BridgeConfigCommands:
             bool: STATUS_OK if the bridge was successfully created or already exists, STATUS_NOK otherwise.
         """        
         if self.does_bridge_exist():
-            self.log.error(f'Can not create bridge: {self.bridge_name}, already exists')
+            self.log.error(f'Can not create bridge: {self._bridge_name}, already exists')
             return STATUS_NOK
             
-        if Bridge().add_bridge(self.bridge_name):
-            self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create Bridge {self.bridge_name}')
+        if Bridge().add_bridge(self.get_bridge_name()):
+            self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create Bridge {self.get_bridge_name()}')
             return STATUS_NOK
         
-        self.log.debug(f'create_bridge(return {STATUS_NOK}) -> successfully created bridge {self.bridge_name}')
+        self.log.debug(f'create_bridge(return {STATUS_NOK}) -> successfully created bridge {self.get_bridge_name()}')
         return STATUS_OK
-                
+    
+    def destroy_bridge(self):
+        """
+        Destroy the current bridge by calling the del_bridge method of the Bridge class.
+
+        This method retrieves the bridge name of the current instance and 
+        deletes the bridge using the del_bridge method from the Bridge class.
+        """
+        return Bridge().del_bridge(self.get_bridge_name())
+
     def set_inet_management(self, inet: str) -> bool:
         """
         Set the IPv4 or IPv6 address for the bridge.
@@ -135,14 +176,14 @@ class BridgeConfigCommands:
             bool: STATUS_OK if the IP address was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
-            self.log.error(f'Unable to set management inet {inet} to bridge: {self.bridge_name} does not exists')
+            self.log.error(f'Unable to set management inet {inet} to bridge: {self._bridge_name} does not exists')
             return STATUS_NOK
         
-        if Bridge().update_bridge(bridge_name=self.bridge_name, management_inet=inet):
-            self.log.debug(f'set_inet_management() -> Failed to set inet address {inet} to bridge {self.bridge_name}')
+        if Bridge().update_bridge(bridge_name=self._bridge_name, management_inet=inet):
+            self.log.debug(f'set_inet_management() -> Failed to set inet address {inet} to bridge {self._bridge_name}')
             return STATUS_NOK
 
-        self.log.debug(f'set_inet_management() -> Inet address {inet} is set to bridge {self.bridge_name}')
+        self.log.debug(f'set_inet_management() -> Inet address {inet} is set to bridge {self._bridge_name}')
         return STATUS_OK
     
     def set_shutdown_status(self, state: State) -> bool:
@@ -161,14 +202,14 @@ class BridgeConfigCommands:
                 STATUS_NOK (False) if there was an error setting the shutdown status.
         """
         if not self.does_bridge_exist():
-            self.log.error(f'Unable to set stp {state} to bridge: {self.bridge_name} does not exists')
+            self.log.error(f'Unable to set stp {state} to bridge: {self._bridge_name} does not exists')
             return STATUS_NOK
         
-        if Bridge().update_bridge(bridge_name=self.bridge_name, shutdown_status=state):
-            self.log.debug(f'set_shutdown_status() -> Shutdown status {state} set for bridge {self.bridge_name}')
+        if Bridge().update_bridge(bridge_name=self._bridge_name, shutdown_status=state):
+            self.log.debug(f'set_shutdown_status() -> Shutdown status {state} set for bridge {self._bridge_name}')
             return STATUS_NOK
 
-        self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self.bridge_name}')
+        self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')
         return STATUS_OK
 
     def set_stp(self, stp: STP_STATE) -> bool:
@@ -182,14 +223,14 @@ class BridgeConfigCommands:
             bool: STATUS_OK if the STP state was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
-            self.log.error(f'Unable to set stp {stp} to bridge: {self.bridge_name} does not exists')
+            self.log.error(f'Unable to set stp {stp} to bridge: {self._bridge_name} does not exists')
             return STATUS_NOK
            
-        if Bridge().update_bridge(bridge_name=self.bridge_name, stp_status=stp):
-            self.log.debug(f'set_stp() -> Failed to set STP status {stp} to bridge {self.bridge_name}')
+        if Bridge().update_bridge(bridge_name=self._bridge_name, stp_status=stp):
+            self.log.debug(f'set_stp() -> Failed to set STP status {stp} to bridge {self._bridge_name}')
             return STATUS_NOK
         
-        self.log.debug(f'set_stp() -> STP status {stp} is set for bridge {self.bridge_name}')
+        self.log.debug(f'set_stp() -> STP status {stp} is set for bridge {self._bridge_name}')
         
         return STATUS_OK
     
@@ -204,14 +245,14 @@ class BridgeConfigCommands:
             bool: STATUS_OK if the bridge protocol was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
-            self.log.error(f'Unable to set protocol {protocol} to bridge: {self.bridge_name} does not exists')
+            self.log.error(f'Unable to set protocol {protocol} to bridge: {self._bridge_name} does not exists')
             return STATUS_NOK
 
-        if Bridge().update_bridge(bridge_name=self.bridge_name, protocol=protocol):
-            self.log.error(f'set_bridge_protocol() -> Failed to set description "{protocol}" to bridge {self.bridge_name}')
+        if Bridge().update_bridge(bridge_name=self._bridge_name, protocol=protocol):
+            self.log.error(f'set_bridge_protocol() -> Failed to set description "{protocol}" to bridge {self._bridge_name}')
             return STATUS_NOK
             
-        self.log.debug(f'set_bridge_protocol() -> Bridge protocol {protocol} is already set for bridge {self.bridge_name}')
+        self.log.debug(f'set_bridge_protocol() -> Bridge protocol {protocol} is already set for bridge {self._bridge_name}')
         return STATUS_OK
     
     def set_description(self, description: Optional[str]) -> bool:
@@ -225,13 +266,13 @@ class BridgeConfigCommands:
             bool: STATUS_OK if the description was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
-            self.log.error(f'Unable to set description {description} to bridge: {self.bridge_name} does not exists')
+            self.log.error(f'Unable to set description {description} to bridge: {self._bridge_name} does not exists')
             return STATUS_NOK
 
-        if Bridge().update_bridge(bridge_name=self.bridge_name, description=description):
-            self.log.error(f'set_description() -> Failed to set description "{description}" to bridge {self.bridge_name}')
+        if Bridge().update_bridge(bridge_name=self._bridge_name, description=description):
+            self.log.error(f'set_description() -> Failed to set description "{description}" to bridge {self._bridge_name}')
             return STATUS_NOK
             
-        self.log.debug(f'set_description() -> Description "{description}" set to bridge {self.bridge_name}')
+        self.log.debug(f'set_description() -> Description "{description}" set to bridge {self._bridge_name}')
         
         return STATUS_OK
