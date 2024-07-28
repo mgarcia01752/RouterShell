@@ -180,6 +180,7 @@ class RouterConfiguration:
         cmd_lines = []
 
         for bridge_config in bridge_info_results:
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(bridge_config.values()) else line
                 for i, line in enumerate(filter(None, bridge_config.values()))
@@ -209,6 +210,7 @@ class RouterConfiguration:
         cmd_lines = []
 
         for vlan_config in vlan_info_results:
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(vlan_config.values()) else line
                 for i, line in enumerate(filter(None, vlan_config.values()))
@@ -256,6 +258,7 @@ class RouterConfiguration:
 
         if status == STATUS_OK:
             for result in results:
+                cmd_lines.extend([self.LINE_BREAK])
                 cmd_setting = result.get('IpNatPoolName')
                 cmd_lines.append(cmd_setting)
             cmd_lines.append(self.LINE_BREAK)

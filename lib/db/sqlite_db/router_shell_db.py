@@ -4439,30 +4439,35 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute('''
+            cursor.execute(f'''
                 SELECT DISTINCT
-                
-                    'interface '            || Interfaces.InterfaceName AS Interface,
-                    'description '          || Interfaces.Description AS Description,
-                    'mac address '          || InterfaceSubOptions.MacAddress AS MacAddress,
-                    'duplex '               || InterfaceSubOptions.Duplex AS Duplex,
-                    'speed '                || CASE WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' ELSE InterfaceSubOptions.Speed END AS Speed,
+                    'interface ' || Interfaces.InterfaceName AS Interface,
+                    'description ' || Interfaces.Description AS Description,
+                    'mac address ' || InterfaceSubOptions.MacAddress AS MacAddress,
+                    'duplex ' || InterfaceSubOptions.Duplex AS Duplex,
+                    'speed ' || CASE WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' ELSE InterfaceSubOptions.Speed END AS Speed,
                     CASE WHEN InterfaceSubOptions.ProxyArp THEN 'ip proxy-arp' ELSE 'no ip proxy-arp' END AS ProxyArp,
-                    CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
-                    'bridge group '         || Bridges.BridgeName AS BridgeGroup,
-                    'ip nat '               || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
+                    CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no ip drop-gratuitous-arp' END AS DropGratuitousArp,
+                    'bridge group ' || Bridges.BridgeName AS BridgeGroup,
+                    'ip nat ' || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
                     CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
-                
-                FROM Interfaces
-                
-                LEFT JOIN InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interface_FK
-                LEFT JOIN InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
-                LEFT JOIN BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
-                LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
-                LEFT JOIN NatDirections ON Interfaces.ID = NatDirections.Interface_FK
-                LEFT JOIN Nats ON Nats.ID = NatDirections.NAT_FK
-                
-                WHERE Interfaces.InterfaceName = ?;
+                FROM
+                    Interfaces
+                LEFT JOIN
+                    InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interface_FK
+                LEFT JOIN
+                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
+                LEFT JOIN
+                    BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
+                LEFT JOIN
+                    Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
+                LEFT JOIN
+                    NatDirections ON Interfaces.ID = NatDirections.Interface_FK
+                LEFT JOIN
+                    Nats ON Nats.ID = NatDirections.NAT_FK
+                WHERE
+                    Interfaces.InterfaceName = ?
+                    AND Interfaces.InterfaceType != '{InterfaceType.BRIDGE.value}';
                 ''', (interface_name,))
             
             result = cursor.fetchone()
@@ -4684,8 +4689,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-
-
     '''
                             ROUTER-CONFIGURATION-GLOBAL
     '''
@@ -4729,12 +4732,18 @@ class RouterShellDB(metaclass=Singleton):
         """
         query = '''
             SELECT DISTINCT
-                'bridge '   || Bridges.BridgeName AS BridgeName,
-                'protocol ' || Bridges.Protocol AS Protocol,    
-                'stp '      || Bridges.StpStatus AS StpStatus,
-                CASE WHEN Bridges.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
+                'bridge '           || Bridges.BridgeName AS BridgeName,
+                'description '      || Interfaces.Description AS Description,
+                'inet management '  || InterfaceIpAddress.IpAddress AS InetMgt,
+                'protocol '         || Bridges.Protocol AS Protocol,    
+                'stp '              || Bridges.StpStatus AS StpStatus,
+                CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
             FROM
-                Bridges;
+                Bridges
+            LEFT JOIN
+                Interfaces ON Bridges.ManagmentInterface_FK = Interfaces.ID
+            LEFT JOIN
+                InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interface_FK;
         '''
 
         try:
@@ -4748,9 +4757,11 @@ class RouterShellDB(metaclass=Singleton):
                 Result(status=STATUS_OK, row_id=None,
                     result={
                         'BridgeName': row[0],
-                        'Protocol': row[1],
-                        'StpStatus': row[2],
-                        'Shutdown': row[3]
+                        'Description': row[1],
+                        'InetMgt': row[2],
+                        'Protocol': row[3],
+                        'StpStatus': row[4],
+                        'Shutdown': row[5]
                     }
                 ) for row in rows
             ]
@@ -4762,6 +4773,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
 
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
 
     def select_global_vlan_configuration(self) -> List[Result]:
         """
