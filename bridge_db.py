@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB
-from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE, BridgeProtocol
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
+
 
 bridge_name = "brlan0"
 description = "Test Bridge Insert"

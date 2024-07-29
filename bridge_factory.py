@@ -2,9 +2,10 @@
 
 import logging
 from lib.network_manager.common.phy import State
-from lib.network_manager.network_operations.bridge.bridge import Bridge
-from lib.network_manager.network_operations.bridge.bridge_factory import BridgeConfigFactory
-from lib.network_manager.network_operations.bridge.bridge_settings import STP_STATE
+from lib.network_manager.network_interfaces.bridge.bridge_factory import BridgeInterfaceFactory
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE
+from lib.network_manager.network_operations.bridge import Bridge
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,7 +24,7 @@ if Bridge()._del_bridge_via_os(bridge_name):
     logging.info(f"Bridge {bridge_name} failed to deleted")
 
 # Initialize BridgeConfigFactory and get BridgeConfigCommands
-bcc = BridgeConfigFactory(bridge_name=bridge_name).get_bridge_config_cmds()
+bcc = BridgeInterfaceFactory(bridge_name=bridge_name).get_bridge_config_cmds()
 
 # Check if bridge exists
 print(f"Checking if bridge {bridge_name} exists")
