@@ -8,6 +8,8 @@ from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand, RunLog
+from lib.system.init_system import InitSystemChecker
+from lib.system.os.os import OSChecker
 
 class InvalidSystemConfig(Exception):
     def __init__(self, message):
@@ -121,27 +123,35 @@ class SystemCall(RunCommand):
         """
         current_os = platform.system()
 
-        if current_os == "Linux":  
-
+        if current_os == "Linux":
             try:
-                # with open('/etc/hostname', 'w') as f:
-                #    f.write(hostname + '\n')
-
-                # Ensure the change is recognized without a reboot
+                # Set the hostname temporarily until the next reboot
                 self.run(['hostname', hostname])
                 
+                # Update the hostname permanently
+                if InitSystemChecker().is_sysv():
+                    with open('/etc/hostname', 'w') as f:
+                        f.write(hostname + '\n')
+                    self.run(['service', 'hostname', 'restart'])
+
+                elif InitSystemChecker().is_systemd():
+                    self.run(['hostnamectl', 'set-hostname', hostname])
+
+                else:
+                    self.log.error(f"set_hostname_os(): Unsupported init system.")
+                    return STATUS_NOK
+
                 self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
+                return STATUS_OK
 
             except Exception as e:
                 self.log.error(f"set_hostname_os(): Failed to set hostname: {e}")
                 return STATUS_NOK
-        
+
         else:
             self.log.error(f"set_hostname_os(): Setting hostname not supported for OS: {current_os}")
             return STATUS_NOK
-        
-        return STATUS_OK
-    
+            
     def get_hostname_os(self) -> str:
         """
         Get the current static hostname using the `hostnamectl --static` command.
