@@ -1396,7 +1396,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-
     def insert_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
         """
         Inserts a DHCP pool name into the DHCPServer table.
@@ -3184,7 +3183,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO BridgeGroups (Interface_FK, BridgeGroups_FK) VALUES (?, ?)",
+                "INSERT INTO BridgeGroups (Interface_FK, Bridges_FK) VALUES (?, ?)",
                 (interface_id, bridge_id)
             )
             row_id = cursor.lastrowid
@@ -3224,7 +3223,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM BridgeGroups WHERE Interface_FK = ? AND BridgeGroups_FK = ?",
+                "DELETE FROM BridgeGroups WHERE Interface_FK = ? AND Bridges_FK = ?",
                 (interface_id, bridge_id)
             )
             self.connection.commit()
@@ -4460,7 +4459,7 @@ class RouterShellDB(metaclass=Singleton):
                 LEFT JOIN
                     BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
                 LEFT JOIN
-                    Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
+                    Bridges ON Bridges.ID = BridgeGroups.Bridges_FK
                 LEFT JOIN
                     NatDirections ON Interfaces.ID = NatDirections.Interface_FK
                 LEFT JOIN
