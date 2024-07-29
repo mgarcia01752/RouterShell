@@ -258,7 +258,185 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f'Bridge {bridge_name} does exists in both OS and DB')
         
         return True
-    
+
+    def add_interface_to_bridge_group(self, interface_name: str, bridge_group: str) -> bool:
+        """
+        Adds a specified network interface to a bridge group both in the OS and the database.
+
+        This method first attempts to add the interface to the bridge group using OS commands.
+        If successful, it then updates the bridge group information in the database.
+        Logs an error message if either operation fails and returns a status indicating success
+        or failure.
+
+        Args:
+            interface_name (str): The name of the network interface to add to the bridge group.
+            bridge_group (str): The name of the bridge group to which the interface should be added.
+
+        Returns:
+            bool: STATUS_OK if the interface was successfully added to the bridge group in both 
+                the OS and the database, STATUS_NOK otherwise.
+        """
+        if self._add_interface_to_bridge_group_os(interface_name, bridge_group):
+            self.log.error(f'Failed to add interface {interface_name} to bridge group {bridge_group} to OS')
+            return STATUS_NOK
+        
+        if self.update_interface_bridge_group_db(interface_name, bridge_group, remove=False):
+            self.log.error(f"Failed to update interface {interface_name} bridge group {bridge_group} to DB")
+            return STATUS_OK
+        
+        return STATUS_OK
+
+    def del_interface_to_bridge_group(self, interface_name: str, bridge_group: str) -> bool:
+        """
+        Deletes a specified network interface from a bridge group.
+
+        This method removes the given interface from the specified bridge group using OS commands.
+        It then updates the database to reflect this change. If any step fails, it logs an error message
+        and returns a status indicating the failure.
+
+        Args:
+            interface_name (str): The name of the network interface to remove from the bridge group.
+            bridge_group (str): The name of the bridge group from which the interface should be removed.
+
+        Returns:
+            bool: STATUS_OK if the interface was successfully removed from the bridge group,
+                STATUS_NOK otherwise.
+        """
+
+        if not self._del_interface_from_bridge_group_os(interface_name, bridge_group):
+            self.log.error(f'Failed to remove interface {interface_name} from bridge group {bridge_group} in the OS')
+            return STATUS_NOK
+
+        if not self.update_interface_bridge_group_db(interface_name, bridge_group, remove=True):
+            self.log.error(f"Failed to update interface {interface_name} bridge group {bridge_group} in the DB")
+            return STATUS_NOK
+
+        return STATUS_OK
+
+    def _add_interface_to_bridge_group_os(self, interface_name: str, bridge_group: str) -> bool:
+        """
+        Adds a specified network interface to a bridge group using OS commands.
+
+        This private method constructs and executes an `ip` command to set the given
+        interface as a member of the specified bridge group. It first checks if the 
+        interface is already attached to any bridge group and verifies if it needs to 
+        be removed before adding it to the new bridge group. It logs appropriate messages 
+        and returns a status indicating success or failure.
+
+        Args:
+            interface_name (str): The name of the network interface to add to the bridge group.
+            bridge_group (str): The name of the bridge group to which the interface should be added.
+
+        Returns:
+            bool: STATUS_OK if the interface was successfully added to the bridge group, 
+                STATUS_NOK otherwise.
+        """
+        if self._is_interface_attached_to_any_bridge_group_os(interface_name):
+            self.log.debug(f'Interface {interface_name} is already attached to a bridge group.')
+
+            if self._is_interface_attached_to_bridge_group_os(interface_name, bridge_group):
+                self.log.debug(f'Interface {interface_name} is already attached to bridge group {bridge_group}')
+                return STATUS_OK
+            else:
+                self.log.debug(f'Interface {interface_name} is attached to a different bridge group. Must remove it before adding to {bridge_group}')
+                return STATUS_NOK
+
+        result = self.run(['ip', 'link', 'set', 'dev', interface_name, 'master', bridge_group])
+        if result.exit_code:
+            self.log.error(f'Failed to add interface {interface_name} to bridge group {bridge_group}, error: {result.stderr}')
+            return STATUS_NOK
+        return STATUS_OK
+
+    def _is_interface_attached_to_bridge_group_os(self, interface_name: str, bridge_group: str) -> bool:
+        """
+        Checks if a specified network interface is attached to a specific bridge group using OS commands with JSON output.
+
+        This private method constructs and executes an `ip` command with the `-json` option to verify if the given
+        interface is a member of the specified bridge group. It returns a boolean indicating whether the interface 
+        is attached to the specified bridge group.
+
+        Args:
+            interface_name (str): The name of the network interface to check.
+            bridge_group (str): The name of the bridge group to check against.
+
+        Returns:
+            bool: True if the interface is attached to the specified bridge group, False otherwise.
+        """
+        command = ['ip', '-j', 'link', 'show', interface_name]
+        result = self.run(command)
+        if result.exit_code:
+            self.log.error(f'Failed to retrieve information for interface {interface_name}, error: {result.stderr}')
+            return False
+
+        try:
+            import json
+            interface_info = json.loads(result.stdout)
+            
+            # Check if the interface has a 'master' key and if the master bridge group matches
+            if interface_info and 'master' in interface_info[0] and interface_info[0]['master'] == bridge_group:
+                return True
+        except json.JSONDecodeError:
+            self.log.error(f'Failed to parse JSON output for interface {interface_name}')
+            return False
+
+        return False
+
+    def _is_interface_attached_to_any_bridge_group_os(self, interface_name: str) -> bool:
+        """
+        Checks if a specified network interface is attached to any bridge group using OS commands with JSON output.
+
+        This private method constructs and executes an `ip` command with the `-json` option to verify if the given
+        interface is a member of any bridge group. It returns a boolean indicating whether the interface is attached
+        to any bridge group.
+
+        Args:
+            interface_name (str): The name of the network interface to check.
+
+        Returns:
+            bool: True if the interface is attached to any bridge group, False otherwise.
+        """
+        command = ['ip', '-j', 'link', 'show', interface_name]
+        result = self.run(command)
+        if result.exit_code:
+            self.log.error(f'Failed to retrieve information for interface {interface_name}, error: {result.stderr}')
+            return False
+
+        try:
+            import json
+            interface_info = json.loads(result.stdout)
+            
+            # Check if the interface has a 'master' key indicating it is part of a bridge group
+            if 'master' in interface_info[0] and interface_info[0]['master']:
+                return True
+        except json.JSONDecodeError:
+            self.log.error(f'Failed to parse JSON output for interface {interface_name}')
+            return False
+
+        return False
+
+    def _del_interface_from_bridge_group_os(self, interface_name: str, bridge_group: str) -> bool:
+        """
+        Removes a specified network interface from a bridge group using OS commands.
+
+        This private method constructs and executes an `ip` command to remove the given
+        interface from the specified bridge group. It logs an error message if the 
+        command fails and returns a status indicating success or failure.
+
+        Args:
+            interface_name (str): The name of the network interface to remove from the bridge group.
+            bridge_group (str): The name of the bridge group from which the interface should be removed.
+
+        Returns:
+            bool: STATUS_OK if the interface was successfully removed from the bridge group, 
+                STATUS_NOK otherwise.
+        """
+        command = ['ip', 'link', 'set', 'dev', interface_name, 'nomaster']
+        result = self.run(command)
+        if result.exit_code:
+            self.log.error(f'Failed to remove interface {interface_name} from bridge group {bridge_group}. error: {result.stderr}')
+            return STATUS_NOK
+        return STATUS_OK
+
     def _does_bridge_exist_os(self, bridge_name:str, suppress_error=False) -> bool:
         """
         Check if a bridge with the given name exists via iproute.

@@ -151,20 +151,20 @@ class BridgeDatabase():
         cls.log.debug(f"bridge_exists() -> BridgeName: {bridge_name}")
         pass
 
-    def update_interface_bridge_group(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
+    def update_interface_bridge_group_db(cls, interface_name: str, bridge_group: str, remove: bool = False) -> bool:
         """
         Update the bridge group for an interface.
 
         Args:
             interface_name (str): The name of the interface to update.
             bridge_group (str): The name of the bridge group to assign or remove.
-            negate (bool optional): If True, remove the interface from the bridge group. 
+            remove (bool optional): If True, remove the interface from the bridge group. 
                                     If False, assign the interface to the bridge group.
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
-        if negate:
+        if remove:
             result = cls.rsdb.delete_interface_bridge_group(interface_name, bridge_group)
             cls.log.debug(f"Removed interface '{interface_name}' from bridge group '{bridge_group}'")
         else:

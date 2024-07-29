@@ -8,10 +8,8 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.common import STATUS_NOK, STATUS_OK
-from lib.network_manager.network_interfaces.bridge.bridge_protocols import BridgeProtocol
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
-from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient, DHCPStackVersion
 from lib.network_manager.network_operations.nat import NATDirection, Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_manager.network_operations.vlan import Vlan
@@ -452,29 +450,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         self.log.debug(f"update_shutdown() -> interface_name: {interface_name} -> State: {state} via os")
         return self.set_interface_shutdown(interface_name, state)
- 
-    def update_interface_bridge_group(self, interface_name:str, 
-                                      br_id:str, stp_protocol:BridgeProtocol = BridgeProtocol.IEEE_802_1D) -> bool:
-        """
-        Set the bridge group and Spanning Tree Protocol (STP) configuration for a network interface.
-
-        This method allows configuring a network interface to be a part of a specific bridge group with optional STP protocol selection.
-
-        Args:
-            interface_name (str): The name of the network interface to configure.
-            br_id (str): The identifier of the bridge group to join.
-            stp_protocol (BrProc): The STP protocol to use for the bridge group (default is IEEE 802.1D).
-
-        Returns:
-            bool: A status string indicating the result of the operation. 'STATUS_OK' if successful,
-                 'STATUS_NOK' if the specified bridge group does not exist.
-
-        """
-        if Bridge().add_bridge_to_interface(interface_name, br_id, stp_protocol) == STATUS_NOK:
-            print(f"bridge-group {br_id} does not exists")
-            return STATUS_NOK
-        return STATUS_OK
-    
+     
     def create_os_dummy_interface(self, interface_name:str) -> bool:
         """
         Create a dummy interface with the specified name to OS.
