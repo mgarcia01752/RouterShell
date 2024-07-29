@@ -1,6 +1,7 @@
 import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
+from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
@@ -164,6 +165,10 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
                 False otherwise.
         """
         return Interface().update_interface_static_arp(self._interface_name, inet_address, mac_addr, Encapsulate.ARPA, negate)
+    
+    def get_ifType(self) -> InterfaceType:
+        return InterfaceType.ETHERNET
+        
     
     def set_nat_domain_direction(self, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
         """
