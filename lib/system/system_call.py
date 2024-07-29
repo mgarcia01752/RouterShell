@@ -124,29 +124,28 @@ class SystemCall(RunCommand):
         current_os = platform.system()
 
         if current_os == "Linux":
-            try:
-                # Set the hostname temporarily until the next reboot
-                self.run(['hostname', hostname])
-                
-                # Update the hostname permanently
-                if InitSystemChecker().is_sysv():
-                    with open('/etc/hostname', 'w') as f:
-                        f.write(hostname + '\n')
-                    self.run(['service', 'hostname', 'restart'])
+            
+            if InitSystemChecker().is_sysv():
+                with open('/etc/hostname', 'w') as f:
+                    f.write(hostname + '\n')
 
-                elif InitSystemChecker().is_systemd():
-                    self.run(['hostnamectl', 'set-hostname', hostname])
-
-                else:
-                    self.log.error(f"set_hostname_os(): Unsupported init system.")
+                result = self.run(['service', 'hostname', 'restart'])
+                if result.exit_code:
+                    self.log.error(f"Failed to restart hostname service (SysV): {result}, reason: {result.stderr}")
                     return STATUS_NOK
 
-                self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
-                return STATUS_OK
+            elif InitSystemChecker().is_systemd():
+                result = self.run(['hostnamectl', 'set-hostname', hostname])
+                if result.exit_code:
+                    self.log.error(f"Failed to restart hostname service (systemd): {result}, reason: {result.stderr}")
+                    return STATUS_NOK
 
-            except Exception as e:
-                self.log.error(f"set_hostname_os(): Failed to set hostname: {e}")
+            else:
+                self.log.error(f"set_hostname_os(): Unsupported init system.")
                 return STATUS_NOK
+
+            self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
+            return STATUS_OK
 
         else:
             self.log.error(f"set_hostname_os(): Setting hostname not supported for OS: {current_os}")

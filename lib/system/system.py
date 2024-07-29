@@ -24,13 +24,11 @@ class System:
         Returns:
         bool: STATUS_OK if successful, STATUS_NOK otherwise.
         """
-        # Set hostname in the operating system
-        if not SystemCall().set_hostname_os(hostname):
+        if SystemCall().set_hostname_os(hostname):
             self.log.error(f"Error: Failed to set the hostname: ({hostname}) to OS")
             return STATUS_NOK
 
-        # Set hostname in the system database
-        if not SystemDatabase().set_hostname_db(hostname):
+        if SystemDatabase().set_hostname_db(hostname):
             self.log.error(f"Error: Failed to set the hostname: ({hostname}) to DB")
             return STATUS_NOK
 
