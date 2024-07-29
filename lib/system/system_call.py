@@ -1,6 +1,7 @@
 import logging
 import os
 import platform
+import shutil
 import textwrap
 from typing import List
 
@@ -124,32 +125,45 @@ class SystemCall(RunCommand):
         current_os = platform.system()
 
         if current_os == "Linux":
-            
-            if InitSystemChecker().is_sysv():
-                with open('/etc/hostname', 'w') as f:
-                    f.write(hostname + '\n')
+            try:
+                if InitSystemChecker().is_sysv():
+                    # Set the hostname permanently in /etc/hostname
+                    with open('/etc/hostname', 'w') as f:
+                        f.write(hostname + '\n')
 
-                result = self.run(['service', 'hostname', 'restart'])
-                if result.exit_code:
-                    self.log.error(f"Failed to restart hostname service (SysV): {result}, reason: {result.stderr}")
+                    # Check if the hostname command is available
+                    if not shutil.which('hostname'):
+                        self.log.fatal(f"hostname command not found on the system, unable to set hostname: {hostname}")
+                        return STATUS_NOK
+
+                    # Set the hostname temporarily until the next reboot
+                    result = self.run(['hostname', hostname])
+                    if result.exit_code:
+                        self.log.error(f"Failed to set hostname (SysV): {result}, reason: {result.stderr}")
+                        return STATUS_NOK
+
+                elif InitSystemChecker().is_systemd():
+                    # Set the hostname permanently using hostnamectl
+                    result = self.run(['hostnamectl', 'set-hostname', hostname])
+                    if result.exit_code:
+                        self.log.error(f"Failed to set hostname (systemd): {result}, reason: {result.stderr}")
+                        return STATUS_NOK
+
+                else:
+                    self.log.error(f"set_hostname_os(): Unsupported init system.")
                     return STATUS_NOK
 
-            elif InitSystemChecker().is_systemd():
-                result = self.run(['hostnamectl', 'set-hostname', hostname])
-                if result.exit_code:
-                    self.log.error(f"Failed to restart hostname service (systemd): {result}, reason: {result.stderr}")
-                    return STATUS_NOK
+                self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
+                return STATUS_OK
 
-            else:
-                self.log.error(f"set_hostname_os(): Unsupported init system.")
+            except Exception as e:
+                self.log.error(f"set_hostname_os(): Failed to set hostname: {e}")
                 return STATUS_NOK
-
-            self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
-            return STATUS_OK
 
         else:
             self.log.error(f"set_hostname_os(): Setting hostname not supported for OS: {current_os}")
             return STATUS_NOK
+
             
     def get_hostname_os(self) -> str:
         """
