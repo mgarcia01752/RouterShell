@@ -16,10 +16,14 @@ class EthernetInterfaceError(Exception):
 class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
 
     def __init__(self, ethernet_name: str):
-        BridgeGroup.__init__(interface_name=ethernet_name)
-        DHCPInterfaceClient().__init__(interface_name=ethernet_name)
+        BridgeGroup.__init__(self, ethernet_name)
+        DHCPInterfaceClient.__init__(self, ethernet_name)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_INTERFACE)        
+        self._interface_name = ethernet_name
+    
+    def get_interface_name(self) -> str:
+        return self._interface_name
             
     def flush_interface(self) -> bool:
         """
@@ -28,7 +32,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
         """
-        return Interface().flush_interface(self.interface_name)
+        return Interface().flush_interface(self._interface_name)
 
     def get_interface_shutdown_state(self) -> State:
         """
@@ -37,7 +41,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             State: The current shutdown state of the interface.
         """
-        state = Interface().get_os_interface_hardware_info(self.interface_name).get('state')
+        state = Interface().get_os_interface_hardware_info(self._interface_name).get('state')
         return State[state.upper()] if state else None
 
     def set_interface_shutdown_state(self, state: State) -> bool:
@@ -50,7 +54,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: STATUS_OK if the state change is successful, STATUS_NOK otherwise.
         """
-        return Interface().update_shutdown(self.interface_name, state)
+        return Interface().update_shutdown(self._interface_name, state)
 
     def get_interface_speed(self) -> Speed:
         """
@@ -59,7 +63,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             Speed: The current speed of the interface.
         """
-        speed = Interface().get_os_interface_hardware_info(self.interface_name).get('speed')
+        speed = Interface().get_os_interface_hardware_info(self._interface_name).get('speed')
         return Speed[speed.upper()] if speed else Speed.NONE
 
     def set_interface_speed(self, speed: Speed) -> bool:
@@ -72,7 +76,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: STATUS_OK if the speed change is successful, STATUS_NOK otherwise.
         """
-        return Interface().update_interface_speed(self.interface_name, speed)
+        return Interface().update_interface_speed(self._interface_name, speed)
     
     def set_proxy_arp(self, negate: bool = False) -> bool:
         """
@@ -86,7 +90,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: STATUS_OK if the Proxy ARP configuration was successfully updated, STATUS_NOK otherwise.
         """
-        return Interface().update_interface_proxy_arp(self.interface_name, negate)
+        return Interface().update_interface_proxy_arp(self._interface_name, negate)
     
     def set_drop_gratuitous_arp(self, negate: bool = False) -> bool:
         """
@@ -99,8 +103,8 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
             bool: True if the drop gratuitous ARP configuration was successfully set,
                 False otherwise.
         """
-        if Interface().update_interface_drop_gratuitous_arp(self.interface_name, (not negate)):
-            self.log.error(f'Failed to update drop gratuitous ARP setting for interface: {self.interface_name}')
+        if Interface().update_interface_drop_gratuitous_arp(self._interface_name, (not negate)):
+            self.log.error(f'Failed to update drop gratuitous ARP setting for interface: {self._interface_name}')
             return STATUS_NOK
         
         return STATUS_OK
@@ -117,7 +121,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: STATUS_OK if the MAC address is successfully updated, STATUS_NOK otherwise.
         """
-        return Interface().update_interface_mac(self.interface_name, mac_addr)
+        return Interface().update_interface_mac(self._interface_name, mac_addr)
     
     def set_duplex(self, duplex: Duplex) -> bool:
         """
@@ -130,7 +134,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
             bool: True if the duplex mode was successfully set and updated in the database,
                 False otherwise.
         """
-        return Interface().update_interface_duplex(self.interface_name, duplex)
+        return Interface().update_interface_duplex(self._interface_name, duplex)
     
     def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
         """
@@ -144,7 +148,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: True if the IP address is successfully added or modified, False otherwise.
         """
-        return Interface().update_interface_inet(self.interface_name, inet_address, secondary_address, negate)
+        return Interface().update_interface_inet(self._interface_name, inet_address, secondary_address, negate)
     
     def add_static_arp(self, inet_address: str, mac_addr: str, negate: bool = False) -> bool:
         """
@@ -159,7 +163,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
             bool: True if the static ARP entry was successfully added or removed,
                 False otherwise.
         """
-        return Interface().update_interface_static_arp(self.interface_name, inet_address, mac_addr, Encapsulate.ARPA, negate)
+        return Interface().update_interface_static_arp(self._interface_name, inet_address, mac_addr, Encapsulate.ARPA, negate)
     
     def set_nat_domain_direction(self, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
         """
@@ -173,7 +177,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         Returns:
             bool: STATUS_OK if the NAT direction was successfully set, STATUS_NOK otherwise.
         """
-        if Interface.set_nat_domain_status(self, self.interface_name, nat_pool_name, nat_direction, negate):
+        if Interface.set_nat_domain_status(self, self._interface_name, nat_pool_name, nat_direction, negate):
             self.log.error(f'Unable to add NAT-{nat_direction.name} to pool-name: {nat_pool_name} Negate: {negate}')
             return STATUS_NOK
         return STATUS_OK
