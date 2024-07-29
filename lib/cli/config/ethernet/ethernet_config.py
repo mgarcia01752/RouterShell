@@ -276,14 +276,15 @@ class EthernetConfig(CmdPrompt):
                 return STATUS_NOK
         
         elif 'bridge' in args:
-            '''[no] [bridge <bridge-name>]'''
-            if len(args) == 2 and 'group' in args:
-                bridge_group = args[1]
+            '''[no] [bridge group <bridge-name>]'''
+            self.log.info(f'ip bridge -> {args}')
+            if len(args) == 3 and 'group' in args:
+                bridge_group = args[2]
                 if self.eth_interface_obj.set_bridge_group(bridge_group):
                     self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self.ifName}")
                     return STATUS_OK
             else:
-                print('Missing bridge group name')
+                print('Missing bridge group name or invalid command')
         else:
             self.log.debug(f'Invalid subcommand: {args}')
             print('Invalid subcommand')
