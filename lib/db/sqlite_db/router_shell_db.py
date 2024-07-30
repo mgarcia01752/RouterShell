@@ -408,6 +408,36 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, reason=str(e))
 
+    def is_bridge_in_bridge_group(self, bridge_name: str) -> Result:
+        """
+        Check if a bridge with the given name exists in the BridgeGroups table.
+
+        Args:
+            bridge_name (str): The name of the bridge to check.
+
+        Returns:
+            Result: A Result object indicating if the bridge exists in the BridgeGroups table.
+                - If the bridge exists, the Result object will have 'status' set to True, otherwise False.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("""
+                SELECT BG.Bridges_FK
+                FROM BridgeGroups BG
+                JOIN Bridges B ON BG.Bridges_FK = B.ID
+                WHERE B.BridgeName = ?
+            """, (bridge_name,))
+            row = cursor.fetchone()
+
+            if row:
+                bridge_id = row[0]
+                return Result(status=True, row_id=bridge_id)
+            else:
+                return Result(status=False, reason=f"Bridge with name '{bridge_name}' does not exist in the BridgeGroups table")
+
+        except sqlite3.Error as e:
+            return Result(status=False, reason=str(e))
+
     def insert_interface_bridge(self, bridge_name: str, shutdown_status: bool = True) -> Result:
         """
         Insert a new bridge interface into the 'Interfaces' and 'Bridges' tables.
@@ -440,7 +470,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_id = cursor.lastrowid
 
             cursor.execute(
-                "INSERT INTO Bridges (BridgeName, ManagmentInterface_FK) VALUES (?, ?)",
+                "INSERT INTO Bridges (BridgeName, Interfaces_FK) VALUES (?, ?)",
                 (bridge_name, interface_id)
             )
             self.connection.commit()
@@ -467,27 +497,32 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             # Check if the bridge exists using the existing method
-            bridge_result = self.bridge_exist_db(bridge_name)
+            bridge_interface_result = self.bridge_exist_db(bridge_name)
 
-            if not bridge_result.status:
+            if not bridge_interface_result.status:
                 self.log.debug(
                     f"Bridge interface {bridge_name} does not exist")
                 return Result(status=STATUS_NOK, row_id=0, reason=f"Bridge interface {bridge_name} does not exist")
-
-            bridge_id = bridge_result.row_id
+            
+            result = self.is_bridge_in_bridge_group(bridge_name)
+            if result.status:
+                fail_reason = f"Bridge interface {bridge_name} found in BridgeGroup, need to delete interfaces before deleting bridge"
+                return Result(status=STATUS_NOK, row_id=0, reason=fail_reason)
+            
+            bridge_interface_row_id = bridge_interface_result.row_id
 
             cursor = self.connection.cursor()
 
             # Delete from InterfaceIpAddress table
             cursor.execute(
                 "DELETE FROM InterfaceIpAddress WHERE Interface_FK = ?",
-                (bridge_id,)
+                (bridge_interface_row_id,)
             )
 
             # Delete from Bridges table
             cursor.execute(
-                "DELETE FROM Bridges WHERE BridgeName = ?",
-                (bridge_name,)
+                "DELETE FROM Bridges WHERE Interfaces_FK = ?",
+                (bridge_interface_row_id,)
             )
 
             # Delete from Interfaces table
@@ -531,7 +566,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
 
             cursor.execute(
-                "SELECT B.ManagmentInterface_FK, I.ID FROM Bridges B JOIN Interfaces I ON B.ManagmentInterface_FK = I.ID WHERE B.BridgeName = ?",
+                "SELECT B.Interface_FK, I.ID FROM Bridges B JOIN Interfaces I ON B.Interface_FK = I.ID WHERE B.BridgeName = ?",
                 (bridge_name,)
             )
             bridge_row = cursor.fetchone()
@@ -553,7 +588,7 @@ class RouterShellDB(metaclass=Singleton):
                 parameters.append(stp_status.value)
 
             if update_columns:
-                update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE ManagmentInterface_FK = ?"
+                update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE Interface_FK = ?"
                 parameters.append(interface_id)
                 cursor.execute(update_query, tuple(parameters))
 
