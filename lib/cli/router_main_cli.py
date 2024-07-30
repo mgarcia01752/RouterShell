@@ -21,12 +21,41 @@ logging.basicConfig(
 )
 
 class RouterCLI(RouterPrompt):
-
-    def __init__(self):
+    """
+    RouterCLI is a command-line interface class for managing and interacting with network routers.
+    
+    This class inherits from RouterPrompt and initializes the router system with optional startup procedures.
+    
+    Attributes:
+        system_start_up (bool): Determines if the system startup procedures should be executed upon initialization.
+        
+    Methods:
+        __init__(system_start_up=True):
+            Initializes the RouterCLI instance and optionally performs system startup procedures.
+    """
+    
+    def __init__(self, system_start_up=False):
+        """
+        Initializes the RouterCLI instance.
+        
+        Args:
+            system_start_up (bool): If True, performs system startup procedures by calling SystemStartUp(). Defaults to True.
+        
+        Inherited Methods:
+            RouterPrompt.__init__(): Initializes the parent RouterPrompt class.
+        
+        Example:
+            # Create a RouterCLI instance with system startup procedures
+            router_cli = RouterCLI(system_start_up=True)
+            
+            # Create a RouterCLI instance without system startup procedures
+            router_cli = RouterCLI(system_start_up=False)
+        """
         super().__init__()
         
-        SystemStartUp()
-        
+        if system_start_up:
+            SystemStartUp()
+
         RouterPrompt.__init__(self)
         
         self.register_top_lvl_cmds(Global())
