@@ -34,7 +34,7 @@ class RouterCLI(RouterPrompt):
             Initializes the RouterCLI instance and optionally performs system startup procedures.
     """
     
-    def __init__(self, system_start_up=False):
+    def __init__(self, system_start_up=True):
         """
         Initializes the RouterCLI instance.
         
