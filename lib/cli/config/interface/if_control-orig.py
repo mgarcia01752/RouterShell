@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from lib.cli.common.exec_priv_mode import ExecMode
 
-from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.string_formats import StringFormats

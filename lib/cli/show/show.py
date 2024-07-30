@@ -3,7 +3,7 @@ import logging
 from typing import List, Optional
 
 from lib.cli.common.exec_priv_mode import ExecMode
-from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.cli.common.command_class_interface import CmdPrompt
 from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow

@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
-from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.cli.common.command_class_interface import CmdPrompt
 from lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
 from lib.cli.config.dhcp.pool.dhcp_pool_config_cmd import DhcpPoolConfigCmd
 from lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
@@ -54,11 +54,12 @@ class ConfigCmd(CmdPrompt):
         elif interface_name in Interface().get_os_network_interfaces(InterfaceType.WIRELESS_WIFI):
             self.log.debug(f'configcmd_interface() -> WireLess WiFI: {interface_name}')
             print('Not implemented yet')
+            return STATUS_NOK
                         
         else:
-            self.log.debug(f'Interface Type not found for interface: {interface_name}')
+            print(f'Invalid interface: {interface_name}')
             return STATUS_NOK
-        
+                
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         

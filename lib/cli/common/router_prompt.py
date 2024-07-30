@@ -7,7 +7,7 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
 from common.common import Common
-from lib.cli.common.CommandClassInterface import CmdPrompt
+from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -426,7 +426,7 @@ class RouterPrompt:
             self.log.debug(f'get_top_level_cmd_object() -> Command Found (Non-Global): {combined_cmd}')
             return self._register_top_lvl_cmds[combined_cmd]
         
-        self.log.error(f'get_top_level_cmd_object() -> cmd: {cmd} - No Match!!!')
+        self.log.debug(f'get_top_level_cmd_object() -> cmd: {cmd} - No Match!!!')
         
         return None
 
@@ -583,7 +583,7 @@ class RouterPrompt:
             return cmd_object.execute(args)
         
         except Exception as e:
-            self.log.error(f'Error _execute_commands() {cmd}: {e}')
+            self.log.debug(f'Error _execute_commands() {cmd}: {e}')
             return STATUS_NOK
             
     def _DEBUG_print_top_lvl_cmds(self):
