@@ -391,22 +391,29 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object indicating if the bridge exists.
-                - If the bridge exists, the Result object will have 'status' set to True, othewise False
+                - If the bridge exists, the Result object will have 'status' set to True, otherwise False.
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ? AND InterfaceType = ?",
-                           (bridge_name, InterfaceType.BRIDGE.value))
+            cursor.execute("""
+                SELECT b.ID 
+                FROM Bridges b
+                JOIN Interfaces i ON b.Interfaces_FK = i.ID
+                WHERE i.InterfaceName = ? AND i.InterfaceType = ?
+            """, (bridge_name, InterfaceType.BRIDGE.value))
+            
             row = cursor.fetchone()
-
+            
             if row:
                 bridge_id = row[0]
                 return Result(status=True, row_id=bridge_id)
             else:
                 return Result(status=False, reason=f"Bridge with name '{bridge_name}' does not exist")
-
+                
         except sqlite3.Error as e:
             return Result(status=False, reason=str(e))
+
+
 
     def is_bridge_in_bridge_group(self, bridge_name: str) -> Result:
         """
@@ -2640,6 +2647,7 @@ class RouterShellDB(metaclass=Singleton):
             existing_row = cursor.fetchone()
 
             if existing_row:
+                self.log.info(f'Interface {if_name} exists on row-id: {existing_row[0]}')
                 return Result(status=True, row_id=existing_row[0])
             else:
                 return Result(status=False, row_id=0)
@@ -3319,7 +3327,7 @@ class RouterShellDB(metaclass=Singleton):
         interface_result = self.interface_exists(interface_name)
 
         if not interface_result.status:
-            self.log.debug(f''
+            self.log.info(f''
                 f"insert_interface_bridge_group() -> interface: {interface_name} does not exist, Exiting")
             return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
 
