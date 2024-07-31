@@ -458,6 +458,7 @@ class RouterShellDB(metaclass=Singleton):
         existing_result = self.bridge_exist_db(bridge_name)
 
         if existing_result.status:
+            self.log.info(f"Bridge with name '{bridge_name}' already exists, not inserting bridge")
             return Result(status=STATUS_NOK, reason=f"Bridge with name '{bridge_name}' already exists")
 
         try:
@@ -475,7 +476,7 @@ class RouterShellDB(metaclass=Singleton):
             )
             self.connection.commit()
 
-            self.log.debug(
+            self.log.info(
                 f"Bridge interface {bridge_name} inserted with interface ID {interface_id}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
@@ -515,7 +516,7 @@ class RouterShellDB(metaclass=Singleton):
 
             # Delete from InterfaceIpAddress table
             cursor.execute(
-                "DELETE FROM InterfaceIpAddress WHERE Interface_FK = ?",
+                "DELETE FROM InterfaceIpAddress WHERE Interfaces_FK = ?",
                 (bridge_interface_row_id,)
             )
 
@@ -566,7 +567,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
 
             cursor.execute(
-                "SELECT B.Interface_FK, I.ID FROM Bridges B JOIN Interfaces I ON B.Interface_FK = I.ID WHERE B.BridgeName = ?",
+                "SELECT B.Interfaces_FK, I.ID FROM Bridges B JOIN Interfaces I ON B.Interfaces_FK = I.ID WHERE B.BridgeName = ?",
                 (bridge_name,)
             )
             bridge_row = cursor.fetchone()
@@ -588,7 +589,7 @@ class RouterShellDB(metaclass=Singleton):
                 parameters.append(stp_status.value)
 
             if update_columns:
-                update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE Interface_FK = ?"
+                update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE Interfaces_FK = ?"
                 parameters.append(interface_id)
                 cursor.execute(update_query, tuple(parameters))
 
@@ -611,7 +612,7 @@ class RouterShellDB(metaclass=Singleton):
 
             if management_inet is not None:
                 cursor.execute(
-                    "SELECT ID FROM InterfaceIpAddress WHERE IpAddress = ? AND Interface_FK = ?", (management_inet, interface_id))
+                    "SELECT ID FROM InterfaceIpAddress WHERE IpAddress = ? AND Interfaces_FK = ?", (management_inet, interface_id))
                 inet_row = cursor.fetchone()
 
                 if inet_row:
@@ -622,7 +623,7 @@ class RouterShellDB(metaclass=Singleton):
                     )
                 else:
                     cursor.execute(
-                        "INSERT INTO InterfaceIpAddress (IpAddress, Interface_FK) VALUES (?, ?)",
+                        "INSERT INTO InterfaceIpAddress (IpAddress, Interfaces_FK) VALUES (?, ?)",
                         (management_inet, interface_id)
                     )
                     inet_id = cursor.lastrowid
@@ -795,7 +796,7 @@ class RouterShellDB(metaclass=Singleton):
 
             # Determine foreign key column and constraint name
             foreign_key_column, constraint_name = (
-                ('Interface_FK', 'FK_VLANs_Interfaces') if interface_name is not None
+                ('Interfaces_FK', 'FK_VLANs_Interfaces') if interface_name is not None
                 else ('Bridge_FK', 'FK_VLANs_Bridges') if bridge_group_name is not None
                 else (None, None)
             )
@@ -847,7 +848,7 @@ class RouterShellDB(metaclass=Singleton):
                     Vlans.VlanDescription AS VLAN_DESCRIPTION,
                     VlanInterfaces.ID AS INTERFACE_ID,
                     VlanInterfaces.VlanName AS INTERFACE_VLAN_NAME,
-                    VlanInterfaces.Interface_FK AS INTERFACE_ID,
+                    VlanInterfaces.Interfaces_FK AS INTERFACE_ID,
                     VlanInterfaces.Bridge_FK AS BRIDGE_ID
                 FROM
                     Vlans
@@ -1142,7 +1143,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"insert_interface_nat_direction(if-id: {interface_id} -> nat-pool-id: {nat_pool_id} -> {direction})")
 
             cursor = self.connection.cursor()
-            cursor.execute("INSERT INTO NatDirections (NAT_FK, Interface_FK, Direction) VALUES (?, ?, ?)",
+            cursor.execute("INSERT INTO NatDirections (NAT_FK, Interfaces_FK, Direction) VALUES (?, ?, ?)",
                            (nat_pool_id, interface_id, direction))
 
             self.connection.commit()
@@ -1370,7 +1371,7 @@ class RouterShellDB(metaclass=Singleton):
             if interface_result is None:
                 return Result(status=False, row_id=0)  # Interface not found
 
-            cursor.execute("SELECT ID FROM NatDirections WHERE NAT_FK = ? AND Interface_FK = ? AND Direction = ?",
+            cursor.execute("SELECT ID FROM NatDirections WHERE NAT_FK = ? AND Interfaces_FK = ? AND Direction = ?",
                            (nat_pool_id, interface_id, direction))
             nat_direction_result = cursor.fetchone()
 
@@ -1401,7 +1402,7 @@ class RouterShellDB(metaclass=Singleton):
             * `status`: True if successful, False if an error occurred.
             * `row_id`: The primary key of the selected record (interface_fk) or `ROW_ID_NOT_FOUND` if an error occurred.
             * `result`: A dictionary containing the following key-value pairs:
-                * `Interface_FK`: The primary key of the interface record.
+                * `Interfaces_FK`: The primary key of the interface record.
                 * `InterfaceName`: The name of the interface.
 
         Raises:
@@ -1413,9 +1414,9 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             cursor.execute("""
-                SELECT ND.Interface_FK, I.InterfaceName
+                SELECT ND.Interfaces_FK, I.InterfaceName
                 FROM NatDirections AS ND
-                JOIN Interfaces AS I ON ND.Interface_FK = I.ID
+                JOIN Interfaces AS I ON ND.Interfaces_FK = I.ID
                 JOIN Nats AS N ON ND.NAT_FK = N.ID
                 WHERE N.NatPoolName = ? AND ND.Direction = ?
             """, (nat_pool_name, direction))
@@ -1424,14 +1425,14 @@ class RouterShellDB(metaclass=Singleton):
             for row in rows:
                 interface_fk, interface_name = row
                 result = Result(status=STATUS_OK, row_id=interface_fk, result={
-                                'Interface_FK': interface_fk, 'InterfaceName': interface_name})
+                                'Interfaces_FK': interface_fk, 'InterfaceName': interface_name})
                 results.append(result)
 
             if len(results) == 0:
                 return Result(status=STATUS_NOK,
                               row_id=self.ROW_ID_NOT_FOUND,
                               reason=f'No Interface Found for Nat-Pool: {nat_pool_name} for direction: {direction}',
-                              result={'Interface_FK': None, 'InterfaceName': None})
+                              result={'Interfaces_FK': None, 'InterfaceName': None})
 
             return results
 
@@ -1905,7 +1906,7 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=interface_exist_result.reason)
 
             # The DHCP pool name exists, and the interface exists, proceed to update the interface
-            query = "UPDATE DHCPServer SET Interface_FK = ? WHERE DhcpPoolname = ?"
+            query = "UPDATE DHCPServer SET Interfaces_FK = ? WHERE DhcpPoolname = ?"
             cursor = self.connection.cursor()
 
             if negate:
@@ -1948,7 +1949,7 @@ class RouterShellDB(metaclass=Singleton):
                     FROM DHCPVersionServerOptions
                     JOIN DHCPSubnet ON DHCPVersionServerOptions.DHCPSubnet_FK = DHCPSubnet.ID
                     JOIN DHCPServer ON DHCPSubnet.DHCPServer_FK = DHCPServer.ID
-                    JOIN Interfaces ON DHCPServer.Interface_FK = Interfaces.ID
+                    JOIN Interfaces ON DHCPServer.Interfaces_FK = Interfaces.ID
                     WHERE DHCPServer.DhcpPoolname = ?
                 );
             """
@@ -2244,7 +2245,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
 
             query = "SELECT ID, InterfaceName FROM Interfaces WHERE ID = ("\
-                "SELECT Interface_FK FROM DHCPServer WHERE DhcpPoolname = ?)"
+                "SELECT Interfaces_FK FROM DHCPServer WHERE DhcpPoolname = ?)"
             self.log.debug(f"{query}")
             cursor.execute(query, (dhcp_pool_name,))
             sql_results = cursor.fetchall()
@@ -2400,7 +2401,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO DHCPClient (Interface_FK, DHCPVersion) VALUES (?, ?)", (result.row_id, dhcp_version))
+                "INSERT INTO DHCPClient (Interfaces_FK, DHCPVersion) VALUES (?, ?)", (result.row_id, dhcp_version))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(STATUS_OK, row_id=row_id)
@@ -2438,14 +2439,14 @@ class RouterShellDB(metaclass=Singleton):
 
             # Try to update the existing entry
             cursor.execute(
-                "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interface_FK = ?",
+                "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interfaces_FK = ?",
                 (dhcp_version, interface_row_id)
             )
 
             if cursor.rowcount == 0:
                 # If no rows were updated, the entry does not exist, insert a new entry
                 cursor.execute(
-                    "INSERT INTO DHCPClient (Interface_FK, DHCPVersion) VALUES (?, ?)",
+                    "INSERT INTO DHCPClient (Interfaces_FK, DHCPVersion) VALUES (?, ?)",
                     (interface_row_id, dhcp_version)
                 )
 
@@ -2481,7 +2482,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM DHCPClient WHERE Interface_FK = ? AND DHCPVersion = ?", (result.row_id, dhcp_version))
+                "DELETE FROM DHCPClient WHERE Interfaces_FK = ? AND DHCPVersion = ?", (result.row_id, dhcp_version))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(STATUS_OK, row_id=row_id)
@@ -2526,7 +2527,7 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                 JOIN
-                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
+                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interfaces_FK
                 LEFT JOIN
                     RenameInterface ON Interfaces.InterfaceName = RenameInterface.AliasInterface
             '''
@@ -2782,18 +2783,18 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_id,))
             sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 # If an entry exists, update the duplex setting
                 cursor.execute(
-                    "UPDATE InterfaceSubOptions SET Duplex = ? WHERE Interface_FK = ?",
+                    "UPDATE InterfaceSubOptions SET Duplex = ? WHERE Interfaces_FK = ?",
                     (duplex, interface_id)
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, Duplex) VALUES (?, ?)",
+                    "INSERT INTO InterfaceSubOptions (Interfaces_FK, Duplex) VALUES (?, ?)",
                     (interface_id, duplex)
                 )
 
@@ -2828,17 +2829,17 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()  # Create a cursor object
             cursor.execute(
-                "SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_id,))
             sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 cursor.execute(
-                    "UPDATE InterfaceSubOptions SET MacAddress = ? WHERE Interface_FK = ?",
+                    "UPDATE InterfaceSubOptions SET MacAddress = ? WHERE Interfaces_FK = ?",
                     (mac_address, interface_id)
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, MacAddress) VALUES (?, ?)",
+                    "INSERT INTO InterfaceSubOptions (Interfaces_FK, MacAddress) VALUES (?, ?)",
                     (interface_id, mac_address)
                 )
 
@@ -2874,18 +2875,18 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_id,))
 
             sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 cursor.execute(
-                    "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interface_FK = ?",
+                    "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interfaces_FK = ?",
                     (speed, interface_id)
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, Speed) VALUES (?, ?)",
+                    "INSERT INTO InterfaceSubOptions (Interfaces_FK, Speed) VALUES (?, ?)",
                     (interface_id, speed)
                 )
 
@@ -3012,7 +3013,7 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO InterfaceIpAddress (Interface_FK, IpAddress, SecondaryIp) VALUES (?, ?, ?)",
+                "INSERT INTO InterfaceIpAddress (Interfaces_FK, IpAddress, SecondaryIp) VALUES (?, ?, ?)",
                 (interface_id, ip_address, is_secondary)
             )
 
@@ -3048,7 +3049,7 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM InterfaceIpAddress WHERE Interface_FK = ? AND IpAddress = ?",
+                "DELETE FROM InterfaceIpAddress WHERE Interfaces_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )
             self.connection.commit()
@@ -3063,10 +3064,10 @@ class RouterShellDB(metaclass=Singleton):
 
     def _sub_option_row_exists(self, interface_fk: int) -> Result:
         """
-        Check if a row with the given Interface_FK exists in the 'InterfaceSubOptions' table.
+        Check if a row with the given Interfaces_FK exists in the 'InterfaceSubOptions' table.
 
         Args:
-            interface_fk (int): The foreign key (Interface_FK) to check.
+            interface_fk (int): The foreign key (Interfaces_FK) to check.
 
         Returns:
             Result: A Result object with the 'row_id' field indicating the found 'ID' or 0 if not found.
@@ -3074,7 +3075,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_fk,))
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_fk,))
             row = cursor.fetchone()
             return Result(status=True, row_id=row[0] if row else 0)
         except sqlite3.Error:
@@ -3143,7 +3144,7 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "UPDATE InterfaceSubOptions SET ProxyArp = ? WHERE Interface_FK = ?",
+                "UPDATE InterfaceSubOptions SET ProxyArp = ? WHERE Interfaces_FK = ?",
                 (status, if_exists.row_id)
             )
 
@@ -3189,7 +3190,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interface_FK = ?",
+                "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interfaces_FK = ?",
                 (status, if_exists.row_id)
             )
 
@@ -3226,7 +3227,7 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT ID FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
+                "SELECT ID FROM InterfaceStaticArp WHERE Interfaces_FK = ? AND IpAddress = ?",
                 (interface_exists_result.row_id, ip_address)
             )
             existing_entry = cursor.fetchone()
@@ -3245,7 +3246,7 @@ class RouterShellDB(metaclass=Singleton):
                 self.log.debug(
                     f"update_interface_static_arp() -> Entry NOT Found, inserting IP: {ip_address} -> Mac: {mac_address}")
                 cursor.execute(
-                    "INSERT INTO InterfaceStaticArp (Interface_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO InterfaceStaticArp (Interfaces_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
                     (interface_exists_result.row_id,
                      ip_address, mac_address, encapsulation)
                 )
@@ -3288,7 +3289,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"delete_interface_static_arp() Deleting Row -> Interface-FK: {interface_name} , IP: {ip_address}")
 
             cursor.execute(
-                "DELETE FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
+                "DELETE FROM InterfaceStaticArp WHERE Interfaces_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )
 
@@ -3337,7 +3338,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO BridgeGroups (Interface_FK, Bridges_FK) VALUES (?, ?)",
+                "INSERT INTO BridgeGroups (Interfaces_FK, Bridges_FK) VALUES (?, ?)",
                 (interface_id, bridge_id)
             )
             row_id = cursor.lastrowid
@@ -3377,7 +3378,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM BridgeGroups WHERE Interface_FK = ? AND Bridges_FK = ?",
+                "DELETE FROM BridgeGroups WHERE Interfaces_FK = ? AND Bridges_FK = ?",
                 (interface_id, bridge_id)
             )
             self.connection.commit()
@@ -3405,14 +3406,14 @@ class RouterShellDB(metaclass=Singleton):
             if not interface_exists_result.status:
                 return Result(status=False, reason=f"Interface:{interface_name} does not exists")
 
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?",
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?",
                            (interface_exists_result.row_id,))
             existing_row = cursor.fetchone()
 
             if existing_row is not None:
                 return Result(status=False, reason="Row already exists")
 
-            cursor.execute("INSERT INTO InterfaceSubOptions (Interface_FK) VALUES (?)",
+            cursor.execute("INSERT INTO InterfaceSubOptions (Interfaces_FK) VALUES (?)",
                            (interface_exists_result.row_id,))
             row_id = cursor.lastrowid  # Get the inserted row's ID
             self.connection.commit()
@@ -3853,7 +3854,7 @@ class RouterShellDB(metaclass=Singleton):
             query = """
                         SELECT Interfaces.InterfaceName, Interfaces.InterfaceType, Interfaces.ID
                         FROM Interfaces
-                        JOIN WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interface_FK
+                        JOIN WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interfaces_FK
                         JOIN WirelessWifiPolicy ON WirelessWifiPolicyInterface.WirelessWifiPolicy_FK = WirelessWifiPolicy.ID
                         WHERE WirelessWifiPolicy.WifiPolicyName = ?
                     """
@@ -4408,7 +4409,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             # Define the SQL query to associate the wireless Wi-Fi policy with the network interface.
             query = """
-                        INSERT INTO WirelessWifiPolicyInterface (Interface_FK, WirelessWifiPolicy_FK)
+                        INSERT INTO WirelessWifiPolicyInterface (Interfaces_FK, WirelessWifiPolicy_FK)
                         VALUES (
                             (SELECT ID FROM Interfaces WHERE InterfaceName = ?),
                             (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
@@ -4646,15 +4647,15 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                 LEFT JOIN
-                    InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interface_FK
+                    InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interfaces_FK
                 LEFT JOIN
-                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
+                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interfaces_FK
                 LEFT JOIN
-                    BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
+                    BridgeGroups ON Interfaces.ID = BridgeGroups.Interfaces_FK
                 LEFT JOIN
                     Bridges ON Bridges.ID = BridgeGroups.Bridges_FK
                 LEFT JOIN
-                    NatDirections ON Interfaces.ID = NatDirections.Interface_FK
+                    NatDirections ON Interfaces.ID = NatDirections.Interfaces_FK
                 LEFT JOIN
                     Nats ON Nats.ID = NatDirections.NAT_FK
                 WHERE
@@ -4707,7 +4708,7 @@ class RouterShellDB(metaclass=Singleton):
 
                 FROM Interfaces
                 
-                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interface_FK
+                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interfaces_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
@@ -4750,7 +4751,7 @@ class RouterShellDB(metaclass=Singleton):
                 
                 FROM Interfaces
                 
-                LEFT JOIN DHCPClient ON Interfaces.ID = DHCPClient.Interface_FK
+                LEFT JOIN DHCPClient ON Interfaces.ID = DHCPClient.Interfaces_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
@@ -4791,7 +4792,7 @@ class RouterShellDB(metaclass=Singleton):
                     END || InterfaceIpAddress.IpAddress || CASE WHEN InterfaceIpAddress.SecondaryIp THEN ' secondary' ELSE '' END AS IpAddress
                 FROM
                     Interfaces
-                LEFT JOIN InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interface_FK
+                LEFT JOIN InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interfaces_FK
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
 
@@ -4829,7 +4830,7 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                     
-                LEFT JOIN InterfaceStaticArp ON Interfaces.ID = InterfaceStaticArp.Interface_FK
+                LEFT JOIN InterfaceStaticArp ON Interfaces.ID = InterfaceStaticArp.Interfaces_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
@@ -4866,7 +4867,7 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                 JOIN
-                    WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interface_FK
+                    WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interfaces_FK
                 JOIN
                     WirelessWifiPolicy ON WirelessWifiPolicyInterface.WirelessWifiPolicy_FK = WirelessWifiPolicy.ID
                 WHERE
@@ -4940,9 +4941,9 @@ class RouterShellDB(metaclass=Singleton):
             FROM
                 Bridges
             LEFT JOIN
-                Interfaces ON Bridges.ManagmentInterface_FK = Interfaces.ID
+                Interfaces ON Bridges.ManagmentInterfaces_FK = Interfaces.ID
             LEFT JOIN
-                InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interface_FK;
+                InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interfaces_FK;
         '''
 
         try:

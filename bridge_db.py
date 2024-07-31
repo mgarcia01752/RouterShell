@@ -10,6 +10,7 @@ protocol = BridgeProtocol.IEEE_802_1D
 stp_status = STP_STATE.STP_ENABLE
 management_inet = '192.168.200.1'
 shutdown_status = True
+interface_name='eno1'
 
 # Initialize RouterShellDB
 db = RouterShellDB()
@@ -42,6 +43,9 @@ print(f"Update result: {update_result}")
 
 # Pause to check the database
 input("Press Enter to continue to the next step...")
+
+print('Adding Bridge {} to Interface')
+
 
 # Delete the bridge
 print(f"Deleting bridge: {bridge_name}")

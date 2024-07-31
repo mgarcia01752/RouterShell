@@ -50,7 +50,7 @@ class BridgeDatabase():
         cls.log.debug(f"add_bridge_db() -> BridgeName: {bridge_name}")
 
         if cls.rsdb.insert_interface_bridge(bridge_name).status:
-            cls.log.debug(f"Bridge {bridge_name} FAILED add to DB")
+            cls.log.info(f"Bridge {bridge_name} FAILED add to DB")
         
         return cls.rsdb.update_bridge(bridge_name=bridge_name).status
         
