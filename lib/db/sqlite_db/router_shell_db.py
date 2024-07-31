@@ -4667,11 +4667,12 @@ class RouterShellDB(metaclass=Singleton):
                 LEFT JOIN
                     Nats ON Nats.ID = NatDirections.NAT_FK
                 WHERE
-                    Interfaces.InterfaceName = ?;
-
+                    Interfaces.InterfaceName = ?
                     
+                AND Interfaces.InterfaceType != '{InterfaceType.BRIDGE.value}';
+
                 ''', (interface_name,))
-            # AND Interfaces.InterfaceType != '{InterfaceType.BRIDGE.value}';
+
             result = cursor.fetchone()
 
             if result is not None:
