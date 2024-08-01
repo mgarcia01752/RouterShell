@@ -295,10 +295,11 @@ class InterfaceConfig(CmdPrompt):
             
             if negate:
                 self.log.debug(f"do_bridge().group -> Deleting Bridge {bridge_name}")
-                Bridge().del_bridge_from_interface(self.ifName, args.bridge_name)
+                Bridge().del_interface_to_bridge_group(self.ifName, args.bridge_name)
+            
             else:
                 self.log.debug(f"do_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self.ifName}")
-                Bridge().add_bridge_to_interface(self.ifName, bridge_name)
+                Bridge().add_interface_to_bridge_group(self.ifName, bridge_name)
         
         else:
             print(f'error: invalid command: {args}')

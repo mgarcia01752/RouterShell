@@ -356,11 +356,12 @@ class EthernetConfig(CmdPrompt):
         
         if 'group' in bridge_args:
             
+            self.log.info(f'ethernetconfig_bridge() -> args: {bridge_args}')
             bridge_name = bridge_args[1]
             
             if negate:
                 self.log.debug(f"ethernetconfig_bridge().group -> Deleting Bridge {bridge_name}")
-                Bridge().del_interface_to_bridge_group(self._interface_name, bridge_args.bridge_name)
+                Bridge().del_interface_to_bridge_group(self._interface_name, bridge_name)
                 
             else:
                 self.log.debug(f"ethernetconfig_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self._interface_name}")

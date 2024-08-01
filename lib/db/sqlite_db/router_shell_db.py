@@ -3373,12 +3373,14 @@ class RouterShellDB(metaclass=Singleton):
         interface_result = self.interface_exists(interface_name)
 
         if not interface_result.status:
-            return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
+            return Result(STATUS_NOK, 
+                          reason=f"Unable to delelte Interface: {interface_name} from bridge-group {interface_name} interface does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
-            return Result(STATUS_NOK, reason=f"Bridge group: {bridge_name} does not exist")
+            return Result(STATUS_NOK, 
+                          reason=f"Unable to delelte bridge-group: {bridge_name} from interface {interface_name}, bridge does not exist")
 
         interface_id = interface_result.row_id
         bridge_id = bridge_result.row_id
