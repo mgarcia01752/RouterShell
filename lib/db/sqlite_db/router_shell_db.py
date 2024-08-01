@@ -4950,7 +4950,7 @@ class RouterShellDB(metaclass=Singleton):
             FROM
                 Bridges
             LEFT JOIN
-                Interfaces ON Bridges.ManagmentInterfaces_FK = Interfaces.ID
+                Interfaces ON Bridges.Interfaces_FK = Interfaces.ID
             LEFT JOIN
                 InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interfaces_FK;
         '''
