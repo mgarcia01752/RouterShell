@@ -173,7 +173,8 @@ class RouterPrompt:
     #Keep track of user execute mode
     _current_execute_mode = ExecMode.USER_MODE
     
-    def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, sub_cmd_name: str = None) -> None:
+    def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, 
+                 sub_cmd_name: str = None) -> None:
         """
         Initializes RouterPromptSession instance.
         """

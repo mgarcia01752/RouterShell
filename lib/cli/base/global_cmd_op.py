@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import os
+from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
@@ -8,6 +9,7 @@ from lib.common.common import STATUS_NOK, STATUS_OK, Common
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.network_mgr import NetworkManager
+from lib.system.system_call import SystemCall
 
 class Global(CmdPrompt, NetworkManager):
     """
@@ -166,3 +168,20 @@ class Global(CmdPrompt, NetworkManager):
         #    return
                 
         return self.flush_interface(interface_name[0])
+    
+    @CmdPrompt.register_sub_commands()
+    def global_shell(self, args=None):
+        """
+        Open an interactive bash shell session through the SystemCall class.
+
+        This method creates an instance of the SystemCall class and calls its `shell` method 
+        to open an interactive bash shell session. It catches any exceptions that occur 
+        during the execution and prints an error message.
+        """
+        try:
+            SystemCall().shell()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        
+        
+        

@@ -191,4 +191,14 @@ class SystemCall(RunCommand):
         """
         return RunLog().get_run_log()
     
-    
+    def shell(self):
+        """
+        Open an interactive bash shell session.
+
+        This method uses the `run` method to open an interactive bash shell. 
+        It catches any exceptions that occur during the execution and prints an error message.
+        """
+        try:
+            self.run(['/usr/bin/bash'])
+        except Exception as e:
+            print(f"An error occurred: {e}")      
