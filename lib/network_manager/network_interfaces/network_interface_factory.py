@@ -1,13 +1,11 @@
 import logging
 from typing import Dict, Union
 
-from lib.common.common import Common
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
 from lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 from lib.network_manager.network_interfaces.wireless_wifi_interface import WirelessWifiInterface
-from lib.network_manager.network_operations.interface import Interface
    
 class NetInterfaceFactoryError(Exception):
     def __init__(self, message):

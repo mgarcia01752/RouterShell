@@ -34,7 +34,7 @@ class EthernetConfig(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().ETHERNET_CONFIG)
         self.eth_interface_obj = eth_interface_obj
-        self.ifName = eth_interface_obj.get_interface_name()
+        self._interface_name = eth_interface_obj.get_interface_name()
         
         self.log.debug(f'Ethernet: {eth_interface_obj.get_interface_name()}')
                
@@ -52,7 +52,7 @@ class EthernetConfig(CmdPrompt):
     def ethernetconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
 
         if negate:
-            self.log.debug(f'Negating description on interface: {self.ifName}')
+            self.log.debug(f'Negating description on interface: {self._interface_name}')
             line = [""]
         
         if self.eth_interface_obj.set_description(StringFormats.list_to_string(line)):
@@ -100,35 +100,35 @@ class EthernetConfig(CmdPrompt):
             is_secondary = False
             is_secondary = True if is_secondary else False
 
-            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self._interface_name}) -> Inet: ({ipv4_address_cidr})")
 
             action_description = "Removing" if negate else "Setting"
-            result = self.eth_interface_obj.update_interface_inet(self.ifName, ipv4_address_cidr, is_secondary, negate)
+            result = self.eth_interface_obj.update_interface_inet(self._interface_name, ipv4_address_cidr, is_secondary, negate)
 
             if result:
-                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self._interface_name} secondary: {is_secondary}")
             else:
-                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
+                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self._interface_name} secondary: {is_secondary}")
 
         elif "proxy-arp" in args[0]:
             '''[no] [ip proxy-arp]'''
-            self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
+            self.log.debug(f"Set proxy-arp on Interface {self._interface_name} -> negate: {negate}")
             self.eth_interface_obj.set_proxy_arp(negate)
                 
         elif "drop-gratuitous-arp" in args[0]:
             '''[no] [ip drop-gratuitous-arp]'''
-            self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
+            self.log.debug(f"Set drop-gratuitous-arp on Interface {self._interface_name}")
             self.eth_interface_obj.set_drop_gratuitous_arp(negate)
 
         elif "static-arp" in args[0]:
             '''[no] [ip static-arp ip-address mac-address arpa]'''
-            self.log.debug(f"Set static-arp on Interface {self.ifName}")
+            self.log.debug(f"Set static-arp on Interface {self._interface_name}")
             
             ipv4_addr_arp = args[1]
             mac_addr_arp = args[2]
             encap_arp = Encapsulate.ARPA         
                     
-            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
+            self.log.debug(f"Set static-arp on Interface {self._interface_name} -> negate: {negate}") 
             self.eth_interface_obj.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
             
         elif "nat" in args[0]:
@@ -141,7 +141,7 @@ class EthernetConfig(CmdPrompt):
             except ValueError:
                 print(f"Error: Invalid NAT direction '{nat_direction}'. Use 'inside' or 'outside'.")
 
-            self.log.debug(f"Configuring NAT for Interface: {self.ifName} -> NAT Dir: {nat_direction.value} -> Pool: {nat_pool_name}")
+            self.log.debug(f"Configuring NAT for Interface: {self._interface_name} -> NAT Dir: {nat_direction.value} -> Pool: {nat_pool_name}")
 
             self.eth_interface_obj
             
@@ -152,14 +152,14 @@ class EthernetConfig(CmdPrompt):
             '''[no] [ip dhcp-client]'''
             self.log.debug(f"Enable DHCPv4 Client")
             state = State.UP if negate else State.DOWN
-            if DHCPInterfaceClient().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V4, state):
-                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
+            if DHCPInterfaceClient().update_interface_dhcp_client(self._interface_name, DHCPStackVersion.DHCP_V4, state):
+                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self._interface_name}")
 
         elif "dhcp-server" in args[0]:
             pool_name = args.pool_name
             '''[no] [ip dhcp-server] pool <dhcp-pool-name>'''
             self.log.debug(f"Enable DHCPv4/6 Server")
-            DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
+            DHCPServer().add_dhcp_pool_to_interface(pool_name, self._interface_name, negate)
   
         return STATUS_OK
 
@@ -187,24 +187,24 @@ class EthernetConfig(CmdPrompt):
             if len(args) > 2 and args[2] == 'secondary':
                 is_secondary = True    
 
-            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self.ifName}) -> Inet: ({ipv4_address_cidr})")
+            self.log.debug(f"Configuring {'Secondary' if is_secondary else 'Primary'} IP Address on Interface ({self._interface_name}) -> Inet: ({ipv4_address_cidr})")
 
             action_description = "Removing" if negate else "Setting"
             result = self.eth_interface_obj.add_inet_address(inet_address=ipv4_address_cidr, secondary_address=is_secondary, negate=negate)
 
             if result:
-                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self.ifName}, secondary: {is_secondary}")
+                self.log.error(f"Failed to {action_description} IP: {ipv4_address_cidr} on interface: {self._interface_name}, secondary: {is_secondary}")
             else:
-                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self.ifName}, secondary: {is_secondary}")
+                self.log.debug(f"{action_description} IP: {ipv4_address_cidr} on interface: {self._interface_name}, secondary: {is_secondary}")
 
         elif "proxy-arp" in args:
             '''[no] [ip proxy-arp]'''
-            self.log.debug(f"Set proxy-arp on Interface {self.ifName} -> negate: {negate}")
+            self.log.debug(f"Set proxy-arp on Interface {self._interface_name} -> negate: {negate}")
             return self.eth_interface_obj.set_proxy_arp(negate)
                 
         elif "drop-gratuitous-arp" in args:
             '''[no] [ip drop-gratuitous-arp]'''
-            self.log.debug(f"Set drop-gratuitous-arp on Interface {self.ifName}")
+            self.log.debug(f"Set drop-gratuitous-arp on Interface {self._interface_name}")
             return self.eth_interface_obj.set_drop_gratuitous_arp(negate)
 
         elif "static-arp" in args:
@@ -218,13 +218,13 @@ class EthernetConfig(CmdPrompt):
             mac_addr_arp = args[2]
             encap_arp = Encapsulate.ARPA  # Assuming Encapsulate is a predefined enum or constant.
             
-            self.log.debug(f"Set static-arp on Interface {self.ifName} -> negate: {negate}") 
+            self.log.debug(f"Set static-arp on Interface {self._interface_name} -> negate: {negate}") 
             return self.eth_interface_obj.add_static_arp(inet_address=ipv4_addr_arp, mac_addr=mac_addr_arp, negate=negate)
     
         elif "nat" in args:
             
             if args[1] in ['inside', 'outside']:
-                self.log.debug(f"Set nat {args[1]} on Interface {self.ifName}")
+                self.log.debug(f"Set nat {args[1]} on Interface {self._interface_name}")
                 
                 try:
                     nat_direction = NATDirection(args[1])
@@ -240,9 +240,9 @@ class EthernetConfig(CmdPrompt):
                     nat_pool_name = args[3]
                     
                     if not self.eth_interface_obj.set_nat_domain_direction(nat_pool_name, nat_direction, negate):
-                        self.log.debug(f"Successfully set NAT: {nat_pool_name} direction: {nat_direction.value} on interface: {self.ifName}")
+                        self.log.debug(f"Successfully set NAT: {nat_pool_name} direction: {nat_direction.value} on interface: {self._interface_name}")
                     else:
-                        self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
+                        self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self._interface_name}")
                         return STATUS_NOK
                 else:
                     print(f"Error: Invalid NAT argument, expecting pool-name; {args[2]}")
@@ -258,18 +258,18 @@ class EthernetConfig(CmdPrompt):
             if len(args) == 2 and 'dual-stack' in args:
                 
                 if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, state):
-                    self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self.ifName}")
+                    self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self._interface_name}")
 
             if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_V4, state):
-                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
+                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self._interface_name}")
             
-            self.log.debug(f'Added dhcp-client to interface: {self.ifName}')
+            self.log.debug(f'Added dhcp-client to interface: {self._interface_name}')
 
         elif "dhcp-server" in args:
             '''[no] [ip dhcp-server pool-name <dhcp-pool-name>]'''
             if 'pool-name' in args[1:]:
                 pool_name = args[2]
-                return DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
+                return DHCPServer().add_dhcp_pool_to_interface(pool_name, self._interface_name, negate)
                 
             else:
                 print("Invalid arguments for 'dhcp-server' command.")
@@ -281,7 +281,7 @@ class EthernetConfig(CmdPrompt):
             if len(args) == 3 and 'group' in args:
                 bridge_group = args[2]
                 if self.eth_interface_obj.set_bridge_group(bridge_group):
-                    self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self.ifName}")
+                    self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
                     return STATUS_OK
             else:
                 print('Missing bridge group name or invalid command')
@@ -293,12 +293,12 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def ethernetconfig_duplex(self, args: List[str]) -> bool:
-        if not args:
+    def ethernetconfig_duplex(self, duplex_args: List[str]) -> bool:
+        if not duplex_args:
             print("Usage: duplex <auto | half | full>")
             return STATUS_NOK
         
-        duplex_arg = args[0].lower()
+        duplex_arg = duplex_args[0].lower()
 
         if self.eth_interface_obj.get_ifType() != InterfaceType.ETHERNET:
             self.eth_interface_obj.set_duplex(Duplex.NONE)
@@ -306,27 +306,27 @@ class EthernetConfig(CmdPrompt):
             return STATUS_NOK
         
         duplex_values = {d.value: d for d in Duplex}
-        self.log.debug(f'ethernetconfig_duplex() -> Interface: {self.ifName} -> Duplex: {duplex_arg}')
+        self.log.debug(f'ethernetconfig_duplex() -> Interface: {self._interface_name} -> Duplex: {duplex_arg}')
     
         if duplex_arg in duplex_values:
             self.log.debug(f'ethernetconfig_duplex() -> Duplex: {duplex_arg} -> DuplexEnum: {duplex_values[duplex_arg]}')
             self.eth_interface_obj.set_duplex(duplex_values[duplex_arg])
                         
         else:
-            print(f"Invalid duplex mode ({args}). Use 'auto', 'half', or 'full'.")
+            print(f"Invalid duplex mode ({duplex_args}). Use 'auto', 'half', or 'full'.")
             return STATUS_NOK
                     
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def ethernetconfig_speed(self, args: Optional[str]) -> bool:
+    def ethernetconfig_speed(self, speed_args: Optional[str]) -> bool:
         
-        if not args:
+        if not speed_args:
             print("Usage: speed <10 | 100 | 1000 | 2500 | 10000 | auto>")
             return
 
-        self.log.debug(f'ethernetconfig_speed() -> Arg: {args}')
-        speed_arg = args[0].lower()
+        self.log.debug(f'ethernetconfig_speed() -> Arg: {speed_args}')
+        speed_arg = speed_args[0].lower()
 
         if self.eth_interface_obj.get_ifType() != InterfaceType.ETHERNET:
             self.eth_interface_obj.set_interface_speed(Speed.NONE)
@@ -352,21 +352,22 @@ class EthernetConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def ethernetconfig_bridge(self, args: Optional[str], negate=False) -> bool:
+    def ethernetconfig_bridge(self, bridge_args: Optional[str], negate=False) -> bool:
         
-        if 'group' in args:
+        if 'group' in bridge_args:
             
-            bridge_name = args[1]
+            bridge_name = bridge_args[1]
             
             if negate:
-                self.log.debug(f"do_bridge().group -> Deleting Bridge {bridge_name}")
-                Bridge().del_bridge_from_interface(self.ifName, args.bridge_name)
+                self.log.debug(f"ethernetconfig_bridge().group -> Deleting Bridge {bridge_name}")
+                Bridge().del_interface_to_bridge_group(self._interface_name, bridge_args.bridge_name)
+                
             else:
-                self.log.debug(f"do_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self.ifName}")
-                Bridge().add_bridge_to_interface(self.ifName, bridge_name)
+                self.log.debug(f"ethernetconfig_bridge().group -> Adding Bridge: {bridge_name} to Interface: {self._interface_name}")
+                Bridge().add_interface_to_bridge_group(self._interface_name, bridge_name)
         
         else:
-            print(f'error: invalid command: {args}')
+            print(f'invalid command: {bridge_args}')
             STATUS_NOK
 
         return STATUS_OK
@@ -387,7 +388,7 @@ class EthernetConfig(CmdPrompt):
             vlan_id = args[1]
             self.log.debug(f"Configuring switchport as access with VLAN ID: {vlan_id}")
             
-            if self.update_interface_vlan(self.ifName, vlan_id):
+            if self.update_interface_vlan(self._interface_name, vlan_id):
                 self.log.error(f"Unable to add vlan id: {vlan_id}")
             
         else:
@@ -407,7 +408,7 @@ class EthernetConfig(CmdPrompt):
         start_cmd = args[0]
                 
         if start_cmd == 'shutdown':
-            self.log.debug(f"up/down interface -> {self.ifName}")
+            self.log.debug(f"up/down interface -> {self._interface_name}")
             self.ethernetconfig_shutdown(None, negate=True)
         
         elif start_cmd == 'bridge':
