@@ -178,10 +178,8 @@ class Global(CmdPrompt, NetworkManager):
         to open an interactive bash shell session. It catches any exceptions that occur 
         during the execution and prints an error message.
         """
-        try:
-            SystemCall().shell()
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        print('shell not implemented yet')
+        pass
         
         
         

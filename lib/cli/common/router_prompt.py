@@ -261,7 +261,9 @@ class RouterPrompt:
         """
         self.update_prompt()
         
-        _ = self.session.prompt(f'{self.get_prompt()}',completer=self.completer, complete_in_thread=False)
+        _ = self.session.prompt(f'{self.get_prompt()}',
+                                completer=self.completer, 
+                                complete_in_thread=False)
         
         # Check if the input contains any remark symbols, if so, skip line
         if any(_.startswith(symbol) for symbol in RouterPrompt.PROMPT_REMARK_SYMBOL):
@@ -514,7 +516,7 @@ class RouterPrompt:
                 
                 if not command:
                     continue
-
+                                    
                 if self._process_command(command):
                     break
 

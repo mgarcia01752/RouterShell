@@ -163,8 +163,7 @@ class SystemCall(RunCommand):
         else:
             self.log.error(f"set_hostname_os(): Setting hostname not supported for OS: {current_os}")
             return STATUS_NOK
-
-            
+        
     def get_hostname_os(self) -> str:
         """
         Get the current static hostname using the `hostnamectl --static` command.
@@ -191,14 +190,3 @@ class SystemCall(RunCommand):
         """
         return RunLog().get_run_log()
     
-    def shell(self):
-        """
-        Open an interactive bash shell session.
-
-        This method uses the `run` method to open an interactive bash shell. 
-        It catches any exceptions that occur during the execution and prints an error message.
-        """
-        try:
-            self.run(['/usr/bin/bash'])
-        except Exception as e:
-            print(f"An error occurred: {e}")      

@@ -17,7 +17,6 @@ class ConfigMode(ConfigurePrompt):
         
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
             self.log.warning("Config mode is not available in non-privileged mode")
-            return STATUS_NOK
         
     def intro(self) -> str:
         return f'Starting Configuration Mode....'
