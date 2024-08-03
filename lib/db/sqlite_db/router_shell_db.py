@@ -609,7 +609,7 @@ class RouterShellDB(metaclass=Singleton):
 
             if shutdown_status is not None:
                 update_columns.append("ShutdownStatus = ?")
-                shutdown_status_value = False if shutdown_status == State.DOWN else True
+                shutdown_status_value = False if shutdown_status == State.UP else True
                 parameters.append(shutdown_status_value)
 
             if update_columns:

@@ -106,14 +106,14 @@ class BridgeInterface:
                 STATUS_NOK (False) if there was an error setting the shutdown status.
         """
         if not self.does_bridge_exist():
-            self.log.error(f'Unable to set stp {state} to bridge: {self._bridge_name} does not exists')
+            self.log.error(f'Unable to set {state} to bridge: {self._bridge_name} does not exists')
             return STATUS_NOK
         
         if Bridge().update_bridge(bridge_name=self._bridge_name, shutdown_status=state):
             self.log.debug(f'set_shutdown_status() -> Failed shutdown status {state} set for bridge {self._bridge_name}')
             return STATUS_NOK
 
-        self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')
+        self.log.info(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')
         return STATUS_OK
 
     def set_stp(self, stp: STP_STATE) -> bool:

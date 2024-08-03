@@ -169,10 +169,10 @@ class BridgeConfig(CmdPrompt):
         Returns:
             bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        
-        self.log.debug(f"bridgeconfig_shutdown() -> Bridge: {self._bridge_name} -> current-state: {Bridge().get_shutdown_status_os(self._bridge_name).value} -> negate: {negate}")
-
         state = State.UP if negate else State.DOWN
+        
+        self.log.info(f"bridgeconfig_shutdown() -> Bridge: {self._bridge_name} -> " + 
+                        f"current-state: {Bridge().get_shutdown_status_os(self._bridge_name).value} -> state: {state}")
 
         if self._bridge_config_cmd.set_shutdown_status(state):
             print(f"Error: unable to set bridge: {self._bridge_name}")
@@ -195,7 +195,7 @@ class BridgeConfig(CmdPrompt):
         negate:bool = True
                 
         if 'shutdown' in args:
-            self.log.debug(f'up/down interface -> {self._bridge_name}')
+            self.log.info(f'up/down interface -> {self._bridge_name}')
             self.bridgeconfig_shutdown(None, negate)
         
         elif 'stp' in args:
