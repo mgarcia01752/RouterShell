@@ -1,71 +1,66 @@
+import os
+import socket
 import subprocess
-import sys
+import termios
+import psutil
 
-class ShellInterface:
-    def __init__(self):
-        """
-        Initialize the ShellInterface class.
-        """
-        pass
+class UserConnectionType:
+    def __init__(self, username: str):
+        self.username = username
+        self.connection_type = self.detect_connection_type()
 
-    def run_command(self, command):
-        """
-        Execute a shell command and return the output.
+    def detect_connection_type(self) -> str:
+        for proc in psutil.process_iter(['username', 'terminal']):
+            if proc.info['username'] == self.username:
+                terminal = proc.info['terminal']
+                if terminal:
+                    if self.is_serial_terminal(terminal):
+                        return "Serial Terminal"
+                    elif self.is_pty(terminal):
+                        return "PTY"
+                    elif self.is_network_connection(proc):
+                        return "Network"
+        return "Unknown"
 
-        Args:
-            command (str): The command to execute.
+    def is_serial_terminal(self, terminal: str) -> bool:
+        # Check for typical serial device names
+        if 'ttyS' in terminal or 'ttyUSB' in terminal or 'ttyAMA' in terminal:
+            return True
+        return False
 
-        Returns:
-            tuple: A tuple containing the standard output and standard error of the command.
-        """
+    def is_pty(self, terminal: str) -> bool:
+        # Check for PTY device names
+        if 'pts' in terminal:
+            return True
+        return False
+
+    def is_network_connection(self, proc: psutil.Process) -> bool:
         try:
-            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-            return result.stdout, result.stderr
-        except subprocess.CalledProcessError as e:
-            return e.stdout, e.stderr
-
-    def open_interactive_shell(self):
-        """
-        Open an interactive bash shell session.
-
-        This method opens an interactive bash shell session using subprocess.Popen,
-        allowing the user to interact with the shell in real time.
-        """
-        try:
-            # Open an interactive shell session
-            process = subprocess.Popen("/usr/bin/env bash", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-            print("Entering interactive shell. Type 'exit' to leave the shell.")
+            # Check if the process has an SSH connection
+            if 'SSH_CONNECTION' in proc.environ():
+                return True
             
-            while True:
-                # Read command from user input
-                user_input = input("$ ")
-                
-                if user_input.strip().lower() == 'exit':
-                    break
-                
-                # Send command to the shell
-                process.stdin.write(user_input + '\n')
-                process.stdin.flush()
+            # Check if the process has any network connections
+            for conn in proc.connections():
+                if conn.status == 'ESTABLISHED':
+                    return True
+            
+            # Check if we have a default gateway
+            result = subprocess.run(['ip', 'route'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if 'default' in result.stdout.decode():
+                return True
+            
+            # Try to connect to an external site
+            socket.create_connection(("www.google.com", 80), 2)
+            return True
+        except (psutil.Error, socket.error, subprocess.SubprocessError):
+            return False
 
-                # Read and print the output and errors
-                stdout = process.stdout.readline()
-                stderr = process.stderr.readline()
-                
-                if stdout:
-                    print(stdout, end='')
-                if stderr:
-                    print(stderr, end='', file=sys.stderr)
+    def get_connection_type(self) -> str:
+        return self.connection_type
 
-            process.terminate()
-            print("Shell session terminated.")
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-
-# Example usage
+# Usage example
 if __name__ == "__main__":
-    shell_interface = ShellInterface()
-
-    # Open an interactive shell session
-    shell_interface.open_interactive_shell()
+    username = "dev01"  # Replace with the username you want to check
+    user_connection = UserConnectionType(username)
+    print(f"Connection type for user {username}: {user_connection.get_connection_type()}")
