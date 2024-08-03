@@ -50,7 +50,7 @@ class BridgeDatabase():
         cls.log.debug(f"add_bridge_db() -> BridgeName: {bridge_name}")
 
         if cls.rsdb.insert_interface_bridge(bridge_name).status:
-            cls.log.info(f"Bridge {bridge_name} FAILED add to DB")
+            cls.log.debug(f"Bridge {bridge_name} FAILED add to DB")
         
         return cls.rsdb.update_bridge(bridge_name=bridge_name).status
         
@@ -66,9 +66,11 @@ class BridgeDatabase():
         """
         cls.log.debug(f"del_bridge() -> BridgeName: {bridge_name}")
 
-        if cls.rsdb.delete_interface_bridge(bridge_name).status:
-            cls.log.error(f"Unable to delete Bridge: {bridge_name}")
+        result = cls.rsdb.delete_bridge(bridge_name)
+        if result.status:
+            cls.log.error(f"Unable to delete Bridge: {bridge_name} from DB, error: {result.reason}")
             return STATUS_NOK
+        
         return STATUS_OK
 
     def insert_protocol_db(cls, bridge_name: str, br_protocol: str) -> bool:

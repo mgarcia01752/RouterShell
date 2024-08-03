@@ -129,7 +129,7 @@ class BridgeConfig(CmdPrompt):
         print('Not implemented yet')
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands()
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['enable','disable'])
     def bridgeconfig_stp(self, args: List[str] = None, negate: bool = False) -> bool:
         """
         Manage Spanning Tree Protocol (STP) settings for the bridge.
@@ -171,7 +171,7 @@ class BridgeConfig(CmdPrompt):
         """
         state = State.UP if negate else State.DOWN
         
-        self.log.info(f"bridgeconfig_shutdown() -> Bridge: {self._bridge_name} -> " + 
+        self.log.debug(f"bridgeconfig_shutdown() -> Bridge: {self._bridge_name} -> " + 
                         f"current-state: {Bridge().get_shutdown_status_os(self._bridge_name).value} -> state: {state}")
 
         if self._bridge_config_cmd.set_shutdown_status(state):
@@ -180,7 +180,7 @@ class BridgeConfig(CmdPrompt):
         
         return STATUS_OK
       
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['description', 'protocol', 'stp', 'shutdown'])
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['description', 'shutdown'])
     def bridgeconfig_no(self, args: List[str]) -> bool:
         """Negate commands like description, shutdown, stp, or protocol for the bridge.
         
@@ -195,17 +195,9 @@ class BridgeConfig(CmdPrompt):
         negate:bool = True
                 
         if 'shutdown' in args:
-            self.log.info(f'up/down interface -> {self._bridge_name}')
+            self.log.debug(f'up/down interface -> {self._bridge_name}')
             self.bridgeconfig_shutdown(None, negate)
-        
-        elif 'stp' in args:
-            self.log.debug(f"Remove stp -> {args}")
-            self.bridgeconfig_stp(args[1:], negate)
-
-        elif 'protocol' in args:
-            self.log.debug(f"Remove protocol -> {args}")
-            self.bridgeconfig_protocol(args[1:], negate)
-        
+               
         elif 'description' in args:
             self.log.debug(f"Remove protocol -> {args}")
             self.bridgeconfig_description(None, negate)        

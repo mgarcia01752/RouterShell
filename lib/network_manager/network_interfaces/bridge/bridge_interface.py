@@ -8,7 +8,7 @@ from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSL
 
 
 class BridgeInterface:
-    def __init__(self, bridge_name: str):
+    def __init__(self, bridge_name: str, defaults_at_create:bool=True):
         """
         Initialize the BridgeInterface instance.
 
@@ -18,6 +18,7 @@ class BridgeInterface:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLGS().BRIDGE_INTERFACE)
         self._bridge_name = bridge_name
+        self._defaults_at_create = defaults_at_create
     
     def get_bridge_name(self):
         """
@@ -56,6 +57,14 @@ class BridgeInterface:
         if Bridge().add_bridge(self.get_bridge_name()):
             self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to create Bridge {self.get_bridge_name()}')
             return STATUS_NOK
+        
+        if self._defaults_at_create:
+            if Bridge().update_bridge(self._bridge_name, 
+                                        BridgeProtocol.IEEE_802_1S,
+                                        STP_STATE.STP_ENABLE, 
+                                        shutdown_status=State.DOWN):
+                self.log.error(f'create_bridge(return {STATUS_NOK}) -> Failed to configure Bridge {self._bridge_name} with IEEE 802.1S and STP enabled')
+                return STATUS_NOK
         
         self.log.debug(f'create_bridge(return {STATUS_NOK}) -> successfully created bridge {self.get_bridge_name()}')
         return STATUS_OK
@@ -113,7 +122,7 @@ class BridgeInterface:
             self.log.debug(f'set_shutdown_status() -> Failed shutdown status {state} set for bridge {self._bridge_name}')
             return STATUS_NOK
 
-        self.log.info(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')
+        self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')
         return STATUS_OK
 
     def set_stp(self, stp: STP_STATE) -> bool:

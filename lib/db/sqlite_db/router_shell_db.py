@@ -413,8 +413,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, reason=str(e))
 
-
-
     def is_bridge_in_bridge_group(self, bridge_name: str) -> Result:
         """
         Check if a bridge with the given name exists in the BridgeGroups table.
@@ -438,8 +436,11 @@ class RouterShellDB(metaclass=Singleton):
 
             if row:
                 bridge_id = row[0]
+                self.log.debug(f'Bridge: {bridge_name} is found in BridgeGroup with row-id: {bridge_id}')
                 return Result(status=True, row_id=bridge_id)
+            
             else:
+                self.log.debug(f'Bridge: {bridge_name} is not attached to any interface')
                 return Result(status=False, reason=f"Bridge with name '{bridge_name}' does not exist in the BridgeGroups table")
 
         except sqlite3.Error as e:
@@ -465,7 +466,7 @@ class RouterShellDB(metaclass=Singleton):
         existing_result = self.bridge_exist_db(bridge_name)
 
         if existing_result.status:
-            self.log.info(f"Bridge with name '{bridge_name}' already exists, not inserting bridge")
+            self.log.debug(f"Bridge with name '{bridge_name}' already exists, not inserting bridge")
             return Result(status=STATUS_NOK, reason=f"Bridge with name '{bridge_name}' already exists")
 
         try:
@@ -483,7 +484,7 @@ class RouterShellDB(metaclass=Singleton):
             )
             self.connection.commit()
 
-            self.log.info(
+            self.log.debug(
                 f"Bridge interface {bridge_name} inserted with interface ID {interface_id}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
@@ -645,6 +646,16 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, reason=str(e))
 
+    def delete_bridge(self, bridge_name:str) -> Result:
+        
+        if not self.bridge_exist_db(bridge_name).status:
+            return Result(status=STATUS_OK, reason=f"No need to delete bridge: {bridge_name}, does not exists")
+        
+        if self.is_bridge_in_bridge_group(bridge_name).status:
+            return Result(status=STATUS_NOK, reason=f"Unable te delete bridge: {bridge_name}, still attached to a bridge group")
+        
+        return self.delete_interface(interface_name=bridge_name)
+        
     '''
                         VLAN DATABASE
     '''
@@ -2647,7 +2658,7 @@ class RouterShellDB(metaclass=Singleton):
             existing_row = cursor.fetchone()
 
             if existing_row:
-                self.log.info(f'Interface {if_name} exists on row-id: {existing_row[0]}')
+                self.log.debug(f'Interface {if_name} exists on row-id: {existing_row[0]}')
                 return Result(status=True, row_id=existing_row[0])
             else:
                 return Result(status=False, row_id=0)
@@ -2702,7 +2713,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error inserting data into 'Interfaces': %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
-    def delete_interface(self, if_name: str) -> Result:
+    def delete_interface(self, interface_name: str) -> Result:
         """
         Delete an interface from the 'Interfaces' table.
 
@@ -2713,19 +2724,19 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status of the deletion.
         """
         try:
-            existing_result = self.interface_exists(if_name)
+            existing_result = self.interface_exists(interface_name)
 
             if existing_result.status:
                 cursor = self.connection.cursor()
                 cursor.execute(
-                    "DELETE FROM Interfaces WHERE InterfaceName = ?", (if_name,))
+                    "DELETE FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
                 self.connection.commit()
                 self.log.debug(
-                    f"Deleted interface '{if_name}' from the 'Interfaces' table.")
-                return Result(status=STATUS_OK, row_id=0, reason=f"Interface '{if_name}' deleted successfully.")
+                    f"Deleted interface '{interface_name}' from the 'Interfaces' table.")
+                return Result(status=STATUS_OK, row_id=0, reason=f"Interface '{interface_name}' deleted successfully.")
             else:
-                self.log.debug(f"Interface '{if_name}' does not exist.")
-                return Result(status=STATUS_NOK, row_id=0, reason=f"Interface '{if_name}' does not exist.")
+                self.log.debug(f"Interface '{interface_name}' does not exist.")
+                return Result(status=STATUS_NOK, row_id=0, reason=f"Interface '{interface_name}' does not exist.")
         except sqlite3.Error as e:
             self.log.error("Error deleting interface: %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
@@ -2821,7 +2832,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             mac_address (str): MAC address in the format xx:xx:xx:xx:xx:xx.
 
         Returns:
@@ -2866,7 +2877,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             speed (str): Speed setting, one of ['10', '100', '1000', '10000', 'auto'].
 
         Returns:
@@ -3003,7 +3014,7 @@ class RouterShellDB(metaclass=Singleton):
         Insert an IP address entry for an interface into the 'InterfaceIpAddress' table.
 
         Args:
-            if_name (str): The name of the interface to associate the IP address with.
+            interface_name (str): The name of the interface to associate the IP address with.
             ip_address (str): The IP address in the format IPv4 or IPv6 Address/Mask-Prefix.
             is_secondary (bool): True if the IP address is secondary, False otherwise.
 
@@ -3040,7 +3051,7 @@ class RouterShellDB(metaclass=Singleton):
         Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
             ip_address (str): The IP address to delete.
 
         Returns:
@@ -3099,7 +3110,7 @@ class RouterShellDB(metaclass=Singleton):
         the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to check.
+            interface_name (str): The name of the interface to check.
 
         Returns:
             Result: A Result object indicating the outcome of the checks.
@@ -3125,7 +3136,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the Proxy ARP setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             status (bool): True to enable Proxy ARP, False to disable it.
 
         Returns:
@@ -3171,7 +3182,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the 'Drop Gratuitous ARP' setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             status (bool): True to enable 'Drop Gratuitous ARP,' False to disable it.
 
         Returns:
@@ -3217,7 +3228,7 @@ class RouterShellDB(metaclass=Singleton):
         Create a default entry in the 'InterfaceStaticArp' table if it does not already exist, or update it if it exists.
 
         Args:
-            if_name (str): The name of the interface to associate the static ARP record with.
+            interface_name (str): The name of the interface to associate the static ARP record with.
             ip_address (str): The IP address in IPv4 or IPv6 format.
             mac_address (str): The MAC address in the format: xx:xx:xx:xx:xx:xx.
             encapsulation (str): The encapsulation type, e.g., 'arpa' or 'TBD'.
@@ -3274,7 +3285,7 @@ class RouterShellDB(metaclass=Singleton):
         Delete a static ARP record from the 'InterfaceStaticArp' table.
 
         Args:
-            if_name (str): The name of the interface to associate with the static ARP record.
+            interface_name (str): The name of the interface to associate with the static ARP record.
             ip_address (str): The IP address to delete.
 
         Returns:
@@ -3327,7 +3338,7 @@ class RouterShellDB(metaclass=Singleton):
         interface_result = self.interface_exists(interface_name)
 
         if not interface_result.status:
-            self.log.info(f''
+            self.log.debug(f''
                 f"insert_interface_bridge_group() -> interface: {interface_name} does not exist, Exiting")
             return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
 
@@ -3341,7 +3352,7 @@ class RouterShellDB(metaclass=Singleton):
         interface_id = interface_result.row_id
         bridge_id = bridge_result.row_id
 
-        self.log.info(f'insert_interface_bridge_group() -> InterfaceRowID: {interface_id} BridgeRowID:{bridge_id}')
+        self.log.debug(f'insert_interface_bridge_group() -> InterfaceRowID: {interface_id} BridgeRowID:{bridge_id}')
 
         try:
             cursor = self.connection.cursor()
@@ -3363,7 +3374,7 @@ class RouterShellDB(metaclass=Singleton):
         Remove an interface from a bridge group in the 'BridgeGroups' table.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
             bridge_name (str): The name of the bridge group.
 
         Returns:
@@ -3404,7 +3415,7 @@ class RouterShellDB(metaclass=Singleton):
         Insert a default row into the InterfaceSubOptions table if it does not already exist.
 
         Args:
-            if_name (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
 
         Returns:
             Result: An instance of Result if the row is successfully or not inserted.
@@ -4947,7 +4958,7 @@ class RouterShellDB(metaclass=Singleton):
                 'description '      || Interfaces.Description AS Description,
                 'inet management '  || InterfaceIpAddress.IpAddress AS InetMgt,
                 'protocol '         || Bridges.Protocol AS Protocol,    
-                'stp '              || Bridges.StpStatus AS StpStatus,
+                CASE WHEN Bridges.StpStatus = 1 THEN 'stp enable' ELSE 'stp disable' END AS StpStatus,
                 CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
             FROM
                 Bridges

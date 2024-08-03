@@ -551,22 +551,16 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug('_update_bridge_via_os() - All Arguments None - no action needed')
             return STATUS_OK
         
-        # Initialize command list
         cmd = []
 
         if protocol:
-            # Example: Set protocol; modify as per actual command syntax
-            # cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type', 'bridge', 'stp', str(protocol.value)])
             self.log.debug(f'Bridge Protocol is not supported with iproute')
-            cmd.append([])
             
         if stp_status:
-            # Set STP status using the `bridge` command
             stp_command = '1' if stp_status == STP_STATE.STP_ENABLE else '0'
             cmd.append(['ip', 'link', 'set', 'dev', bridge_name, 'type','bridge', 'stp_state', stp_command])
 
         if management_inet:
-            # Example: Set management IP address; modify as per actual command syntax
             cmd.append(['ip', 'addr', 'add', management_inet, 'dev', bridge_name])
         
         if shutdown_status:

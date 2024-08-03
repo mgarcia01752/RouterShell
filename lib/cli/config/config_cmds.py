@@ -225,7 +225,7 @@ class ConfigCmd(CmdPrompt):
                 
         if args[0] == 'bridge':
             bridge_name = args[1]
-            self.log.info(f"configcmd_no() -> bridge: {bridge_name}")
+            self.log.debug(f"configcmd_no() -> bridge: {bridge_name}")
             if Bridge().del_bridge(bridge_name):
                 print(f"Unable to destroy bridge: {bridge_name}")
                 return STATUS_NOK
