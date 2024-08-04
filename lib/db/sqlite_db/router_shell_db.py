@@ -2,6 +2,7 @@ import sqlite3
 import logging
 import os
 from typing import Dict, List, Optional
+from tabulate import tabulate
 
 from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK, ROUTER_SHELL_DB
 from lib.common.singleton import Singleton
@@ -187,6 +188,46 @@ class RouterShellDB(metaclass=Singleton):
             return STATUS_NOK
 
         return self.create_database()
+
+    def dump_db(self, include_schema:bool=False):
+        """
+        Dumps the contents of the SQLite database to the console in a human-readable format.
+        This includes dumping the schema and data for all tables in the database.
+        
+        Args:
+            include_schema (bool): Whether to include schema information in the output.
+        """
+        cursor = self.connection.cursor()
+
+        # Get a list of all tables in the database
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+
+        if not tables:
+            print("No tables found in the database.")
+            return
+
+        for (table_name,) in tables:
+            if include_schema:
+                print(f"\nTable: {table_name}")
+
+                # Dump the table schema
+                cursor.execute(f"PRAGMA table_info({table_name});")
+                columns = cursor.fetchall()
+                schema = [["Column", "Type", "Not Null", "Default Value"]]
+                schema.extend([[column[1], column[2], column[3], column[4]] for column in columns])
+                
+                print(f"Schema: {table_name}")
+                print(tabulate(schema, headers='firstrow', tablefmt='grid'))
+
+            # Dump the table data
+            cursor.execute(f"SELECT * FROM {table_name};")
+            rows = cursor.fetchall()
+            column_names = [description[0] for description in cursor.description]
+            data = [column_names] + rows
+            
+            print(f"\nTable: {table_name}")
+            print(tabulate(data, headers='firstrow', tablefmt='grid'))
 
     '''
                         ROUTER SYSTEM/GLOBAL CONFIGURATION DATABASE

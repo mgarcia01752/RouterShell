@@ -1,23 +1,21 @@
-import json
 import logging
 from typing import List, Optional
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
+from lib.cli.common.prompt_response import PromptResponse
 from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
+from lib.cli.show.dump_db_show import DbDumpShow
 from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
 from lib.common.string_formats import StringFormats
-from lib.db.interface_db import InterfaceDatabase
-from lib.db.vlan_db import VLANDatabase
 from lib.hardware.hardware_detection import HardwareDetection
-from lib.db.nat_db import NatDB
-from lib.common.constants import STATUS_OK
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.system.linux_calls import LinuxSystem
 from lib.system.system_call import SystemCall
 
@@ -111,9 +109,10 @@ class Show(CmdPrompt):
             STATUS_OK
               
         else:
-            STATUS_OK
-        
-        STATUS_OK
+            PromptResponse.invalid_cmd(args)
+            return STATUS_NOK
+
+        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['cpu'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['network'])
@@ -133,6 +132,12 @@ class Show(CmdPrompt):
         elif 'network' in args:
             print(HardwareDetection().hardware_network())
             return
+
+        else:
+            PromptResponse.invalid_cmd(args)
+            return STATUS_NOK
+        
+        return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
     def show_ip(self, args: List) -> None:
@@ -192,24 +197,25 @@ class Show(CmdPrompt):
         else:
             NatShow().getNatTable()
 
-    @CmdPrompt.register_sub_commands()     
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['all', 'interface', 'nat', 'bridge'])     
     def show_db(self, args: List) -> None:
-
-        if '?'in args:
-            str_hash = StringFormats.generate_hash_from_list(args[:-1])
-            print(CmdPrompt.get_help(str_hash))
-                    
-        elif 'nat-db' in args:
-            print(NatDB().to_json())
+        if 'all' in args:
+            DbDumpShow().dump_db()
+            
+        elif 'interface' in args:
+            DbDumpShow().dump_db(include_schema=False, search_term='Interface')
         
-        elif 'if-db' in args:
-            print(f"{json.dumps(InterfaceDatabase.to_json(), indent=4)}")
-
-        elif 'vlan-db' in args:
-            print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
-
+        elif 'nat' in args:
+            DbDumpShow().dump_db(include_schema=False, search_term='NAT')
+        
+        elif 'bridge' in args:
+            DbDumpShow().dump_db(include_schema=False, search_term='Bridge')
+        
+        else:    
+            PromptResponse.invalid_cmd(args)
+                
     @CmdPrompt.register_sub_commands()
-    def show_dmesg(self, args: Optional[List[str]] = None) -> int:
+    def show_dmesg(self, args: Optional[List[str]] = None) -> bool:
         """Displays kernel ring buffer messages using LinuxSystem.get_dmesg().
 
         This function retrieves kernel ring buffer messages and prints them

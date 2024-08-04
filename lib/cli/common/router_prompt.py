@@ -137,7 +137,6 @@ class PromptFeeder:
         """
         return f"PromptFeed(start_length={self.start_length}, current_length={len(self.prompt_feed)}, top_entry={self.top()})"
 
-
 class RouterPromptError(Exception):
     """
     Custom exception class for RouterPrompt errors.

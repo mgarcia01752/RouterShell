@@ -183,6 +183,35 @@ class Common():
     @staticmethod    
     def flatten_list(simple_list):
         return [item for item in simple_list]
+
+    @staticmethod
+    def remove_substrings_and_concatenate(input_list: List[str], substrings: List[str]) -> str:
+        """
+        Removes all specified substrings from each element in the input list and concatenates the results into a single string.
+
+        Args:
+            input_list (List[str]): The list of strings to be processed.
+            substrings (List[str]): The substrings to be removed from each element.
+
+        Returns:
+            str: A single string with substrings removed and elements concatenated.
+        """
+        # Check if input_list and substrings are lists and contain the right types
+        if not all(isinstance(i, str) for i in input_list):
+            raise TypeError("All elements in input_list must be strings.")
+        if not all(isinstance(sub, str) for sub in substrings):
+            raise TypeError("All elements in substrings must be strings.")
+        
+        # Process each element in the list
+        processed_elements = []
+        for element in input_list:
+            for sub in substrings:
+                element = element.replace(sub, '')
+            processed_elements.append(element)
+        
+        # Concatenate all processed elements into a single string
+        result_string = ''.join(processed_elements)
+        return result_string
     
     @staticmethod
     def convert_timestamp(timestamp:int):
