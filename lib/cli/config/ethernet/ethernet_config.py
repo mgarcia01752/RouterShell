@@ -255,14 +255,18 @@ class EthernetConfig(CmdPrompt):
             
             state = State.UP if negate else State.DOWN
             
-            if len(args) == 2 and 'dual-stack' in args:
+            if 'dual-stack' in args:
                 
                 if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, state):
                     self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self._interface_name}")
-
-            if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_V4, state):
-                self.log.fatal(f"Unable to set DHCPv4 client on interface: {self._interface_name}")
+                    return STATUS_OK
+                
+                return STATUS_OK
             
+            else:
+                if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_V4, state):
+                    self.log.fatal(f"Unable to set DHCPv4 client on interface: {self._interface_name}")
+                
             self.log.debug(f'Added dhcp-client to interface: {self._interface_name}')
 
         elif "dhcp-server" in args:
