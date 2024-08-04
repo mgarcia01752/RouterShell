@@ -1,14 +1,15 @@
-import argparse
 import logging
 from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
+from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from lib.network_manager.network_operations.vlan import Vlan
 
 class VlanConfig(CmdPrompt):
 
-    def __init__(self, args: str=None) -> None:
+    def __init__(self, vlan_id: int) -> None:
         """
         Initializes Global instance.
         """
@@ -16,8 +17,10 @@ class VlanConfig(CmdPrompt):
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().VLAN_CONFIG)
+        self._vlan_id = vlan_id
+        self._vlan_obj = Vlan()
                
-    def tconfig_help(self, args: List=None) -> None:
+    def vlanconfig_help(self, args: List=None) -> None:
         """
         Display help for available commands.
         """
@@ -25,24 +28,12 @@ class VlanConfig(CmdPrompt):
             method = getattr(self, method_name)
             print(f"{method.__doc__}")
     
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['sub-command'])         
-    def vlanconfig_cmd(self, args: List=None) -> None:
-        self.log.debug(f'tconfig_cmd -> {args}')
-
-        parser = argparse.ArgumentParser(
-            description="Manage TConfig commands",
-            epilog="Supported subcommands:\n"
-                   "   sub-command [sub_command_arg]           Description of sub-command\n"
-        )
-
-        subparsers = parser.add_subparsers(dest='subcommand')
-        sub_command_parser = subparsers.add_parser('sub-command', help='sub-command help')
-        sub_command_parser.add_argument('sub_command_arg', type=str, help='Sub Command Arg')
-
-        # Parse the arguments passed to this command
-        parsed_args = parser.parse_args(args)
-
-        if parsed_args.subcommand == 'sub-command':
-            sub_command_arg = parsed_args.sub_command_arg
-            print(f'sub-command: {sub_command_arg}')
-            self.log.debug(f'sub-command: {sub_command_arg}')
+    @CmdPrompt.register_sub_commands()         
+    def vlanconfig_name(self, args: List=None) -> None:
+        self.log.debug(f'vlanconfig_name -> {args}')
+        return STATUS_OK
+    
+     @CmdPrompt.register_sub_commands()         
+    def vlanconfig_description(self, args: List=None) -> None:
+        self.log.debug(f'vlanconfig_description -> {args}')
+        return STATUS_OK

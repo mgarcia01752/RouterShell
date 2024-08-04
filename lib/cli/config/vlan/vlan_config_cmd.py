@@ -1,5 +1,6 @@
 import logging
 from lib.cli.config.configure_prompt import ConfigurePrompt
+from lib.cli.config.vlan.vlan_config import VlanConfig
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class VlanConfigCmdError(Exception):
@@ -16,7 +17,7 @@ class VlanConfigCmd(ConfigurePrompt):
     def __init__(self):
         super().__init__(sub_cmd_name='vlan')
 
-        self.register_top_lvl_cmds(TConfig())
+        self.register_top_lvl_cmds(VlanConfig())
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().VLAN_CONFIG_CMD)

@@ -760,7 +760,9 @@ class RouterShellDB(metaclass=Singleton):
             result_vlan_id = self.vlan_id_exists(vlanid)
 
             if result_vlan_id.status:
-                return Result(status=STATUS_NOK, row_id=result_vlan_id.row_id, reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
+                return Result(status=STATUS_NOK, 
+                              row_id=result_vlan_id.row_id, 
+                              reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
 
             cursor = self.connection.cursor()
             cursor.execute(
@@ -771,7 +773,8 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             self.log.debug(
                 "Data inserted into the 'Vlans' table successfully.")
-            return Result(status=STATUS_OK, row_id=cursor.lastrowid)
+            return Result(status=STATUS_OK, 
+                          row_id=cursor.lastrowid)
 
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)

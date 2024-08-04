@@ -95,18 +95,6 @@ class VLANDatabase():
             - If there is an error or if the VLAN with the provided ID does not exist, the Result object will have
                   'status' set to STATUS_NOK, 'row_id' set to None, and 'reason' providing additional information.
 
-        Example:
-        You can use the get_vlan_name class method to retrieve the name of a VLAN by its ID.
-        For example:
-        ```
-        result = YourClass.get_vlan_name(10)
-        
-        if result.status == STATUS_OK:
-            vlan_name = result.result['VlanName']
-            print(f"VLAN name: {vlan_name}")
-        else:
-            print(f"Failed to retrieve VLAN name: {result.reason}")
-        ```
         """
         return cls.rsdb.select_vlan_name_by_vlan_id(vlan_id)
 
