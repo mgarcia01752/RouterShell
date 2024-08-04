@@ -2,7 +2,7 @@ import logging
 from typing import List
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.template.template_config import TemplateConfig
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class TemplateConfigCmdError(Exception):
     """Custom exception for TestConfig errors."""
@@ -21,7 +21,7 @@ class TemplateConfigCmd(ConfigurePrompt):
         self.register_top_lvl_cmds(TemplateConfig())
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().TEMPLATE_CONFIG)
+        self.log.setLevel(RSLS().TEMPLATE_CONFIG)
     
     def intro(self) -> str:
         return f'Starting Template Config....'

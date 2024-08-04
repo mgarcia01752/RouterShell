@@ -8,7 +8,7 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt
 
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
@@ -27,7 +27,7 @@ class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
         GlobalUserCommand.__init__(self)
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SERVER_CONFIG)
+        self.log.setLevel(RSLS().DHCP_SERVER_CONFIG)
 
         
         self.log.debug(f"DHCPServerConfig({dhcp_pool_name}) -> negate: {negate}")

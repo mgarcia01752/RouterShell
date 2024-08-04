@@ -2,7 +2,7 @@ import logging
 
 from lib.common.constants import STATUS_NOK
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 
 class VLANDatabase():
@@ -11,7 +11,7 @@ class VLANDatabase():
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().VLAN_DB)   
+        cls.log.setLevel(RSLS().VLAN_DB)   
     
     def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Result:
         """

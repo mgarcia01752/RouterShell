@@ -6,7 +6,7 @@ from typing import List
 import jc
 from lib.db.wifi_db import WifiDB
 from lib.network_manager.common.run_commands import RunCommand
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.constants import HOSTAPD_CONF_DIR, HOSTAPD_CONF_FILE, STATUS_OK, STATUS_NOK
 from lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config, HostapdManager
 from lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -243,7 +243,7 @@ class WifiPolicy():
 
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIFI_POLICY)
+        self.log.setLevel(RSLS().WIFI_POLICY)
         self.log.debug(f"WifiPolicy() -> Wifi-Policy: {wifi_policy_name} -> Negate: {negate}")
         
         self.wifi_db = WifiDB()
@@ -398,7 +398,7 @@ class WifiInterface():
             interface_name (str): The name of the wireless interface.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIFI_INTERFACE)
+        self.log.setLevel(RSLS().WIFI_INTERFACE)
         self.log.debug(f"WifiInterface() -> interface: {wifi_interface_name}")
         
         self.wifi_interface_name = wifi_interface_name
@@ -524,7 +524,7 @@ class Wifi(NetworkManager):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIFI)
+        self.log.setLevel(RSLS().WIFI)
 
     def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
         return True 
@@ -716,7 +716,7 @@ class WifiAccessPoint(HostapdManager):
     def __init__(self, interface_name: str, wifi_policy_name: str):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIFI_ACCESS_POINT)
+        self.log.setLevel(RSLS().WIFI_ACCESS_POINT)
         
         self.interface_name = interface_name
         self.wifi_policy_name = wifi_policy_name

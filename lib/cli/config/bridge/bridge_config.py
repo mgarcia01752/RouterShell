@@ -5,7 +5,7 @@ from typing import List
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_interfaces.bridge.bridge_factory import BridgeInterface, BridgeInterfaceFactory
 from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE
@@ -44,7 +44,7 @@ class BridgeConfig(CmdPrompt):
         Bridge().__init__()
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().BRIDGE_CONFIG)
+        self.log.setLevel(RSLS().BRIDGE_CONFIG)
         self._bridge_name = bridge_name
         self._bridge_config_cmd : BridgeInterface = BridgeInterfaceFactory(self._bridge_name).get_bridge_interface()
                

@@ -4,7 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from lib.network_manager.network_operations.bridge import Bridge
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 
 
 class BridgeInterface:
@@ -16,7 +16,7 @@ class BridgeInterface:
             bridge_name (str): The name of the bridge to configure.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().BRIDGE_INTERFACE)
+        self.log.setLevel(RSLS().BRIDGE_INTERFACE)
         self._bridge_name = bridge_name
         self._defaults_at_create = defaults_at_create
     

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.string_formats import StringFormats
 
 class CmdInterface(ABC):
@@ -113,7 +113,7 @@ class CmdPrompt(CmdInterface):
         self.IS_GLOBAL = global_commands
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().CMD_PROMPT)
+        self.log.setLevel(RSLS().CMD_PROMPT)
                 
     def getClassStartCmd(self) -> str:
         """

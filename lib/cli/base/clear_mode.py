@@ -3,7 +3,7 @@ from typing import List
 
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.cli.common.exec_priv_mode import ExecMode
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from lib.common.constants import *
 from lib.network_manager.network_operations.arp import Arp
@@ -21,7 +21,7 @@ class ClearMode(CmdPrompt):
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().CLEAR_MODE)
+        self.log.setLevel(RSLS().CLEAR_MODE)
         
         self.log.debug(f"Entering Clear({arg})")
 

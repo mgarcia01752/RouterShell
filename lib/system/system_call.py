@@ -5,7 +5,7 @@ import shutil
 import textwrap
 from typing import List
 
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand, RunLog
@@ -21,7 +21,7 @@ class SystemCall(RunCommand):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_CALL)
+        self.log.setLevel(RSLS().SYSTEM_CALL)
         self.arg = arg
         self.sys_db = SystemDatabase()
 

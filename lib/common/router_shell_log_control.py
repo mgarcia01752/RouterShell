@@ -65,6 +65,8 @@ class RouterShellLoggerSettings():
     DHCP_CLIENT_UDHCPC6 = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CLIENT_DHCPCD = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_CLIENT_DHCLIENT = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    
+    DHCP_INTERFACE_CLIENT = logging.DEBUG if GLOBAL_DEBUG else logging.DEBUG
 
     DHCP_SERVER = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     DHCP_SERVER_MANAGER = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

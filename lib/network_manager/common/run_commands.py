@@ -4,7 +4,7 @@ import logging
 import datetime
 from typing import List, NamedTuple
 
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class RunResult(NamedTuple):
     """
@@ -74,7 +74,7 @@ class RunCommand:
     
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().RUN)
+        self.log.setLevel(RSLS().RUN)
         
         # Check if the log directory exists, and create it if not
         if not os.path.exists(RunCommand.log_dir):

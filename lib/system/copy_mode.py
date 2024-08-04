@@ -6,7 +6,7 @@ from datetime import datetime
 
 from lib.cli.show.router_configuration import RouterConfiguration
 from lib.common.constants import ROUTER_CONFIG
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.common import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
 class InvalidCopyMode(Exception):
@@ -21,7 +21,7 @@ class CopyType(enum.Enum):
 class CopyMode:
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().COPY_MODE)
+        self.log.setLevel(RSLS().COPY_MODE)
     
     def copy_start_config_to_run_config(self) -> bool:
         self.log.info(f'copy_start_config_to_run_config()')

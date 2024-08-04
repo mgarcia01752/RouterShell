@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Union
 
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
 from lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 from lib.network_manager.network_interfaces.wireless_wifi_interface import WirelessWifiInterface
@@ -43,7 +43,7 @@ class NetInterfaceFactory:
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS.NET_INTERFACE_FACTORY)
+        self.log.setLevel(RSLS.NET_INTERFACE_FACTORY)
         self.interface_name = interface_name
         
         if not interface_name or not interface_type:

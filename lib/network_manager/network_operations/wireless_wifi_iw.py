@@ -1,6 +1,6 @@
 from enum import Enum
 import logging
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 from lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config
 from lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -60,7 +60,7 @@ class WifiPolicy():
 
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIRELESS_WIFI_POLICY)
+        self.log.setLevel(RSLS().WIRELESS_WIFI_POLICY)
         self.log.debug(f"WifiPolicy() -> Wifi-Policy: {wifi_policy_name} -> Negate: {negate}")
 
         self.wifi = Wifi()
@@ -105,7 +105,7 @@ class Wifi(NetworkManager):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIFI)
+        self.log.setLevel(RSLS().WIFI)
 
     def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
         return True 

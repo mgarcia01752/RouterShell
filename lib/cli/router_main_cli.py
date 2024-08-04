@@ -9,7 +9,7 @@ from lib.system.system_call import SystemCall
 from system.system_start_up import SystemStartUp
 from common.constants import ROUTER_CONFIG, STATUS_OK
 from lib.cli.base.global_cmd_op import Global
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -65,7 +65,7 @@ class RouterCLI(RouterPrompt):
         self.register_top_lvl_cmds(Show())
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ROUTERCLI)
+        self.log.setLevel(RSLS().ROUTERCLI)
         
         self.intro_message()
         

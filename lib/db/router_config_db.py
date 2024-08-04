@@ -3,7 +3,7 @@ from itertools import count
 from typing import Dict, List, Tuple
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
@@ -15,7 +15,7 @@ class RouterConfigurationDatabase:
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().ROUTER_CONFIG_DB)
+        cls.log.setLevel(RSLS().ROUTER_CONFIG_DB)
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")

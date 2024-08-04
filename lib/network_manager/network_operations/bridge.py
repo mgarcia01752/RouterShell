@@ -6,7 +6,7 @@ from lib.db.bridge_db import BridgeDatabase
 from lib.network_manager.common.phy import State
 from lib.common.common import STATUS_NOK, STATUS_OK
 
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 
@@ -18,7 +18,7 @@ class Bridge(RunCommand, BridgeDatabase):
         BridgeDatabase().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().BRIDGE)
+        self.log.setLevel(RSLS().BRIDGE)
         
     def get_bridge_list_os(self) -> List[str]:
         """

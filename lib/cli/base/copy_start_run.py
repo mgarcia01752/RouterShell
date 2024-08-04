@@ -3,7 +3,7 @@ import logging
 from lib.cli.common.router_prompt import PromptFeeder, RouterPrompt
 from lib.cli.config.config import Configure
 from lib.common.common import Common
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_OK
 
 class CopyStartRunError(Exception):
@@ -37,7 +37,7 @@ class CopyStartRun(RouterPrompt):
         RouterPrompt.__init__(self)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().COPY_START_RUN)
+        self.log.setLevel(RSLS().COPY_START_RUN)
         
         self.register_top_lvl_cmds(Configure())
 

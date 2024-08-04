@@ -6,7 +6,7 @@ from lib.network_manager.common.mac import MacServiceLayer
 from lib.db.vlan_db import VLANDatabase
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -20,7 +20,7 @@ class Vlan(NetworkManager):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().VLAN)
+        self.log.setLevel(RSLS().VLAN)
         self.arg = arg
 
     def does_vlan_id_exist_in_vlan_db(self, vlan_id:int) -> bool:

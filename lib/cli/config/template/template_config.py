@@ -4,7 +4,7 @@ from typing import List
 
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterface
 
 class TemplateConfig(CmdPrompt):
@@ -16,7 +16,7 @@ class TemplateConfig(CmdPrompt):
         super().__init__(global_commands=False, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().TEMPLATE_CONFIG)
+        self.log.setLevel(RSLS().TEMPLATE_CONFIG)
                
     def templateconfig_help(self, args: List=None) -> None:
         """

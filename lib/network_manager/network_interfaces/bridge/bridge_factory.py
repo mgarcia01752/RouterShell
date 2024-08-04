@@ -2,7 +2,7 @@ import logging
 from typing import List
 from lib.common.constants import STATUS_OK, STATUS_NOK
 from lib.network_manager.common.phy import State
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.bridge.bridge_interface import BridgeInterface
 
 class BridgeInterfaceFactory:
@@ -33,7 +33,7 @@ class BridgeInterfaceFactory:
             bridge_name (str): The name of the bridge for which configuration commands will be created.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().BRIDGE_INTERFACE_FACTORY)        
+        self.log.setLevel(RSLS().BRIDGE_INTERFACE_FACTORY)        
         self._bridge_name = bridge_name
     
     def destroy_bridge(self) -> bool:

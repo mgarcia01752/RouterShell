@@ -2,7 +2,7 @@ import logging
 from optparse import Option
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from lib.network_manager.network_operations.interface import Interface
 
@@ -28,7 +28,7 @@ class LoopbackInterface(NetworkInterface):
         """
         super().__init__(interface_name=loopback_name)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS.LOOPBACK_INTERFACE)
+        self.log.setLevel(RSLS.LOOPBACK_INTERFACE)
         self._127_inet_address = None
         
         if not Interface().does_os_interface_exist(loopback_name):

@@ -8,7 +8,7 @@ from lib.db.dhcp_server_db import DHCPServerDatabase
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.system.system_service_control.system_service_control import SysServCntrlAction, SystemServiceControl
 
 class DNSMasqExitCode(Enum):
@@ -66,7 +66,7 @@ class DNSMasqService(NetworkManager):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_SERVICE)
+        self.log.setLevel(RSLS().DNSMASQ_SERVICE)
         
     def control_service(self, service_action: SysServCntrlAction) -> bool:
         """
@@ -136,7 +136,7 @@ class DNSMasqInterfaceService(DNSMasqService):
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)
+        self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)
 
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_subnet = dhcp_pool_subnet
@@ -316,4 +316,4 @@ class DNSMasqGlobalService(DNSMasqService):
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)    
+        self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)    

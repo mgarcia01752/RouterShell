@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Union
 
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 from lib.network_manager.network_operations.interface import Interface
@@ -28,7 +28,7 @@ class CreateLoopBackNetInterface:
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS.CREATE_LB_INTERFACE)
+        self.log.setLevel(RSLS.CREATE_LB_INTERFACE)
         self.loopback_name = loopback_name
         self.interface = Interface()
         self.log.debug(f'Loopback-Name: {loopback_name}')

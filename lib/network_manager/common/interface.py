@@ -3,7 +3,7 @@ import re
 import logging
 
 from lib.network_manager.common.phy import PhyServiceLayer
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class InterfaceLayerFoundError(Exception):
@@ -47,7 +47,7 @@ class InterfaceLayer(PhyServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().INTERFACE)
+        self.log.setLevel(RSLS().INTERFACE)
         
     def get_os_interface_type(self, interface_name: str) -> InterfaceType:
         """

@@ -2,7 +2,7 @@ import logging
 from typing import List
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.ethernet.ethernet_config import EthernetConfig
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 from lib.network_manager.network_operations.interface import Interface
@@ -19,7 +19,7 @@ class EthernetConfigCmd(ConfigurePrompt):
     def __init__(self, eth_name:List[str]):
         super().__init__(sub_cmd_name=InterfaceType.ETHERNET.value) 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ETHERNET_CONFIG_CMD)
+        self.log.setLevel(RSLS().ETHERNET_CONFIG_CMD)
         eth_name = eth_name[0]
         self.log.debug(f'EthernetConfigCmd() -> Interface: {eth_name}')
 

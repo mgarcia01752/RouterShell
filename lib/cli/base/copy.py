@@ -5,7 +5,7 @@ from lib.cli.base.copy_start_run import CopyStartRun
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.system.copy_mode import CopyMode, CopyType
 
 class CopyError(Exception):
@@ -22,7 +22,7 @@ class Copy(CmdPrompt):
     def __init__(self) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().COPY)
+        self.log.setLevel(RSLS().COPY)
                
     def copy_help(self, args: List=None) -> None:
         """

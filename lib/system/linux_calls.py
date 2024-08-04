@@ -2,7 +2,7 @@ import logging
 from typing import List, Optional
 from lib.db.system_db import SystemDatabase
 from lib.network_manager.common.run_commands import RunCommand
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 
 class InvalidLinuxSystem(Exception):
@@ -16,7 +16,7 @@ class LinuxSystem(RunCommand):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().LINUX_SYSTEM)
+        self.log.setLevel(RSLS().LINUX_SYSTEM)
         self.arg = arg
         self.sys_db = SystemDatabase()
 

@@ -5,7 +5,7 @@ from typing import List, Optional
 from lib.cli.common.exec_priv_mode import ExecMode
 
 from lib.cli.common.command_class_interface import CmdPrompt
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
@@ -33,7 +33,7 @@ class InterfaceConfig(CmdPrompt):
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ETHERNET_CONFIG)
+        self.log.setLevel(RSLS().ETHERNET_CONFIG)
         self.net_interface = net_interface
         self.ifName = net_interface.get_interface_name()
         

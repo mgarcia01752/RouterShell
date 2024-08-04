@@ -5,7 +5,7 @@ from typing import List
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.system.init_system import InitSystem, InitSystemChecker
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 
 class SysServCntrlAction(enum.Enum):
     """
@@ -21,7 +21,7 @@ class SystemServiceControl(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_SERVICE_CTRL)
+        self.log.setLevel(RSLS().SYSTEM_SERVICE_CTRL)
         
         self.init_system = InitSystemChecker().get_init_system()
 

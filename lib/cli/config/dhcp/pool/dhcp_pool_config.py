@@ -4,7 +4,7 @@ from typing import List
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.constants import STATUS_NOK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpPoolFactory
 
 
@@ -24,7 +24,7 @@ class DhcpPoolConfig(CmdPrompt):
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_POOL_CONFIG)
+        self.log.setLevel(RSLS().DHCP_POOL_CONFIG)
         
         if negate:
             DhcpPoolFactory(dhcp_pool_name).delete_pool_name()

@@ -7,7 +7,7 @@ from typing import List
 from tabulate import tabulate
 
 from lib.network_manager.common.inet import InetServiceLayer
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class InterfaceNotFoundError(Exception):
@@ -25,7 +25,7 @@ class NetworkManager(InetServiceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().NETWORK_MANAGER)
+        self.log.setLevel(RSLS().NETWORK_MANAGER)
     
     def net_mgr_interface_exist(self, interface_name) -> bool:
         """

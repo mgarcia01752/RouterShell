@@ -5,7 +5,7 @@ import re
 from typing import Tuple
 from tabulate import tabulate 
 from lib.network_manager.common.interface import InterfaceLayer
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class MacServiceLayerFoundError(Exception):
@@ -24,7 +24,7 @@ class MacServiceLayer(InterfaceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().MAC)
+        self.log.setLevel(RSLS().MAC)
         
     def set_interface_mac(self, interface_name: str, mac_address: str) -> bool:
         """

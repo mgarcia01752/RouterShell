@@ -5,7 +5,7 @@ import shutil
 from typing import List
 from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.db.router_config_db import RouterConfigurationDatabase
 from lib.db.system_db import SystemDatabase
 from lib.network_services.common.network_ports import NetworkPorts
@@ -24,7 +24,7 @@ class RouterConfiguration:
         Initialize the RouterConfiguration instance.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ROUTER_CONFIG)
+        self.log.setLevel(RSLS().ROUTER_CONFIG)
         self.rcdb = RouterConfigurationDatabase()
     
     def remark_comment(self, comment: str) -> str:

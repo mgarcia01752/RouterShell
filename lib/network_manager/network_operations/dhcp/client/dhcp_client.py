@@ -3,7 +3,7 @@ import re
 from typing import List
 
 from lib.common.constants import STATUS_NOK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.db.dhcp_client_db import DHCPClientDatabase
 from lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import DHCPClientFactory, DHCPClientOperations
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
@@ -54,7 +54,7 @@ class DHCPClient(DHCPClientDatabase):
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_CLIENT)
+        self.log.setLevel(RSLS().DHCP_CLIENT)
         
         self._interface_name = interface_name
         self._dhcp_stack_version = dhcp_stack_version

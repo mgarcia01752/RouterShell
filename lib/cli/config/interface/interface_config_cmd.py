@@ -2,7 +2,7 @@ import logging
 from typing import List
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.interface.interface_config import InterfaceConfig
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 from lib.network_manager.network_operations.interface import Interface
 
@@ -17,7 +17,7 @@ class InterfaceConfigCmdError(Exception):
 class InterfaceConfigCmd(ConfigurePrompt):
     def __init__(self, interface_name:List[str]):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ETHERNET_CONFIG_CMD)
+        self.log.setLevel(RSLS().ETHERNET_CONFIG_CMD)
         interface_name = interface_name[0]
         self.log.debug(f'InterfaceConfigCmd() -> Interface: {interface_name}')
         

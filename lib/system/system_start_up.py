@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from lib.cli.base.copy_start_run import CopyStartRun
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.run_commands import RunCommand
 from lib.db.sqlite_db.router_shell_db import RouterShellDB
 from lib.network_manager.network_operations.interface import Interface
@@ -20,7 +20,7 @@ class SystemStartUp(Interface):
         super().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_START_UP)
+        self.log.setLevel(RSLS().SYSTEM_START_UP)
 
         if not self.fetch_db_interface_names():
             self.update_interface_db_from_os()
@@ -42,7 +42,7 @@ class SystemShutDown(RunCommand):
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_START_UP)
+        self.log.setLevel(RSLS().SYSTEM_START_UP)
             
 class SystemReset(Interface):
     """
@@ -56,7 +56,7 @@ class SystemReset(Interface):
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_RESET)
+        self.log.setLevel(RSLS().SYSTEM_RESET)
         
     def database(self):
         """
@@ -78,7 +78,7 @@ class SystemFactoryReset():
         super().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM_INIT)
+        self.log.setLevel(RSLS().SYSTEM_INIT)
 
         RouterShellDB().reset_database()
         

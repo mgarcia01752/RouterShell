@@ -2,7 +2,7 @@ import logging
 from typing import List
 from lib.cli.config.configure_prompt import ConfigurePrompt
 from lib.cli.config.loopback.loopback_config import LoopbackConfig
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 
@@ -21,7 +21,7 @@ class LoopbackConfigCmd(ConfigurePrompt):
         super().__init__(sub_cmd_name=InterfaceType.LOOPBACK.value)
 
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().LOOPBACK_CONFIG_CMD)
+        self.log.setLevel(RSLS().LOOPBACK_CONFIG_CMD)
         self.log.debug(f'LoopbackConfigCmd() -> Starting LoopbackConfig -> {loopback_name}')
         loopback_name = loopback_name[0]
         

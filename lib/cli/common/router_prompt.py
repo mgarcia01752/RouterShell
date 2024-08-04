@@ -8,7 +8,7 @@ from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import print_formatted_text as print
 from common.common import Common
 from lib.cli.common.command_class_interface import CmdPrompt
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.string_formats import StringFormats
@@ -72,7 +72,7 @@ class PromptFeeder:
             prompt_feed (List[List[str]]): The initial list of prompts/commands.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().PROMPT_FEEDER)
+        self.log.setLevel(RSLS().PROMPT_FEEDER)
                 
         self.prompt_feed = prompt_feed[:]
         self.start_length = len(self.prompt_feed)
@@ -179,7 +179,7 @@ class RouterPrompt:
         """
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ROUTER_PROMPT)
+        self.log.setLevel(RSLS().ROUTER_PROMPT)
          
         self._register_top_lvl_cmds = {}
         self._command_dict_completer = {'enable':{}}

@@ -5,7 +5,7 @@ from tabulate import tabulate
 from lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.network_manager.vlan import Vlan 
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
@@ -19,7 +19,7 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
         RouterPrompt.__init__(self,ExecMode.CONFIG_MODE, self.PROMPT_CMD_ALIAS)
         Vlan().__init__(self)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().VLAN_CONFIG)
+        self.log.setLevel(RSLS().VLAN_CONFIG)
 
         self.prompt = self.set_prompt()
         self.vlan_id = vlan_id

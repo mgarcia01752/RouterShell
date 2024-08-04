@@ -6,7 +6,7 @@ from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt, ExecMode
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
@@ -28,7 +28,7 @@ class InterfaceConfig(cmd2.Cmd,
     def __init__(self, if_config_interface_name: str, ifType:str=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ETHERNET_CONFIG)
+        self.log.setLevel(RSLS().ETHERNET_CONFIG)
         
         GlobalUserCommand.__init__(self)
         Interface.__init__(self)

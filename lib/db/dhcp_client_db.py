@@ -1,6 +1,6 @@
 import logging
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
@@ -12,7 +12,7 @@ class DHCPClientDatabase:
         """
         Initializes the DHCPClientDatabase instance and sets up logging.
         """
-        self.log.setLevel(RSLGS().INTERFACE_DB)
+        self.log.setLevel(RSLS().INTERFACE_DB)
 
     @classmethod
     def add_db_dhcp_client(

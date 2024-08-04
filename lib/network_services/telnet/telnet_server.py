@@ -4,7 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.system.init_system import InitSystemChecker, InitSystem
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 
 class TelnetService(RunCommand):
     """
@@ -35,7 +35,7 @@ class TelnetService(RunCommand):
             port (int): The port number for the Telnet service. Default is 23.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().TELNET_SERVER)
+        self.log.setLevel(RSLS().TELNET_SERVER)
         
         self.init_system = InitSystemChecker().get_init_system()
         self.port = port

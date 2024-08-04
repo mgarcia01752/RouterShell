@@ -5,7 +5,7 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.common import Common
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 
@@ -19,7 +19,7 @@ class LoopbackConfig(CmdPrompt):
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().LOOPBACK_CONFIG)
+        self.log.setLevel(RSLS().LOOPBACK_CONFIG)
         
         self.lio = loopback_interface_obj
         self.log.debug(f'Loopback: {self.lio.get_interface_name}')

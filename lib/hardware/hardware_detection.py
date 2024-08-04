@@ -3,7 +3,7 @@ import json
 import logging
 
 from tabulate import tabulate
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.run_commands import RunCommand
 
 
@@ -11,7 +11,7 @@ class HardwareDetection(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().HARDWARE_NETWORK)
+        self.log.setLevel(RSLS().HARDWARE_NETWORK)
         pass
     
     def hardware_cpu(self):

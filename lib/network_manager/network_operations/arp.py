@@ -8,7 +8,7 @@ from lib.network_manager.common.inet import InetServiceLayer
 from lib.network_manager.common.sysctl import SysCtl
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 
 
@@ -40,7 +40,7 @@ class Arp(NetworkManager):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ARP)
+        self.log.setLevel(RSLS().ARP)
 
     def is_arp_entry_exists(self, ip_address: str, interface: str = None) -> bool:
         """

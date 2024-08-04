@@ -3,7 +3,7 @@ import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
@@ -20,7 +20,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
         BridgeGroup.__init__(self, ethernet_name)
         DHCPInterfaceClient.__init__(self, ethernet_name)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ETHERNET_INTERFACE)        
+        self.log.setLevel(RSLS().ETHERNET_INTERFACE)        
         self._interface_name = ethernet_name
     
     def get_interface_name(self) -> str:

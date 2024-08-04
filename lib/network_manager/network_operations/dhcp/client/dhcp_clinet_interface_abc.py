@@ -1,14 +1,18 @@
 
 from abc import ABC
+import logging
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.phy import State
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class DHCPInterfaceClient(ABC):
     def __init__(self, interface_name:str):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLS().DHCP_INTERFACE_CLIENT)
         self._interface_name = interface_name
-        pass
 
     def update_interface_dhcp_client(self, dhcp_stack_ver: DHCPStackVersion, dhcp_client_state: State) -> bool:
         """
@@ -25,11 +29,11 @@ class DHCPInterfaceClient(ABC):
 
         """
         try:
-            dhcp_client = DHCPInterfaceClient(self._interface_name, dhcp_stack_ver)
-            self.log.debug(f"Updated DHCP client configuration for interface: {self._interface_nameinterface_name} via OS")
+            dhcp_client = DHCPClient(self._interface_name, dhcp_stack_ver)
+            self.log.debug(f"Updated DHCP client configuration for interface: {self._interface_name} via OS")
         
         except Exception as e:
-            self.log.critical(f"Failed to update DHCP client configuration for interface: {self._interface_nameinterface_name} via OS: {e}")
+            self.log.critical(f"Failed to update DHCP client configuration for interface: {self._interface_name} via OS: {e}")
             return STATUS_NOK
         
         if dhcp_client_state == State.DOWN:

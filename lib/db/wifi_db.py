@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class WifiPolicyNotFoundError(Exception):
@@ -19,7 +19,7 @@ class WifiDB:
     
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().WIFI_DB)
+        self.log.setLevel(RSLS().WIFI_DB)
             
     def wifi_policy_exist(self, wifi_policy_name: str) -> bool:
         """

@@ -4,7 +4,7 @@ import cmd2
 from tabulate import tabulate
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 from lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from lib.network_manager.common.interface import InterfaceType
@@ -26,7 +26,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.debug(f"__init__() -> Bridge: {bridge_name}")
-        self.log.setLevel(RSLGS().BRIDGE_CONFIG_CMD)
+        self.log.setLevel(RSLS().BRIDGE_CONFIG_CMD)
         self.debug = CGS().DEBUG_BRIDGE_CONFIG
         
         GlobalUserCommand.__init__(self)

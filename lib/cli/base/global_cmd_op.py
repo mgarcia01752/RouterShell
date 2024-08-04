@@ -6,7 +6,7 @@ from typing import List
 from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.system.system_call import SystemCall
@@ -23,7 +23,7 @@ class Global(CmdPrompt, NetworkManager):
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().GLOBAL_MODE)
+        self.log.setLevel(RSLS().GLOBAL_MODE)
         
     def help(self) -> None:
         """

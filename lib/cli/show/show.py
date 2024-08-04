@@ -12,7 +12,7 @@ from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.cli.show.router_configuration import RouterConfiguration
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.string_formats import StringFormats
 from lib.hardware.hardware_detection import HardwareDetection
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -29,7 +29,7 @@ class Show(CmdPrompt):
         super().__init__(global_commands=False, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SHOW_MODE)
+        self.log.setLevel(RSLS().SHOW_MODE)
                
     def show_help(self, args: List=None) -> None:
         """

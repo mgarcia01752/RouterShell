@@ -3,7 +3,7 @@ from typing import Optional
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 
@@ -15,7 +15,7 @@ class BridgeDatabase():
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().BRIDGE_DB)
+        cls.log.setLevel(RSLS().BRIDGE_DB)
                 
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")

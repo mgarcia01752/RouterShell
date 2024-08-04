@@ -2,7 +2,7 @@ import logging
 from typing import Dict, List
 
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_OK
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
@@ -18,7 +18,7 @@ class DHCPServerDatabase:
         This constructor sets up the class logger and connects to the RouterShell database if not already connected.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SERVER_DB)
+        self.log.setLevel(RSLS().DHCP_SERVER_DB)
 
     def dhcp_pool_name_dhcp_version_db(self, dhcp_pool_name: str) -> DHCPVersion:
         """

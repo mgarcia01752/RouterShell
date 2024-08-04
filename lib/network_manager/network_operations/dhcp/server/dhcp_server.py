@@ -4,7 +4,7 @@ import os
 from typing import Dict, List
 
 from lib.common.constants import DNSMASQ_LEASE_FILE_PATH
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from lib.network_manager.common.inet import InetServiceLayer, InetVersion
@@ -29,7 +29,7 @@ class DHCPServer(NetworkManager):
         """
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SERVER)
+        self.log.setLevel(RSLS().DHCP_SERVER)
     
     def dhcp_pool_name_exists(self, dhcp_pool_name: str) -> bool:
         """
@@ -290,7 +290,7 @@ class DhcpPoolFactory():
             ValueError: If the provided subnet CIDR is invalid.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_POOL_FACTORY)
+        self.log.setLevel(RSLS().DHCP_POOL_FACTORY)
         self.log.debug(f"Create DhcpPoolFactory({dhcp_pool_name}) ")
         
         self.factory_status = True
@@ -491,7 +491,7 @@ class DhcpServerManager(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SERVER_MANAGER)
+        self.log.setLevel(RSLS().DHCP_SERVER_MANAGER)
 
     def get_leases(self) -> List[Dict[str, str]]:
         """

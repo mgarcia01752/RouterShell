@@ -2,7 +2,7 @@ import logging
 import re
 from typing import List
 from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as DB
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
@@ -14,7 +14,7 @@ class InterfaceDatabase:
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().INTERFACE_DB)
+        cls.log.setLevel(RSLS().INTERFACE_DB)
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")

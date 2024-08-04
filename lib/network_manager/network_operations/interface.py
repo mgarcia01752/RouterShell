@@ -6,7 +6,7 @@ from typing import List, Optional
 from lib.db.interface_db import InterfaceDatabase
 from lib.network_manager.common.interface import InterfaceType 
 from lib.network_manager.common.phy import Duplex, Speed, State
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.common import STATUS_NOK, STATUS_OK
 from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
@@ -23,7 +23,7 @@ class Interface(NetworkManager, InterfaceDatabase):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().INTERFACE)
+        self.log.setLevel(RSLS().INTERFACE)
         self.arg = arg
 
     def clear_interface_arp(self, interface_name: str=None) -> bool:

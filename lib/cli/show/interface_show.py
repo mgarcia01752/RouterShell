@@ -3,7 +3,7 @@ import logging
 
 from tabulate import tabulate
 from lib.network_manager.common.interface import InterfaceType
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.interface import Interface
 
 class InterfaceShow(Interface):
@@ -11,7 +11,7 @@ class InterfaceShow(Interface):
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().IF_SHOW)
+        self.log.setLevel(RSLS().IF_SHOW)
         self.arg = arg
     
     def show_interface_statistics(self, interface_name=None):

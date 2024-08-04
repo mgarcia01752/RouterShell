@@ -5,7 +5,7 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.cli.config.config_mode import ConfigMode
 from lib.common.constants import STATUS_OK
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class Configure(CmdPrompt):
 
@@ -16,7 +16,7 @@ class Configure(CmdPrompt):
         super().__init__(global_commands=False, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().CONFIGURE_MODE)
+        self.log.setLevel(RSLS().CONFIGURE_MODE)
                
     def configure_help(self, args: List=None) -> None:
         """

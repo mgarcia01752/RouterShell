@@ -3,7 +3,7 @@ from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class NatDB:
 
@@ -11,7 +11,7 @@ class NatDB:
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().NAT_DB)
+        cls.log.setLevel(RSLS().NAT_DB)
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")

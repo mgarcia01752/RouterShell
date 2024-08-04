@@ -1,6 +1,6 @@
 import logging
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.db.system_db import SystemDatabase
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.network_services.telnet.telnet_server import TelnetService
@@ -12,7 +12,7 @@ class System:
         Initialize the System class with logging configuration.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().SYSTEM)
+        self.log.setLevel(RSLS().SYSTEM)
     
     def update_hostname(self, hostname: str) -> bool:
         """

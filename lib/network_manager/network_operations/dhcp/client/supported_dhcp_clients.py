@@ -10,7 +10,7 @@ from ipaddress import ip_address
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.inet import InetServiceLayer
 from lib.network_manager.common.run_commands import RunCommand, RunResult
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
 from lib.system.os.os import OSChecker, SupportedOS
 
@@ -69,7 +69,7 @@ class DHCPClientFactory:
     
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_CLIENT_FACTORY)      
+        self.log.setLevel(RSLS().DHCP_CLIENT_FACTORY)      
           
     def get_supported_dhcp_client(
         self, interface_name: str, dhcp_stack_version: DHCPStackVersion, auto_sdc_override=None
@@ -217,7 +217,7 @@ class DHCPClientOperations(ABC, RunCommand):
         super().__init__()
         RunCommand().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SUPPORTED_CLIENTS_ABC)
+        self.log.setLevel(RSLS().DHCP_SUPPORTED_CLIENTS_ABC)
         self._interface_name = interface_name
         self._dsv = dhcp_stack_version
         self._sdc = sdc
@@ -424,7 +424,7 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         """
         super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC)
+        self.log.setLevel(RSLS().DHCP_CLIENT_UDHCPC)
 
         self._dco_udhcpc6 = DHCPClientOperations_udhcpc6(interface_name, DHCPStackVersion.DHCP_V6)
         
@@ -496,7 +496,7 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         """
         super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.UDHCPC)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_CLIENT_UDHCPC6)
+        self.log.setLevel(RSLS().DHCP_CLIENT_UDHCPC6)
 
     def remove_interface(self) -> bool:
         """
@@ -575,7 +575,7 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         """
         super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.DHCPCD)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_CLIENT_DHCPCD)
+        self.log.setLevel(RSLS().DHCP_CLIENT_DHCPCD)
 
     def remove_interface(self) -> bool:
         """
@@ -644,7 +644,7 @@ class DHCPClientOperations_dhclient(DHCPClientOperations):
         """
         super().__init__(interface_name, dhcp_stack_version, SupportedDhcpClients.DHCLIENT)
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_CLIENT_DHCLIENT)
+        self.log.setLevel(RSLS().DHCP_CLIENT_DHCLIENT)
 
     def remove_interface(self) -> bool:
         """

@@ -4,7 +4,7 @@ from typing import List, Optional
 from lib.cli.common.exec_priv_mode import ExecMode
 
 from lib.cli.common.command_class_interface import CmdPrompt
-from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
@@ -32,7 +32,7 @@ class EthernetConfig(CmdPrompt):
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ETHERNET_CONFIG)
+        self.log.setLevel(RSLS().ETHERNET_CONFIG)
         self.eth_interface_obj = eth_interface_obj
         self._interface_name = eth_interface_obj.get_interface_name()
         
@@ -253,22 +253,26 @@ class EthernetConfig(CmdPrompt):
         elif "dhcp-client" in args[0]:
             '''[no] [ip dhcp-client dual-stack]'''
             
-            state = State.UP if negate else State.DOWN
+            self.log.debug(f'dhcp-client -> {args}')
+            
+            state = State.DOWN if negate else State.UP
             
             if 'dual-stack' in args:
-                
+                self.log.debug(f'dhcp-client -> Dual-Stack')
                 if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, state):
                     self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self._interface_name}")
-                    return STATUS_OK
-                
-                return STATUS_OK
-            
+                    return STATUS_NOK
+                            
             else:
+                self.log.debug(f'dhcp-client -> IPv4')
                 if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_V4, state):
                     self.log.fatal(f"Unable to set DHCPv4 client on interface: {self._interface_name}")
+                    return STATUS_NOK
                 
             self.log.debug(f'Added dhcp-client to interface: {self._interface_name}')
 
+            return STATUS_OK
+        
         elif "dhcp-server" in args:
             '''[no] [ip dhcp-server pool-name <dhcp-pool-name>]'''
             if 'pool-name' in args[1:]:
@@ -289,6 +293,7 @@ class EthernetConfig(CmdPrompt):
                     return STATUS_OK
             else:
                 print('Missing bridge group name or invalid command')
+        
         else:
             self.log.debug(f'Invalid subcommand: {args}')
             print('Invalid subcommand')

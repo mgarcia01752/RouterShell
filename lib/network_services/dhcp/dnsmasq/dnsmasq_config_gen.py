@@ -1,6 +1,6 @@
 from enum import Enum
 import logging
-from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 from typing import List, Union
 
@@ -58,7 +58,7 @@ class DNSMasqConfigurator:
     '''
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_CONFIG)        
+        self.log.setLevel(RSLS().DNSMASQ_CONFIG)        
         self.config = []
 
     def add_listen_port(self, port: int):
