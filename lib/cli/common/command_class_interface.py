@@ -5,6 +5,7 @@ import re
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from lib.cli.common.exec_priv_mode import ExecMode
+from lib.cli.common.prompt_response import PromptResponse
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.common.string_formats import StringFormats
@@ -84,7 +85,7 @@ class CmdInterface(ABC):
         """
         pass
     
-class CmdPrompt(CmdInterface):
+class CmdPrompt(CmdInterface, PromptResponse):
     """
     Implementation of command prompt interface.
     """
@@ -225,6 +226,7 @@ class CmdPrompt(CmdInterface):
         Display help for available commands.
         """
         pass
+    
 
     @classmethod
     def register_sub_commands(cls,

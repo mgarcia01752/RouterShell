@@ -98,6 +98,7 @@ class RouterShellLoggerSettings():
     VLAN_DB = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG_CMD = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     VLAN_CONFIG = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
+    VLAN_MGT = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
 
     ARP = logging.DEBUG if GLOBAL_DEBUG else logging.INFO
     ARP_CONFIG = logging.DEBUG if GLOBAL_DEBUG else logging.INFO

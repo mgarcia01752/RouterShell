@@ -1,6 +1,6 @@
 import logging
 
-from lib.common.constants import STATUS_NOK
+from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
@@ -9,11 +9,31 @@ class VLANDatabase():
     
     rsdb = DB()
     
-    def __init__(cls):
-        cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLS().VLAN_DB)   
+    def __init__(self):
+        self.log = logging.getLogger(self.__class__.__name__)
+        self.log.setLevel(RSLS().VLAN_DB)   
     
-    def add_vlan(cls, vlan_id: int, vlan_name: str, description: str = None) -> Result:
+    def add_vlan_id(self, vlan_id: int) -> bool:
+        """
+        Add a VLAN ID to the database using the rsdb method.
+
+        Args:
+            vlan_id (int): The VLAN ID to be added.
+
+        Returns:
+            bool: STATUS_OK if the VLAN ID was successfully added or already exists,
+                  STATUS_NOK if there was an error adding the VLAN ID.
+        """
+        
+        if not self.rsdb.vlan_id_exists(vlan_id).status:
+            self.log.debug(f'VlanID: {vlan_id}, does not exists, adding Vlan to DB')
+            return self.rsdb.insert_vlan_id(vlan_id).status
+        
+        self.log.debug(f'VlanID: {vlan_id} already exisit, no need to add')
+        
+        return STATUS_OK
+
+    def add_vlan(self, vlan_id: int, vlan_name: str, description: str = None) -> Result:
         """
         Add a new VLAN to the database.
 
@@ -28,22 +48,10 @@ class VLANDatabase():
                   and 'row_id' containing the unique identifier of the inserted VLAN.
                 - If there is an error or if the VLAN already exists, the Result object will have 'status' set to STATUS_NOK,
                   'row_id' set to None, and 'reason' providing additional information.
-
-        Example:
-        You can use the add_vlan class method to add a new VLAN to the database.
-        For example:
-        ```
-        result = YourClass.add_vlan(10, 'VLAN_10', 'Example VLAN')
-        
-        if result.status == STATUS_OK:
-            print(f"VLAN added successfully with ID: {result.row_id}")
-        else:
-            print(f"Failed to add VLAN: {result.reason}")
-        ```
         """
-        return cls.rsdb.insert_vlan(vlan_id, vlan_name, description)
+        return self.rsdb.insert_vlan(vlan_id, vlan_name, description)
 
-    def update_vlan_description(cls, vlan_id: int, vlan_description: str) -> bool:
+    def update_vlan_description(self, vlan_id: int, vlan_description: str) -> bool:
         """
         Update the description of a VLAN by its ID.
 
@@ -66,22 +74,22 @@ class VLANDatabase():
             print("Failed to update VLAN description.")
         ```
         """
-        return cls.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description).status
+        return self.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description).status
 
-    def vlan_exists(cls, vlan_id: int) -> bool:
+    def vlan_exists(self, vlan_id: int) -> bool:
         """
         Check if a VLAN with the given ID exists in the database.
 
         Args:
-            cls: The class reference.
+            self: The class reference.
             vlan_id (int): The unique ID of the VLAN to check.
 
         Returns:
             bool: True if a VLAN with the given ID exists, False otherwise.
         """
-        return cls.rsdb.vlan_id_exists(vlan_id).status
+        return self.rsdb.vlan_id_exists(vlan_id).status
 
-    def get_vlan_name(cls, vlan_id: int) -> Result:
+    def get_vlan_name(self, vlan_id: int) -> Result:
         """
         Get the name of a VLAN by its ID.
 
@@ -96,37 +104,36 @@ class VLANDatabase():
                   'status' set to STATUS_NOK, 'row_id' set to None, and 'reason' providing additional information.
 
         """
-        return cls.rsdb.select_vlan_name_by_vlan_id(vlan_id)
+        return self.rsdb.select_vlan_name_by_vlan_id(vlan_id)
 
-    def update_vlan_name_via_vlanID(cls, vlan_id: int, vlan_name: str) -> Result:
+    def update_vlan_name_via_vlanID(self, vlan_id: int, vlan_name: str) -> Result:
         """
         Update the name of a VLAN by its ID.
 
         Args:
-            cls: The class reference.
+            self: The class reference.
             vlan_id (int): The unique ID of the VLAN to update.
-          cls  vlan_name (str): The new name for the VLAN.
+          self  vlan_name (str): The new name for the VLAN.
 
         Returns:
             bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
         """        
-        return cls.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name)
+        return self.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name)
 
-    
-    def add_ports_to_vlan(cls, vlan_id: int, ports_to_add: list):
+    def add_ports_to_vlan(self, vlan_id: int, ports_to_add: list):
         # Add ports to a VLAN
-        vlan_interface_id = cls.get_vlan_interface_id(vlan_id)
+        vlan_interface_id = self.get_vlan_interface_id(vlan_id)
         if vlan_interface_id:
             for port in ports_to_add:
-                cls.insert_vlan_interface_mapping(vlan_interface_id, port)
+                self.insert_vlan_interface_mapping(vlan_interface_id, port)
 
-    def delete_interface_from_vlan(cls, vlan_id: int, port_to_delete: int):
+    def delete_interface_from_vlan(self, vlan_id: int, port_to_delete: int):
         # Delete an interface (port) from a VLAN
-        vlan_interface_id = cls.get_vlan_interface_id(vlan_id)
+        vlan_interface_id = self.get_vlan_interface_id(vlan_id)
         if vlan_interface_id:
-            cls.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)
+            self.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)
 
-    def add_vlan_to_interface_type(cls, vlan_id: int, interface_name: str, interface_type: InterfaceType) -> bool:
+    def add_vlan_to_interface_type(self, vlan_id: int, interface_name: str, interface_type: InterfaceType) -> bool:
         """
         Add a VLAN to a specific interface type in the database.
 
@@ -139,17 +146,17 @@ class VLANDatabase():
             bool: STATUS_OK if the VLAN was successfully added to the specified interface type, STATUS_NOK otherwise.
         """
         
-        cls.log.debug(f"add_vlan_to_interface_type({vlan_id} -> {interface_name}) -> Interface-Type: {interface_type}")
+        self.log.debug(f"add_vlan_to_interface_type({vlan_id} -> {interface_name}) -> Interface-Type: {interface_type}")
         
         try:
             
             if interface_type == InterfaceType.BRIDGE:
-                result = cls.rsdb.insert_vlan_interface(vlan_id, bridge_group_name=interface_name)
+                result = self.rsdb.insert_vlan_interface(vlan_id, bridge_group_name=interface_name)
             else:
-                result = cls.rsdb.insert_vlan_interface(vlan_id, interface_name=interface_name)
+                result = self.rsdb.insert_vlan_interface(vlan_id, interface_name=interface_name)
 
             return result.status
 
         except Exception as e:
-            cls.log.error("add_vlan_to_interface_type() -> Error adding VLAN to interface type: %s", e)
+            self.log.error("add_vlan_to_interface_type() -> Error adding VLAN to interface type: %s", e)
             return STATUS_NOK

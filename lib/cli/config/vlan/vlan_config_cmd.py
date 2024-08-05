@@ -14,13 +14,13 @@ class VlanConfigCmdError(Exception):
    
 class VlanConfigCmd(ConfigurePrompt):
 
-    def __init__(self):
+    def __init__(self, vlan_id:int, negate:bool = False):
         super().__init__(sub_cmd_name='vlan')
-
-        self.register_top_lvl_cmds(VlanConfig())
+        self.register_top_lvl_cmds(VlanConfig(vlan_id, negate))
         
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().VLAN_CONFIG_CMD)
+        self.log.debug(f'Starting Vlan config Command for VlanID: {vlan_id}')
     
     def intro(self) -> str:
         return f'Starting Vlan Config....'

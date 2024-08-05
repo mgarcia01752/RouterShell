@@ -13,7 +13,7 @@ class PromptResponse:
         print(message)
 
     @staticmethod
-    def invalid_cmd(response: str):
+    def print_invalid_cmd_response(response: str):
         """
         Prints a message indicating that an invalid command was received, 
         after processing the response to remove specific substrings.
@@ -25,7 +25,7 @@ class PromptResponse:
         PromptResponse._print_message(message)
 
     @staticmethod    
-    def success(response: str):
+    def print_success_response(response: str):
         """
         Prints a success message.
 
@@ -36,7 +36,7 @@ class PromptResponse:
         PromptResponse._print_message(message)
     
     @staticmethod    
-    def error(response: str):
+    def print_error_response(response: str):
         """
         Prints an error message.
 
@@ -47,7 +47,7 @@ class PromptResponse:
         PromptResponse._print_message(message)
     
     @staticmethod    
-    def missing_args(command: str, required_args: list):
+    def print_missing_args_response(command: str, required_args: list):
         """
         Prints an error message indicating that required arguments are missing 
         for a given command.

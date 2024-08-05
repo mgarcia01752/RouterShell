@@ -109,7 +109,7 @@ class Show(CmdPrompt):
             STATUS_OK
               
         else:
-            PromptResponse.invalid_cmd(args)
+            PromptResponse.print_invalid_cmd_response(args)
             return STATUS_NOK
 
         return STATUS_OK
@@ -134,7 +134,7 @@ class Show(CmdPrompt):
             return
 
         else:
-            PromptResponse.invalid_cmd(args)
+            PromptResponse.print_invalid_cmd_response(args)
             return STATUS_NOK
         
         return STATUS_OK
@@ -212,7 +212,7 @@ class Show(CmdPrompt):
             DbDumpShow().dump_db(include_schema=False, search_term='Bridge')
         
         else:    
-            PromptResponse.invalid_cmd(args)
+            PromptResponse.print_invalid_cmd_response(args)
                 
     @CmdPrompt.register_sub_commands()
     def show_dmesg(self, args: Optional[List[str]] = None) -> bool:

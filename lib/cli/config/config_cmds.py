@@ -16,7 +16,6 @@ from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.interface import Interface
 from lib.network_manager.network_operations.nat import Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
-from lib.network_manager.network_operations.vlan import Vlan
 from lib.network_services.common.network_ports import NetworkPorts
 from lib.system.system import System
 
@@ -68,10 +67,11 @@ class ConfigCmd(CmdPrompt):
         BridgeConfigCmd(bridge_name, negate).start()        
         return STATUS_OK
 
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Vlan().get_vlan_interfaces())         
-    def configcmd_vlan(self, args: List[str]=None, negate: bool=False) -> bool:
-        self.log.debug(f'configcmd_vlan -> {args}')
-        VlanConfigCmd()(bridge_name=args, negate=negate).start()        
+    @CmdPrompt.register_sub_commands()         
+    def configcmd_vlan(self, vlan_id: List[str], negate: bool=False) -> bool:
+        self.log.info(f'configcmd_vlan -> {vlan_id}')
+                
+        VlanConfigCmd(int(vlan_id[0]), negate).start()        
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['telnet-server', 'port', '23'])

@@ -7,7 +7,6 @@ from tabulate import tabulate
 from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK, ROUTER_SHELL_DB
 from lib.common.singleton import Singleton
 from lib.network_manager.common.interface import InterfaceType
-
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.network_manager.common.phy import State
 from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
@@ -720,19 +719,48 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute("SELECT ID FROM Vlans WHERE VlanID = ?", (vlan_id,))
             result = cursor.fetchone()
 
-            if result is not None:
-                self.log.debug(
-                    f"vlan_id_exists() -> VLAN with ID {vlan_id} FOUND")
-                return Result(status=True, row_id=result[0])
-            else:
-                self.log.debug(
-                    f"vlan_id_exists() -> VLAN with ID {vlan_id} NOT FOUND")
+            if result is None:
+                self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} NOT FOUND")
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"VLAN with ID {vlan_id} not found")
+            
+            else:                
+                self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} FOUND -> row-id: {result[0]}")
+                return Result(status=True, row_id=result[0])
 
         except sqlite3.Error as e:
             self.log.error("Error checking VLAN existence: %s", e)
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
+
+    def insert_vlan_id(self, vlan_id: int) -> Result:
+        """
+        Insert a VLAN ID into the 'Vlans' table if it does not already exist.
+
+        Args:
+            vlan_id (int): The VLAN ID to be inserted.
+
+        Returns:
+            Result: A Result object containing the status of the operation, 
+                    the row ID of the inserted record (if applicable), 
+                    and an optional reason for failure.
+        """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO Vlans (VlanID) VALUES (?)",
+                (vlan_id,)
+            )
+
+            self.connection.commit()
+            self.log.debug(f"VlanID: {vlan_id} inserted sucessfully")
+            return Result(status=STATUS_OK, row_id=cursor.lastrowid)
+
+        except sqlite3.Error as e:
+            self.log.error(f"VlanID: {vlan_id} inserted sucessfully, error: {e}")
+            return Result(status=STATUS_NOK, row_id=None, reason=str(e))
+    
+        
     def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
         Insert data into the 'Vlans' table.
