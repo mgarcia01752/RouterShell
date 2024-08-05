@@ -1,5 +1,6 @@
 import logging
 from typing import List, Optional
+from lib.common.constants import STATUS_OK
 from lib.network_manager.network_operations.vlan import Vlan
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 
@@ -77,4 +78,6 @@ class VlanMangement:
 
         return Vlan().update_vlan_description(self._vlan_id, description_str)
 
+    def destroy_vlan(self) -> bool:
+        return STATUS_OK
 

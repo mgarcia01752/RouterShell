@@ -172,7 +172,8 @@ class EthernetConfig(CmdPrompt):
                                      append_nested_sub_cmds=DHCPServer().get_dhcp_pool_name_list())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])        
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access', 'vlan'])        
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
@@ -283,20 +284,20 @@ class EthernetConfig(CmdPrompt):
                 print("Invalid arguments for 'dhcp-server' command.")
                 return STATUS_NOK
         
-        elif 'bridge' in args:
-            '''[no] [bridge group <bridge-name>]'''
-            self.log.info(f'ip bridge -> {args}')
-            if len(args) == 3 and 'group' in args:
-                bridge_group = args[2]
-                if self.eth_interface_obj.set_bridge_group(bridge_group):
-                    self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
-                    return STATUS_OK
-            else:
-                print('Missing bridge group name or invalid command')
-        
+        elif ['bridge', 'group'] == args[:2]:
+            bridge_group = args[2] if len(args) > 2 else STATUS_NOK
+            if self.eth_interface_obj.set_bridge_group(bridge_group):
+                self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
+                return STATUS_OK
+
+        elif ['switchport', 'access', 'vlan'] == args[:3]:
+            vlan_name = args[3] if len(args) > 3 else STATUS_NOK
+            if self.eth_interface_obj.set_interface_to_vlan(vlan_name):
+                self.log.debug(f"Failed to set switchport vlan-name {vlan_name} to interface: {self._interface_name}")
+                return STATUS_NOK
+            
         else:
-            self.log.debug(f'Invalid subcommand: {args}')
-            print('Invalid subcommand')
+            self.print_invalid_cmd_response(args)
             return STATUS_NOK
 
         return STATUS_OK

@@ -992,7 +992,7 @@ class RouterShellDB(metaclass=Singleton):
         Returns:
             Optional[Result]: A Result object representing the outcome of the database operation.
                 - If the operation is successful, the Result object will have 'status' set to True,
-                  'row_id' representing the unique identifier of the affected row, and 'result' containing the VLAN name.
+                  'row_id' representing the unique identifier of the affected row, and 'result' containing the dict: {'VlanName'}.
                 - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
                   information about the error, and 'row_id' and 'result' set to None.
         """
@@ -2661,12 +2661,12 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_type(self, if_name: str) -> InterfaceType:
+    def select_interface_type(self, interface_name: str) -> InterfaceType:
         """
         Retrieve the type of an interface by its name.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
 
         Returns:
             InterfaceType: The type of the interface if found, or None if not found.
@@ -2677,7 +2677,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT InterfaceType FROM Interfaces WHERE InterfaceName = ?", (if_name,))
+                "SELECT InterfaceType FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
             row = cursor.fetchone()
             if row:
                 interface_type = InterfaceType(row[0])

@@ -5,7 +5,7 @@ from lib.cli.common.exec_priv_mode import ExecMode
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.common.constants import STATUS_NOK
 from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from lib.network_manager.network_interfaces.vlan.vlan_interface import VlanMangement
+from lib.network_manager.network_interfaces.vlan.vlan_mangement import VlanMangement
 
 class VlanConfig(CmdPrompt):
 

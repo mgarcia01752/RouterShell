@@ -16,7 +16,7 @@ from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.cli.show.router_configuration import RouterConfiguration
 from lib.cli.show.vlan_show import VlanShow
-from lib.db.vlan_db import VLANDatabase
+from lib.db.vlan_db import VlanDatabase
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
 from lib.common.constants import *
@@ -272,7 +272,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         elif args.subcommand == 'vlan-db':
             self.log.debug("Show vlan database")
-            print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
+            print(f"{json.dumps(VlanDatabase.to_json(), indent=4)}")
             return
         
         elif args.subcommand == 'if-db':

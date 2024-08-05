@@ -5,7 +5,7 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 
-class VLANDatabase():
+class VlanDatabase():
     
     rsdb = DB()
     
@@ -133,18 +133,19 @@ class VLANDatabase():
         if vlan_interface_id:
             self.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)
 
-    def add_vlan_to_interface_type(self, vlan_id: int, interface_name: str, interface_type: InterfaceType) -> bool:
+    def add_interface_to_vlan(self, vlan_id: int, interface_name: str) -> bool:
         """
         Add a VLAN to a specific interface type in the database.
 
         Args:
             vlan_id (int): The unique identifier of the VLAN.
             interface_name (str): The name of the interface or bridge group.
-            interface_type (InterfaceType): The type of the interface (ethernet, bridge, etc.).
 
         Returns:
             bool: STATUS_OK if the VLAN was successfully added to the specified interface type, STATUS_NOK otherwise.
         """
+        
+        interface_type = self.rsdb.select_interface_type(interface_name)
         
         self.log.debug(f"add_vlan_to_interface_type({vlan_id} -> {interface_name}) -> Interface-Type: {interface_type}")
         

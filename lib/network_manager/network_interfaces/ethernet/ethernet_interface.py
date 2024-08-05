@@ -5,6 +5,7 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
+from lib.network_manager.network_interfaces.vlan.vlan_switchport_interface_abc import VlanSwitchport
 from lib.network_manager.network_operations.arp import Encapsulate
 from lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
 from lib.network_manager.network_operations.interface import Interface
@@ -14,7 +15,7 @@ class EthernetInterfaceError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class EthernetInterface(BridgeGroup, DHCPInterfaceClient):
+class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
 
     def __init__(self, ethernet_name: str):
         BridgeGroup.__init__(self, ethernet_name)
