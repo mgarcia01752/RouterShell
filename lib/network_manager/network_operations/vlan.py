@@ -58,7 +58,21 @@ class Vlan(RunCommand):
             bool: True if the VLAN ID exists in the database, False otherwise.
         """
         return VlanDatabase().vlan_exists(vlan_id)
-    
+
+    def does_vlan_name_exist(vlan_name: str) -> bool:
+        """
+        Checks if a VLAN with the given name exists.
+
+        Args:
+            vlan_name (str): The name of the VLAN to check.
+
+        Returns:
+            bool: True if the vlan name exists, False otherwise.
+        """
+        if VlanDatabase().get_vlan_id_from_vlan_name(vlan_name) == Vlan.INVALID_VLAN_ID:
+            return False
+        return True
+
     def update_vlan_name(self, vlan_id: int, vlan_name: str) -> bool:
         """
         Update the name of a VLAN in the database.
@@ -116,7 +130,7 @@ class Vlan(RunCommand):
         
         return STATUS_OK
 
-    def add_bridge_to_vlan(self, bridge_name: str, vlan_id: int) -> str:
+    def add_bridge_by_vlan_id(self, bridge_name: str, vlan_id: int) -> str:
         """
         Add a bridge to a VLAN.
 
@@ -135,13 +149,13 @@ class Vlan(RunCommand):
             self.log.debug(f"Bridge does not exist: {bridge_name}")
             return STATUS_NOK
         
-        if self.add_interface_to_vlan(bridge_name, vlan_id):
+        if self.add_interface_by_vlan_id(bridge_name, vlan_id):
             self.log.debug(f"Unable to add bridge: {bridge_name} to VLAN: {vlan_id}")
             return STATUS_NOK
         
         return STATUS_OK
 
-    def add_interface_to_vlan(self, interface_name: str, vlan_id: int) -> bool:
+    def add_interface_by_vlan_id(self, interface_name: str, vlan_id: int) -> bool:
         """
         Add an interface to a VLAN.
 
@@ -155,42 +169,29 @@ class Vlan(RunCommand):
             - 'STATUS_NOK' if the operation failed due to invalid parameters or other issues.
         """
         if Vlan.is_vlan_id_range_valid(vlan_id):
-            self.log.debug(f"add_interface_to_vlan({interface_name}) Error: Invalid VLAN ID: {vlan_id}")
+            self.log.debug(f"add_interface_by_vlan_id({interface_name}) Error: Invalid VLAN ID: {vlan_id}")
             return STATUS_NOK
 
         if not self.does_vlan_id_exist_db(vlan_id):
-            self.log.debug(f"add_interface_to_vlan({interface_name}) Error: VLAN ID {vlan_id} already exists.")
+            self.log.debug(f"add_interface_by_vlan_id({interface_name}) Error: VLAN ID {vlan_id} already exists.")
             return STATUS_NOK
         
-        db_result = VlanDatabase().get_vlan_name(vlan_id)
-
-        if db_result.status:
-            self.log.error(f"Unable to obtain vlan-name from vlan-id: {vlan_id}")
-            return STATUS_NOK
-
-        vlan_name = db_result.result.get('VlanName')
-
-        if vlan_name is None:
-            self.log.error(f"VLAN name not found for vlan-id: {vlan_id}")
-            return STATUS_NOK
-
-        if self.add_interface_to_vlan_os(vlan_id, vlan_name, interface_name):
-            self.log.error(f'Unable to add interface {interface_name} to vlan-name: {vlan_name} -> vlan-id: {vlan_id}')
+        if self.add_interface_to_vlan_os(vlan_id, interface_name):
+            self.log.error(f'Unable to add interface {interface_name} to vlan-id: {vlan_id} -> vlan-id: {vlan_id} to OS')
             return STATUS_NOK
         
         if VlanDatabase().add_interface_to_vlan(vlan_id, interface_name):
-            self.log.error(f'Unable to add interface {interface_name} to vlan-name: {vlan_name} -> vlan-id: {vlan_id}')
+            self.log.error(f'Unable to add interface {interface_name} to vlan-id: {vlan_id} -> vlan-id: {vlan_id} to DB')
             return STATUS_NOK
         
         return STATUS_OK
 
-    def add_interface_to_vlan_os(self, vlan_id: int, vlan_name: str, interface_name: str) -> bool:
+    def add_interface_to_vlan_os(self, vlan_id: int, interface_name: str) -> bool:
         """
         Add an interface to a VLAN on the operating system.
 
         Args:
             vlan_id (int): The VLAN ID to add the interface to.
-            vlan_name (str): The name of the VLAN.
             interface_name (str): The name of the interface to be added to the VLAN.
 
         Returns:
@@ -199,22 +200,19 @@ class Vlan(RunCommand):
         Logs:
             Logs a debug message if the interface could not be added to the VLAN via the OS.
         """
-        # Check types of inputs
         if not isinstance(vlan_id, int):
             self.log.error(f"Invalid type for vlan_id: {type(vlan_id)}. Expected int.")
             return STATUS_NOK
-        if not isinstance(vlan_name, str):
-            self.log.error(f"Invalid type for vlan_name: {type(vlan_name)}. Expected str.")
-            return STATUS_NOK
+        
         if not isinstance(interface_name, str):
             self.log.error(f"Invalid type for interface_name: {type(interface_name)}. Expected str.")
             return STATUS_NOK
         
-        # Run the command to add the interface to the VLAN
+        vlan_name = f'{interface_name}.{vlan_id}'
         result = self.run(['ip', 'link', 'add', 'link', interface_name, 'name', vlan_name, 'type', 'vlan', 'id', str(vlan_id)])
 
         if result.exit_code:
-            self.log.debug(f"Unable to add VLAN {vlan_name} to interface: {interface_name} via OS, error: {result.stderr}")
+            self.log.debug(f"Unable to add VlanID {vlan_id} to interface: {interface_name} via OS, error: {result.stderr}")
             return STATUS_NOK
 
         return STATUS_OK
@@ -224,22 +222,32 @@ class Vlan(RunCommand):
 
     def get_vlan_name_from_vlan_id(self, vlan_id: int) -> Optional[str]:
         """
-        Retrieve the VLAN name corresponding to a given VLAN ID.
+        Retrieves the VLAN name corresponding to a given VLAN ID.
+        
+        Args:
+            vlan_id (int): The ID of the VLAN.
+        
+        Returns:
+            Optional[str]: The name of the VLAN if found, Vlan.INVALID_VLAN_ID otherwise.
+        """
+        result: Result = VlanDatabase().get_vlan_name_by_vlan_id(vlan_id)
+        
+        if result.status:
+            self.log.error(f"Unable to retrieve VLAN name from VLAN ID: {vlan_id}")
+            return Vlan.INVALID_VLAN_ID
+        
+        return result.result.get('VlanName')
+    
+    def get_vlan_id_from_vlan_name(self, vlan_name:str) -> int:
+        """
+        Retrieves the VLAN ID associated with a given VLAN name.
 
         Args:
-            vlan_id (int): The VLAN ID for which to retrieve the VLAN name.
+            vlan_name (str): The name of the VLAN.
 
         Returns:
-            Optional[str]: The name of the VLAN if found, otherwise None.
-
-        Logs:
-            Logs an error message if the VLAN name could not be retrieved.
-        """
-        result: Result = VlanDatabase().get_vlan_name(vlan_id)
-        
-        if not result.status:
-            return result.result.get('VlanName')
-
-        self.log.error(f'Unable to retrieve VLAN name from VLAN ID: {vlan_id}')
-        return None
+            int: The VLAN ID if found, otherwise returns Vlan.INVALID_VLAN_ID.
+        """     
+        return VlanDatabase().get_vlan_id_from_vlan_name(vlan_name)
+    
             

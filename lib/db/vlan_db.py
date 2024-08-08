@@ -4,6 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
+from lib.network_manager.network_operations.vlan import Vlan
 
 class VlanDatabase():
     
@@ -89,7 +90,7 @@ class VlanDatabase():
         """
         return self.rsdb.vlan_id_exists(vlan_id).status
 
-    def get_vlan_name(self, vlan_id: int) -> Result:
+    def get_vlan_name_by_vlan_id(self, vlan_id: int) -> Result:
         """
         Get the name of a VLAN by its ID.
 
@@ -161,3 +162,22 @@ class VlanDatabase():
         except Exception as e:
             self.log.error("add_vlan_to_interface_type() -> Error adding VLAN to interface type: %s", e)
             return STATUS_NOK
+
+    def get_vlan_id_from_vlan_name(self, vlan_name: str) -> int:
+        """
+        Retrieves the VLAN ID associated with a given VLAN name.
+
+        Args:
+            vlan_name (str): The name of the VLAN.
+
+        Returns:
+            int: The VLAN ID if found, otherwise returns Vlan.INVALID_VLAN_ID.
+
+        """
+        result = self.rsdb.select_vlan_id_by_vlan_name(vlan_name)
+
+        if result.status == STATUS_OK and result.result:
+            return result.result.get('VlanID', Vlan.INVALID_VLAN_ID)
+        else:
+            self.log.debug(f"Unable to retrieve VLAN ID for VLAN name: {vlan_name}")
+            return Vlan.INVALID_VLAN_ID

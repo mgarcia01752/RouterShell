@@ -999,16 +999,76 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
+                "SELECT ID, VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
             row = cursor.fetchone()
 
             if row:
-                return Result(status=STATUS_OK, row_id=vlan_id, result={'VlanName': row[0]})
+                return Result(status=STATUS_OK, row_id=row[0], result={'VlanName': row[1]})
             else:
                 return Result(status=STATUS_NOK, row_id=None, reason=f"No VLAN found with ID: {vlan_id}")
 
         except sqlite3.Error as e:
             error_message = f"Error retrieving VLAN name for ID {vlan_id}: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
+    def select_vlan_name_by_vlan_id(self, vlan_id: int) -> Result:
+        """
+        Retrieve the VLAN name based on the VLAN ID from the 'Vlans' table.
+
+        Args:
+            vlan_id (int): The VLAN ID to search for.
+
+        Returns:
+            Optional[Result]: A Result object representing the outcome of the database operation.
+                - If the operation is successful, the Result object will have 'status' set to True,
+                  'row_id' representing the unique identifier of the affected row, and 'result' containing the dict: {'VlanName'}.
+                - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
+                  information about the error, and 'row_id' and 'result' set to None.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "SELECT ID, VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
+            row = cursor.fetchone()
+
+            if row:
+                return Result(status=STATUS_OK, row_id=row[0], result={'VlanName': row[1]})
+            else:
+                return Result(status=STATUS_NOK, row_id=None, reason=f"No VLAN found with ID: {vlan_id}")
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving VLAN name for ID {vlan_id}: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
+    def select_vlan_id_by_vlan_name(self, vlan_name: str) -> Result:
+        """
+        Retrieves the VLAN ID associated with a given VLAN name from the database.
+
+        Args:
+            vlan_name (str): The name of the VLAN.
+
+        Returns:
+            Result: An instance of the Result class.
+                - status (bool): STATUS_OK if the VLAN ID is found, STATUS_NOK otherwise.
+                - row_id (Optional[int]): The row ID of the VLAN entry if found, None otherwise.
+                - result (Optional[dict]): A dictionary containing the VLAN ID if found, None otherwise.
+                - reason (Optional[str]): A reason for the failure if STATUS_NOK.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "SELECT ID, VlanID FROM Vlans WHERE VlanName = ?", (vlan_name,))
+            row = cursor.fetchone()
+
+            if row:
+                return Result(status=STATUS_OK, row_id=row[0], result={'VlanID': row[1]})
+            else:
+                return Result(status=STATUS_NOK, row_id=None, reason=f"No VlanID found with VlanName: {vlan_name}")
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving VlanID for VlanName {vlan_name}: {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
 

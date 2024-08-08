@@ -173,7 +173,7 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access', 'vlan'])        
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access-vlan'])        
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
@@ -290,10 +290,10 @@ class EthernetConfig(CmdPrompt):
                 self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
                 return STATUS_OK
 
-        elif ['switchport', 'access', 'vlan'] == args[:3]:
-            vlan_name = args[3] if len(args) > 3 else STATUS_NOK
-            if self.eth_interface_obj.set_interface_to_vlan(vlan_name):
-                self.log.debug(f"Failed to set switchport vlan-name {vlan_name} to interface: {self._interface_name}")
+        elif ['switchport', 'access-vlan'] == args[:3]:
+            vlan_id = args[2] if len(args) > 2 else STATUS_NOK
+            if self.eth_interface_obj.set_interface_to_vlan(vlan_id):
+                self.log.debug(f"Failed to set switchport vlan-id {vlan_id} to interface: {self._interface_name}")
                 return STATUS_NOK
             
         else:
@@ -394,16 +394,16 @@ class EthernetConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
     def ethernetconfig_switchport(self, args=None, negate=False) -> bool:
+        
         if 'access-vlan' in args:
-            
             vlan_id = args[1]
-            self.log.debug(f"Configuring switchport as access with VLAN ID: {vlan_id}")
+            self.log.info(f"Configuring switchport as access with vlan-id: {vlan_id}")
             
-            if self.update_interface_vlan(self._interface_name, vlan_id):
-                self.log.error(f"Unable to add vlan id: {vlan_id}")
+            if self.eth_interface_obj.set_interface_to_vlan(vlan_id):
+                self.print_error_response(f'invalid vlan {vlan_id}')
             
         else:
-            self.log.error("Unknown subcommand")
+            self.print_invalid_cmd_response(args)
             
         return STATUS_OK        
 
