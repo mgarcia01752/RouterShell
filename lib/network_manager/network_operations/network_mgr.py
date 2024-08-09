@@ -2,7 +2,6 @@ import ipaddress
 import json
 import logging
 import subprocess
-from enum import Enum, auto
 from typing import List
 from tabulate import tabulate
 

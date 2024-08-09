@@ -3,9 +3,9 @@ from typing import List
 
 from lib.cli.common.command_class_interface import CmdPrompt
 from lib.cli.common.exec_priv_mode import ExecMode
+from lib.common.constants import STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from lib.common.constants import *
 from lib.network_manager.network_operations.arp import Arp
 from lib.network_manager.network_operations.interface import Interface
 from lib.system.system_start_up import SystemStartUp

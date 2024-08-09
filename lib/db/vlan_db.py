@@ -4,7 +4,7 @@ from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
-from lib.network_manager.network_operations.vlan import Vlan
+
 
 class VlanDatabase():
     
@@ -174,6 +174,7 @@ class VlanDatabase():
             int: The VLAN ID if found, otherwise returns Vlan.INVALID_VLAN_ID.
 
         """
+        from lib.network_manager.network_operations.vlan import Vlan
         result = self.rsdb.select_vlan_id_by_vlan_name(vlan_name)
 
         if result.status == STATUS_OK and result.result:

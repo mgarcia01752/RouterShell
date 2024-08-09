@@ -8,11 +8,9 @@ from lib.network_manager.common.interface import InterfaceType
 from lib.network_manager.common.phy import Duplex, Speed, State
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.common import STATUS_NOK, STATUS_OK
-from lib.network_manager.network_operations.bridge import Bridge
 from lib.network_manager.network_operations.arp import Arp, Encapsulate
 from lib.network_manager.network_operations.nat import NATDirection, Nat
 from lib.network_manager.network_operations.network_mgr import NetworkManager
-from lib.network_manager.network_operations.vlan import Vlan
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -489,45 +487,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         self.log.debug(f'Destroyed {interface_name} dummy')
         return STATUS_OK
-    
-    def update_interface_vlan(self, interface_name:str, vlan_id:int=1000) -> bool:
-        """
-        Update VLAN to a network interface or bridge via os
-        Update VLAN to a network interface or bridge via db
-
-        Args:
-            interface_name (str): The name of the network interface.
-            vlan_id (int, optional): The VLAN ID to assign. Defaults to 1000.
-
-        Returns:
-            STATUS_OK if the VLAN assignment was successful, STATUS_NOK is failed
-        """
-        self.log.debug(f"set_vlan() -> interface_name: {interface_name} vlan_id: {vlan_id}")
-
-        brName = Bridge().get_assigned_bridge_from_interface(interface_name)
-
-        if brName:
-            self.log.debug(f"Assigned VLAN: {vlan_id} to Bridge: {brName}")
-            return Vlan().add_interface_by_vlan_id(brName, vlan_id)
         
-        else:
-            self.log.debug(f"Assigned VLAN: {vlan_id} to interface: {interface_name}")
-            return Vlan().add_interface_by_vlan_id(interface_name, vlan_id)
-    
-    def del_interface_vlan(self, vlan_id:int) -> bool:
-        """
-        Delete a VLAN to a network interface or bridge.
-
-        Args:
-            vlan_id (int): The VLAN ID to assign.
-
-        Returns:
-            STATUS_OK if the VLAN assignment was successful, STATUS_NOK is failed
-        """
-        self.log.debug(f"del_vlan() -> vlan_id: {vlan_id}")
-
-        return Vlan().delete_interface_from_vlan(vlan_id)
-
     def rename_interface(self, initial_interface_name: str, 
                         alias_interface_name: str, 
                         suppress_error: bool=True) -> bool:
