@@ -95,7 +95,7 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])
-    @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access-vlan'])        
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access-vlan-id'])        
     def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
@@ -212,7 +212,7 @@ class EthernetConfig(CmdPrompt):
                 self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
                 return STATUS_OK
 
-        elif ['switchport', 'access-vlan'] == args[:3]:
+        elif ['switchport', 'access-vlan-id'] == args[:3]:
             vlan_id = args[2] if len(args) > 2 else STATUS_NOK
             if self.eth_interface_obj.set_interface_to_vlan(vlan_id):
                 self.log.debug(f"Failed to set switchport vlan-id {vlan_id} to interface: {self._interface_name}")
@@ -234,8 +234,7 @@ class EthernetConfig(CmdPrompt):
             
             #if self.set_nat_domain_status(self.ifName, nat_pool_name, nat_direction):
             #    self.log.error(f"Unable to add NAT: {nat_pool_name} direction: {nat_direction.value} to interface: {self.ifName}")
-
-            
+           
         else:
             self.print_invalid_cmd_response(args)
             return STATUS_NOK
