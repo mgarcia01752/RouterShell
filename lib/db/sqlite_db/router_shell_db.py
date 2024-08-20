@@ -903,7 +903,7 @@ class RouterShellDB(metaclass=Singleton):
             inserted_row_id = cursor.lastrowid
 
             success_msg = f"Interface '{interface_name}' linked to VLAN {vlan_id} successfully."
-            self.log.debug(success_msg)
+            self.log.info(success_msg)
             return Result(status=STATUS_OK, row_id=inserted_row_id, reason=success_msg)
 
         except sqlite3.IntegrityError as e:

@@ -197,7 +197,7 @@ class Show(CmdPrompt):
         else:
             NatShow().getNatTable()
 
-    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['all', 'interface', 'nat', 'bridge'])     
+    @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['all', 'interface', 'nat', 'bridge', 'vlan'])     
     def show_db(self, args: List) -> None:
         if 'all' in args:
             DbDumpShow().dump_db()
@@ -210,6 +210,9 @@ class Show(CmdPrompt):
         
         elif 'bridge' in args:
             DbDumpShow().dump_db(include_schema=False, search_term='Bridge')
+
+        elif 'vlan' in args:
+            DbDumpShow().dump_db(include_schema=False, search_term='Vlan')
         
         else:    
             PromptResponse.print_invalid_cmd_response(args)
