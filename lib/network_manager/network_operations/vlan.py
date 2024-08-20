@@ -7,6 +7,7 @@ from lib.db.vlan_db import VlanDatabase
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from lib.network_manager.common.phy import State
 from lib.network_manager.common.run_commands import RunCommand
 from lib.network_manager.network_operations.bridge import Bridge
 
@@ -249,5 +250,46 @@ class Vlan(RunCommand):
             int: The VLAN ID if found, otherwise returns Vlan.INVALID_VLAN_ID.
         """     
         return VlanDatabase().get_vlan_id_from_vlan_name(vlan_name)
+    
+    def set_vlan_state(self, vlan_id: int, state: State) -> bool:
+        """
+        Sets the state of all interfaces associated with a specific VLAN.
+        """
+        try:
+            # Convert state to lowercase string ('up' or 'down')
+            status = state.value.lower()
+
+            # Retrieve the list of all network interfaces in JSON format
+            result = self.run(['ip', '-json', 'link', 'show'])
+
+            if result.exit_code != 0:
+                self.log.error(f"Failed to retrieve interface information: {result.stderr}")
+                return STATUS_NOK
+
+            try:
+                interfaces_data = json.loads(result.stdout)
+            except json.JSONDecodeError as e:
+                self.log.error(f"Error decoding JSON output: {str(e)}")
+                return STATUS_NOK
+
+            success = STATUS_OK
+
+            # Loop through the interfaces and set the state for the ones matching the VLAN ID
+            for interface in interfaces_data:
+                if interface.get('ifname', '').endswith(f'.{vlan_id}'):
+                    # Set the state (up or down) of the VLAN interface
+                    set_result = self.run(['ip', 'link', 'set', 'dev', interface['ifname'], status])
+                    if set_result.exit_code != 0:
+                        self.log.error(f"Failed to set interface {interface['ifname']} to {status}: {set_result.stderr}")
+                        success = STATUS_NOK
+
+            return success
+
+        except Exception as e:
+            self.log.error(f"Unexpected error setting VLAN state: {str(e)}")
+            return STATUS_NOK
+
+        
+            
     
             

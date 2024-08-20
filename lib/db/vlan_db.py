@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
@@ -121,13 +122,6 @@ class VlanDatabase():
         """        
         return self.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name)
 
-    def add_ports_to_vlan(self, vlan_id: int, ports_to_add: list):
-        # Add ports to a VLAN
-        vlan_interface_id = self.get_vlan_interface_id(vlan_id)
-        if vlan_interface_id:
-            for port in ports_to_add:
-                self.insert_vlan_interface_mapping(vlan_interface_id, port)
-
     def delete_interface_from_vlan(self, vlan_id: int, port_to_delete: int):
         # Delete an interface (port) from a VLAN
         vlan_interface_id = self.get_vlan_interface_id(vlan_id)
@@ -182,3 +176,9 @@ class VlanDatabase():
         else:
             self.log.debug(f"Unable to retrieve VLAN ID for VLAN name: {vlan_name}")
             return Vlan.INVALID_VLAN_ID
+
+    def get_interfaces_from_vlan_id(self, vlan_id: int) -> List[str]:
+        """
+        Retrieves a list of interfaces associated with a given VLAN ID.
+        """
+        return []

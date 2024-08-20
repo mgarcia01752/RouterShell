@@ -731,7 +731,6 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error checking VLAN existence: %s", e)
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-
     def insert_vlan_id(self, vlan_id: int) -> Result:
         """
         Insert a VLAN ID into the 'Vlans' table if it does not already exist.
@@ -759,7 +758,6 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             self.log.error(f"VlanID: {vlan_id} inserted sucessfully, error: {e}")
             return Result(status=STATUS_NOK, row_id=None, reason=str(e))
-    
         
     def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
@@ -881,7 +879,7 @@ class RouterShellDB(metaclass=Singleton):
 
             interface_id = interface_id_row[0]
             bridge_fk = RouterShellDB.FK_NOT_FOUND
-
+            
             # Check if the VLAN ID already exists in the VlanInterfaces table
             cursor.execute(
                 "SELECT ID FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?", 
@@ -893,6 +891,8 @@ class RouterShellDB(metaclass=Singleton):
                 err_msg = f"Interface '{interface_name}' is already linked to VLAN {vlan_id}"
                 self.log.info(err_msg)
                 return Result(status=STATUS_OK, row_id=vlan_id, reason=err_msg)
+
+            self.log.info(f'insert_vlan_interface() -> VlanID: {vlan_id} -> InterfaceID: {interface_id} -> Bridge-FK: {bridge_fk}')
 
             # Insert the new VLAN-Interface association
             cursor.execute(
@@ -968,7 +968,6 @@ class RouterShellDB(metaclass=Singleton):
         except Exception as e:
             self.log.error("Unexpected error deleting VLAN interface: %s", e)
             return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Unexpected error occurred.")
-
 
     def show_vlans(self):
         try:
@@ -1114,6 +1113,60 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error retrieving VlanID for VlanName {vlan_name}: {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
+    def select_interfaces_by_vlan_id(self, vlan_id: int) -> List[Result]:
+        """
+        Retrieves a list of interfaces associated with a given VLAN ID from the database.
+        The list contains Result objects with interface information.
+        The interface information includes the interface name, VLAN ID
+        If the VLAN ID is not found, an empty list is returned.
+        If an error occurs, an empty list is returned.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Query to retrieve the interfaces linked to the specified VLAN ID
+            cursor.execute(
+                """
+                SELECT I.InterfaceName, VI.VlanID,
+                FROM VlanInterfaces VI
+                JOIN Interfaces I ON VI.Interfaces_FK = I.ID
+                JOIN Vlans V ON VI.VlanID = V.ID
+                WHERE VI.VlanID = ?
+                """, 
+                (vlan_id,)
+            )
+            
+            rows = cursor.fetchall()
+            
+            if not rows:
+                self.log.info(f"No interfaces found for VLAN ID {vlan_id}.")
+                return []
+
+            # Create a list of Result objects to return
+            result_list = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=row[1],
+                    reason=f"Interface '{row[0]}' linked to VLAN '{row[2]}'",
+                    result={
+                        "InterfaceName": row[0],
+                        "VlanID": row[1],
+                    }
+                )
+                for row in rows
+            ]
+
+            return result_list
+
+        except sqlite3.Error as e:
+            self.log.error(f"Database error retrieving interfaces by VLAN ID: {str(e)}")
+            return []
+
+        except Exception as e:
+            self.log.error(f"Unexpected error retrieving interfaces by VLAN ID: {str(e)}")
+            return []
+
 
     '''
                         NAT DATABASE
