@@ -1,18 +1,16 @@
-def process_args(args):
-    if 'option1' in args:
-        # Handle option1
-        print("Handling option1")
-    elif 'option2' in args:
-        # Handle option2
-        print("Handling option2")
-    elif args[:3] == ['switchport', 'access', 'vlan']:
-        # Handle the switchport access vlan case
-        vlan_id = args[3] if len(args) > 3 else None
-        print(f"Handling switchport access vlan with VLAN ID {vlan_id}")
-    else:
-        # Handle other cases
-        print("Handling other cases")
 
-# Example usage
-args = ['switchport', 'access', 'vlan', '1000']
-process_args(args)
+import logging
+from lib.db.vlan_db import VlanDatabase
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('/tmp/log/routershell.log')
+    ]
+)
+
+if VlanDatabase().add_interface_to_vlan(1, 'enx0'):
+    print(f'Did not add Interface to Vlan')
+

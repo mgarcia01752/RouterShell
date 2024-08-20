@@ -151,9 +151,9 @@ class VlanDatabase():
         self.log.debug(f"add_vlan_to_interface_type({vlan_id} -> {interface_name}) -> Interface-Type: {interface_type}")
         
         try:
-            
             if interface_type == InterfaceType.BRIDGE:
                 result = self.rsdb.insert_vlan_interface(vlan_id, bridge_group_name=interface_name)
+            
             else:
                 result = self.rsdb.insert_vlan_interface(vlan_id, interface_name=interface_name)
 

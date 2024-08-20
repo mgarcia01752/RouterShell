@@ -4,6 +4,7 @@ from typing import List, Optional
 from lib.cli.common.exec_priv_mode import ExecMode
 
 from lib.cli.common.command_class_interface import CmdPrompt
+from lib.common.number_check import NumberChecker
 from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.string_formats import StringFormats
 from lib.network_manager.common.interface import InterfaceType
@@ -212,10 +213,18 @@ class EthernetConfig(CmdPrompt):
                 self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
                 return STATUS_OK
 
-        elif ['switchport', 'access-vlan-id'] == args[:3]:
-            vlan_id = args[2] if len(args) > 2 else STATUS_NOK
-            if self.eth_interface_obj.set_interface_to_vlan(vlan_id):
-                self.log.debug(f"Failed to set switchport vlan-id {vlan_id} to interface: {self._interface_name}")
+        elif ['switchport', 'access-vlan-id'] == args[:2]:
+            
+            vlan_id = args[2]
+            
+            if not NumberChecker.is_string_int(vlan_id):
+                self.print_error_response(f'vlan-id {vlan_id} is invalid')
+                return STATUS_NOK
+                
+            self.log.info(f'ip -> {args} -> len: {len(args)} -> vlan-id: {vlan_id}')
+            
+            if self.eth_interface_obj.set_interface_to_vlan(int(vlan_id)):
+                self.log.error(f"Failed to set switchport vlan-id {vlan_id} to interface: {self._interface_name}")
                 return STATUS_NOK
 
         elif "nat" in args[0]:

@@ -168,7 +168,7 @@ class Vlan(RunCommand):
             - 'STATUS_OK' if the interface was successfully added to the VLAN.
             - 'STATUS_NOK' if the operation failed due to invalid parameters or other issues.
         """
-        if Vlan.is_vlan_id_range_valid(vlan_id):
+        if not Vlan.is_vlan_id_range_valid(vlan_id):
             self.log.debug(f"add_interface_by_vlan_id({interface_name}) Error: Invalid VLAN ID: {vlan_id}")
             return STATUS_NOK
 

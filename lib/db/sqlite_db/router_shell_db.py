@@ -864,68 +864,111 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error updating VLAN description: %s", e)
             return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
-    def insert_vlan_interface(self, vlan_id: int, interface_name: str = None, bridge_group_name: str = None) -> Result:
+    def insert_vlan_interface(self, vlan_id: int, interface_name: str) -> Result:
         """
-        Insert a VLAN interface into the database.
-
-        Args:
-            vlan_id (int): VLAN-ID.
-            interface_name (str, optional): The name of the interface. Default is None.
-            bridge_group_name (str, optional): The name of the bridge group. Default is None.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-            - If the operation is successful, the Result object will have 'status' set to STATUS_OK
-              and 'row_id' set to the unique identifier of the inserted VLAN interface.
-            - If there is an error during the database operation, the Result object will have 'status' set to STATUS_NOK,
-              'row_id' set to None, and 'reason' providing additional information.
-
+        Inserts a VLAN interface into the database.
         """
         try:
             cursor = self.connection.cursor()
 
-            # Determine foreign key column and constraint name
-            foreign_key_column, constraint_name = (
-                ('Interfaces_FK', 'FK_VLANs_Interfaces') if interface_name is not None
-                else ('Bridge_FK', 'FK_VLANs_Bridges') if bridge_group_name is not None
-                else (None, None)
-            )
+            # Retrieve the Interface ID using the InterfaceName
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
+            interface_id_row = cursor.fetchone()
 
-            # Check if either interface_name or bridge_group_name is provided
-            if foreign_key_column is None:
-                return Result(status=STATUS_NOK, row_id=None, reason="Either interface_name or bridge_group_name must be provided.")
+            if interface_id_row is None:
+                err_msg = f"Interface '{interface_name}' not found"
+                return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason=err_msg)
 
-            # Look up the ID of the interface or bridge group based on the name
-            cursor.execute(f"SELECT ID FROM {foreign_key_column.replace('_FK', 's')} WHERE {foreign_key_column.replace('_FK', 'Name')} = ?",
-                           (interface_name or bridge_group_name,))
-            foreign_key_id = cursor.fetchone()
+            interface_id = interface_id_row[0]
+            bridge_fk = RouterShellDB.FK_NOT_FOUND
 
-            # Check if the interface or bridge group exists
-            if not foreign_key_id:
-                return Result(status=STATUS_NOK, row_id=None, reason=f"No {foreign_key_column.replace('_FK', '')} found with name: {interface_name or bridge_group_name}")
-
-            # Insert into VlanInterfaces table
+            # Check if the VLAN ID already exists in the VlanInterfaces table
             cursor.execute(
-                f"INSERT INTO VlanInterfaces ({foreign_key_column}) VALUES (?)",
-                (foreign_key_id[0],)
+                "SELECT ID FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?", 
+                (vlan_id, interface_id)
             )
+            existing_row = cursor.fetchone()
 
-            # Get the row ID of the inserted row in VlanInterfaces
-            row_id = cursor.lastrowid
+            if existing_row:
+                err_msg = f"Interface '{interface_name}' is already linked to VLAN {vlan_id}"
+                self.log.info(err_msg)
+                return Result(status=STATUS_OK, row_id=vlan_id, reason=err_msg)
 
-            # Update Vlans.VlanInterfaces_FK with VlanInterfaces.ID
+            # Insert the new VLAN-Interface association
             cursor.execute(
-                "UPDATE Vlans SET VlanInterfaces_FK = ? WHERE VlanID = ?", (row_id, vlan_id))
-
+                "INSERT INTO VlanInterfaces (VlanID, Interfaces_FK, Bridge_FK) VALUES (?, ?, ?)",
+                (vlan_id, interface_id, bridge_fk)
+            )
             self.connection.commit()
-            self.log.debug(
-                "VLAN interface inserted successfully and Vlans.VlanInterfaces_FK updated.")
+            inserted_row_id = cursor.lastrowid
 
-            return Result(status=STATUS_OK, row_id=row_id)
+            success_msg = f"Interface '{interface_name}' linked to VLAN {vlan_id} successfully."
+            self.log.debug(success_msg)
+            return Result(status=STATUS_OK, row_id=inserted_row_id, reason=success_msg)
+
+        except sqlite3.IntegrityError as e:
+            self.log.error("Integrity error linking VLAN to interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Integrity error occurred.")
 
         except sqlite3.Error as e:
-            self.log.error("Error inserting VLAN interface: %s", e)
-            return Result(status=STATUS_NOK, row_id=None, reason=str(e))
+            self.log.error("Database error linking VLAN to interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Database error occurred.")
+
+        except Exception as e:
+            self.log.error("Unexpected error linking VLAN to interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Unexpected error occurred.")
+
+    def delete_vlan_interface(self, vlan_id: int, interface_name: str) -> Result:
+        """
+        Deletes an interface from a VLAN in the database.
+        
+        :param vlan_id: The ID of the VLAN to dissociate from the interface.
+        :param interface_name: The name of the interface to remove from the VLAN.
+        :return: Result object indicating the status, row ID, and reason for the operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Retrieve the Interface ID using the InterfaceName
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
+            interface_id_row = cursor.fetchone()
+
+            if interface_id_row is None:
+                err_msg = f"Interface '{interface_name}' not found"
+                return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason=err_msg)
+
+            interface_id = interface_id_row[0]
+
+            # Check if the interface is linked to the VLAN in the VlanInterfaces table
+            cursor.execute(
+                "SELECT ID FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?", 
+                (vlan_id, interface_id)
+            )
+            existing_row = cursor.fetchone()
+
+            if not existing_row:
+                err_msg = f"Interface '{interface_name}' is not linked to VLAN {vlan_id}"
+                return Result(status=STATUS_OK, row_id=RouterShellDB.FK_NOT_FOUND, reason=err_msg)
+
+            # Delete the VLAN-Interface association
+            cursor.execute(
+                "DELETE FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?",
+                (vlan_id, interface_id)
+            )
+            self.connection.commit()
+
+            success_msg = f"Interface '{interface_name}' removed from VLAN {vlan_id} successfully."
+            self.log.debug(success_msg)
+            return Result(status=STATUS_OK, row_id=existing_row[0], reason=success_msg)
+
+        except sqlite3.Error as e:
+            self.log.error("Database error deleting VLAN interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Database error occurred.")
+
+        except Exception as e:
+            self.log.error("Unexpected error deleting VLAN interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Unexpected error occurred.")
+
 
     def show_vlans(self):
         try:

@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS Bridges (
     BridgeName VARCHAR(50) UNIQUE,
     Protocol VARCHAR(15),               -- Bridge Protocol
     StpStatus BOOLEAN,                  -- STB STATUS ENABLE = 1 , DISABLE = 0
-    Interfaces_FK INT,                      -- Interface used for managment of bridge (inet-address) 
+    Interfaces_FK INT,                  -- Interface used for managment of bridge (inet-address) 
     CONSTRAINT FK_Bridges_Interfaces FOREIGN KEY (Interfaces_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE
 );
 
@@ -112,19 +112,19 @@ DROP TABLE IF EXISTS Vlans;
 CREATE TABLE IF NOT EXISTS Vlans (
     ID INTEGER PRIMARY KEY NOT NULL,
     VlanID INT UNIQUE,
-    VlanInterfaces_FK INT DEFAULT -1,
     VlanName VARCHAR(20) UNIQUE,
     VlanDescription VARCHAR(50),
-    CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanInterfaces_FK) REFERENCES VlanInterfaces(ID) ON DELETE CASCADE
+    CONSTRAINT FK_Vlans_VlanInterfaces FOREIGN KEY (VlanID) REFERENCES VlanInterfaces(VlanID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS VlanInterfaces;
 CREATE TABLE IF NOT EXISTS VlanInterfaces (
     ID INTEGER PRIMARY KEY NOT NULL,
-    Interfaces_FK INT DEFAULT 0,
-    Bridge_FK INT DEFAULT 0,
-    CONSTRAINT FK_VLANs_Interfaces FOREIGN KEY (Interfaces_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE,
-    CONSTRAINT FK_VLANs_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID) ON DELETE CASCADE
+    VlanID INT , 
+    Interfaces_FK INT UNIQUE,
+    Bridge_FK INT UNIQUE,
+    CONSTRAINT FK_VlansInterfaces_Interfaces FOREIGN KEY (Interfaces_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE,
+    CONSTRAINT FK_VlansInterfaces_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS Nats;
