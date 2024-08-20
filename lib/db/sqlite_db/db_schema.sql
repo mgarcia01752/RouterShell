@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS VlanInterfaces (
     ID INTEGER PRIMARY KEY NOT NULL,
     VlanID INT , 
     Interfaces_FK INT UNIQUE,
-    Bridge_FK INT UNIQUE,
+    Bridge_FK INT,
     CONSTRAINT FK_VlansInterfaces_Interfaces FOREIGN KEY (Interfaces_FK) REFERENCES Interfaces(ID) ON DELETE CASCADE,
     CONSTRAINT FK_VlansInterfaces_Bridges FOREIGN KEY (Bridge_FK) REFERENCES Bridges(ID) ON DELETE CASCADE
 );
