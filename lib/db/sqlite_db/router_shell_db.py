@@ -4954,7 +4954,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute('''
                 SELECT DISTINCT
-                    'ip dhcp-server pool ' || DHCPServer.DhcpPoolname as DhcpServerPool
+                    'ip dhcp-server pool-name ' || DHCPServer.DhcpPoolname as DhcpServerPool
 
                 FROM Interfaces
                 
