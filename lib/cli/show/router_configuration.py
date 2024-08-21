@@ -309,6 +309,10 @@ class RouterConfiguration:
             for _config_line in if_ip_static_arp_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
             
+            status, if_ip_sp_acc_vlan_id_config = self.rcdb.get_interface_switchport_access_vlan(interface_name)
+            for _config_line in if_ip_sp_acc_vlan_id_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
+                     
             status, if_ds_pol_config = self.rcdb.get_interface_dhcp_server_polices(interface_name)
             for _config_line in if_ds_pol_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))

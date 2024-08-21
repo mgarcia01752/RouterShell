@@ -148,6 +148,19 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, dhcp_server_policies
 
+    def get_interface_switchport_access_vlan(cls, interface_name: str) -> Tuple[bool, List[Dict[str, str]]]:
+        
+        if_switch_port_access_vlan_id_result = cls.rsdb.select_interface_switchport_access_vlan_id(interface_name)
+
+        if any(result.status for result in if_switch_port_access_vlan_id_result):
+            error_messages = [result.reason for result in if_switch_port_access_vlan_id_result if result.status]
+            cls.log.debug(f"Error retrieving switchport access-vlan-id, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        if_switch_port_access_vlan_id = [result.result for result in if_switch_port_access_vlan_id_result]
+        
+        return STATUS_OK, if_switch_port_access_vlan_id
+
     def get_interface_ip_static_arp_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
         """
         Retrieve IP static ARP configuration for a specific interface.

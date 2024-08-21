@@ -4978,6 +4978,46 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
+    def select_interface_switchport_access_vlan_id(self, interface_name: str) -> List[Result]:
+        """
+        Retrieve DHCP server pool information associated with a specific interface.
+
+        Parameters:
+            interface_name (str): The name of the interface for which to retrieve DHCP server pool information.
+
+        Returns:
+            List[Result]: A list of Result objects representing the outcomes of the operation.
+                Each Result object contains either the DHCP server pool information or an error message.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'ip switchport access-vlan-id ' || VlanInterfaces.VlanID as SwitchportAccessVlanID
+
+                FROM Interfaces
+                
+                LEFT JOIN VlanInterfaces ON Interfaces.ID = VlanInterfaces.Interfaces_FK
+                
+                WHERE Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for result in sql_results:
+                results.append(Result(status=STATUS_OK, 
+                                      row_id=id,
+                                      result={'SwitchportAccessVlanID': result[0]}))
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface information: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
     def select_interface_dhcp_client_configuration(self, interface_name: str) -> List[Result]:
         """
         Retrieve DHCP client configuration information associated with a specific interface.
