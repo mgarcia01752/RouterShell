@@ -186,7 +186,7 @@ class Vlan(RunCommand):
             return STATUS_NOK
         
         return STATUS_OK
-
+    
     def add_interface_to_vlan_os(self, vlan_id: int, interface_name: str) -> bool:
         """
         Add an interface to a VLAN on the operating system.
@@ -210,10 +210,17 @@ class Vlan(RunCommand):
             return STATUS_NOK
         
         vlan_name = f'{interface_name}.{vlan_id}'
+        
         result = self.run(['ip', 'link', 'add', 'link', interface_name, 'name', vlan_name, 'type', 'vlan', 'id', str(vlan_id)])
 
         if result.exit_code:
-            self.log.debug(f"Unable to add VlanID {vlan_id} to interface: {interface_name} via OS, error: {result.stderr}")
+            self.log.error(f"Unable to add VlanID {vlan_id} to interface: {interface_name} via OS, error: {result.stderr}")
+            return STATUS_NOK
+
+        result = self.run(['ip', 'link', 'set', 'dev', vlan_name, 'up'])
+
+        if result.exit_code:
+            self.log.error(f"Unable to enable Vlan {vlan_name} via OS, error: {result.stderr}")
             return STATUS_NOK
 
         return STATUS_OK
