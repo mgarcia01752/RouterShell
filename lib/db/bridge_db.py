@@ -1,21 +1,25 @@
 import logging
+from typing import Optional
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from lib.network_manager.common.phy import State
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+
 
 class BridgeDatabase():
     
-    rsdb = RSDB()
+    rsdb = DB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().BRIDGE_DB)
+        cls.log.setLevel(RSLS().BRIDGE_DB)
                 
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()   
+            cls.rsdb = DB()   
     
     def does_bridge_exists_db(cls, bridge_name: str) -> bool:
         """
@@ -28,54 +32,28 @@ class BridgeDatabase():
         Returns:
             bool: True if the bridge exists, False otherwise.
         """
-        cls.log.debug(f"does_bridge_exists_db() -> Bridge: {bridge_name}")
+    
+        status = cls.rsdb.bridge_exist_db(bridge_name).status
+        cls.log.debug(f"does_bridge_exists_db() -> Bridge: {bridge_name} - status: {status}")
+        return status
 
-        return cls.rsdb.bridge_exist_db(bridge_name).status
-
-    def bridge_exists_db_result(cls, bridge_name: str) -> Result:
-        """
-        Check if a bridge with the given name exists in the database.
-
-        Args:
-            cls: The class reference.
-            bridge_name (str): The name of the bridge to check.
-
-        Returns:
-            Result: True if the bridge exists, False otherwise.
-                - `status`: True if found, False otherwise
-                - `row_id`: status = True, row_id=row-ID of entry Found , False row_id=0
-        """
-        cls.log.debug(f"bridge_exists_db_result() -> Bridge: {bridge_name}")
-
-        return cls.rsdb.bridge_exist_db(bridge_name)
-
-    def add_bridge_db(cls, bridge_name: str, bridge_protocol:str=None, stp_status:bool=True) -> Result:
+    def add_bridge_db(cls, bridge_name: str) -> bool:
         """
         Add a new bridge to the database.
-
+        
         Args:
-            cls: The class reference.
-            bridge_name (str): The name of the bridge to add.
+            bridge_name (str): The name of the bridge to be added.
 
         Returns:
-            Result: An instance of the Result class with status, row_id, and result attributes.
+            bool: STATUS_OK if the bridge was successfully added or updated, STATUS_NOK otherwise.
         """
         cls.log.debug(f"add_bridge_db() -> BridgeName: {bridge_name}")
 
-        bridge_exists_status = cls.bridge_exists_db_result(bridge_name)
+        if cls.rsdb.insert_interface_bridge(bridge_name).status:
+            cls.log.debug(f"Bridge {bridge_name} FAILED add to DB")
         
-        if bridge_exists_status.status:
-            cls.log.debug(f"Unable to add bridge {bridge_name}, bridge already exists")
-            return Result(STATUS_NOK, bridge_exists_status.row_id, f"Bridge: {bridge_name} already exists")
-
-        rsp = cls.rsdb.insert_bridge(bridge_name, bridge_protocol)
-
-        if rsp.status:
-            cls.log.error(f"Unable to add bridge: {bridge_name} Error: {rsp.reason}")
-            return Result(STATUS_NOK, rsp.row_id, rsp.reason)
-
-        return Result(STATUS_OK, rsp.row_id, f"Bridge: {bridge_name} added successfully")
-
+        return cls.rsdb.update_bridge(bridge_name=bridge_name).status
+        
     def del_bridge_db(cls, bridge_name: str) -> bool:
         """
         Delete a bridge by its name from the firewall configuration.
@@ -88,9 +66,11 @@ class BridgeDatabase():
         """
         cls.log.debug(f"del_bridge() -> BridgeName: {bridge_name}")
 
-        if cls.rsdb.delete_bridge_entry(bridge_name):
-            cls.log.error(f"Unable to delete Bridge: {bridge_name}")
+        result = cls.rsdb.delete_bridge(bridge_name)
+        if result.status:
+            cls.log.error(f"Unable to delete Bridge: {bridge_name} from DB, error: {result.reason}")
             return STATUS_NOK
+        
         return STATUS_OK
 
     def insert_protocol_db(cls, bridge_name: str, br_protocol: str) -> bool:
@@ -173,20 +153,20 @@ class BridgeDatabase():
         cls.log.debug(f"bridge_exists() -> BridgeName: {bridge_name}")
         pass
 
-    def update_interface_bridge_group(cls, interface_name: str, bridge_group: str, negate: bool = False) -> bool:
+    def update_interface_bridge_group_db(cls, interface_name: str, bridge_group: str, remove: bool = False) -> bool:
         """
         Update the bridge group for an interface.
 
         Args:
             interface_name (str): The name of the interface to update.
             bridge_group (str): The name of the bridge group to assign or remove.
-            negate (bool optional): If True, remove the interface from the bridge group. 
+            remove (bool optional): If True, remove the interface from the bridge group. 
                                     If False, assign the interface to the bridge group.
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
-        if negate:
+        if remove:
             result = cls.rsdb.delete_interface_bridge_group(interface_name, bridge_group)
             cls.log.debug(f"Removed interface '{interface_name}' from bridge group '{bridge_group}'")
         else:
@@ -194,3 +174,37 @@ class BridgeDatabase():
             cls.log.debug(f"Assigned interface '{interface_name}' to bridge group '{bridge_group}'")
 
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
+    
+    def update_bridge_db(cls, bridge_name: str, 
+                        protocol: Optional[BridgeProtocol] = None, 
+                        stp_status: Optional[STP_STATE] = None,
+                        management_inet: Optional[str] = None,
+                        description: Optional[str] = None,
+                        shutdown_status: Optional[State] = None) -> bool:
+        """
+        Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
+
+        Args:
+            bridge_name (str): The name of the bridge to update.
+            protocol (Optional[BridgeProtocol]): The new protocol for the bridge (if changing).
+            stp_status (Optional[STP_STATE]): The new STP status (if changing).
+            management_inet (Optional[str]): The management IP address for the bridge (if changing).
+            description (Optional[str]): The new description for the bridge interface (if changing).
+            shutdown_status (Optional[bool]): The new shutdown status for the bridge interface (if changing).
+
+        Returns:
+            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+        """
+        result = cls.rsdb.update_bridge(
+            bridge_name=bridge_name,
+            protocol=protocol,
+            stp_status=stp_status,
+            management_inet=management_inet,
+            description=description,
+            shutdown_status=shutdown_status
+        )
+        
+        cls.log.debug(f"update_bridge_db() -> BridgeName: {bridge_name}, Result: {result.reason}, Status: {result.status}")
+
+        return result.status
+

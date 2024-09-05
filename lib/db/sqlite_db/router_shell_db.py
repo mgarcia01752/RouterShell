@@ -1,14 +1,15 @@
 import sqlite3
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
+from tabulate import tabulate
 
 from lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK, ROUTER_SHELL_DB
 from lib.common.singleton import Singleton
 from lib.network_manager.common.interface import InterfaceType
-
-
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from lib.network_manager.common.phy import State
+from lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 
 
@@ -35,15 +36,16 @@ class Result:
     - 'reason' provides additional information about the operation, which is particularly useful for error messages.
     - 'result' SQL query result single row {sql_table_column_name:value}
     """
-    def __init__(self, status: bool, row_id: int=None, reason: str=None, result=Dict):
+
+    def __init__(self, status: bool, row_id: int = None, reason: str = None, result=Dict):
         self.status = status
         self.row_id = row_id
         self.reason = reason
         self.result = result
-    
+
     def __str__(self):
         return f"Status: {self.status}, Row ID: {self.row_id}, Reason: {self.reason}, Result: {self.result}"
-    
+
     @staticmethod
     def sql_result_to_value_list(results: List['Result']) -> List[List]:
         """
@@ -62,9 +64,10 @@ class Result:
                 value_lists.append(value_list)
         return value_lists
 
+
 class RouterShellDB(metaclass=Singleton):
-    
-    connection = None    
+
+    connection = None
     connection_created = False
 
     ROW_ID_NOT_FOUND = 0
@@ -72,22 +75,26 @@ class RouterShellDB(metaclass=Singleton):
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ROUTER_SHELL_DB)
-        
-        self.db_file_path = os.path.join(os.path.dirname(__file__), ROUTER_SHELL_DB)
-        self.sql_file_path = os.path.join(os.path.dirname(__file__), ROUTER_SHELL_SQL_STARTUP)
+        self.log.setLevel(RSLS().ROUTER_SHELL_DB)
 
-        self.log.debug(f"__init__() -> db-connection: {self.connection} -> db-connection-created: {self.connection_created}")
-        
+        self.db_file_path = os.path.join(
+            os.path.dirname(__file__), ROUTER_SHELL_DB)
+        self.sql_file_path = os.path.join(
+            os.path.dirname(__file__), ROUTER_SHELL_SQL_STARTUP)
+
+        self.log.debug(
+            f"__init__() -> db-connection: {self.connection} -> db-connection-created: {self.connection_created}")
+
         if not self.connection_created:
 
             if not os.path.exists(self.db_file_path):
-                self.log.debug(f"Creating DB file: {self.db_file_path}, does not exist.")
+                self.log.debug(
+                    f"Creating DB file: {self.db_file_path}, does not exist.")
                 self.create_database()
             else:
                 self.log.debug(f"Database file {self.db_file_path} exists.")
                 self.open_connection()
-                
+
             self.connection_created = True
         else:
             self.log.debug(f"Already Connected to DB {self.db_file_path}")
@@ -100,10 +107,11 @@ class RouterShellDB(metaclass=Singleton):
             bool: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
         """
         self.log.debug("create_database()")
-        
+
         try:
-            self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
-            
+            self.connection = sqlite3.connect(
+                self.db_file_path, check_same_thread=True)
+
             cursor = self.connection.cursor()
 
             with open(self.sql_file_path, 'r') as sql_file:
@@ -120,7 +128,7 @@ class RouterShellDB(metaclass=Singleton):
             return STATUS_NOK
 
         return STATUS_OK
-    
+
     def open_connection(self) -> bool:
         """
         Open a connection to the SQLite database.
@@ -132,8 +140,9 @@ class RouterShellDB(metaclass=Singleton):
 
         if not self.connection:
             try:
-                self.connection = sqlite3.connect(self.db_file_path, check_same_thread=True)
-                
+                self.connection = sqlite3.connect(
+                    self.db_file_path, check_same_thread=True)
+
                 self.log.debug(f"Connected to DB {ROUTER_SHELL_DB}")
                 return STATUS_OK
 
@@ -158,24 +167,66 @@ class RouterShellDB(metaclass=Singleton):
             bool: STATUS_OK if the reset is successful, STATUS_NOK if there is an error.
         """
         self.log.debug("reset_database")
-        
+
         # Reset some OS hardware and network features
         from lib.system.system_start_up import SystemReset
-        SystemReset().database()        
-        
+        SystemReset().database()
+
         if self.connection:
             self.connection.close()
-        
+
         try:
             if os.path.exists(self.db_file_path):
                 os.remove(self.db_file_path)
-                self.log.debug(f"Removed existing database file: {ROUTER_SHELL_DB}")
-        
+                self.log.debug(
+                    f"Removed existing database file: {ROUTER_SHELL_DB}")
+
         except Exception as e:
-            self.log.error(f"Error while removing the existing database file: {e}")
+            self.log.error(
+                f"Error while removing the existing database file: {e}")
             return STATUS_NOK
-        
+
         return self.create_database()
+
+    def dump_db(self, include_schema:bool=False):
+        """
+        Dumps the contents of the SQLite database to the console in a human-readable format.
+        This includes dumping the schema and data for all tables in the database.
+        
+        Args:
+            include_schema (bool): Whether to include schema information in the output.
+        """
+        cursor = self.connection.cursor()
+
+        # Get a list of all tables in the database
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+
+        if not tables:
+            print("No tables found in the database.")
+            return
+
+        for (table_name,) in tables:
+            if include_schema:
+                print(f"\nTable: {table_name}")
+
+                # Dump the table schema
+                cursor.execute(f"PRAGMA table_info({table_name});")
+                columns = cursor.fetchall()
+                schema = [["Column", "Type", "Not Null", "Default Value"]]
+                schema.extend([[column[1], column[2], column[3], column[4]] for column in columns])
+                
+                print(f"Schema: {table_name}")
+                print(tabulate(schema, headers='firstrow', tablefmt='grid'))
+
+            # Dump the table data
+            cursor.execute(f"SELECT * FROM {table_name};")
+            rows = cursor.fetchall()
+            column_names = [description[0] for description in cursor.description]
+            data = [column_names] + rows
+            
+            print(f"\nTable: {table_name}")
+            print(tabulate(data, headers='firstrow', tablefmt='grid'))
 
     '''
                         ROUTER SYSTEM/GLOBAL CONFIGURATION DATABASE
@@ -199,18 +250,22 @@ class RouterShellDB(metaclass=Singleton):
             row_count = cursor.fetchone()[0]
 
             if row_count > 0:
-                cursor.execute("UPDATE SystemConfiguration SET BannerMotd = ? WHERE ID = 1", (motd,))
+                cursor.execute(
+                    "UPDATE SystemConfiguration SET BannerMotd = ? WHERE ID = 1", (motd,))
             else:
                 # Insert new row
-                cursor.execute("INSERT INTO SystemConfiguration (BannerMotd) VALUES (?)", (motd,))
+                cursor.execute(
+                    "INSERT INTO SystemConfiguration (BannerMotd) VALUES (?)", (motd,))
 
             self.connection.commit()
             row_id = cursor.lastrowid  # Retrieve the row_id of the affected row
-            self.log.debug("Update operation: BannerMotd updated successfully in the 'SystemConfiguration' table.")
+            self.log.debug(
+                "Update operation: BannerMotd updated successfully in the 'SystemConfiguration' table.")
             return Result(status=STATUS_OK, row_id=row_id, result={'BannerMotd': motd})
 
         except sqlite3.IntegrityError as integrity_error:
-            self.log.error("IntegrityError updating BannerMotd: %s", integrity_error)
+            self.log.error(
+                "IntegrityError updating BannerMotd: %s", integrity_error)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(integrity_error))
 
         except sqlite3.Error as sql_error:
@@ -230,14 +285,15 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT BannerMotd FROM SystemConfiguration WHERE ID = 1")
+            cursor.execute(
+                "SELECT BannerMotd FROM SystemConfiguration WHERE ID = 1")
             result = cursor.fetchone()
 
             if not result:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table.")
-            
+
             return Result(status=STATUS_OK, row_id=1, result={'BannerMotd': result[0]})
-        
+
         except sqlite3.Error as e:
             self.log.error("Error selecting BannerMotd: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
@@ -274,10 +330,12 @@ class RouterShellDB(metaclass=Singleton):
             if result is not None:
                 existing_row_id = result[0]
                 existing_hostname = result[1]
-                self.log.debug(f"Hostname '{existing_hostname}' already exists with ID: {existing_row_id}")
+                self.log.debug(
+                    f"Hostname '{existing_hostname}' already exists with ID: {existing_row_id}")
                 return Result(status=True, row_id=existing_row_id, result={"Hostname": existing_hostname})
             else:
-                self.log.debug(f"Hostname '{hostname}' does not exist in 'SystemConfiguration'")
+                self.log.debug(
+                    f"Hostname '{hostname}' does not exist in 'SystemConfiguration'")
                 return Result(status=False, row_id=None, reason=f"Hostname '{hostname}' does not exist.")
 
         except sqlite3.Error as e:
@@ -306,11 +364,14 @@ class RouterShellDB(metaclass=Singleton):
         self.log.debug(log_message)
 
         try:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
             result_hostname = self.hostname_exists(hostname)
-            
+
             if result_hostname.status:
-                return Result(status=STATUS_NOK, row_id=result_hostname.row_id, reason=f"Hostname '{hostname}' already exists.", result=result_hostname.result)
+                return Result(status=STATUS_OK,
+                              row_id=result_hostname.row_id,
+                              reason=f"Hostname '{hostname}' already exists.",
+                              result=result_hostname.result)
 
             query = "UPDATE SystemConfiguration SET Hostname = ? WHERE ID = 1"
             parameters = (hostname,)
@@ -319,7 +380,8 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute(query, parameters)
 
             self.connection.commit()
-            self.log.debug("Hostname inserted into the 'SystemConfiguration' table successfully")
+            self.log.debug(
+                "Hostname inserted into the 'SystemConfiguration' table successfully")
             return Result(status=STATUS_OK, row_id=cursor.lastrowid)
 
         except sqlite3.Error as e:
@@ -341,27 +403,18 @@ class RouterShellDB(metaclass=Singleton):
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
-        log_message = "select_hostname"
-        self.log.debug(log_message)
-
         try:
-            query = "SELECT Hostname FROM SystemConfiguration"
             cursor = self.connection.cursor()
-            cursor.execute(query)
+            cursor.execute("SELECT Hostname FROM SystemConfiguration LIMIT 1")
+            row = cursor.fetchone()
 
-            result = cursor.fetchone()
-
-            if result is not None:
-                selected_hostname = result["Hostname"]
-                self.log.debug(f"Selected hostname: {selected_hostname}")
-                return Result(status=STATUS_OK, row_id=1, result={"Hostname": selected_hostname})
+            if row and row[0]:
+                return Result(status=STATUS_OK, row_id=None, result={'Hostname': row[0]})
             else:
-                error_message = "No hostname found in 'SystemConfiguration'"
-                self.log.error(error_message)
-                return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+                return Result(status=STATUS_NOK, row_id=None, reason="No hostname found in the database")
 
         except sqlite3.Error as e:
-            error_message = f"Error selecting hostname from 'SystemConfiguration': {e}"
+            error_message = f"Error selecting hostname: {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
 
@@ -369,124 +422,283 @@ class RouterShellDB(metaclass=Singleton):
                         BRIDGE DATABASE
     '''
 
-    def bridge_exist_db(self, bridge_name) -> Result:
+    def bridge_exist_db(self, bridge_name: str) -> Result:
         """
-        Check if a bridge with the given name exists in the 'Bridges' table.
+        Check if a bridge with the given name exists in the Interfaces table.
 
         Args:
             bridge_name (str): The name of the bridge to check.
 
         Returns:
-            Result: An instance of Result with status True if the bridge exists, False otherwise.
-        """
-        self.log.debug(f"bridge_exist_db() -> Bridge: {bridge_name}")
-
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute("SELECT ROWID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
-            row_id = cursor.fetchone()
-            if row_id:
-                return Result(True, row_id[0], None)
-            else:
-                return Result(False, self.ROW_ID_NOT_FOUND, f"Bridge: {bridge_name} not found")
-
-        except sqlite3.Error as e:
-            return Result(False, self.ROW_ID_NOT_FOUND, f"Error while checking for bridge: {bridge_name}")
-
-    def get_bridge_id(self, bridge_name: str) -> int:
-        """
-        Retrieve the ID of a bridge by its name.
-
-        Args:
-            bridge_name (str): The name of the bridge.
-
-        Returns:
-            int: The ID of the bridge if found, or None if not found.
-
-        Raises:
-            sqlite3.Error: If there's an error during the database operation.
+            Result: A Result object indicating if the bridge exists.
+                - If the bridge exists, the Result object will have 'status' set to True, otherwise False.
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name))
+            cursor.execute("""
+                SELECT b.ID 
+                FROM Bridges b
+                JOIN Interfaces i ON b.Interfaces_FK = i.ID
+                WHERE i.InterfaceName = ? AND i.InterfaceType = ?
+            """, (bridge_name, InterfaceType.BRIDGE.value))
+            
             row = cursor.fetchone()
+            
             if row:
-                return row[0]
+                bridge_id = row[0]
+                return Result(status=True, row_id=bridge_id)
+            else:
+                return Result(status=False, reason=f"Bridge with name '{bridge_name}' does not exist")
+                
         except sqlite3.Error as e:
-            self.log.error("get_bridge_id() -> Error retrieving 'Bridges' ID: %s", e)
-        return None
+            return Result(status=False, reason=str(e))
 
-    def insert_bridge(self, bridge_name: str, bridge_protocol: str = None, stp_status: bool = False, bridge_group_fk: int = ROW_ID_NOT_FOUND, shutdown:bool = True) -> Result:
+    def is_bridge_in_bridge_group(self, bridge_name: str) -> Result:
         """
-        Insert a new bridge configuration into the 'Bridges' table.
+        Check if a bridge with the given name exists in the BridgeGroups table.
 
         Args:
-            bridge_name (str): The name of the bridge to insert.
-            bridge_protocol (str, optional): The protocol used by the bridge (default: None).
-            stp_status (bool, optional): The Spanning Tree Protocol (STP) status (default: False).
-            bridge_group_fk (int, optional): The foreign key reference to the associated bridge group (default: ROW_ID_NOT_FOUND).
+            bridge_name (str): The name of the bridge to check.
 
         Returns:
-            Result: A Result object with the status of the insertion, the row ID, and a result message.
+            Result: A Result object indicating if the bridge exists in the BridgeGroups table.
+                - If the bridge exists, the Result object will have 'status' set to True, otherwise False.
         """
         try:
-
-            # Construct the SQL query with placeholders
-            sql = "INSERT INTO Bridges (BridgeGroups_FK, BridgeName, Protocol, StpStatus, shutdownStatus) VALUES (?, ?, ?, ?, ?)"
-            data = (bridge_group_fk, bridge_name, bridge_protocol, stp_status, shutdown)
-
-            # Insert data into the database
             cursor = self.connection.cursor()
-            cursor.execute(sql, data)
-            self.connection.commit()
+            cursor.execute("""
+                SELECT BG.Bridges_FK
+                FROM BridgeGroups BG
+                JOIN Bridges B ON BG.Bridges_FK = B.ID
+                WHERE B.BridgeName = ?
+            """, (bridge_name,))
+            row = cursor.fetchone()
+
+            if row:
+                bridge_id = row[0]
+                self.log.debug(f'Bridge: {bridge_name} is found in BridgeGroup with row-id: {bridge_id}')
+                return Result(status=True, row_id=bridge_id)
             
-            # Get the last inserted row ID
-            row_id = cursor.lastrowid
+            else:
+                self.log.debug(f'Bridge: {bridge_name} is not attached to any interface')
+                return Result(status=False, reason=f"Bridge with name '{bridge_name}' does not exist in the BridgeGroups table")
 
-            return Result(STATUS_OK, row_id, "Bridge added successfully")
-
-        except ValueError as e:
-            self.log.error(f"Invalid input parameters: {e}")
-            return Result(STATUS_NOK, -1, "Invalid input parameters")
-        
         except sqlite3.Error as e:
-            error_message = f"Error inserting data into 'Bridges': {e}"
-            self.log.error(error_message)
-            return Result(STATUS_NOK, -1, error_message)
+            return Result(status=False, reason=str(e))
 
-    def delete_bridge_entry(self, bridge_name) -> bool:
+    def insert_interface_bridge(self, bridge_name: str, shutdown_status: bool = True) -> Result:
+        """
+        Insert a new bridge interface into the 'Interfaces' and 'Bridges' tables.
+
+        This method first checks if a bridge with the given name already exists. 
+        If it exists, it returns a failure result. If it does not exist, it inserts
+        a new entry into the 'Interfaces' and 'Bridges' tables.
+
+        Args:
+            bridge_name (str): The name of the bridge interface.
+            shutdown_status (bool): True if the interface is shutdown, False otherwise.
+
+        Returns:
+            Result: A Result object with the status of the insertion.
+        """
+        ifType = InterfaceType.BRIDGE.value
+
+        existing_result = self.bridge_exist_db(bridge_name)
+
+        if existing_result.status:
+            self.log.debug(f"Bridge with name '{bridge_name}' already exists, not inserting bridge")
+            return Result(status=STATUS_NOK, reason=f"Bridge with name '{bridge_name}' already exists")
+
         try:
             cursor = self.connection.cursor()
 
-            # Get the associated Bridge ID
-            cursor.execute("SELECT ID FROM Bridges WHERE BridgeName = ?", (bridge_name,))
-            bridge_id = cursor.fetchone()
-            
-            if not bridge_id:
-                self.log.error(f"Bridge entry not found for BridgeName: {bridge_name}")
-                return STATUS_NOK  # Bridge entry not found
+            cursor.execute(
+                "INSERT INTO Interfaces (InterfaceName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
+                (bridge_name, ifType, shutdown_status)
+            )
+            interface_id = cursor.lastrowid
 
-            bridge_id = bridge_id[0]  # Get the Bridge ID from the result
-
-            # Delete records in the associated table VlanInterfaces
-            cursor.execute("DELETE FROM VlanInterfaces WHERE Bridge_FK = ?", (bridge_id,))
-
-            # Delete the bridge entry
-            cursor.execute("DELETE FROM Bridges WHERE ID = ?", (bridge_id,))
-
-            # Commit the changes
+            cursor.execute(
+                "INSERT INTO Bridges (BridgeName, Interfaces_FK) VALUES (?, ?)",
+                (bridge_name, interface_id)
+            )
             self.connection.commit()
 
-            return STATUS_OK
+            self.log.debug(
+                f"Bridge interface {bridge_name} inserted with interface ID {interface_id}")
+            return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error("Error deleting bridge entry: %s", e)
-            return STATUS_NOK
+            self.log.error(
+                f"Error inserting bridge interface {bridge_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
+    def delete_interface_bridge(self, bridge_name: str) -> Result:
+        """
+        Delete a bridge interface from the 'Bridges' table, the corresponding entry from the 'Interfaces' table,
+        and any related IP address entries from the 'InterfaceIpAddress' table.
+
+        Args:
+            bridge_name (str): The name of the bridge interface to delete.
+
+        Returns:
+            Result: A Result object with the status of the deletion.
+        """
+        try:
+            # Check if the bridge exists using the existing method
+            bridge_interface_result = self.bridge_exist_db(bridge_name)
+
+            if not bridge_interface_result.status:
+                self.log.debug(
+                    f"Bridge interface {bridge_name} does not exist")
+                return Result(status=STATUS_NOK, row_id=0, reason=f"Bridge interface {bridge_name} does not exist")
+            
+            result = self.is_bridge_in_bridge_group(bridge_name)
+            if result.status:
+                fail_reason = f"Bridge interface {bridge_name} found in BridgeGroup, need to delete interfaces before deleting bridge"
+                return Result(status=STATUS_NOK, row_id=0, reason=fail_reason)
+            
+            bridge_interface_row_id = bridge_interface_result.row_id
+
+            cursor = self.connection.cursor()
+
+            # Delete from InterfaceIpAddress table
+            cursor.execute(
+                "DELETE FROM InterfaceIpAddress WHERE Interfaces_FK = ?",
+                (bridge_interface_row_id,)
+            )
+
+            # Delete from Bridges table
+            cursor.execute(
+                "DELETE FROM Bridges WHERE Interfaces_FK = ?",
+                (bridge_interface_row_id,)
+            )
+
+            # Delete from Interfaces table
+            cursor.execute(
+                "DELETE FROM Interfaces WHERE InterfaceName = ? AND InterfaceType = ?",
+                (bridge_name, InterfaceType.BRIDGE.value)
+            )
+
+            self.connection.commit()
+
+            self.log.debug(
+                f"Bridge interface {bridge_name} and related entries deleted successfully")
+            return Result(status=STATUS_OK, row_id=0)
+
+        except sqlite3.Error as e:
+            self.log.error(
+                f"Error deleting bridge interface {bridge_name}: {e}")
+            return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
+
+    def update_bridge(self, bridge_name: str,
+                      protocol: Optional[BridgeProtocol] = None,
+                      stp_status: Optional[STP_STATE] = None,
+                      management_inet: Optional[str] = None,
+                      description: Optional[str] = None,
+                      shutdown_status: Optional[State] = None) -> Result:
+        """
+        Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
+
+        Args:
+            bridge_name (str): The name of the bridge to update.
+            protocol (Optional[BridgeProtocol]): The new protocol for the bridge (if changing).
+            stp_status (Optional[STP_STATE]): The new STP status (if changing).
+            management_inet (Optional[str]): The management IP address for the bridge (if changing).
+            description (Optional[str]): The new description for the bridge interface (if changing).
+            shutdown_status (Optional[bool]): The new shutdown status for the bridge interface (if changing).
+
+        Returns:
+            Result: A Result object with the status of the update.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            cursor.execute(
+                "SELECT B.Interfaces_FK, I.ID FROM Bridges B JOIN Interfaces I ON B.Interfaces_FK = I.ID WHERE B.BridgeName = ?",
+                (bridge_name,)
+            )
+            bridge_row = cursor.fetchone()
+
+            if not bridge_row:
+                return Result(status=STATUS_NOK, reason=f"Bridge {bridge_name} does not exist")
+
+            interface_id = bridge_row[0]
+
+            update_columns = []
+            parameters = []
+
+            if protocol is not None:
+                update_columns.append("Protocol = ?")
+                parameters.append(protocol.name)
+
+            if stp_status is not None:
+                update_columns.append("StpStatus = ?")
+                parameters.append(stp_status.value)
+
+            if update_columns:
+                update_query = f"UPDATE Bridges SET {', '.join(update_columns)} WHERE Interfaces_FK = ?"
+                parameters.append(interface_id)
+                cursor.execute(update_query, tuple(parameters))
+
+            update_columns = []
+            parameters = []
+
+            if description is not None:
+                update_columns.append("Description = ?")
+                parameters.append(description)
+
+            if shutdown_status is not None:
+                update_columns.append("ShutdownStatus = ?")
+                shutdown_status_value = False if shutdown_status == State.UP else True
+                parameters.append(shutdown_status_value)
+
+            if update_columns:
+                update_query = f"UPDATE Interfaces SET {', '.join(update_columns)} WHERE ID = ?"
+                parameters.append(interface_id)
+                cursor.execute(update_query, tuple(parameters))
+
+            if management_inet is not None:
+                cursor.execute(
+                    "SELECT ID FROM InterfaceIpAddress WHERE IpAddress = ? AND Interfaces_FK = ?", (management_inet, interface_id))
+                inet_row = cursor.fetchone()
+
+                if inet_row:
+                    inet_id = inet_row[0]
+                    cursor.execute(
+                        "UPDATE InterfaceIpAddress SET IpAddress = ? WHERE ID = ?",
+                        (management_inet, inet_id)
+                    )
+                else:
+                    cursor.execute(
+                        "INSERT INTO InterfaceIpAddress (IpAddress, Interfaces_FK) VALUES (?, ?)",
+                        (management_inet, interface_id)
+                    )
+                    inet_id = cursor.lastrowid
+
+            self.connection.commit()
+
+            if cursor.rowcount == 0:
+                return Result(status=STATUS_NOK, reason="No bridge found with the given name")
+
+            return Result(status=STATUS_OK, row_id=interface_id)
+
+        except sqlite3.Error as e:
+            return Result(status=STATUS_NOK, reason=str(e))
+
+    def delete_bridge(self, bridge_name:str) -> Result:
+        
+        if not self.bridge_exist_db(bridge_name).status:
+            return Result(status=STATUS_OK, reason=f"No need to delete bridge: {bridge_name}, does not exists")
+        
+        if self.is_bridge_in_bridge_group(bridge_name).status:
+            return Result(status=STATUS_NOK, reason=f"Unable te delete bridge: {bridge_name}, still attached to a bridge group")
+        
+        return self.delete_interface(interface_name=bridge_name)
+        
     '''
                         VLAN DATABASE
     '''
-    
 
     def vlan_id_exists(self, vlan_id: int) -> Result:
         """
@@ -506,18 +718,47 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute("SELECT ID FROM Vlans WHERE VlanID = ?", (vlan_id,))
             result = cursor.fetchone()
-            
-            if result is not None:
-                self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} FOUND")
-                return Result(status=True, row_id=result[0])
-            else:
+
+            if result is None:
                 self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} NOT FOUND")
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"VLAN with ID {vlan_id} not found")
+            
+            else:                
+                self.log.debug(f"vlan_id_exists() -> VLAN with ID {vlan_id} FOUND -> row-id: {result[0]}")
+                return Result(status=True, row_id=result[0])
 
         except sqlite3.Error as e:
             self.log.error("Error checking VLAN existence: %s", e)
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
+    def insert_vlan_id(self, vlan_id: int) -> Result:
+        """
+        Insert a VLAN ID into the 'Vlans' table if it does not already exist.
+
+        Args:
+            vlan_id (int): The VLAN ID to be inserted.
+
+        Returns:
+            Result: A Result object containing the status of the operation, 
+                    the row ID of the inserted record (if applicable), 
+                    and an optional reason for failure.
+        """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "INSERT INTO Vlans (VlanID) VALUES (?)",
+                (vlan_id,)
+            )
+
+            self.connection.commit()
+            self.log.debug(f"VlanID: {vlan_id} inserted sucessfully")
+            return Result(status=STATUS_OK, row_id=cursor.lastrowid)
+
+        except sqlite3.Error as e:
+            self.log.error(f"VlanID: {vlan_id} inserted sucessfully, error: {e}")
+            return Result(status=STATUS_NOK, row_id=None, reason=str(e))
+        
     def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
         Insert data into the 'Vlans' table.
@@ -537,14 +778,17 @@ class RouterShellDB(metaclass=Singleton):
         Raises:
             sqlite3.Error: If there's an error during the database operation.
         """
-        self.log.debug(f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
+        self.log.debug(
+            f"insert_vlan() -> vlanid: {vlanid}, vlan-if-fkey: {vlan_interfaces_fk}, vlan-name: {vlan_name}")
 
         try:
             # Check if VLAN with the provided 'vlanid' already exists
             result_vlan_id = self.vlan_id_exists(vlanid)
-            
+
             if result_vlan_id.status:
-                return Result(status=STATUS_NOK, row_id=result_vlan_id.row_id, reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
+                return Result(status=STATUS_NOK, 
+                              row_id=result_vlan_id.row_id, 
+                              reason=f"VLAN with ID {vlanid} already exists.", result=result_vlan_id.result)
 
             cursor = self.connection.cursor()
             cursor.execute(
@@ -553,8 +797,10 @@ class RouterShellDB(metaclass=Singleton):
             )
 
             self.connection.commit()
-            self.log.debug("Data inserted into the 'Vlans' table successfully.")
-            return Result(status=STATUS_OK, row_id=cursor.lastrowid)
+            self.log.debug(
+                "Data inserted into the 'Vlans' table successfully.")
+            return Result(status=STATUS_OK, 
+                          row_id=cursor.lastrowid)
 
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Vlans': %s", e)
@@ -579,9 +825,10 @@ class RouterShellDB(metaclass=Singleton):
             )
             self.connection.commit()
             row_id = cursor.lastrowid  # Retrieve the row_id of the affected row
-            self.log.debug(f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
+            self.log.debug(
+                f"VLAN Name -> {vlan_name} of VlanID -> {vlan_id} updated successfully.")
             return Result(status=STATUS_OK, row_id=row_id, result={'VlanName': vlan_name})
-        
+
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN name: %s", e)
             return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
@@ -607,77 +854,123 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute("SELECT * FROM Vlans WHERE ID = ?", (vlan_id,))
             updated_row = cursor.fetchone()
 
-            self.log.debug(f"Description of VLAN {vlan_id} updated successfully.")
+            self.log.debug(
+                f"Description of VLAN {vlan_id} updated successfully.")
             return Result(status=STATUS_OK, row_id=updated_row, result=f"Description of VLAN {vlan_id} updated successfully")
-        
+
         except sqlite3.Error as e:
             self.log.error("Error updating VLAN description: %s", e)
             return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
-    def insert_vlan_interface(self, vlan_id: int, interface_name: str = None, bridge_group_name: str = None) -> Result:
+    def insert_vlan_interface(self, vlan_id: int, interface_name: str) -> Result:
         """
-        Insert a VLAN interface into the database.
-
-        Args:
-            vlan_id (int): VLAN-ID.
-            interface_name (str, optional): The name of the interface. Default is None.
-            bridge_group_name (str, optional): The name of the bridge group. Default is None.
-
-        Returns:
-            Result: A Result object representing the outcome of the operation.
-            - If the operation is successful, the Result object will have 'status' set to STATUS_OK
-              and 'row_id' set to the unique identifier of the inserted VLAN interface.
-            - If there is an error during the database operation, the Result object will have 'status' set to STATUS_NOK,
-              'row_id' set to None, and 'reason' providing additional information.
-
+        Inserts a VLAN interface into the database.
         """
         try:
             cursor = self.connection.cursor()
 
-            # Determine foreign key column and constraint name
-            foreign_key_column, constraint_name = (
-                ('Interface_FK', 'FK_VLANs_Interfaces') if interface_name is not None
-                else ('Bridge_FK', 'FK_VLANs_Bridges') if bridge_group_name is not None
-                else (None, None)
-            )
+            # Retrieve the Interface ID using the InterfaceName
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
+            interface_id_row = cursor.fetchone()
 
-            # Check if either interface_name or bridge_group_name is provided
-            if foreign_key_column is None:
-                return Result(status=STATUS_NOK, row_id=None, reason="Either interface_name or bridge_group_name must be provided.")
+            if interface_id_row is None:
+                err_msg = f"Interface '{interface_name}' not found"
+                return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason=err_msg)
 
-            # Look up the ID of the interface or bridge group based on the name
-            cursor.execute(f"SELECT ID FROM {foreign_key_column.replace('_FK', 's')} WHERE {foreign_key_column.replace('_FK', 'Name')} = ?", 
-                           (interface_name or bridge_group_name,))
-            foreign_key_id = cursor.fetchone()
-
-            # Check if the interface or bridge group exists
-            if not foreign_key_id:
-                return Result(status=STATUS_NOK, row_id=None, reason=f"No {foreign_key_column.replace('_FK', '')} found with name: {interface_name or bridge_group_name}")
-
-            # Insert into VlanInterfaces table
-            cursor.execute(
-                f"INSERT INTO VlanInterfaces ({foreign_key_column}) VALUES (?)",
-                (foreign_key_id[0],)
-            )
-
-            # Get the row ID of the inserted row in VlanInterfaces
-            row_id = cursor.lastrowid
-
-            # Update Vlans.VlanInterfaces_FK with VlanInterfaces.ID
-            cursor.execute("UPDATE Vlans SET VlanInterfaces_FK = ? WHERE VlanID = ?", (row_id, vlan_id))
-
-            self.connection.commit()
-            self.log.debug("VLAN interface inserted successfully and Vlans.VlanInterfaces_FK updated.")
+            interface_id = interface_id_row[0]
+            bridge_fk = RouterShellDB.FK_NOT_FOUND
             
-            return Result(status=STATUS_OK, row_id=row_id)
+            # Check if the VLAN ID already exists in the VlanInterfaces table
+            cursor.execute(
+                "SELECT ID FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?", 
+                (vlan_id, interface_id)
+            )
+            existing_row = cursor.fetchone()
+
+            if existing_row:
+                err_msg = f"Interface '{interface_name}' is already linked to VLAN {vlan_id}"
+                self.log.info(err_msg)
+                return Result(status=STATUS_OK, row_id=vlan_id, reason=err_msg)
+
+            self.log.info(f'insert_vlan_interface() -> VlanID: {vlan_id} -> InterfaceID: {interface_id} -> Bridge-FK: {bridge_fk}')
+
+            # Insert the new VLAN-Interface association
+            cursor.execute(
+                "INSERT INTO VlanInterfaces (VlanID, Interfaces_FK, Bridge_FK) VALUES (?, ?, ?)",
+                (vlan_id, interface_id, bridge_fk)
+            )
+            self.connection.commit()
+            inserted_row_id = cursor.lastrowid
+
+            success_msg = f"Interface '{interface_name}' linked to VLAN {vlan_id} successfully."
+            self.log.info(success_msg)
+            return Result(status=STATUS_OK, row_id=inserted_row_id, reason=success_msg)
+
+        except sqlite3.IntegrityError as e:
+            self.log.error("Integrity error linking VLAN to interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Integrity error occurred.")
 
         except sqlite3.Error as e:
-            self.log.error("Error inserting VLAN interface: %s", e)
-            return Result(status=STATUS_NOK, row_id=None, reason=str(e))
+            self.log.error("Database error linking VLAN to interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Database error occurred.")
+
+        except Exception as e:
+            self.log.error("Unexpected error linking VLAN to interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Unexpected error occurred.")
+
+    def delete_vlan_interface(self, vlan_id: int, interface_name: str) -> Result:
+        """
+        Deletes an interface from a VLAN in the database.
+        
+        :param vlan_id: The ID of the VLAN to dissociate from the interface.
+        :param interface_name: The name of the interface to remove from the VLAN.
+        :return: Result object indicating the status, row ID, and reason for the operation.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Retrieve the Interface ID using the InterfaceName
+            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
+            interface_id_row = cursor.fetchone()
+
+            if interface_id_row is None:
+                err_msg = f"Interface '{interface_name}' not found"
+                return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason=err_msg)
+
+            interface_id = interface_id_row[0]
+
+            # Check if the interface is linked to the VLAN in the VlanInterfaces table
+            cursor.execute(
+                "SELECT ID FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?", 
+                (vlan_id, interface_id)
+            )
+            existing_row = cursor.fetchone()
+
+            if not existing_row:
+                err_msg = f"Interface '{interface_name}' is not linked to VLAN {vlan_id}"
+                return Result(status=STATUS_OK, row_id=RouterShellDB.FK_NOT_FOUND, reason=err_msg)
+
+            # Delete the VLAN-Interface association
+            cursor.execute(
+                "DELETE FROM VlanInterfaces WHERE VlanID = ? AND Interfaces_FK = ?",
+                (vlan_id, interface_id)
+            )
+            self.connection.commit()
+
+            success_msg = f"Interface '{interface_name}' removed from VLAN {vlan_id} successfully."
+            self.log.debug(success_msg)
+            return Result(status=STATUS_OK, row_id=existing_row[0], reason=success_msg)
+
+        except sqlite3.Error as e:
+            self.log.error("Database error deleting VLAN interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Database error occurred.")
+
+        except Exception as e:
+            self.log.error("Unexpected error deleting VLAN interface: %s", e)
+            return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Unexpected error occurred.")
 
     def show_vlans(self):
         try:
-
 
             # SQL query to retrieve VLAN information
             query = """
@@ -687,7 +980,7 @@ class RouterShellDB(metaclass=Singleton):
                     Vlans.VlanDescription AS VLAN_DESCRIPTION,
                     VlanInterfaces.ID AS INTERFACE_ID,
                     VlanInterfaces.VlanName AS INTERFACE_VLAN_NAME,
-                    VlanInterfaces.Interface_FK AS INTERFACE_ID,
+                    VlanInterfaces.Interfaces_FK AS INTERFACE_ID,
                     VlanInterfaces.Bridge_FK AS BRIDGE_ID
                 FROM
                     Vlans
@@ -721,15 +1014,16 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM VlanInterfaces WHERE VlanName = ?", (vlan_name,))
+            cursor.execute(
+                "SELECT ID FROM VlanInterfaces WHERE VlanName = ?", (vlan_name,))
             row = cursor.fetchone()
             if row:
                 return row[0]
-            
+
         except sqlite3.Error as e:
             self.log.error("Error retrieving 'VlanInterfaces' ID: %s", e)
         return None
-    
+
     def select_vlan_name_by_vlan_id(self, vlan_id: int) -> Result:
         """
         Retrieve the VLAN name based on the VLAN ID from the 'Vlans' table.
@@ -740,17 +1034,18 @@ class RouterShellDB(metaclass=Singleton):
         Returns:
             Optional[Result]: A Result object representing the outcome of the database operation.
                 - If the operation is successful, the Result object will have 'status' set to True,
-                  'row_id' representing the unique identifier of the affected row, and 'result' containing the VLAN name.
+                  'row_id' representing the unique identifier of the affected row, and 'result' containing the dict: {'VlanName'}.
                 - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
                   information about the error, and 'row_id' and 'result' set to None.
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
+            cursor.execute(
+                "SELECT ID, VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
             row = cursor.fetchone()
 
             if row:
-                return Result(status=STATUS_OK, row_id=vlan_id, result={'VlanName': row[0]})
+                return Result(status=STATUS_OK, row_id=row[0], result={'VlanName': row[1]})
             else:
                 return Result(status=STATUS_NOK, row_id=None, reason=f"No VLAN found with ID: {vlan_id}")
 
@@ -758,6 +1053,120 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error retrieving VLAN name for ID {vlan_id}: {e}"
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
+    def select_vlan_name_by_vlan_id(self, vlan_id: int) -> Result:
+        """
+        Retrieve the VLAN name based on the VLAN ID from the 'Vlans' table.
+
+        Args:
+            vlan_id (int): The VLAN ID to search for.
+
+        Returns:
+            Optional[Result]: A Result object representing the outcome of the database operation.
+                - If the operation is successful, the Result object will have 'status' set to True,
+                  'row_id' representing the unique identifier of the affected row, and 'result' containing the dict: {'VlanName'}.
+                - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
+                  information about the error, and 'row_id' and 'result' set to None.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "SELECT ID, VlanName FROM Vlans WHERE VlanID = ?", (vlan_id,))
+            row = cursor.fetchone()
+
+            if row:
+                return Result(status=STATUS_OK, row_id=row[0], result={'VlanName': row[1]})
+            else:
+                return Result(status=STATUS_NOK, row_id=None, reason=f"No VLAN found with ID: {vlan_id}")
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving VLAN name for ID {vlan_id}: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
+    def select_vlan_id_by_vlan_name(self, vlan_name: str) -> Result:
+        """
+        Retrieves the VLAN ID associated with a given VLAN name from the database.
+
+        Args:
+            vlan_name (str): The name of the VLAN.
+
+        Returns:
+            Result: An instance of the Result class.
+                - status (bool): STATUS_OK if the VLAN ID is found, STATUS_NOK otherwise.
+                - row_id (Optional[int]): The row ID of the VLAN entry if found, None otherwise.
+                - result (Optional[dict]): A dictionary containing the VLAN ID if found, None otherwise.
+                - reason (Optional[str]): A reason for the failure if STATUS_NOK.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "SELECT ID, VlanID FROM Vlans WHERE VlanName = ?", (vlan_name,))
+            row = cursor.fetchone()
+
+            if row:
+                return Result(status=STATUS_OK, row_id=row[0], result={'VlanID': row[1]})
+            else:
+                return Result(status=STATUS_NOK, row_id=None, reason=f"No VlanID found with VlanName: {vlan_name}")
+
+        except sqlite3.Error as e:
+            error_message = f"Error retrieving VlanID for VlanName {vlan_name}: {e}"
+            self.log.error(error_message)
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message)
+
+    def select_interfaces_by_vlan_id(self, vlan_id: int) -> List[Result]:
+        """
+        Retrieves a list of interfaces associated with a given VLAN ID from the database.
+        The list contains Result objects with interface information.
+        The interface information includes the interface name, VLAN ID
+        If the VLAN ID is not found, an empty list is returned.
+        If an error occurs, an empty list is returned.
+        """
+        try:
+            cursor = self.connection.cursor()
+
+            # Query to retrieve the interfaces linked to the specified VLAN ID
+            cursor.execute(
+                """
+                SELECT I.InterfaceName, VI.VlanID,
+                FROM VlanInterfaces VI
+                JOIN Interfaces I ON VI.Interfaces_FK = I.ID
+                JOIN Vlans V ON VI.VlanID = V.ID
+                WHERE VI.VlanID = ?
+                """, 
+                (vlan_id,)
+            )
+            
+            rows = cursor.fetchall()
+            
+            if not rows:
+                self.log.info(f"No interfaces found for VLAN ID {vlan_id}.")
+                return []
+
+            # Create a list of Result objects to return
+            result_list = [
+                Result(
+                    status=STATUS_OK,
+                    row_id=row[1],
+                    reason=f"Interface '{row[0]}' linked to VLAN '{row[2]}'",
+                    result={
+                        "InterfaceName": row[0],
+                        "VlanID": row[1],
+                    }
+                )
+                for row in rows
+            ]
+
+            return result_list
+
+        except sqlite3.Error as e:
+            self.log.error(f"Database error retrieving interfaces by VLAN ID: {str(e)}")
+            return []
+
+        except Exception as e:
+            self.log.error(f"Unexpected error retrieving interfaces by VLAN ID: {str(e)}")
+            return []
+
 
     '''
                         NAT DATABASE
@@ -782,14 +1191,17 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name,))
+            cursor.execute(
+                "SELECT COUNT(*) FROM Nats WHERE NatPoolName = ?", (pool_name,))
             result = cursor.fetchone()
 
             if result and result[0] > 0:
-                self.log.debug(f"global_nat_pool_name_exists({pool_name}) Exists")
+                self.log.debug(
+                    f"global_nat_pool_name_exists({pool_name}) Exists")
                 return Result(True, row_id=result[0])
             else:
-                self.log.debug(f"global_nat_pool_name_exists({pool_name}) NOT Exists")
+                self.log.debug(
+                    f"global_nat_pool_name_exists({pool_name}) NOT Exists")
                 return Result(False, row_id=0)
 
         except sqlite3.Error as e:
@@ -811,14 +1223,16 @@ class RouterShellDB(metaclass=Singleton):
 
         try:
             cursor = self.connection.cursor()
-            cursor.execute("INSERT INTO Nats (NatPoolName) VALUES (?)", (nat_pool_name,))
+            cursor.execute(
+                "INSERT INTO Nats (NatPoolName) VALUES (?)", (nat_pool_name,))
             self.connection.commit()
 
             row_id = cursor.lastrowid
-            self.log.debug(f"Inserted global NAT pool '{nat_pool_name}' with row ID: {row_id}")
+            self.log.debug(
+                f"Inserted global NAT pool '{nat_pool_name}' with row ID: {row_id}")
 
             return Result(status=STATUS_OK, row_id=row_id)
-        
+
         except sqlite3.Error as e:
             error_message = f"Error inserting global NAT: {e}"
             self.log.error(error_message)
@@ -837,7 +1251,7 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("DELETE FROM Nats WHERE NatPoolName = ?", 
+            cursor.execute("DELETE FROM Nats WHERE NatPoolName = ?",
                            (nat_pool_name,))
             self.connection.commit()
 
@@ -891,7 +1305,7 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute("INSERT INTO NatDirections (NAT_FK, INTERFACE_FK, Direction) VALUES (?, ?, ?)",
-                        (nat_pool_id, interface_id, direction))
+                           (nat_pool_id, interface_id, direction))
 
             # Get the row_id of the newly inserted entry
             row_id = cursor.lastrowid
@@ -914,13 +1328,14 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object with the status and the row ID of the NAT pool if found.
-            
+
             status: STATUS_OK successful, STATUS_NOK otherwise
             row_id: STATUS_OK = row-id, STATUS_NOK = row-id=0
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
+            cursor.execute(
+                "SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
             row = cursor.fetchone()
 
             if row is not None:
@@ -949,8 +1364,9 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status of the insertion.
         """
         try:
-            self.log.debug(f"insert_interface_nat_direction(Parameters: {interface_name} -> {nat_pool_name} -> {direction})")
-            
+            self.log.debug(
+                f"insert_interface_nat_direction(Parameters: {interface_name} -> {nat_pool_name} -> {direction})")
+
             nat_pool_result = self.select_global_nat_row_id(nat_pool_name)
 
             if nat_pool_result.status:
@@ -969,11 +1385,12 @@ class RouterShellDB(metaclass=Singleton):
 
             interface_id = interface_result.row_id
 
-            self.log.debug(f"insert_interface_nat_direction(if-id: {interface_id} -> nat-pool-id: {nat_pool_id} -> {direction})")
-            
+            self.log.debug(
+                f"insert_interface_nat_direction(if-id: {interface_id} -> nat-pool-id: {nat_pool_id} -> {direction})")
+
             cursor = self.connection.cursor()
-            cursor.execute("INSERT INTO NatDirections (NAT_FK, Interface_FK, Direction) VALUES (?, ?, ?)", 
-                                (nat_pool_id, interface_id, direction))
+            cursor.execute("INSERT INTO NatDirections (NAT_FK, Interfaces_FK, Direction) VALUES (?, ?, ?)",
+                           (nat_pool_id, interface_id, direction))
 
             self.connection.commit()
             inserted_row_id = cursor.lastrowid
@@ -1005,8 +1422,8 @@ class RouterShellDB(metaclass=Singleton):
             nat_pool_id = nat_pool_result.row_id
 
             cursor = self.connection.cursor()
-            cursor.execute("DELETE FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ?", 
-                                (nat_pool_id, interface_name))
+            cursor.execute("DELETE FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ?",
+                           (nat_pool_id, interface_name))
             self.connection.commit()
             return Result(STATUS_OK)
 
@@ -1029,7 +1446,8 @@ class RouterShellDB(metaclass=Singleton):
             return pool_names
 
         except sqlite3.Error as e:
-            self.log.error(f"An error occurred while retrieving global NAT pool names: {e}")
+            self.log.error(
+                f"An error occurred while retrieving global NAT pool names: {e}")
             return []
 
     def inside_interface_exists(self, pool_name: str, interface_name: str) -> Result:
@@ -1044,10 +1462,10 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status and a boolean value indicating if the inside interface is associated with the NAT pool.
             status: True if inside interface exist, otherwise False
         """
-        
+
         '''avoid circular imports'''
-        from lib.network_manager.nat import NATDirection
-        
+        from lib.network_manager.network_operations.nat import NATDirection
+
         try:
             if not pool_name or not interface_name:
                 error_message = "Invalid input: Pool name and interface name must be provided."
@@ -1081,7 +1499,8 @@ class RouterShellDB(metaclass=Singleton):
             nat_pool_id = nat_pool_id_result.row_id
             interface_id = interface_id_result.row_id
 
-            direction_exists = self._interface_nat_direction_exists(nat_pool_id, interface_id, NATDirection.INSIDE)
+            direction_exists = self._interface_nat_direction_exists(
+                nat_pool_id, interface_id, NATDirection.INSIDE)
 
             return Result(True, reason=direction_exists)
 
@@ -1089,8 +1508,8 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"An error occurred while checking inside interface association: {e}"
             return Result(False, reason=error_message)
 
-    def nat_direction_interface_exists(self, pool_name: str, interface_name: str, direction:str) -> Result:
-        
+    def nat_direction_interface_exists(self, pool_name: str, interface_name: str, direction: str) -> Result:
+
         try:
             if not pool_name or not interface_name:
                 error_message = "Invalid input: Pool name and interface name must be provided."
@@ -1124,7 +1543,8 @@ class RouterShellDB(metaclass=Singleton):
             nat_pool_id = nat_pool_id_result.row_id
             interface_id = interface_id_result.row_id
 
-            direction_exists = self._interface_nat_direction_exists(nat_pool_id, interface_id, direction)
+            direction_exists = self._interface_nat_direction_exists(
+                nat_pool_id, interface_id, direction)
 
             return Result(True, reason=direction_exists)
 
@@ -1146,14 +1566,15 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT COUNT(*) FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ? AND Direction = ?", 
+            cursor.execute("SELECT COUNT(*) FROM NatDirections WHERE NAT_FK = ? AND INTERFACE_FK = ? AND Direction = ?",
                            (nat_id, interface_id, direction))
             result = cursor.fetchone()
-            
+
             return result[0] > 0
-                    
+
         except sqlite3.Error as e:
-            self.log.error(f"An error occurred while checking NAT direction existence: {e}")
+            self.log.error(
+                f"An error occurred while checking NAT direction existence: {e}")
             return False
 
     def select_nat_interface_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
@@ -1176,29 +1597,33 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
+            cursor.execute(
+                "SELECT ID FROM Nats WHERE NatPoolName = ?", (nat_pool_name,))
             nat_pool_result = cursor.fetchone()
 
             if nat_pool_result is None:
                 return Result(status=False, row_id=0)  # NAT pool not found
 
             nat_pool_id = nat_pool_result[0]
-            
-            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
+
+            cursor.execute(
+                "SELECT ID FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
             interface_result = cursor.fetchone()
             interface_id = interface_result[0]
-            
-            self.log.debug(f"get_nat_interface_direction_list() - NAT-POOL-ID: {nat_pool_id} - InterfaceID: ({interface_result[0]})")
+
+            self.log.debug(
+                f"get_nat_interface_direction_list() - NAT-POOL-ID: {nat_pool_id} - InterfaceID: ({interface_result[0]})")
 
             if interface_result is None:
                 return Result(status=False, row_id=0)  # Interface not found
 
-            cursor.execute("SELECT ID FROM NatDirections WHERE NAT_FK = ? AND Interface_FK = ? AND Direction = ?",
+            cursor.execute("SELECT ID FROM NatDirections WHERE NAT_FK = ? AND Interfaces_FK = ? AND Direction = ?",
                            (nat_pool_id, interface_id, direction))
             nat_direction_result = cursor.fetchone()
 
             if nat_direction_result is not None:
-                self.log.debug(f"get_nat_interface_direction() - interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} -> Result: Found")                
+                self.log.debug(
+                    f"get_nat_interface_direction() - interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} -> Result: Found")
                 return Result(status=True, row_id=nat_direction_result[0])
             else:
                 msg = f"interface: {interface_name} -> nat-pool: {nat_pool_name} - direction: {direction} -> Result: Not-Found"
@@ -1223,7 +1648,7 @@ class RouterShellDB(metaclass=Singleton):
             * `status`: True if successful, False if an error occurred.
             * `row_id`: The primary key of the selected record (interface_fk) or `ROW_ID_NOT_FOUND` if an error occurred.
             * `result`: A dictionary containing the following key-value pairs:
-                * `Interface_FK`: The primary key of the interface record.
+                * `Interfaces_FK`: The primary key of the interface record.
                 * `InterfaceName`: The name of the interface.
 
         Raises:
@@ -1235,9 +1660,9 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             cursor.execute("""
-                SELECT ND.Interface_FK, I.InterfaceName
+                SELECT ND.Interfaces_FK, I.InterfaceName
                 FROM NatDirections AS ND
-                JOIN Interfaces AS I ON ND.Interface_FK = I.ID
+                JOIN Interfaces AS I ON ND.Interfaces_FK = I.ID
                 JOIN Nats AS N ON ND.NAT_FK = N.ID
                 WHERE N.NatPoolName = ? AND ND.Direction = ?
             """, (nat_pool_name, direction))
@@ -1245,15 +1670,16 @@ class RouterShellDB(metaclass=Singleton):
             rows = cursor.fetchall()
             for row in rows:
                 interface_fk, interface_name = row
-                result = Result(status=STATUS_OK, row_id=interface_fk, result={'Interface_FK': interface_fk, 'InterfaceName':interface_name})
+                result = Result(status=STATUS_OK, row_id=interface_fk, result={
+                                'Interfaces_FK': interface_fk, 'InterfaceName': interface_name})
                 results.append(result)
-                
+
             if len(results) == 0:
-                return Result(status=STATUS_NOK, 
-                              row_id=self.ROW_ID_NOT_FOUND, 
+                return Result(status=STATUS_NOK,
+                              row_id=self.ROW_ID_NOT_FOUND,
                               reason=f'No Interface Found for Nat-Pool: {nat_pool_name} for direction: {direction}',
-                              result={'Interface_FK': None, 'InterfaceName':None})
-            
+                              result={'Interfaces_FK': None, 'InterfaceName': None})
+
             return results
 
         except sqlite3.Error as e:
@@ -1264,12 +1690,14 @@ class RouterShellDB(metaclass=Singleton):
     '''
                         DHCP-SERVER DATABASE
     '''
-    def select_dhcp_server_pool_list(self) -> List[Result]:
+
+    def select_dhcp_server_pool_list(self) -> List['Result']:
         """
         Retrieve a list of DHCP server pool names from the 'DHCPServer' table.
 
         Returns:
             List[Result]: A list of Result objects, each representing a row from the 'DHCPServer' table.
+                          Each Result contains a dictionary with the key 'DhcpPoolname' and its value.
 
         Note:
         - This method assumes that the 'DHCPServer' table exists with the specified schema.
@@ -1279,16 +1707,19 @@ class RouterShellDB(metaclass=Singleton):
             query = "SELECT ID, DhcpPoolname FROM DHCPServer;"
             cursor = self.connection.cursor()
             cursor.execute(query)
-            
-            dhcp_pool_names = [row[0] for row in cursor.fetchall()]
+
+            # Fetch all rows from the executed query
+            rows = cursor.fetchall()
 
             # Build Result objects for each DHCP server pool name.
             results = [
-                Result(status=STATUS_OK, row_id=dhcp_pool_name[0],
-                        reason=f"Retrieved DHCP server pool '{dhcp_pool_name}' successfully",
-                        result={"DhcpPoolname": dhcp_pool_name[1]},
+                Result(
+                    status=STATUS_OK,
+                    row_id=row[0],
+                    reason=f"Retrieved DHCP server pool '{row[1]}' successfully",
+                    result={"DhcpPoolname": row[1]}
                 )
-                for dhcp_pool_name in dhcp_pool_names
+                for row in rows
             ]
 
             return results
@@ -1307,7 +1738,7 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object representing the outcome of the operation.
-            
+
         Note:
         - 'status' attribute in the returned Result object will be STATUS_OK for successful insertions, and STATUS_NOK for failed ones.
         - 'row_id' represents the unique identifier of the inserted row if the insertion is successful, or 0 if it fails.
@@ -1320,7 +1751,7 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted '{dhcp_pool_name}' pool successfully.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert '{dhcp_pool_name}' pool. Error: {str(e)}")
 
@@ -1333,7 +1764,7 @@ class RouterShellDB(metaclass=Singleton):
 
         Returns:
             Result: A Result object representing the outcome of the operation.
-            
+
         Note:
         - 'status' attribute in the returned Result object will be True if the pool name exists, and False if it doesn't.
         - 'row_id' represents the unique identifier of the existing row if the pool name exists, or ROW_ID_NOT_FOUND if it doesn't.
@@ -1344,12 +1775,12 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
             row = cursor.fetchone()
-            
+
             if row:
                 return Result(status=True, row_id=row[0], reason=f"Pool name '{dhcp_pool_name}' exists.")
             else:
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Pool name '{dhcp_pool_name}' does not exist.")
-        
+
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking pool name existence: {str(e)}")
 
@@ -1372,12 +1803,12 @@ class RouterShellDB(metaclass=Singleton):
         try:
             if not inet_subnet_cidr:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Subnet '({None})' not defined")
-            
+
             # Check if the subnet already exists
             subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
             if subnet_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Subnet '{inet_subnet_cidr}' already exists.")
-            
+
             # The subnet does not exist, proceed to check the DHCP pool name
             pool_exist_result = self.dhcp_pool_name_exist(dhcp_pool_name)
             if not pool_exist_result.status:
@@ -1390,7 +1821,7 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted subnet '{inet_subnet_cidr}' into '{dhcp_pool_name}' pool successfully.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert subnet into '{dhcp_pool_name}' pool. Error: {str(e)}")
 
@@ -1410,22 +1841,24 @@ class RouterShellDB(metaclass=Singleton):
         - 'reason' in the Result object provides additional information about the operation, which is particularly useful for result messages.
         """
         if not inet_subnet_cidr:
-            self.log.error(f"dhcp_pool_subnet_exist() -> inet_subnet_cidr: {inet_subnet_cidr}, not defined")
+            self.log.error(
+                f"dhcp_pool_subnet_exist() -> inet_subnet_cidr: {inet_subnet_cidr}, not defined")
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"inet_subnet_cidr: {inet_subnet_cidr}, not defined")
-            
+
         try:
             query = "SELECT ID FROM DHCPSubnet WHERE InetSubnet = ?"
             cursor = self.connection.cursor()
             cursor.execute(query, (inet_subnet_cidr,))
             row = cursor.fetchone()
-            
-            self.log.debug(f"dhcp_pool_subnet_exist({inet_subnet_cidr}) -> row: ({0})")
-            
+
+            self.log.debug(
+                f"dhcp_pool_subnet_exist({inet_subnet_cidr}) -> row: ({0})")
+
             if row:
                 return Result(status=True, row_id=row[0], reason=f"Subnet '{inet_subnet_cidr}' exists.")
             else:
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Subnet '{inet_subnet_cidr}' does not exist.")
-        
+
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking subnet existence: {str(e)}")
 
@@ -1448,22 +1881,25 @@ class RouterShellDB(metaclass=Singleton):
         - 'reason' in the Result object provides additional information about the operation, which is particularly useful for error messages.
         """
         try:
-            
+
             subnet_exist_result = self.dhcp_pool_subnet_exist(inet_subnet_cidr)
             if not subnet_exist_result.status:
-                self.log.debug(f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: {subnet_exist_result.reason}")                
+                self.log.debug(
+                    f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: {subnet_exist_result.reason}")
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
 
             query = "INSERT INTO DHCPSubnetPools (DHCPSubnet_FK, InetAddressStart, InetAddressEnd, InetSubnet) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr))
+            cursor.execute(query, (subnet_exist_result.row_id,
+                           inet_address_start, inet_address_end, inet_address_subnet_cidr))
             self.connection.commit()
-            
+
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted address range '{inet_address_start}-{inet_address_end}' into subnet '{inet_subnet_cidr}' successfully.")
-        
+
         except sqlite3.Error as e:
-            self.log.debug(f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}") 
+            self.log.debug(
+                f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
     def insert_dhcp_subnet_reservation(self, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> Result:
@@ -1490,18 +1926,20 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
 
             # Check if the reservation already exists
-            reservation_exist_result = self.dhcp_subnet_reservation_exist(hw_address, inet_address)
+            reservation_exist_result = self.dhcp_subnet_reservation_exist(
+                hw_address, inet_address)
             if reservation_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=reservation_exist_result.reason)
 
             # The subnet exists, and the reservation does not exist, proceed to insert the reservation
             query = "INSERT INTO DHCPSubnetReservations (DHCPSubnet_FK, MacAddress, InetAddress) VALUES (?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (subnet_exist_result.row_id, hw_address, inet_address))
+            cursor.execute(query, (subnet_exist_result.row_id,
+                           hw_address, inet_address))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted reservation for '{hw_address}' with IP '{inet_address}' into subnet '{inet_subnet_cidr}' successfully.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert reservation into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
@@ -1526,12 +1964,12 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query, (hw_address, inet_address))
             row = cursor.fetchone()
-            
+
             if row:
                 return Result(status=True, row_id=row[0], reason=f"Reservation for MAC '{hw_address}' with IP '{inet_address}' exists.")
             else:
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Reservation for MAC '{hw_address}' with IP '{inet_address}' does not exist.")
-        
+
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking reservation existence: {str(e)}")
 
@@ -1559,18 +1997,20 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
 
             # Check if the option already exists
-            option_exist_result = self.dhcp_subnet_option_exist(subnet_exist_result.row_id, dhcp_option, option_value)
+            option_exist_result = self.dhcp_subnet_option_exist(
+                subnet_exist_result.row_id, dhcp_option, option_value)
             if option_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
 
             # The subnet exists, and the option does not exist, proceed to insert the option
             query = "INSERT INTO DHCPOptions (DhcpOption, DhcpValue, DHCPSubnetPools_FK, DHCPSubnetReservations_FK) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_option, option_value, subnet_exist_result.row_id, self.FK_NOT_FOUND))
+            cursor.execute(query, (dhcp_option, option_value,
+                           subnet_exist_result.row_id, self.FK_NOT_FOUND))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted DHCP option '{dhcp_option}' with value '{option_value}' into subnet '{inet_subnet_cidr}' successfully.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert DHCP option into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
@@ -1596,7 +2036,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query, (subnet_id, dhcp_option, option_value))
             row = cursor.fetchone()
-            
+
             if row:
                 return Result(status=True, row_id=row[0], reason=f"DHCP option '{dhcp_option}' with value '{option_value}' exists for subnet ID {subnet_id}.")
             else:
@@ -1624,23 +2064,26 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             # Check if the DHCP reservation exists
-            reservation_exist_result = self.dhcp_subnet_reservation_exist(inet_subnet_cidr, hw_address)
+            reservation_exist_result = self.dhcp_subnet_reservation_exist(
+                inet_subnet_cidr, hw_address)
             if not reservation_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=reservation_exist_result.reason)
 
             # Check if the option already exists
-            option_exist_result = self.dhcp_reservation_option_exist(reservation_exist_result.row_id, dhcp_option, option_value)
+            option_exist_result = self.dhcp_reservation_option_exist(
+                reservation_exist_result.row_id, dhcp_option, option_value)
             if option_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
 
             # The reservation exists, and the option does not exist, proceed to insert the option
             query = "INSERT INTO DHCPOptions (DhcpOption, DhcpValue, DHCPSubnetPools_FK, DHCPSubnetReservations_FK) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (dhcp_option, option_value, self.FK_NOT_FOUND, reservation_exist_result.row_id))
+            cursor.execute(query, (dhcp_option, option_value,
+                           self.FK_NOT_FOUND, reservation_exist_result.row_id))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(status=STATUS_OK, row_id=row_id, reason=f"Inserted DHCP option '{dhcp_option}' with value '{option_value}' for reservation '{hw_address}' in subnet '{inet_subnet_cidr}' successfully.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert DHCP option for reservation '{hw_address}' in subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
@@ -1666,12 +2109,12 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute(query, (reservation_id, dhcp_option, option_value))
             row = cursor.fetchone()
-            
+
             if row:
                 return Result(status=True, row_id=row[0], reason=f"DHCP option '{dhcp_option}' with value '{option_value}' exists for reservation ID {reservation_id}.")
             else:
                 return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"DHCP option '{dhcp_option}' with value '{option_value}' does not exist for reservation ID {reservation_id}.")
-        
+
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking DHCP option existence: {str(e)}")
 
@@ -1709,13 +2152,14 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=interface_exist_result.reason)
 
             # The DHCP pool name exists, and the interface exists, proceed to update the interface
-            query = "UPDATE DHCPServer SET Interface_FK = ? WHERE DhcpPoolname = ?"
+            query = "UPDATE DHCPServer SET Interfaces_FK = ? WHERE DhcpPoolname = ?"
             cursor = self.connection.cursor()
 
             if negate:
                 cursor.execute(query, (None, dhcp_pool_name))
             else:
-                cursor.execute(query, (interface_exist_result.row_id, dhcp_pool_name))
+                cursor.execute(
+                    query, (interface_exist_result.row_id, dhcp_pool_name))
 
             self.connection.commit()
 
@@ -1751,7 +2195,7 @@ class RouterShellDB(metaclass=Singleton):
                     FROM DHCPVersionServerOptions
                     JOIN DHCPSubnet ON DHCPVersionServerOptions.DHCPSubnet_FK = DHCPSubnet.ID
                     JOIN DHCPServer ON DHCPSubnet.DHCPServer_FK = DHCPServer.ID
-                    JOIN Interfaces ON DHCPServer.Interface_FK = Interfaces.ID
+                    JOIN Interfaces ON DHCPServer.Interfaces_FK = Interfaces.ID
                     WHERE DHCPServer.DhcpPoolname = ?
                 );
             """
@@ -1795,7 +2239,8 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=subnet_exist_result.reason)
 
             # Check if the specified IP address range exists within the subnet
-            range_exist_result = self.dhcp_subnet_range_exist(subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr)
+            range_exist_result = self.dhcp_subnet_range_exist(
+                subnet_exist_result.row_id, inet_address_start, inet_address_end, inet_address_subnet_cidr)
             if not range_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=range_exist_result.reason)
 
@@ -1810,7 +2255,7 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}' successfully.")
             else:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}'.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
@@ -1846,14 +2291,15 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP pool name '{dhcp_pool_name}' successfully.")
             else:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP pool name '{dhcp_pool_name}'.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP pool name '{dhcp_pool_name}'. Error: {str(e)}")
 
     def delete_dhcp_subnet_reservation_option(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
         try:
-            
-            option_exist_result = self.dhcp_subnet_reservation_option_exist(inet_subnet_cidr, hw_address, dhcp_option, option_value)
+
+            option_exist_result = self.dhcp_subnet_reservation_option_exist(
+                inet_subnet_cidr, hw_address, dhcp_option, option_value)
             if not option_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
 
@@ -1866,7 +2312,7 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet reservation option successfully.")
             else:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet reservation option.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet reservation option. Error: {str(e)}")
 
@@ -1896,7 +2342,8 @@ class RouterShellDB(metaclass=Singleton):
                     "WHERE DHCPSubnet.InetSubnet = ? AND DHCPSubnetReservations.MacAddress = ? AND DHCPOptions.DhcpOption = ? AND DHCPOptions.DhcpValue = ?"
 
             cursor = self.connection.cursor()
-            cursor.execute(query, (inet_subnet_cidr, hw_address, dhcp_option, option_value))
+            cursor.execute(query, (inet_subnet_cidr, hw_address,
+                           dhcp_option, option_value))
             row = cursor.fetchone()
 
             if row:
@@ -1925,14 +2372,16 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             # Check if the DHCP subnet option exists
-            option_exist_result = self.dhcp_subnet_option_exist(inet_subnet_cidr, dhcp_option, option_value)
+            option_exist_result = self.dhcp_subnet_option_exist(
+                inet_subnet_cidr, dhcp_option, option_value)
             if not option_exist_result.status:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=option_exist_result.reason)
 
             # The subnet option exists, proceed to delete it
             query = "DELETE FROM DHCPOptions WHERE DHCPSubnetPools_FK IN (SELECT ID FROM DHCPSubnetPools WHERE DHCPSubnet_FK = (SELECT ID FROM DHCPSubnet WHERE InetSubnet = ?) AND InetAddressStart IS NULL) AND DhcpOption = ? AND DhcpValue = ?"
             cursor = self.connection.cursor()
-            cursor.execute(query, (inet_subnet_cidr, dhcp_option, option_value))
+            cursor.execute(
+                query, (inet_subnet_cidr, dhcp_option, option_value))
             self.connection.commit()
 
             # Check if any rows were deleted
@@ -1940,7 +2389,7 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet option successfully.")
             else:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option.")
-        
+
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option. Error: {str(e)}")
 
@@ -2002,7 +2451,7 @@ class RouterShellDB(metaclass=Singleton):
                 LEFT JOIN DHCPv4ServerOption ON DHCPVersionServerOptions.ID = DHCPv4ServerOption.DHCPVersionServerOptions_FK
                 WHERE DHCPServer.DhcpPoolname = ?;
             """
-            
+
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
 
@@ -2018,12 +2467,12 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             error_message = f"Failed to retrieve DHCP version. Error: {str(e)}"
             self.log.error(error_message)
-            return Result(status=STATUS_NOK, row_id=None, reason=error_message, result={'DHCPVersion':DHCPVersion.UNKNOWN})
+            return Result(status=STATUS_NOK, row_id=None, reason=error_message, result={'DHCPVersion': DHCPVersion.UNKNOWN})
 
     '''
                         DHCP-SERVER CONFIGURATION BUILDING
     '''
- 
+
     def select_global_options(self) -> List[Result]:
         '''TODO'''
         return []
@@ -2042,7 +2491,7 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
 
             query = "SELECT ID, InterfaceName FROM Interfaces WHERE ID = ("\
-                            "SELECT Interface_FK FROM DHCPServer WHERE DhcpPoolname = ?)"
+                "SELECT Interfaces_FK FROM DHCPServer WHERE DhcpPoolname = ?)"
             self.log.debug(f"{query}")
             cursor.execute(query, (dhcp_pool_name,))
             sql_results = cursor.fetchall()
@@ -2050,7 +2499,8 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             for id, interface_name in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, result={'interface_name': interface_name}))
+                results.append(Result(status=STATUS_OK, row_id=id, result={
+                               'interface_name': interface_name}))
 
             return results
 
@@ -2079,7 +2529,7 @@ class RouterShellDB(metaclass=Singleton):
             results = []
 
             for id, inet_start, inet_end, inet_subnet in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, 
+                results.append(Result(status=STATUS_OK, row_id=id,
                                       result={'inet_start': inet_start, 'inet_end': inet_end, 'inet_subnet': inet_subnet}))
 
             return results
@@ -2108,8 +2558,9 @@ class RouterShellDB(metaclass=Singleton):
 
             results = []
 
-            for id , mac, inet_address in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, result={'mac_address': mac, 'inet_address': inet_address}))
+            for id, mac, inet_address in sql_results:
+                results.append(Result(status=STATUS_OK, row_id=id, result={
+                               'mac_address': mac, 'inet_address': inet_address}))
 
             return results
 
@@ -2129,7 +2580,7 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             self.log.debug(f"get_dhcp_pool_options({dhcp_pool_name})")
-            
+
             cursor = self.connection.cursor()
 
             query = """
@@ -2162,14 +2613,14 @@ class RouterShellDB(metaclass=Singleton):
 
             for id, option, value in sql_results:
                 self.log.debug(f"OPTION: {option} -> VALUE: {value}")
-                results.append(Result(status=STATUS_OK, row_id=id, result={'option': option, 'value': value}))
+                results.append(Result(status=STATUS_OK, row_id=id, result={
+                               'option': option, 'value': value}))
 
             return results
 
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP options. Error: {str(e)}")]
 
- 
     '''
                         DHCP-CLIENT DATABASE
     '''
@@ -2187,20 +2638,20 @@ class RouterShellDB(metaclass=Singleton):
                     status = STATUS_OK for success, STATUS_NOK for failure.
         """
         result = self.interface_exists(interface_name)
-        
+
         if not result.status:
             err = f"Unable to insert DHCP client to interface: {interface_name} does not exist"
             self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
-        
+
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO DHCPClient (Interface_FK, DHCPVersion) VALUES (?, ?)", (result.row_id, dhcp_version))
+                "INSERT INTO DHCPClient (Interfaces_FK, DHCPVersion) VALUES (?, ?)", (result.row_id, dhcp_version))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(STATUS_OK, row_id=row_id)
-        
+
         except Exception as e:
             self.log.error(f"Failed to add DHCP client: {e}")
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
@@ -2208,6 +2659,7 @@ class RouterShellDB(metaclass=Singleton):
     def update_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
         """
         Update the DHCP version for an existing DHCP client entry in the database.
+        If the update fails because the entry does not exist, insert a new entry.
 
         Args:
             interface_name (str): The name of the network interface.
@@ -2218,22 +2670,40 @@ class RouterShellDB(metaclass=Singleton):
                     status = STATUS_OK for success, STATUS_NOK for failure.
         """
         result = self.interface_exists(interface_name)
-        
-        if result.status:
-            err = f"Unable to update DHCP client to interface: {interface_name} does not exist"
+
+        if not result.status:
+            err = f"Unable to update DHCP client because interface '{interface_name}' does not exist in the DB"
             self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
-        
+
+        interface_row_id = result.row_id
+
         try:
             cursor = self.connection.cursor()
+            # Begin a transaction
+            self.connection.execute('BEGIN')
+
+            # Try to update the existing entry
             cursor.execute(
-            "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interface_FK = ?", (dhcp_version, result.row_id))
+                "UPDATE DHCPClient SET DHCPVersion = ? WHERE Interfaces_FK = ?",
+                (dhcp_version, interface_row_id)
+            )
+
+            if cursor.rowcount == 0:
+                # If no rows were updated, the entry does not exist, insert a new entry
+                cursor.execute(
+                    "INSERT INTO DHCPClient (Interfaces_FK, DHCPVersion) VALUES (?, ?)",
+                    (interface_row_id, dhcp_version)
+                )
+
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(STATUS_OK, row_id=row_id)
-        
+
         except Exception as e:
-            self.log.error(f"Failed to update DHCP client: {e}")
+            self.connection.rollback()
+            err = f"Failed to update or insert DHCP client: {e}"
+            self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
     def remove_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
@@ -2249,24 +2719,23 @@ class RouterShellDB(metaclass=Singleton):
                     status = STATUS_OK for success, STATUS_NOK for failure.
         """
         result = self.interface_exists(interface_name)
-        
+
         if result.status:
             err = f"Unable to remove DHCP client from interface: {interface_name} does not exist"
             self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=err)
-        
+
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM DHCPClient WHERE Interface_FK = ? AND DHCPVersion = ?", (result.row_id, dhcp_version))
+                "DELETE FROM DHCPClient WHERE Interfaces_FK = ? AND DHCPVersion = ?", (result.row_id, dhcp_version))
             self.connection.commit()
             row_id = cursor.lastrowid
             return Result(STATUS_OK, row_id=row_id)
-        
+
         except Exception as e:
             self.log.error(f"Failed to remove DHCP client: {e}")
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
-
 
     '''
                         INTERFACE DATABASE
@@ -2304,7 +2773,7 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                 JOIN
-                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
+                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interfaces_FK
                 LEFT JOIN
                     RenameInterface ON Interfaces.InterfaceName = RenameInterface.AliasInterface
             '''
@@ -2348,12 +2817,12 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_type(self, if_name: str) -> InterfaceType:
+    def select_interface_type(self, interface_name: str) -> InterfaceType:
         """
         Retrieve the type of an interface by its name.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
 
         Returns:
             InterfaceType: The type of the interface if found, or None if not found.
@@ -2363,7 +2832,8 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT InterfaceType FROM Interfaces WHERE InterfaceName = ?", (if_name,))
+            cursor.execute(
+                "SELECT InterfaceType FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
             row = cursor.fetchone()
             if row:
                 interface_type = InterfaceType(row[0])
@@ -2387,7 +2857,8 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (if_name,))
+            cursor.execute(
+                "SELECT ID FROM Interfaces WHERE InterfaceName = ?", (if_name,))
             row = cursor.fetchone()
             if row:
                 return row[0]
@@ -2409,20 +2880,22 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM Interfaces WHERE InterfaceName = ?", (if_name,))
+            cursor.execute(
+                "SELECT ID FROM Interfaces WHERE InterfaceName = ?", (if_name,))
             self.connection.commit()
             existing_row = cursor.fetchone()
-            
+
             if existing_row:
+                self.log.debug(f'Interface {if_name} exists on row-id: {existing_row[0]}')
                 return Result(status=True, row_id=existing_row[0])
             else:
                 return Result(status=False, row_id=0)
-        
+
         except sqlite3.Error as e:
             self.log.error("Error checking if interface exists: %s", e)
             return Result(status=False, row_id=0)
 
-    def insert_interface(self, if_name, interface_type:InterfaceType, shutdown_status=True) -> Result:
+    def insert_interface(self, if_name, interface_type: InterfaceType, shutdown_status=True) -> Result:
         """
         Insert data into the 'Interfaces' table.
 
@@ -2435,38 +2908,40 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status of the insertion and the row ID.
                     status = STATUS_OK success, STATUS_NOK otherwise
         """
-        
+
         existing_result = self.interface_exists(if_name)
-        
+
         if existing_result.status:
-            return Result(status=STATUS_NOK, 
-                        row_id=existing_result.row_id, 
-                        reason=f"Interface: {if_name} already exists")
+            return Result(status=STATUS_NOK,
+                          row_id=existing_result.row_id,
+                          reason=f"Interface: {if_name} already exists")
 
         try:
-            self.log.debug(f"insert_interface() -> Interface: {if_name} -> Interface-Type: {interface_type.value} -> shutdown: {shutdown_status}")
-            
+            self.log.debug(
+                f"insert_interface() -> Interface: {if_name} -> Interface-Type: {interface_type.value} -> shutdown: {shutdown_status}")
+
             cursor = self.connection.cursor()
             cursor.execute(
                 "INSERT INTO Interfaces (InterfaceName, InterfaceType, ShutdownStatus) VALUES (?, ?, ?)",
                 (if_name, interface_type.value, shutdown_status)
             )
-            
+
             self.connection.commit()
-            
-            self.log.debug("Data inserted into the 'Interfaces' table successfully.")
-            
+
+            self.log.debug(
+                "Data inserted into the 'Interfaces' table successfully.")
+
             self.delete_global_nat_pool_name
-            
+
             self._insert_default_row_in_interface_sub_option(if_name)
-            
+
             return Result(status=STATUS_OK, row_id=cursor.lastrowid)
-        
+
         except sqlite3.Error as e:
             self.log.error("Error inserting data into 'Interfaces': %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
-    def delete_interface(self, if_name: str) -> Result:
+    def delete_interface(self, interface_name: str) -> Result:
         """
         Delete an interface from the 'Interfaces' table.
 
@@ -2477,21 +2952,23 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status of the deletion.
         """
         try:
-            existing_result = self.interface_exists(if_name)
-            
+            existing_result = self.interface_exists(interface_name)
+
             if existing_result.status:
                 cursor = self.connection.cursor()
-                cursor.execute("DELETE FROM Interfaces WHERE InterfaceName = ?", (if_name,))
+                cursor.execute(
+                    "DELETE FROM Interfaces WHERE InterfaceName = ?", (interface_name,))
                 self.connection.commit()
-                self.log.debug(f"Deleted interface '{if_name}' from the 'Interfaces' table.")
-                return Result(status=STATUS_OK, row_id=0, reason=f"Interface '{if_name}' deleted successfully.")
+                self.log.debug(
+                    f"Deleted interface '{interface_name}' from the 'Interfaces' table.")
+                return Result(status=STATUS_OK, row_id=0, reason=f"Interface '{interface_name}' deleted successfully.")
             else:
-                self.log.debug(f"Interface '{if_name}' does not exist.")
-                return Result(status=STATUS_NOK, row_id=0, reason=f"Interface '{if_name}' does not exist.")
+                self.log.debug(f"Interface '{interface_name}' does not exist.")
+                return Result(status=STATUS_NOK, row_id=0, reason=f"Interface '{interface_name}' does not exist.")
         except sqlite3.Error as e:
             self.log.error("Error deleting interface: %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
-    
+
     def update_interface_shutdown(self, interface_name: str, shutdown_status: bool) -> Result:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
@@ -2511,20 +2988,22 @@ class RouterShellDB(metaclass=Singleton):
 
         try:
             cursor = self.connection.cursor()
-            
+
             cursor.execute(
                 "UPDATE Interfaces SET ShutdownStatus = ? WHERE InterfaceName = ?",
                 (shutdown_status, interface_name)
             )
-            
+
             self.connection.commit()
-            
-            self.log.debug(f"Shutdown status ({shutdown_status}) updated for interface: {interface_name}")
-            
+
+            self.log.debug(
+                f"Shutdown status ({shutdown_status}) updated for interface: {interface_name}")
+
             return Result(status=STATUS_OK, row_id=existing_result.row_id)
-        
+
         except sqlite3.Error as e:
-            self.log.error(f"Error updating shutdown status for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error updating shutdown status for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
 
     def update_interface_duplex(self, interface_name: str, duplex: str) -> Result:
@@ -2546,31 +3025,34 @@ class RouterShellDB(metaclass=Singleton):
             return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
 
         interface_id = existing_result.row_id
-        
+
         try:
 
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            cursor.execute(
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_id,))
             sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 # If an entry exists, update the duplex setting
                 cursor.execute(
-                    "UPDATE InterfaceSubOptions SET Duplex = ? WHERE Interface_FK = ?",
+                    "UPDATE InterfaceSubOptions SET Duplex = ? WHERE Interfaces_FK = ?",
                     (duplex, interface_id)
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, Duplex) VALUES (?, ?)",
+                    "INSERT INTO InterfaceSubOptions (Interfaces_FK, Duplex) VALUES (?, ?)",
                     (interface_id, duplex)
                 )
 
             self.connection.commit()
-            self.log.debug(f"Duplex setting updated for interface: {interface_name}")
+            self.log.debug(
+                f"Duplex setting updated for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating duplex setting for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error updating duplex setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=str(e))
 
     def update_interface_mac_address(self, interface_name: str, mac_address: str) -> Result:
@@ -2578,7 +3060,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             mac_address (str): MAC address in the format xx:xx:xx:xx:xx:xx.
 
         Returns:
@@ -2593,26 +3075,29 @@ class RouterShellDB(metaclass=Singleton):
             interface_id = existing_result.row_id
 
             cursor = self.connection.cursor()  # Create a cursor object
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
+            cursor.execute(
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_id,))
             sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 cursor.execute(
-                    "UPDATE InterfaceSubOptions SET MacAddress = ? WHERE Interface_FK = ?",
+                    "UPDATE InterfaceSubOptions SET MacAddress = ? WHERE Interfaces_FK = ?",
                     (mac_address, interface_id)
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, MacAddress) VALUES (?, ?)",
+                    "INSERT INTO InterfaceSubOptions (Interfaces_FK, MacAddress) VALUES (?, ?)",
                     (interface_id, mac_address)
                 )
 
             self.connection.commit()
-            self.log.debug(f"MAC address setting updated for interface: {interface_name}")
+            self.log.debug(
+                f"MAC address setting updated for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating MAC address setting for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error updating MAC address setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=str(e))
 
     def update_interface_speed(self, interface_name: str, speed: str) -> Result:
@@ -2620,7 +3105,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             speed (str): Speed setting, one of ['10', '100', '1000', '10000', 'auto'].
 
         Returns:
@@ -2634,29 +3119,32 @@ class RouterShellDB(metaclass=Singleton):
 
         try:
             interface_id = existing_result.row_id
-            
+
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_id,))
-            
+            cursor.execute(
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_id,))
+
             sub_options_row = cursor.fetchone()
 
             if sub_options_row:
                 cursor.execute(
-                    "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interface_FK = ?",
+                    "UPDATE InterfaceSubOptions SET Speed = ? WHERE Interfaces_FK = ?",
                     (speed, interface_id)
                 )
             else:
                 cursor.execute(
-                    "INSERT INTO InterfaceSubOptions (Interface_FK, Speed) VALUES (?, ?)",
+                    "INSERT INTO InterfaceSubOptions (Interfaces_FK, Speed) VALUES (?, ?)",
                     (interface_id, speed)
                 )
 
             self.connection.commit()
-            self.log.debug(f"Speed {speed} setting updated for interface: {interface_name}")
+            self.log.debug(
+                f"Speed {speed} setting updated for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
     def update_interface_description(self, interface_name: str, description: str) -> Result:
@@ -2675,10 +3163,14 @@ class RouterShellDB(metaclass=Singleton):
                 - row_id (int): The row ID of the updated interface in the database.
                 - reason (str, optional): A descriptive message indicating the reason for failure, if any.
         """
+
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
             return Result(status=STATUS_NOK, row_id=0, reason=f"Interface: {interface_name} does not exist")
+
+        self.log.debug(
+            f"Description: ({description}) UPDATING for interface: {interface_name}")
 
         try:
             cursor = self.connection.cursor()
@@ -2690,14 +3182,16 @@ class RouterShellDB(metaclass=Singleton):
 
             self.connection.commit()
 
-            self.log.debug(f"Description: ({description}) updated for interface: {interface_name}")
+            self.log.debug(
+                f"Description: ({description}) UPDATED for interface: {interface_name}")
 
             return Result(status=STATUS_OK, row_id=existing_result.row_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating description for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error updating description for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
-    
+
     def update_interface_name(self, existing_interface_name: str, new_interface_name: str) -> Result:
         """
         Update the name of a network interface in the database.
@@ -2729,24 +3223,26 @@ class RouterShellDB(metaclass=Singleton):
 
             self.connection.commit()
 
-            self.log.debug(f"Interface name updated: {existing_interface_name} -> {new_interface_name}")
+            self.log.debug(
+                f"Interface name updated: {existing_interface_name} -> {new_interface_name}")
 
-            return Result(status=STATUS_OK, row_id=existing_result.row_id, result={'InterfaceName':new_interface_name})
+            return Result(status=STATUS_OK, row_id=existing_result.row_id, result={'InterfaceName': new_interface_name})
 
         except sqlite3.Error as e:
-            self.log.error(f"Error updating interface name for {existing_interface_name}: {e}")
+            self.log.error(
+                f"Error updating interface name for {existing_interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
-        
+
     '''
                     INTERFACE-IP-ADDRESS DATABASE
     '''
-            
+
     def insert_interface_inet_address(self, interface_name: str, ip_address: str, is_secondary: bool) -> Result:
         """
         Insert an IP address entry for an interface into the 'InterfaceIpAddress' table.
 
         Args:
-            if_name (str): The name of the interface to associate the IP address with.
+            interface_name (str): The name of the interface to associate the IP address with.
             ip_address (str): The IP address in the format IPv4 or IPv6 Address/Mask-Prefix.
             is_secondary (bool): True if the IP address is secondary, False otherwise.
 
@@ -2764,16 +3260,18 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO InterfaceIpAddress (Interface_FK, IpAddress, SecondaryIp) VALUES (?, ?, ?)",
+                "INSERT INTO InterfaceIpAddress (Interfaces_FK, IpAddress, SecondaryIp) VALUES (?, ?, ?)",
                 (interface_id, ip_address, is_secondary)
             )
 
             self.connection.commit()
-            self.log.debug(f"IP address {ip_address} inserted for interface: {interface_name}")
+            self.log.debug(
+                f"IP address {ip_address} inserted for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error inserting IP address for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error inserting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
     def delete_interface_inet_address(self, interface_name: str, ip_address: str) -> Result:
@@ -2781,7 +3279,7 @@ class RouterShellDB(metaclass=Singleton):
         Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
             ip_address (str): The IP address to delete.
 
         Returns:
@@ -2798,30 +3296,33 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM InterfaceIpAddress WHERE Interface_FK = ? AND IpAddress = ?",
+                "DELETE FROM InterfaceIpAddress WHERE Interfaces_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )
             self.connection.commit()
-            self.log.debug(f"IP address {ip_address} row deleted for interface: {interface_name}")
+            self.log.debug(
+                f"IP address {ip_address} row deleted for interface: {interface_name}")
             return Result(status=STATUS_OK, row_id=interface_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error deleting IP address for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error deleting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
     def _sub_option_row_exists(self, interface_fk: int) -> Result:
         """
-        Check if a row with the given Interface_FK exists in the 'InterfaceSubOptions' table.
+        Check if a row with the given Interfaces_FK exists in the 'InterfaceSubOptions' table.
 
         Args:
-            interface_fk (int): The foreign key (Interface_FK) to check.
+            interface_fk (int): The foreign key (Interfaces_FK) to check.
 
         Returns:
             Result: A Result object with the 'row_id' field indicating the found 'ID' or 0 if not found.
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_fk,))
+            cursor.execute(
+                "SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?", (interface_fk,))
             row = cursor.fetchone()
             return Result(status=True, row_id=row[0] if row else 0)
         except sqlite3.Error:
@@ -2837,7 +3338,7 @@ class RouterShellDB(metaclass=Singleton):
         the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to check.
+            interface_name (str): The name of the interface to check.
 
         Returns:
             Result: A Result object indicating the outcome of the checks.
@@ -2850,7 +3351,8 @@ class RouterShellDB(metaclass=Singleton):
         if not interface_exists_result.status:
             return Result(status=False, reason=f"Interface: {interface_name} doesn't exist")
 
-        sub_option_row_result = self._sub_option_row_exists(interface_exists_result.row_id)
+        sub_option_row_result = self._sub_option_row_exists(
+            interface_exists_result.row_id)
 
         if sub_option_row_result.row_id:
             return Result(status=True, row_id=sub_option_row_result.row_id)
@@ -2862,7 +3364,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the Proxy ARP setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             status (bool): True to enable Proxy ARP, False to disable it.
 
         Returns:
@@ -2871,33 +3373,36 @@ class RouterShellDB(metaclass=Singleton):
                     'row_id' : If exists, row_id > 0
                     'result' : Result of SQL query
         """
-        
+
         if_exists = self.interface_exists(interface_name)
-        
+
         if not if_exists.status:
             return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=if_exists.reason)
-        
+
         if_sub_opt = self.interface_and_sub_option_exist(interface_name)
-        
+
         if not if_sub_opt.status:
-            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(interface_name)
+            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(
+                interface_name)
             if not insert_if_sub_option.status:
                 return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=insert_if_sub_option.reason)
-        
+
         try:
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "UPDATE InterfaceSubOptions SET ProxyArp = ? WHERE Interface_FK = ?",
+                "UPDATE InterfaceSubOptions SET ProxyArp = ? WHERE Interfaces_FK = ?",
                 (status, if_exists.row_id)
             )
 
             self.connection.commit()
-            self.log.debug(f"update_interface_proxy_arp() -> Proxy ARP setting updated for interface: {interface_name}")
+            self.log.debug(
+                f"update_interface_proxy_arp() -> Proxy ARP setting updated for interface: {interface_name}")
             return Result(STATUS_OK, row_id=if_sub_opt.row_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {interface_name}: {e}")
+            self.log.error(
+                f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, reason=str(e))
 
     def update_interface_drop_gratuitous_arp(self, interface_name: str, status: bool) -> Result:
@@ -2905,7 +3410,7 @@ class RouterShellDB(metaclass=Singleton):
         Update the 'Drop Gratuitous ARP' setting of an interface in the 'InterfaceSubOptions' table.
 
         Args:
-            if_name (str): The name of the interface to update.
+            interface_name (str): The name of the interface to update.
             status (bool): True to enable 'Drop Gratuitous ARP,' False to disable it.
 
         Returns:
@@ -2914,33 +3419,36 @@ class RouterShellDB(metaclass=Singleton):
                     'row_id' : If exists, row_id > 0
                     'result' : Result of SQL query
         """
-        
+
         # Check if the interface exists
         if_exists = self.interface_exists(interface_name)
-        
+
         if not if_exists.status:
             return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=if_exists.reason)
-        
+
         # Check if the sub-option row exists
         if_sub_opt = self.interface_and_sub_option_exist(interface_name)
-        
+
         if not if_sub_opt.status:
             # If the sub-option row doesn't exist, insert a default row
-            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(interface_name)
-        
+            insert_if_sub_option = self._insert_default_row_in_interface_sub_option(
+                interface_name)
+
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interface_FK = ?",
+                "UPDATE InterfaceSubOptions SET DropGratuitousArp = ? WHERE Interfaces_FK = ?",
                 (status, if_exists.row_id)
             )
 
             self.connection.commit()
-            self.log.debug(f"update_interface_drop_gratuitous_arp() -> 'Drop Gratuitous ARP' setting updated for interface: {interface_name}")
+            self.log.debug(
+                f"update_interface_drop_gratuitous_arp() -> 'Drop Gratuitous ARP' setting updated for interface: {interface_name}")
             return Result(STATUS_OK, row_id=if_sub_opt.row_id)
 
         except sqlite3.Error as e:
-            self.log.error(f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {interface_name}: {e}")
+            self.log.error(
+                f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, reason=str(e))
 
     def update_interface_static_arp(self, interface_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
@@ -2948,7 +3456,7 @@ class RouterShellDB(metaclass=Singleton):
         Create a default entry in the 'InterfaceStaticArp' table if it does not already exist, or update it if it exists.
 
         Args:
-            if_name (str): The name of the interface to associate the static ARP record with.
+            interface_name (str): The name of the interface to associate the static ARP record with.
             ip_address (str): The IP address in IPv4 or IPv6 format.
             mac_address (str): The MAC address in the format: xx:xx:xx:xx:xx:xx.
             encapsulation (str): The encapsulation type, e.g., 'arpa' or 'TBD'.
@@ -2956,7 +3464,8 @@ class RouterShellDB(metaclass=Singleton):
         Returns:
             Result: A Result object with the status of the operation.
         """
-        self.log.debug(f"update_interface_static_arp() If: {interface_name} , IP: {ip_address} , mac: {mac_address} , encap: {encapsulation}")
+        self.log.debug(
+            f"update_interface_static_arp() If: {interface_name} , IP: {ip_address} , mac: {mac_address} , encap: {encapsulation}")
         try:
             # Check if the interface exists and get its ID
             interface_exists_result = self.interface_exists(interface_name)
@@ -2965,32 +3474,38 @@ class RouterShellDB(metaclass=Singleton):
 
             cursor = self.connection.cursor()
             cursor.execute(
-                "SELECT ID FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
+                "SELECT ID FROM InterfaceStaticArp WHERE Interfaces_FK = ? AND IpAddress = ?",
                 (interface_exists_result.row_id, ip_address)
             )
             existing_entry = cursor.fetchone()
 
             if existing_entry:
-                self.log.debug(f"update_interface_static_arp() -> Entry Exist, Updating IP: {ip_address} -> Mac: {mac_address}")
+                self.log.debug(
+                    f"update_interface_static_arp() -> Entry Exist, Updating IP: {ip_address} -> Mac: {mac_address}")
                 cursor.execute(
                     "UPDATE InterfaceStaticArp SET MacAddress = ?, Encapsulation = ? WHERE ID = ?",
                     (mac_address, encapsulation, existing_entry[0])
                 )
                 self.connection.commit()
-                self.log.debug(f"Static ARP entry updated for interface: {interface_name}")
+                self.log.debug(
+                    f"Static ARP entry updated for interface: {interface_name}")
             else:
-                self.log.debug(f"update_interface_static_arp() -> Entry NOT Found, inserting IP: {ip_address} -> Mac: {mac_address}")
+                self.log.debug(
+                    f"update_interface_static_arp() -> Entry NOT Found, inserting IP: {ip_address} -> Mac: {mac_address}")
                 cursor.execute(
-                    "INSERT INTO InterfaceStaticArp (Interface_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
-                    (interface_exists_result.row_id, ip_address, mac_address, encapsulation)
+                    "INSERT INTO InterfaceStaticArp (Interfaces_FK, IpAddress, MacAddress, Encapsulation) VALUES (?, ?, ?, ?)",
+                    (interface_exists_result.row_id,
+                     ip_address, mac_address, encapsulation)
                 )
                 self.connection.commit()
-                self.log.debug(f"Static ARP entry added for interface: {interface_name}")
+                self.log.debug(
+                    f"Static ARP entry added for interface: {interface_name}")
 
             return Result(STATUS_OK, row_id=existing_entry[0] if existing_entry else cursor.lastrowid)
 
         except sqlite3.Error as e:
-            self.log.error(f"Error creating or updating static ARP entry for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error creating or updating static ARP entry for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=0, reason=str(e))
 
     def delete_interface_static_arp(self, interface_name: str, ip_address: str) -> Result:
@@ -2998,14 +3513,15 @@ class RouterShellDB(metaclass=Singleton):
         Delete a static ARP record from the 'InterfaceStaticArp' table.
 
         Args:
-            if_name (str): The name of the interface to associate with the static ARP record.
+            interface_name (str): The name of the interface to associate with the static ARP record.
             ip_address (str): The IP address to delete.
 
         Returns:
             Result: A Result object with the status of the deletion.
         """
-        self.log.debug(f"delete_interface_static_arp() If: {interface_name} , IP: {ip_address}")
-        
+        self.log.debug(
+            f"delete_interface_static_arp() If: {interface_name} , IP: {ip_address}")
+
         existing_result = self.interface_exists(interface_name)
 
         if not existing_result.status:
@@ -3013,24 +3529,27 @@ class RouterShellDB(metaclass=Singleton):
 
         try:
             interface_id = existing_result.row_id
-            
+
             cursor = self.connection.cursor()
-            
-            self.log.debug(f"delete_interface_static_arp() Deleting Row -> Interface-FK: {interface_name} , IP: {ip_address}")
-  
+
+            self.log.debug(
+                f"delete_interface_static_arp() Deleting Row -> Interface-FK: {interface_name} , IP: {ip_address}")
+
             cursor.execute(
-                "DELETE FROM InterfaceStaticArp WHERE Interface_FK = ? AND IpAddress = ?",
+                "DELETE FROM InterfaceStaticArp WHERE Interfaces_FK = ? AND IpAddress = ?",
                 (interface_id, ip_address)
             )
-            
+
             self.connection.commit()
-            
-            self.log.debug(f"Static ARP record deleted for interface: {interface_name}")
-            
+
+            self.log.debug(
+                f"Static ARP record deleted for interface: {interface_name}")
+
             return Result(STATUS_OK, row_id=interface_id)
-        
+
         except sqlite3.Error as e:
-            self.log.error(f"Error deleting static ARP record for interface {interface_name}: {e}")
+            self.log.error(
+                f"Error deleting static ARP record for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=interface_id, reason=str(e))
 
     def insert_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
@@ -3045,31 +3564,34 @@ class RouterShellDB(metaclass=Singleton):
             Result: A Result object with the status of the insertion.
         """
         interface_result = self.interface_exists(interface_name)
-        
+
         if not interface_result.status:
-            self.log.debug(f"insert_interface_bridge_group() -> interface: {interface_name} does not exist, Exiting")
+            self.log.debug(f''
+                f"insert_interface_bridge_group() -> interface: {interface_name} does not exist, Exiting")
             return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
-            self.log.debug(f"insert_interface_bridge_group() -> Bridge group: {bridge_name} does not exist, Exiting")
+            self.log.debug(
+                f"insert_interface_bridge_group() -> Bridge group: {bridge_name} does not exist, Exiting")
             return Result(STATUS_NOK, reason=f"Bridge group: {bridge_name} does not exist")
 
         interface_id = interface_result.row_id
-        
         bridge_id = bridge_result.row_id
+
+        self.log.debug(f'insert_interface_bridge_group() -> InterfaceRowID: {interface_id} BridgeRowID:{bridge_id}')
 
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "INSERT INTO BridgeGroups (Interface_FK, BridgeGroups_FK) VALUES (?, ?)",
+                "INSERT INTO BridgeGroups (Interfaces_FK, Bridges_FK) VALUES (?, ?)",
                 (interface_id, bridge_id)
             )
             row_id = cursor.lastrowid
             self.connection.commit()
             return Result(STATUS_OK, row_id=row_id, reason="Interface added to the bridge group successfully")
-        
+
         except sqlite3.Error as e:
             error_message = f"Error inserting data into 'BridgeGroups': {e}"
             self.log.error(error_message)
@@ -3080,7 +3602,7 @@ class RouterShellDB(metaclass=Singleton):
         Remove an interface from a bridge group in the 'BridgeGroups' table.
 
         Args:
-            if_name (str): The name of the interface.
+            interface_name (str): The name of the interface.
             bridge_name (str): The name of the bridge group.
 
         Returns:
@@ -3088,14 +3610,16 @@ class RouterShellDB(metaclass=Singleton):
         """
         # Look up the interface and bridge group by name
         interface_result = self.interface_exists(interface_name)
-        
+
         if not interface_result.status:
-            return Result(STATUS_NOK, reason=f"Interface: {interface_name} does not exist")
+            return Result(STATUS_NOK, 
+                          reason=f"Unable to delelte Interface: {interface_name} from bridge-group {interface_name} interface does not exist")
 
         bridge_result = self.bridge_exist_db(bridge_name)
 
         if not bridge_result.status:
-            return Result(STATUS_NOK, reason=f"Bridge group: {bridge_name} does not exist")
+            return Result(STATUS_NOK, 
+                          reason=f"Unable to delelte bridge-group: {bridge_name} from interface {interface_name}, bridge does not exist")
 
         interface_id = interface_result.row_id
         bridge_id = bridge_result.row_id
@@ -3103,12 +3627,12 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
             cursor.execute(
-                "DELETE FROM BridgeGroups WHERE Interface_FK = ? AND BridgeGroups_FK = ?",
+                "DELETE FROM BridgeGroups WHERE Interfaces_FK = ? AND Bridges_FK = ?",
                 (interface_id, bridge_id)
             )
             self.connection.commit()
             return Result(STATUS_OK, reason="Interface removed from the bridge group successfully")
-        
+
         except sqlite3.Error as e:
             error_message = f"Error deleting data from 'BridgeGroups': {e}"
             self.log.error(error_message)
@@ -3119,7 +3643,7 @@ class RouterShellDB(metaclass=Singleton):
         Insert a default row into the InterfaceSubOptions table if it does not already exist.
 
         Args:
-            if_name (str): The name of the network interface.
+            interface_name (str): The name of the network interface.
 
         Returns:
             Result: An instance of Result if the row is successfully or not inserted.
@@ -3131,13 +3655,15 @@ class RouterShellDB(metaclass=Singleton):
             if not interface_exists_result.status:
                 return Result(status=False, reason=f"Interface:{interface_name} does not exists")
 
-            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interface_FK = ?", (interface_exists_result.row_id,))
+            cursor.execute("SELECT ID FROM InterfaceSubOptions WHERE Interfaces_FK = ?",
+                           (interface_exists_result.row_id,))
             existing_row = cursor.fetchone()
 
             if existing_row is not None:
                 return Result(status=False, reason="Row already exists")
 
-            cursor.execute("INSERT INTO InterfaceSubOptions (Interface_FK) VALUES (?)", (interface_exists_result.row_id,))
+            cursor.execute("INSERT INTO InterfaceSubOptions (Interfaces_FK) VALUES (?)",
+                           (interface_exists_result.row_id,))
             row_id = cursor.lastrowid  # Get the inserted row's ID
             self.connection.commit()
 
@@ -3165,7 +3691,8 @@ class RouterShellDB(metaclass=Singleton):
           - row_id (int): The ID of the updated/inserted record in the RenameInterface table.
           - reason (str): The error message, if any (only applicable if status is STATUS_NOK).
         """
-        self.log.debug(f"update_interface_alias({bus_info}, {initial_interface}, {alias_interface})")
+        self.log.debug(
+            f"update_interface_alias({bus_info}, {initial_interface}, {alias_interface})")
         try:
             cursor = self.connection.cursor()
 
@@ -3178,13 +3705,14 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
 
             # Retrieve the ID of the updated/inserted record
-            cursor.execute("SELECT ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
+            cursor.execute(
+                "SELECT ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
             row_id = cursor.fetchone()[0]
 
             self.update_interface_name(initial_interface, alias_interface)
-                        
+
             return Result(status=STATUS_OK, row_id=row_id, reason="Alias set successfully")
-            
+
         except sqlite3.Error as e:
             # Handle database-related errors and return the Result instance with the error details
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
@@ -3209,15 +3737,16 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            cursor.execute("SELECT AliasInterface, ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
+            cursor.execute(
+                "SELECT AliasInterface, ID FROM RenameInterface WHERE InitialInterface = ?", (initial_interface,))
             row = cursor.fetchone()
 
             if row is not None:
                 alias_name, row_id = row
-                return Result(status=True, row_id=row_id, result={'AliasInterface' : alias_name})
+                return Result(status=True, row_id=row_id, result={'AliasInterface': alias_name})
             else:
                 return Result(status=False, row_id=None, result=None)
-        
+
         except sqlite3.Error as e:
             return Result(status=False, row_id=None, reason=str(e))
 
@@ -3235,14 +3764,16 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            cursor.execute("SELECT InitialInterface, AliasInterface FROM RenameInterface")
+            cursor.execute(
+                "SELECT InitialInterface, AliasInterface FROM RenameInterface")
             rows = cursor.fetchall()
 
             result_list = []
             for row in rows:
                 interface_name = row[0]
                 alias_name = row[1]
-                result_list.append(Result(status=STATUS_OK, row_id=0, result={'InterfaceName': interface_name, 'AliasInterface': alias_name}))
+                result_list.append(Result(status=STATUS_OK, row_id=0, result={
+                                   'InterfaceName': interface_name, 'AliasInterface': alias_name}))
 
             return result_list
 
@@ -3253,6 +3784,7 @@ class RouterShellDB(metaclass=Singleton):
     '''
                         WIRELESS-POLICY-WIFI
     '''
+
     def wifi_policy_exist(self, wireless_wifi_policy: str) -> Result:
         """
         Check if a wireless Wi-Fi policy exists in the database.
@@ -3391,7 +3923,8 @@ class RouterShellDB(metaclass=Singleton):
                         AND OptionValue = ?
                     """
             cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, hostapd_option, hostapd_value))
+            cursor.execute(query, (wireless_wifi_policy,
+                           hostapd_option, hostapd_value))
             self.connection.commit()
 
             # Check the number of rows affected by the deletion.
@@ -3408,6 +3941,7 @@ class RouterShellDB(metaclass=Singleton):
     '''
                         WIRELESS-POLICY-WIFI SELECT
     '''
+
     def select_wifi_policies(self) -> List[Result]:
         """
         Retrieves information about all wireless WiFi policies.
@@ -3429,17 +3963,19 @@ class RouterShellDB(metaclass=Singleton):
             for row in rows:
                 id, policy_name, channel, hardware_mode = row
                 results.append(Result(
-                        status=STATUS_OK,
-                        row_id=id,
-                        reason=f"Retrieved information for wireless WiFi policy '{policy_name}'",
-                        result={"WifiPolicyName": policy_name, "Channel": channel, "HardwareMode": hardware_mode}
+                    status=STATUS_OK,
+                    row_id=id,
+                    reason=f"Retrieved information for wireless WiFi policy '{policy_name}'",
+                    result={"WifiPolicyName": policy_name,
+                            "Channel": channel, "HardwareMode": hardware_mode}
                 ))
 
             return results
 
         except sqlite3.Error as e:
             error_message = f"Failed to retrieve information for wireless WiFi policies. Error: {str(e)}"
-            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message))
+            results.append(
+                Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message))
             return results
 
     def select_all_wifi_hostapd_options(self, wireless_wifi_policy: str) -> List[Result]:
@@ -3478,14 +4014,16 @@ class RouterShellDB(metaclass=Singleton):
 
             for row in rows:
                 option_name, option_value, id = row
-                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved Hostapd option for policy '{wireless_wifi_policy}'", result={"OptionName": option_name, "OptionValue": option_value}))
+                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved Hostapd option for policy '{wireless_wifi_policy}'", result={
+                               "OptionName": option_name, "OptionValue": option_value}))
 
             return results
 
         except sqlite3.Error as e:
-            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND,
+                           reason=f"Failed to retrieve Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
-    
+
     def select_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> List[Result]:
         """
         Retrieve a list of Hostapd options associated with a specific wireless Wi-Fi policy and matching option.
@@ -3521,17 +4059,20 @@ class RouterShellDB(metaclass=Singleton):
                         AND OptionValue = ?
                     """
             cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, hostapd_option, hostapd_value))
+            cursor.execute(query, (wireless_wifi_policy,
+                           hostapd_option, hostapd_value))
             rows = cursor.fetchall()
 
             for row in rows:
                 option_name, option_value, id = row
-                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved matching Hostapd option for policy '{wireless_wifi_policy}'", result={"OptionName": option_name, "OptionValue": option_value}))
+                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved matching Hostapd option for policy '{wireless_wifi_policy}'", result={
+                               "OptionName": option_name, "OptionValue": option_value}))
 
             return results
 
         except sqlite3.Error as e:
-            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve matching Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND,
+                           reason=f"Failed to retrieve matching Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
     def select_wifi_policy_interfaces(self, wireless_wifi_policy: str) -> List[Result]:
@@ -3562,7 +4103,7 @@ class RouterShellDB(metaclass=Singleton):
             query = """
                         SELECT Interfaces.InterfaceName, Interfaces.InterfaceType, Interfaces.ID
                         FROM Interfaces
-                        JOIN WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interface_FK
+                        JOIN WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interfaces_FK
                         JOIN WirelessWifiPolicy ON WirelessWifiPolicyInterface.WirelessWifiPolicy_FK = WirelessWifiPolicy.ID
                         WHERE WirelessWifiPolicy.WifiPolicyName = ?
                     """
@@ -3572,12 +4113,14 @@ class RouterShellDB(metaclass=Singleton):
 
             for row in rows:
                 interface_name, interface_type, id = row
-                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved associated network interface for policy '{wireless_wifi_policy}'", result={"InterfaceName": interface_name, "InterfaceType": interface_type}))
+                results.append(Result(status=STATUS_OK, row_id=id, reason=f"Retrieved associated network interface for policy '{wireless_wifi_policy}'", result={
+                               "InterfaceName": interface_name, "InterfaceType": interface_type}))
 
             return results
 
         except sqlite3.Error as e:
-            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve associated network interfaces for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND,
+                           reason=f"Failed to retrieve associated network interfaces for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
     def select_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
@@ -3614,18 +4157,19 @@ class RouterShellDB(metaclass=Singleton):
 
             for row in rows:
                 ssid, passphrase, wpa_version, key_management, pairwise, id = row
-                results.append(Result(status=STATUS_OK, row_id=id, 
-                                      reason=f"Retrieved security policy for policy '{wireless_wifi_policy}'", 
-                                      result={"Ssid": ssid, 
-                                              "WpaPassPhrase": passphrase, 
-                                              "WpaVersion": wpa_version, 
-                                              "WpaKeyManagment": key_management, 
+                results.append(Result(status=STATUS_OK, row_id=id,
+                                      reason=f"Retrieved security policy for policy '{wireless_wifi_policy}'",
+                                      result={"Ssid": ssid,
+                                              "WpaPassPhrase": passphrase,
+                                              "WpaVersion": wpa_version,
+                                              "WpaKeyManagment": key_management,
                                               "WpaPairwise": pairwise}))
 
             return results
 
         except sqlite3.Error as e:
-            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
+            results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND,
+                           reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
     def select_wifi_security_policy_via_ssid(self, wireless_wifi_policy: str, ssid: str) -> List[Result]:
@@ -3665,25 +4209,24 @@ class RouterShellDB(metaclass=Singleton):
             for row in rows:
                 ssid, passphrase, wpa_version, key_management, pairwise, id = row
                 results.append(Result(status=STATUS_OK, row_id=id,
-                                    reason=f"Retrieved security policy for policy '{wireless_wifi_policy}' and SSID '{ssid}'",
-                                    result={"Ssid": ssid,
-                                            "WpaPassPhrase": passphrase,
-                                            "WpaVersion": wpa_version,
-                                            "WpaKeyManagment": key_management,
-                                            "WpaPairwise": pairwise}))
+                                      reason=f"Retrieved security policy for policy '{wireless_wifi_policy}' and SSID '{ssid}'",
+                                      result={"Ssid": ssid,
+                                              "WpaPassPhrase": passphrase,
+                                              "WpaVersion": wpa_version,
+                                              "WpaKeyManagment": key_management,
+                                              "WpaPairwise": pairwise}))
 
             return results
 
         except sqlite3.Error as e:
             results.append(Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND,
-                                reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}"))
+                                  reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}"))
             return results
-        
 
     '''
                         WIRELESS-POLICY-WIFI UPDATE
     '''
-    
+
     def update_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
         """
         Update the WPA passphrase for a specific wireless Wi-Fi policy and SSID.
@@ -3716,7 +4259,8 @@ class RouterShellDB(metaclass=Singleton):
                         AND Ssid = ?
                     """
             cursor = self.connection.cursor()
-            cursor.execute(query, (passphrase, wpa_version, wireless_wifi_policy, ssid))
+            cursor.execute(query, (passphrase, wpa_version,
+                           wireless_wifi_policy, ssid))
             self.connection.commit()
 
             # Check the number of rows affected by the update.
@@ -3729,7 +4273,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
-    
+
     def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Update an existing wireless Wi-Fi SSID in the database for a specific policy.
@@ -3766,7 +4310,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update SSID for policy '{wireless_wifi_policy}' to '{ssid}'. Error: {str(e)}", result=None)
-    
+
     def update_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
         """
         Update the value of a Hostapd option for a specific wireless Wi-Fi policy.
@@ -3798,7 +4342,8 @@ class RouterShellDB(metaclass=Singleton):
                         AND OptionName = ?
                     """
             cursor = self.connection.cursor()
-            cursor.execute(query, (hostapd_value, wireless_wifi_policy, hostapd_option))
+            cursor.execute(
+                query, (hostapd_value, wireless_wifi_policy, hostapd_option))
             self.connection.commit()
 
             # Check the number of rows affected by the update.
@@ -3811,7 +4356,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Hostapd option value for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-    
+
     def update_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
         """
         Update the Wi-Fi channel associated with a wireless Wi-Fi policy.
@@ -3851,7 +4396,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi channel for policy '{wireless_wifi_policy}'. Error: {str(e)}")
-        
+
     def update_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
         """
         Update the Wi-Fi hardware mode associated with a wireless Wi-Fi policy.
@@ -3926,7 +4471,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}")
-    
+
     def insert_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
         """
         Insert a new wireless Wi-Fi SSID into the database for a specific policy.
@@ -3989,14 +4534,16 @@ class RouterShellDB(metaclass=Singleton):
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
 
             # Check if the combination of wireless_wifi_policy and ssid already exists
-            combination_exist_result = self.select_wifi_security_policy_via_ssid(wireless_wifi_policy, ssid)
+            combination_exist_result = self.select_wifi_security_policy_via_ssid(
+                wireless_wifi_policy, ssid)
             if combination_exist_result:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Security group for SSID '{ssid}' already exists in policy '{wireless_wifi_policy}'.")
 
             # Define the SQL query to insert the Wi-Fi access security group
             query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK, Ssid, WpaPassPhrase, WpaVersion) VALUES (?, ?, ?, ?)"
             cursor = self.connection.cursor()
-            cursor.execute(query, (policy_exist_result.row_id, ssid, pass_phrase, mode))
+            cursor.execute(
+                query, (policy_exist_result.row_id, ssid, pass_phrase, mode))
             self.connection.commit()
             row_id = cursor.lastrowid
 
@@ -4024,12 +4571,12 @@ class RouterShellDB(metaclass=Singleton):
         - If the insertion fails, `status` is set to STATUS_NOK, `row_id` is 0 (self.ROW_ID_NOT_FOUND), and `reason` explains the reason for the failure.
         """
         try:
-            
+
             policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
-            
+
             if not policy_exist_result.status:
-                return Result(status=STATUS_NOK, 
-                              row_id=self.ROW_ID_NOT_FOUND, 
+                return Result(status=STATUS_NOK,
+                              row_id=self.ROW_ID_NOT_FOUND,
                               reason=policy_exist_result.reason)
 
             query = "INSERT INTO WirelessWifiSecurityPolicy (WirelessWifiPolicy_FK) VALUES (?)"
@@ -4038,13 +4585,13 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
             row_id = cursor.lastrowid
 
-            return Result(status=STATUS_OK, 
-                          row_id=row_id, 
+            return Result(status=STATUS_OK,
+                          row_id=row_id,
                           reason=f"Inserted default Wi-Fi access security group settings for policy '{wireless_wifi_policy}' successfully.")
 
         except sqlite3.Error as e:
-            return Result(status=STATUS_NOK, 
-                          row_id=self.ROW_ID_NOT_FOUND, 
+            return Result(status=STATUS_NOK,
+                          row_id=self.ROW_ID_NOT_FOUND,
                           reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
     def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
@@ -4078,7 +4625,8 @@ class RouterShellDB(metaclass=Singleton):
                                 SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?, ?, ?)
                     """
             cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, ssid, passphrase, wpa_version))
+            cursor.execute(query, (wireless_wifi_policy,
+                           ssid, passphrase, wpa_version))
             self.connection.commit()
             row_id = cursor.lastrowid
 
@@ -4086,7 +4634,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
-      
+
     def insert_wifi_policy_to_wifi_interface(self, wireless_wifi_policy: str, wifi_interface: str) -> Result:
         """
         Associate a wireless Wi-Fi policy with a specific network interface.
@@ -4110,7 +4658,7 @@ class RouterShellDB(metaclass=Singleton):
         try:
             # Define the SQL query to associate the wireless Wi-Fi policy with the network interface.
             query = """
-                        INSERT INTO WirelessWifiPolicyInterface (Interface_FK, WirelessWifiPolicy_FK)
+                        INSERT INTO WirelessWifiPolicyInterface (Interfaces_FK, WirelessWifiPolicy_FK)
                         VALUES (
                             (SELECT ID FROM Interfaces WHERE InterfaceName = ?),
                             (SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?)
@@ -4156,7 +4704,8 @@ class RouterShellDB(metaclass=Singleton):
                                 SELECT ID FROM WirelessWifiPolicy WHERE WifiPolicyName = ?), ?, ?)
                     """
             cursor = self.connection.cursor()
-            cursor.execute(query, (wireless_wifi_policy, hostapd_option, hostapd_value))
+            cursor.execute(query, (wireless_wifi_policy,
+                           hostapd_option, hostapd_value))
             self.connection.commit()
             row_id = cursor.lastrowid
 
@@ -4164,7 +4713,7 @@ class RouterShellDB(metaclass=Singleton):
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
-        
+
     def insert_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
         """
         Insert a Wi-Fi channel into the database associated with a wireless Wi-Fi policy.
@@ -4264,17 +4813,18 @@ class RouterShellDB(metaclass=Singleton):
 
             result_list = []
             rows = cursor.fetchall()
-            
+
             for row in rows:
-                result_list.append(Result(status=STATUS_OK, row_id=row[0], result={'InterfaceName': row[1]}))
-            
+                result_list.append(
+                    Result(status=STATUS_OK, row_id=row[0], result={'InterfaceName': row[1]}))
+
             return result_list
 
         except sqlite3.Error as e:
             error_message = f"Error selecting interface names by interface type: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-        
+
     def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
         """
         Select a list of interface names based on the specified interface type.
@@ -4295,10 +4845,11 @@ class RouterShellDB(metaclass=Singleton):
 
             result_list = []
             rows = cursor.fetchall()
-            
+
             for row in rows:
-                result_list.append(Result(status=STATUS_OK, row_id=row[0], result={'InterfaceName': row[1]}))
-            
+                result_list.append(
+                    Result(status=STATUS_OK, row_id=row[0], result={'InterfaceName': row[1]}))
+
             return result_list
 
         except sqlite3.Error as e:
@@ -4306,7 +4857,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_configuration(self, interface_name:str) -> Result:
+    def select_interface_configuration(self, interface_name: str) -> Result:
         """
         Select information about a specific interface.
 
@@ -4318,32 +4869,51 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            cursor.execute('''
+            cursor.execute(f'''
                 SELECT DISTINCT
-                
-                    'interface '            || Interfaces.InterfaceName AS Interface,
-                    'description '          || Interfaces.Description AS Description,
-                    'mac address '          || InterfaceSubOptions.MacAddress AS MacAddress,
-                    'duplex '               || InterfaceSubOptions.Duplex AS Duplex,
-                    'speed '                || CASE WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' ELSE InterfaceSubOptions.Speed END AS Speed,
-                    CASE WHEN InterfaceSubOptions.ProxyArp THEN 'ip proxy-arp' ELSE 'no ip proxy-arp' END AS ProxyArp,
-                    CASE WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' ELSE 'no drop-gratuitous-arp' END AS DropGratuitousArp,
-                    'bridge group '         || Bridges.BridgeName AS BridgeGroup,
-                    'ip nat '               || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterafaceDirection,
-                    CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
-                
-                FROM Interfaces
-                
-                LEFT JOIN InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interface_FK
-                LEFT JOIN InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interface_FK
-                LEFT JOIN BridgeGroups ON Interfaces.ID = BridgeGroups.Interface_FK
-                LEFT JOIN Bridges ON Bridges.ID = BridgeGroups.BridgeGroups_FK
-                LEFT JOIN NatDirections ON Interfaces.ID = NatDirections.Interface_FK
-                LEFT JOIN Nats ON Nats.ID = NatDirections.NAT_FK
-                
-                WHERE Interfaces.InterfaceName = ?;
+                    'interface ' || Interfaces.InterfaceName AS Interface,
+                    'description ' || Interfaces.Description AS Description,
+                    'mac address ' || InterfaceSubOptions.MacAddress AS MacAddress,
+                    'duplex ' || InterfaceSubOptions.Duplex AS Duplex,
+                    'speed ' || CASE 
+                                WHEN InterfaceSubOptions.Speed = 1 THEN 'auto' 
+                                ELSE InterfaceSubOptions.Speed 
+                                END AS Speed,
+                    CASE 
+                        WHEN InterfaceSubOptions.ProxyArp THEN 'ip proxy-arp' 
+                        ELSE 'no ip proxy-arp' 
+                    END AS ProxyArp,
+                    CASE 
+                        WHEN InterfaceSubOptions.DropGratuitousArp THEN 'ip drop-gratuitous-arp' 
+                        ELSE 'no ip drop-gratuitous-arp' 
+                    END AS DropGratuitousArp,
+                    'bridge group ' || Bridges.BridgeName AS BridgeGroup,
+                    'ip nat ' || NatDirections.Direction || ' pool ' || Nats.NatPoolName AS NatInterfaceDirection,
+                    CASE 
+                        WHEN Interfaces.ShutdownStatus THEN 'shutdown' 
+                        ELSE 'no shutdown' 
+                    END AS Shutdown
+                FROM
+                    Interfaces
+                LEFT JOIN
+                    InterfaceAlias ON Interfaces.ID = InterfaceAlias.Interfaces_FK
+                LEFT JOIN
+                    InterfaceSubOptions ON Interfaces.ID = InterfaceSubOptions.Interfaces_FK
+                LEFT JOIN
+                    BridgeGroups ON Interfaces.ID = BridgeGroups.Interfaces_FK
+                LEFT JOIN
+                    Bridges ON Bridges.ID = BridgeGroups.Bridges_FK
+                LEFT JOIN
+                    NatDirections ON Interfaces.ID = NatDirections.Interfaces_FK
+                LEFT JOIN
+                    Nats ON Nats.ID = NatDirections.NAT_FK
+                WHERE
+                    Interfaces.InterfaceName = ?
+                    
+                AND Interfaces.InterfaceType != '{InterfaceType.BRIDGE.value}';
+
                 ''', (interface_name,))
-            
+
             result = cursor.fetchone()
 
             if result is not None:
@@ -4384,21 +4954,22 @@ class RouterShellDB(metaclass=Singleton):
             cursor = self.connection.cursor()
             cursor.execute('''
                 SELECT DISTINCT
-                    'ip dhcp-server pool ' || DHCPServer.DhcpPoolname as DhcpServerPool
+                    'ip dhcp-server pool-name ' || DHCPServer.DhcpPoolname as DhcpServerPool
 
                 FROM Interfaces
                 
-                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interface_FK
+                LEFT JOIN DHCPServer ON Interfaces.ID = DHCPServer.Interfaces_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
-            
+
             sql_results = cursor.fetchall()
 
             results = []
 
             for result in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, result={'DhcpServerPool': result[0]}))
+                results.append(Result(status=STATUS_OK, row_id=id,
+                               result={'DhcpServerPool': result[0]}))
 
             return results
 
@@ -4406,7 +4977,47 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting interface information: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-        
+
+    def select_interface_switchport_access_vlan_id(self, interface_name: str) -> List[Result]:
+        """
+        Retrieve DHCP server pool information associated with a specific interface.
+
+        Parameters:
+            interface_name (str): The name of the interface for which to retrieve DHCP server pool information.
+
+        Returns:
+            List[Result]: A list of Result objects representing the outcomes of the operation.
+                Each Result object contains either the DHCP server pool information or an error message.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                SELECT DISTINCT
+                    'ip switchport access-vlan-id ' || VlanInterfaces.VlanID as SwitchportAccessVlanID
+
+                FROM Interfaces
+                
+                LEFT JOIN VlanInterfaces ON Interfaces.ID = VlanInterfaces.Interfaces_FK
+                
+                WHERE Interfaces.InterfaceName = ?;
+                ''', (interface_name,))
+
+            sql_results = cursor.fetchall()
+
+            results = []
+
+            for result in sql_results:
+                results.append(Result(status=STATUS_OK, 
+                                      row_id=id,
+                                      result={'SwitchportAccessVlanID': result[0]}))
+
+            return results
+
+        except sqlite3.Error as e:
+            error_message = f"Error selecting interface information: {e}"
+            self.log.error(error_message)
+            return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
+
     def select_interface_dhcp_client_configuration(self, interface_name: str) -> List[Result]:
         """
         Retrieve DHCP client configuration information associated with a specific interface.
@@ -4430,17 +5041,18 @@ class RouterShellDB(metaclass=Singleton):
                 
                 FROM Interfaces
                 
-                LEFT JOIN DHCPClient ON Interfaces.ID = DHCPClient.Interface_FK
+                LEFT JOIN DHCPClient ON Interfaces.ID = DHCPClient.Interfaces_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
-            
+
             sql_results = cursor.fetchall()
 
             results = []
 
             for result in sql_results:
-                results.append(Result(status=STATUS_OK, row_id=id, result={'DhcpClientVersion': result[0]}))
+                results.append(Result(status=STATUS_OK, row_id=id, result={
+                               'DhcpClientVersion': result[0]}))
 
             return results
 
@@ -4448,8 +5060,8 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting interface information: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-        
-    def select_interface_ip_address_configuration(self, interface_name:str) -> List[Result]:
+
+    def select_interface_ip_address_configuration(self, interface_name: str) -> List[Result]:
         """
         Select distinct IP addresses for a specific interface.
 
@@ -4461,7 +5073,7 @@ class RouterShellDB(metaclass=Singleton):
         """
         try:
             cursor = self.connection.cursor()
-            
+
             cursor.execute('''
                 SELECT DISTINCT
                     CASE
@@ -4470,7 +5082,7 @@ class RouterShellDB(metaclass=Singleton):
                     END || InterfaceIpAddress.IpAddress || CASE WHEN InterfaceIpAddress.SecondaryIp THEN ' secondary' ELSE '' END AS IpAddress
                 FROM
                     Interfaces
-                LEFT JOIN InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interface_FK
+                LEFT JOIN InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interfaces_FK
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
 
@@ -4478,7 +5090,8 @@ class RouterShellDB(metaclass=Singleton):
             rows = cursor.fetchall()
 
             for row in rows:
-                result_list.append(Result(status=STATUS_OK, row_id=None, result={'IpAddress': row[0]}))
+                result_list.append(
+                    Result(status=STATUS_OK, row_id=None, result={'IpAddress': row[0]}))
 
             return result_list
 
@@ -4487,7 +5100,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_ip_static_arp_configuration(self, interface_name:str) -> List[Result]:
+    def select_interface_ip_static_arp_configuration(self, interface_name: str) -> List[Result]:
         """
         Select distinct static ARP entries for a specific interface.
 
@@ -4507,7 +5120,7 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                     
-                LEFT JOIN InterfaceStaticArp ON Interfaces.ID = InterfaceStaticArp.Interface_FK
+                LEFT JOIN InterfaceStaticArp ON Interfaces.ID = InterfaceStaticArp.Interfaces_FK
                 
                 WHERE Interfaces.InterfaceName = ?;
                 ''', (interface_name,))
@@ -4516,7 +5129,8 @@ class RouterShellDB(metaclass=Singleton):
             rows = cursor.fetchall()
 
             for row in rows:
-                result_list.append(Result(status=STATUS_OK, row_id=None, result={'StaticArp': row[0]}))
+                result_list.append(
+                    Result(status=STATUS_OK, row_id=None, result={'StaticArp': row[0]}))
 
             return result_list
 
@@ -4543,7 +5157,7 @@ class RouterShellDB(metaclass=Singleton):
                 FROM
                     Interfaces
                 JOIN
-                    WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interface_FK
+                    WirelessWifiPolicyInterface ON Interfaces.ID = WirelessWifiPolicyInterface.Interfaces_FK
                 JOIN
                     WirelessWifiPolicy ON WirelessWifiPolicyInterface.WirelessWifiPolicy_FK = WirelessWifiPolicy.ID
                 WHERE
@@ -4554,7 +5168,8 @@ class RouterShellDB(metaclass=Singleton):
             rows = cursor.fetchall()
 
             for row in rows:
-                result_list.append(Result(status=STATUS_OK, row_id=None, result={'WifiPolicyName': row[0]}))
+                result_list.append(
+                    Result(status=STATUS_OK, row_id=None, result={'WifiPolicyName': row[0]}))
 
             return result_list
 
@@ -4562,8 +5177,6 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting interface wifi-policy entries: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-
-
 
     '''
                             ROUTER-CONFIGURATION-GLOBAL
@@ -4589,7 +5202,8 @@ class RouterShellDB(metaclass=Singleton):
 
             rows = cursor.fetchall()
 
-            result_list = [Result(status=STATUS_OK, row_id=None, result={'RenameInterfaceConfig': row[0]}) for row in rows]
+            result_list = [Result(status=STATUS_OK, row_id=None, result={
+                                  'RenameInterfaceConfig': row[0]}) for row in rows]
 
             return result_list
 
@@ -4608,12 +5222,18 @@ class RouterShellDB(metaclass=Singleton):
         """
         query = '''
             SELECT DISTINCT
-                'bridge '   || Bridges.BridgeName AS BridgeName,
-                'protocol ' || Bridges.Protocol AS Protocol,    
-                'stp '      || Bridges.StpStatus AS StpStatus,
-                CASE WHEN Bridges.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
+                'bridge '           || Bridges.BridgeName AS BridgeName,
+                'description '      || Interfaces.Description AS Description,
+                'inet management '  || InterfaceIpAddress.IpAddress AS InetMgt,
+                'protocol '         || Bridges.Protocol AS Protocol,    
+                CASE WHEN Bridges.StpStatus = 1 THEN 'stp enable' ELSE 'stp disable' END AS StpStatus,
+                CASE WHEN Interfaces.ShutdownStatus THEN 'shutdown' ELSE 'no shutdown' END AS Shutdown
             FROM
-                Bridges;
+                Bridges
+            LEFT JOIN
+                Interfaces ON Bridges.Interfaces_FK = Interfaces.ID
+            LEFT JOIN
+                InterfaceIpAddress ON Interfaces.ID = InterfaceIpAddress.Interfaces_FK;
         '''
 
         try:
@@ -4625,13 +5245,15 @@ class RouterShellDB(metaclass=Singleton):
 
             result_list = [
                 Result(status=STATUS_OK, row_id=None,
-                    result={
-                        'BridgeName': row[0],
-                        'Protocol': row[1],
-                        'StpStatus': row[2],
-                        'Shutdown': row[3]
-                    }
-                ) for row in rows
+                       result={
+                           'BridgeName': row[0],
+                           'Description': row[1],
+                           'InetMgt': row[2],
+                           'Protocol': row[3],
+                           'StpStatus': row[4],
+                           'Shutdown': row[5]
+                       }
+                       ) for row in rows
             ]
 
             return result_list
@@ -4663,15 +5285,15 @@ class RouterShellDB(metaclass=Singleton):
             cursor.execute(query)
 
             rows = cursor.fetchall()
-            
+
             result_list = [
-                Result( status=STATUS_OK, row_id=None,
-                    result={
-                        'VlanID': row[0],
-                        'VlanDescription': row[1],
-                        'VlanName': row[2],
-                    }
-                ) for row in rows
+                Result(status=STATUS_OK, row_id=None,
+                       result={
+                           'VlanID': row[0],
+                           'VlanDescription': row[1],
+                           'VlanName': row[2],
+                       }
+                       ) for row in rows
             ]
 
             return result_list
@@ -4694,13 +5316,16 @@ class RouterShellDB(metaclass=Singleton):
         try:
             cursor = self.connection.cursor()
 
-            cursor.execute("SELECT DISTINCT 'ip nat ' || NatPoolName AS IpNatPoolName FROM Nats")
+            cursor.execute(
+                "SELECT DISTINCT 'ip nat ' || NatPoolName AS IpNatPoolName FROM Nats")
 
             rows = cursor.fetchall()
 
-            result_list = [Result(status=STATUS_OK, row_id=None, result={'IpNatPoolName': row[0]}) for row in rows]
-            
-            self.log.debug(f"Selected global NAT configurations: {result_list}")
+            result_list = [Result(status=STATUS_OK, row_id=None, result={
+                                  'IpNatPoolName': row[0]}) for row in rows]
+
+            self.log.debug(
+                f"Selected global NAT configurations: {result_list}")
 
             return result_list
 
@@ -4723,14 +5348,14 @@ class RouterShellDB(metaclass=Singleton):
 
             query = """
                 SELECT DISTINCT
-                    'dhcp '     || DHCPServer.DhcpPoolname AS DhcpServerPollName,
-                    'subnet '   || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
+                    'dhcp pool-name '   || DHCPServer.DhcpPoolname AS DhcpServerPollName,
+                    'subnet '           || DHCPSubnet.InetSubnet AS DHCPSubnetSubnet
                 FROM DHCPServer
                 LEFT JOIN DHCPSubnet ON DHCPServer.ID = DHCPSubnet.DHCPServer_FK;
             """
             cursor = self.connection.cursor()
             cursor.execute(query)
-            
+
             rows = cursor.fetchall()
 
             results = [
@@ -4781,9 +5406,9 @@ class RouterShellDB(metaclass=Singleton):
             """
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
-            
+
             rows = cursor.fetchall()
-                        
+
             results = [
                 Result(
                     status=STATUS_OK,
@@ -4828,7 +5453,7 @@ class RouterShellDB(metaclass=Singleton):
             """
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
-            
+
             rows = cursor.fetchall()
 
             results = [
@@ -4847,7 +5472,7 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Failed to retrieve global DHCP server reservation pool configurations. Error: {str(e)}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-        
+
     def select_global_dhcp_server_subnet_option_pool(self, dhcp_pool_name: str) -> List[Result]:
         """
         Retrieve a list of global DHCP server subnet option pool configurations.
@@ -4876,7 +5501,7 @@ class RouterShellDB(metaclass=Singleton):
             """
             cursor = self.connection.cursor()
             cursor.execute(query, (dhcp_pool_name,))
-            
+
             rows = cursor.fetchall()
 
             results = [
@@ -4930,8 +5555,8 @@ class RouterShellDB(metaclass=Singleton):
                     status=STATUS_OK,
                     row_id=0,
                     reason=f"Retrieved global DHCPv6 server subnet option pool configuration for pool '{dhcp_pool_name}' successfully",
-                    result={'Mode': row[0], 
-                            'Constructor':row[1],
+                    result={'Mode': row[0],
+                            'Constructor': row[1],
                             },
                 )
                 for row in rows
@@ -5044,4 +5669,169 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error selecting WifiPolicyName information: {e}"
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
-     
+
+    def select_global_telnet_server(self) -> Result:
+        """
+        Select the status and port of the Telnet server from the TelnetServer table,
+        linked through the SystemConfiguration table.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure, 
+                    the Telnet server status, and port.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("""
+                SELECT ts.Enable, ts.Port
+                FROM TelnetServer ts
+                JOIN SystemConfiguration sc ON sc.TelnetServer_FK = ts.ID
+                WHERE sc.ID = 1
+            """)
+            result = cursor.fetchone()
+
+            if not result:
+                return Result(status=STATUS_NOK,
+                              row_id=self.ROW_ID_NOT_FOUND,
+                              reason="No entry found in 'TelnetServer' or 'SystemConfiguration' tables.")
+
+            enable, port = result
+
+            return Result(status=STATUS_OK, row_id=1, result={'Enable': enable, 'Port': port})
+
+        except sqlite3.Error as e:
+            self.log.error(
+                "Error selecting Telnet server status and port: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    def update_global_telnet_server(self, enable: bool, port: int) -> Result:
+        """
+        Update the existing Telnet server configuration in the TelnetServer table
+        and ensure the SystemConfiguration table's foreign key reference is maintained.
+
+        Args:
+            enable (bool): The status of the Telnet server.
+            port (int): The port of the Telnet server.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure,
+                    including the updated values of the Telnet server configuration.
+        """
+        self.log.debug(
+            f'update_global_telnet_server() -> Enable: {enable} -> Port: {port}')
+        try:
+            cursor = self.connection.cursor()
+
+            # Check if TelnetServer entry exists
+            cursor.execute(
+                "SELECT TelnetServer_FK FROM SystemConfiguration WHERE ID = 1")
+            result = cursor.fetchone()
+
+            if not result:
+                self.log.error(
+                    f'update_global_telnet_server() -> TelnetServer_FK: No FK Key found')
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table for ID 1.")
+
+            telnet_server_id = result[0]
+
+            if telnet_server_id is None:
+                self.log.error(
+                    f'update_global_telnet_server() -> No TelnetServer linked in SystemConfiguration table.')
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No TelnetServer linked in 'SystemConfiguration' table.")
+
+            # Update the Telnet server configuration
+            cursor.execute("""
+                UPDATE TelnetServer SET Enable = ?, Port = ? WHERE ID = ?
+            """, (enable, port, telnet_server_id))
+
+            self.connection.commit()
+
+            return Result(status=STATUS_OK, row_id=telnet_server_id, result={'Enable': enable, 'Port': port})
+
+        except sqlite3.Error as e:
+            self.connection.rollback()
+            self.log.error("Error updating Telnet server configuration: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    def insert_global_telnet_server(self, telnet_status: bool) -> Result:
+        """
+        Insert or update the Telnet server status in the SystemConfiguration table.
+
+        Args:
+            telnet_status (bool): The status of the Telnet server to insert or update.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("""
+                    INSERT INTO SystemConfiguration (ID, TelnetServer)
+                    VALUES (1, ?)
+                    ON CONFLICT(ID) DO UPDATE SET TelnetServer=excluded.TelnetServer;
+                """, (telnet_status,))
+            self.connection.commit()
+            cursor.close()
+
+            return Result(status=STATUS_OK, row_id=1, result={'TelnetServerStatus': telnet_status})
+
+        except sqlite3.Error as e:
+            self.log.error("Error inserting Telnet server status: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    def select_global_ssh_server(self) -> Result:
+        """
+        Select the status and port of the Secure Shell (SSH) server from the SshServer table,
+        linked through the SystemConfiguration table.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure, 
+                    the SSH server status, and port.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("""
+                SELECT ssh.Enable, ssh.Port
+                FROM SshServer ssh
+                JOIN SystemConfiguration sc ON sc.SshServer_FK = ssh.ID
+                WHERE sc.ID = 1
+            """)
+            result = cursor.fetchone()
+
+            if not result:
+                return Result(status=STATUS_NOK,
+                              row_id=self.ROW_ID_NOT_FOUND,
+                              reason="No entry found in 'SshServer' or 'SystemConfiguration' tables.")
+
+            enable, port = result
+
+            return Result(status=STATUS_OK, row_id=1, result={'Enable': enable, 'Port': port})
+
+        except sqlite3.Error as e:
+            self.log.error("Error selecting SSH server status and port: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)
+
+    def insert_global_Ssh_server(self, ssh_status: bool) -> Result:
+        """
+        Insert or update the SSH server status in the SystemConfiguration table.
+
+        Args:
+            ssh_status (bool): The status of the SSH server to insert or update.
+
+        Returns:
+            Result: A Result object indicating the operation's success or failure.
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute("""
+                    INSERT INTO SystemConfiguration (ID, SshServer)
+                    VALUES (1, ?)
+                    ON CONFLICT(ID) DO UPDATE SET SshServer=excluded.SshServer;
+                """, (ssh_status,))
+            self.connection.commit()
+            cursor.close()
+
+            return Result(status=STATUS_OK, row_id=1, result={'SshServerStatus': ssh_status})
+
+        except sqlite3.Error as e:
+            self.log.error("Error inserting SSH server status: %s", e)
+            return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e), result=None)

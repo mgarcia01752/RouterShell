@@ -80,7 +80,7 @@ if ! command -v pip3 &>/dev/null; then
 fi
 
 # Install Python packages if not running as root
-pip3_packages=("tabulate" "prettytable" "argcomplete" "cmd2" "bs4")
+pip3_packages=("prompt-toolkit" "tabulate" "prettytable" "argcomplete" "bs4" "pyte")
 for package in "${pip3_packages[@]}"; do
     if pip3 show "$package" &>/dev/null; then
         echo

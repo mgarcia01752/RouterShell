@@ -7,8 +7,7 @@ from tabulate import tabulate
 
 from lib.cli.base.global_operation import GlobalUserCommand
 from lib.cli.common.router_prompt import RouterPrompt
-from lib.cli.base.exec_priv_mode import ExecMode, ExecException
-from lib.cli.config.vlan_config import VlanShow
+from lib.cli.common.exec_priv_mode import ExecMode, ExecException
 from lib.cli.show.arp_show import ArpShow
 from lib.cli.show.bridge_show import BridgeShow
 from lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
@@ -16,7 +15,8 @@ from lib.cli.show.interface_show import InterfaceShow
 from lib.cli.show.ip_route_show import RouteShow
 from lib.cli.show.nat_show import NatShow
 from lib.cli.show.router_configuration import RouterConfiguration
-from lib.db.vlan_db import VLANDatabase
+from lib.cli.show.vlan_show import VlanShow
+from lib.db.vlan_db import VlanDatabase
 from lib.db.interface_db import InterfaceDatabase
 from lib.db.nat_db import NatDB
 from lib.common.constants import *
@@ -272,7 +272,7 @@ class ShowMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         elif args.subcommand == 'vlan-db':
             self.log.debug("Show vlan database")
-            print(f"{json.dumps(VLANDatabase.to_json(), indent=4)}")
+            print(f"{json.dumps(VlanDatabase.to_json(), indent=4)}")
             return
         
         elif args.subcommand == 'if-db':

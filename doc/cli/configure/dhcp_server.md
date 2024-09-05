@@ -13,7 +13,7 @@ dhcp global
 end
 ```
 
-### Explanation:
+### Explanation
 
 - This sets global DHCP options. In this example, it configures a time server for DHCP clients.
 
@@ -23,21 +23,21 @@ end
 cls
 configure terminal
 
-; Create DHCP Pools
-dhcp dhcpv4-home-office
+! Create DHCP Pools
+dhcp pool-name dhcpv4-home-office
     subnet 172.16.0.0/24
     pool 172.16.0.50 172.16.60.254 255.255.255.0
     option routers 172.16.0.1
 end
 
-; Apply DHCP Pool to Interface
+! Apply DHCP Pool to Interface
 interface Gig0
     ip address 172.16.0.1/24
     ip dhcp-server pool-name dhcpv4-home-office
 end
 ```
 
-### Explanation:
+### Explanation
 
 - Creates an IPv4 DHCP pool for the subnet `172.16.0.0/24`.
 - Defines a pool of addresses from `172.16.0.50` to `172.16.60.254`.
@@ -65,7 +65,7 @@ interface Gig0
 end
 ```
 
-### Explanation:
+### Explanation
 
 - Creates an IPv6 DHCP pool for the subnet `fd00:abcd:1234::0/64`.
 - Defines a pool of addresses from `fd00:abcd:1234::100` to `fd00:abcd:1234::1ff`.
@@ -98,7 +98,7 @@ end
 
 ```
 
-### Explanation:
+### Explanation
 
 - Configures both IPv4 and IPv6 DHCP pools.
 - Associates both DHCP pools with the Gig0 interface.
@@ -138,9 +138,8 @@ interface Gig1
 end
 ```
 
-### Explanation:
+### Explanation
 
 - Configures multiple IPv4 DHCP pools for different subnets.
 - Defines reservations based on hardware addresses.
 - Associates each DHCP pool with its respective interface (Gig0 or Gig1).
-

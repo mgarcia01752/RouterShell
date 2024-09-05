@@ -2,18 +2,16 @@ import json
 import logging
 
 from tabulate import tabulate
-from lib.network_manager.interface import Interface
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.cli.common.cmd2_global import Cmd2GlobalSettings as CGS
-
+from lib.network_manager.common.interface import InterfaceType
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from lib.network_manager.network_operations.interface import Interface
 
 class InterfaceShow(Interface):
     
     def __init__(self, arg=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().IF_SHOW)
-        self.debug = CGS.DEBUG_SHOW_INTERFACE
+        self.log.setLevel(RSLS().IF_SHOW)
         self.arg = arg
     
     def show_interface_statistics(self, interface_name=None):
@@ -50,7 +48,7 @@ class InterfaceShow(Interface):
     def show_ip_interface_brief(self):
         """
         Display a brief summary of IP interfaces.
-
+        
         This function retrieves IP interface information using the `get_ip_addr_info` method and
         displays it in a tabular format. It includes interface name, MAC address, IP addresses
         (both IPv4 and IPv6), operational state, and protocol.
@@ -73,23 +71,55 @@ class InterfaceShow(Interface):
             mac = interface.get("address", "N/A")
             inet_addresses = []
             inet6_addresses = []
+            
+            label_dict = {}
+            
             for addr_info in interface["addr_info"]:
-                if addr_info["family"] == "inet":
-                    address = addr_info["local"]
-                    if self.is_secondary_address(interface, address):
-                        address += " (s)"
-                    inet_addresses.append(address)
-                elif addr_info["family"] == "inet6":
-                    inet6_addresses.append(addr_info["local"])
+                if interface_name == "lo":
+                    label = addr_info.get("label", "lo")
+                    
+                    if ":" in label:
+                        _, sub_label = label.split(":")
+                    else:
+                        _, sub_label = label, ""
 
-            inet_str = "\n".join(inet_addresses) if inet_addresses else "unassigned"
-            inet6_str = "\n".join(inet6_addresses) if inet6_addresses else "unassigned"
-
-            state = interface.get("operstate", "N/A")
-            protocol = interface.get("link_type", "N/A")
-
-            table.append([interface_name, mac, inet_str, inet6_str, state, protocol])
-
+                    if sub_label not in label_dict:
+                        label_dict[sub_label] = {"inet": [], "inet6": []}
+                    
+                    if addr_info["family"] == "inet":
+                        address = addr_info["local"]
+                        if self.is_secondary_address(interface, address):
+                            address += " (s)"
+                        label_dict[sub_label]["inet"].append(address)
+                    elif addr_info["family"] == "inet6":
+                        address = addr_info["local"]
+                        label_dict[sub_label]["inet6"].append(address)
+                
+                # Handle non-'lo' interfaces
+                else:
+                    if addr_info["family"] == "inet":
+                        address = addr_info["local"]
+                        if self.is_secondary_address(interface, address):
+                            address += " (s)"
+                        inet_addresses.append(address)
+                    elif addr_info["family"] == "inet6":
+                        inet6_addresses.append(addr_info["local"])
+            
+            # Extract state from flags for 'lo' interface
+            if interface_name == "lo":
+                state = "UP" if "UP" in interface["flags"] else "DOWN"
+                for sub_label, addresses in label_dict.items():
+                    inet_str = "\n".join(addresses["inet"]) if addresses["inet"] else "unassigned"
+                    inet6_str = "\n".join(addresses["inet6"]) if addresses["inet6"] else "unassigned"
+                    interface_display_name = f"{interface_name} ({sub_label})" if sub_label else interface_name
+                    table.append([interface_display_name, mac, inet_str, inet6_str, state, interface.get("link_type", "N/A")])
+            
+            # Add entries for non-'lo' interfaces
+            else:
+                inet_str = "\n".join(inet_addresses) if inet_addresses else "unassigned"
+                inet6_str = "\n".join(inet6_addresses) if inet6_addresses else "unassigned"
+                state = interface.get("operstate", "N/A")
+                table.append([interface_name, mac, inet_str, inet6_str, state, interface.get("link_type", "N/A")])
+        
         headers = ["Interface", "mac", "inet", "inet6", "state", "protocol"]
         print(tabulate(table, headers, tablefmt="simple"))
-

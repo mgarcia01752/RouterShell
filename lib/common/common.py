@@ -6,9 +6,11 @@ import os
 import datetime
 import subprocess
 import logging
-from datetime import datetime 
+from datetime import datetime
+from typing import List 
 
 from lib.common.constants import *
+from lib.network_manager.common.interface import InterfaceType
 
 class Common():
     '''Commonly used Static Methods'''
@@ -18,7 +20,6 @@ class Common():
 
     @staticmethod
     def getHostName() -> str:
-        
         try:
             # Get the hostname of the computer
             hostname = socket.gethostname()
@@ -40,6 +41,20 @@ class Common():
 
         # Default to 'sudo reboot' if neither init system is found
         return 'sudo reboot'
+    
+    @staticmethod
+    def get_shutdown_command() -> str:
+
+        # Check if the /etc/init directory exists (indicating SysV init)
+        if os.path.exists('/etc/init'):
+            return 'sudo init 0'  # Use SysV init reboot command
+
+        # Check if the /run/systemd/system directory exists (indicating systemd)
+        if os.path.exists('/run/systemd/system'):
+            return 'sudo systemctl shutdown'  # Use systemd reboot command
+
+        # Default to 'sudo shutdown' if neither init system is found
+        return 'sudo shutdown'
     
     @staticmethod
     def getclock(line) -> str:
@@ -168,6 +183,35 @@ class Common():
     @staticmethod    
     def flatten_list(simple_list):
         return [item for item in simple_list]
+
+    @staticmethod
+    def remove_substrings_and_concatenate(input_list: List[str], substrings: List[str]) -> str:
+        """
+        Removes all specified substrings from each element in the input list and concatenates the results into a single string.
+
+        Args:
+            input_list (List[str]): The list of strings to be processed.
+            substrings (List[str]): The substrings to be removed from each element.
+
+        Returns:
+            str: A single string with substrings removed and elements concatenated.
+        """
+        # Check if input_list and substrings are lists and contain the right types
+        if not all(isinstance(i, str) for i in input_list):
+            raise TypeError("All elements in input_list must be strings.")
+        if not all(isinstance(sub, str) for sub in substrings):
+            raise TypeError("All elements in substrings must be strings.")
+        
+        # Process each element in the list
+        processed_elements = []
+        for element in input_list:
+            for sub in substrings:
+                element = element.replace(sub, '')
+            processed_elements.append(element)
+        
+        # Concatenate all processed elements into a single string
+        result_string = ''.join(processed_elements)
+        return result_string
     
     @staticmethod
     def convert_timestamp(timestamp:int):
@@ -206,5 +250,42 @@ class Common():
             return False
 
         return True
+    
+    @staticmethod
+    def get_env(var_name: str) -> str:
+        """
+        Get the value of an environment variable.
+        
+        Args:
+            var_name (str): The name of the environment variable.
+        
+        Returns:
+            str: The value of the environment variable, or None if it is not found.
+        """
+        return os.environ.get(var_name)
 
+    @staticmethod
+    def is_loopback_if_name_valid(interface_name: str, add_loopback_if_name: List[str] = None) -> bool:
+        """
+        Check if the given interface name is in the loopback format or starts with any of the specified prefixes.
 
+        Args:
+            interface_name (str): The name of the network interface.
+            loopback_if_check_list (List[str], optional): List of additional interface name prefixes to check against. Default is None.
+
+        Returns:
+            bool: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.
+        """
+        if add_loopback_if_name is None:
+            add_loopback_if_name = []
+        
+        loopback_pattern = rf'^{InterfaceType.LOOPBACK.value}\d+$'
+        
+        if re.match(loopback_pattern, interface_name):
+            return True
+        
+        for prefix in add_loopback_if_name:
+            if re.match(rf'^{prefix}\d*$', interface_name):
+                return True
+            
+        return False

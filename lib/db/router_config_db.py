@@ -2,24 +2,24 @@ import logging
 from itertools import count
 from typing import Dict, List, Tuple
 
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
 from lib.network_manager.common.interface import InterfaceType
 
 class RouterConfigurationDatabase:
 
-    rsdb = RSDB()
+    rsdb = DB()
     counter = count(start=1)
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().ROUTER_CONFIG_DB)
+        cls.log.setLevel(RSLS().ROUTER_CONFIG_DB)
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()
+            cls.rsdb = DB()
             
     def get_interface_name_list(cls, interface_type: InterfaceType = InterfaceType.UNKNOWN) -> List[str]:
         """
@@ -147,6 +147,19 @@ class RouterConfigurationDatabase:
         dhcp_server_policies = [result.result for result in if_dhcp_serv_policy_result]
 
         return STATUS_OK, dhcp_server_policies
+
+    def get_interface_switchport_access_vlan(cls, interface_name: str) -> Tuple[bool, List[Dict[str, str]]]:
+        
+        if_switch_port_access_vlan_id_result = cls.rsdb.select_interface_switchport_access_vlan_id(interface_name)
+
+        if any(result.status for result in if_switch_port_access_vlan_id_result):
+            error_messages = [result.reason for result in if_switch_port_access_vlan_id_result if result.status]
+            cls.log.debug(f"Error retrieving switchport access-vlan-id, skipping: {', '.join(error_messages)}")
+            return STATUS_NOK, []
+
+        if_switch_port_access_vlan_id = [result.result for result in if_switch_port_access_vlan_id_result]
+        
+        return STATUS_OK, if_switch_port_access_vlan_id
 
     def get_interface_ip_static_arp_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
         """
@@ -327,8 +340,11 @@ class RouterConfigurationDatabase:
         if all(result.status == STATUS_OK for result in dhcp_server_config_result):
             
             for dsc_result in dhcp_server_config_result:
-                pool_name = dsc_result.result.get('DhcpServerPoolName').split()[1]
-
+                
+                #config line -> dhcp pool-name <dhcp-pool-name> -> index 2
+                dhcp_pool_name_index = 2
+                pool_name = dsc_result.result.get('DhcpServerPoolName').split()[dhcp_pool_name_index]
+                
                 combined_data = dsc_result.result
 
                 dhcp_server_pool_results = cls.rsdb.select_global_dhcp_server_pool(pool_name)

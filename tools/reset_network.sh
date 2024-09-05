@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Remove all VLANs
 for vlan in $(ls /proc/net/vlan/ | grep ^vlan); do

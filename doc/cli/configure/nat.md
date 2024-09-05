@@ -4,13 +4,18 @@ This page provides step-by-step instructions for configuring Network Address Tra
 
 ## Table of Contents
 
-1. [Enabling NAT](#enabling-nat)
-2. [Configuring NAT Pool](#configuring-nat-pool)
-3. [Configuring Outside Interface](#configuring-outside-interface)
-4. [Configuring Inside Interface](#configuring-inside-interface)
-5. [Defining Access Control List](#defining-access-control-list)
-6. [Configuring NAT Pool Range](#configuring-nat-pool-range)
-7. [Associating NAT Pool with ACL](#associating-nat-pool-with-acl)
+- [NAT Configuration](#nat-configuration)
+  - [Table of Contents](#table-of-contents)
+  - [1. Enabling NAT ](#1-enabling-nat-)
+  - [2. Configuring NAT Pool ](#2-configuring-nat-pool-)
+  - [3. Configuring Outside Interface ](#3-configuring-outside-interface-)
+    - [Option 1: Using DHCP Client](#option-1-using-dhcp-client)
+    - [Option 2: Assigning a Static IP Address](#option-2-assigning-a-static-ip-address)
+  - [4. Configuring Inside Interface ](#4-configuring-inside-interface-)
+  - [5. Defining Access Control List ](#5-defining-access-control-list-)
+  - [6. Configuring NAT Pool Range ](#6-configuring-nat-pool-range-)
+  - [7. Associating NAT Pool with ACL ](#7-associating-nat-pool-with-acl-)
+  - [Full Configuration](#full-configuration)
 
 ---
 
@@ -28,7 +33,7 @@ configure terminal
 Create a NAT pool with a specific name using the following command:
 
 ```config
-nat pool <nat-pool-name>
+nat pool-name <nat-pool-name>
 ```
 
 ## 3. Configuring Outside Interface <a name="configuring-outside-interface"></a>
@@ -40,7 +45,7 @@ Configure the outside NAT interface. You have two options:
 ```config
 interface <outside-nat-interface-name>
     ip dhcp-client
-    ip nat outside pool <nat-pool-name>
+    ip nat outside pool-name <nat-pool-name>
     end
 ```
 
@@ -49,7 +54,7 @@ interface <outside-nat-interface-name>
 ```config
 interface <outside-nat-interface-name>
     ip address <ipv4-address> <ipv4-subnet>
-    ip nat outside pool <nat-pool-name>
+    ip nat outside pool-name <nat-pool-name>
     end
 ```
 
@@ -60,8 +65,8 @@ Configure the inside NAT interface with the following commands:
 ```config
 interface <inside-nat-interface-name>
     ip address <ipv4-address> <ipv4-subnet>
-    ip nat inside pool <nat-pool-name>
-    ip dhcp-server pool <dhcp-server-pool-name>
+    ip nat inside pool-name <nat-pool-name>
+    ip dhcp-server pool-name <dhcp-server-pool-name>
     end
 ```
 

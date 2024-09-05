@@ -1,7 +1,7 @@
 import logging
 
 
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.network_services.dhcp.dnsmasq.dnsmasq import DNSMasqService
 
 from lib.common.common import STATUS_NOK, STATUS_OK
@@ -10,7 +10,7 @@ class DHCPServerService(DNSMasqService):
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DHCP_SERVER_SERVICE)
+        self.log.setLevel(RSLS().DHCP_SERVER_SERVICE)
     
     def start(self):
         return self.start_dnsmasq()

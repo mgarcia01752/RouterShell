@@ -1,0 +1,31 @@
+
+class NetworkPorts:
+    SSH = 22              # Secure Shell (SSH)
+    TELNET = 23           # Telnet
+    SMTP = 25             # Simple Mail Transfer Protocol (SMTP)
+    FTP = 21              # File Transfer Protocol (FTP)
+    TFTP = 69             # Trivial File Transfer Protocol (TFTP)
+    DNS = 53              # Domain Name System (DNS)
+    DHCP_SERVER = 67      # Dynamic Host Configuration Protocol (DHCP) Server
+    DHCP_CLIENT = 68      # Dynamic Host Configuration Protocol (DHCP) Client
+    HTTP = 80             # Hypertext Transfer Protocol (HTTP)
+    HTTPS = 443           # HTTP Secure (HTTPS)
+    SNMP = 161            # Simple Network Management Protocol (SNMP)
+    SNMP_TRAP = 162       # SNMP traps
+    NTP = 123             # Network Time Protocol (NTP)
+    POP3 = 110            # Post Office Protocol v3 (POP3)
+    IMAP = 143            # Internet Message Access Protocol (IMAP)
+    LDAP = 389            # Lightweight Directory Access Protocol (LDAP)
+    RDP = 3389            # Remote Desktop Protocol (RDP)
+    BGP = 179             # Border Gateway Protocol (BGP)
+    NET_FLOW = 2055        # NetFlow
+    IPFIX = 4739          # IP Flow Information Export (IPFIX)
+    PPTP = 1723           # Point-to-Point Tunneling Protocol (PPTP)
+    L2TP = 1701           # Layer 2 Tunneling Protocol (L2TP)
+    IKE = 500             # Internet Key Exchange (IKE)
+    ESP_IP = 50           # Encapsulating Security Payload (ESP) for IPsec
+    AH_IP = 51            # Authentication Header (AH) for IPsec
+    SYSLOG = 514          # Syslog
+    SNMP_OVER_TLS = 10161 # SNMP over TLS
+    SNMP_OVER_DTLS = 10162# SNMP over DTLS
+    TELNETS = 992         # Telnet over SSL/TLS (TelnetS)

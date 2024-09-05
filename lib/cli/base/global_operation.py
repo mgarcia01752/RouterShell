@@ -1,12 +1,13 @@
-import argparse
 import os
+import argparse
 
 from bs4 import Comment
-from lib.cli.base.exec_priv_mode import ExecMode
+from lib.cli.common.exec_priv_mode import ExecMode
 from lib.common.common import STATUS_NOK, STATUS_OK, Common
 import subprocess
 
-from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.network_operations.network_mgr import NetworkManager
+import parser
 
 class GlobalPrivCommand(NetworkManager):
 
@@ -23,9 +24,6 @@ class GlobalPrivCommand(NetworkManager):
         Returns:
             bool: False if reboot is canceled, otherwise returns False.
         '''
-        parser = argparse.ArgumentParser(description="Reboot the system",
-                                         epilog="")
-        parser.add_argument("--force", action="store_true", help="Force reboot")
         
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
             print(f"Unable to reboot, must be in Privilege Mode")
@@ -101,16 +99,17 @@ class GlobalPrivCommand(NetworkManager):
             return
         return False
     
-    def set_prompt_prefix(self, prefix: str) -> str:
-        '''
-        Add a prefix to the command prompt, typically the hostname.
+    def set_prompt_prefix(self, prefix: str):
+        ''' 
+                    Add a prefix to the command prompt, typically the hostname.
 
-        Args:
-            prefix (str): The prefix to be added to the prompt.
+                    Args:
+                        prefix (str): The prefix to be added to the prompt.
 
-        Returns:
-            str: The updated command prompt string.
+                    Returns:
+                        str: The updated command prompt string.
         '''
+        
         self.prompt_prefix = prefix
 
 class GlobalUserCommand():

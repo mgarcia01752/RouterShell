@@ -3,13 +3,9 @@ import random
 import re
 
 from typing import Tuple
-
 from tabulate import tabulate 
-
-from lib.common.common import Common
 from lib.network_manager.common.interface import InterfaceLayer
-from lib.network_manager.common.phy import PhyServiceLayer
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_NOK, STATUS_OK
 
 class MacServiceLayerFoundError(Exception):
@@ -28,7 +24,7 @@ class MacServiceLayer(InterfaceLayer):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().MAC)
+        self.log.setLevel(RSLS().MAC)
         
     def set_interface_mac(self, interface_name: str, mac_address: str) -> bool:
         """
@@ -67,6 +63,7 @@ class MacServiceLayer(InterfaceLayer):
 
             self.log.debug(f"Changed MAC address of {interface_name} to {mac_address}")
             return STATUS_OK
+        
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             return STATUS_NOK

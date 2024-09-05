@@ -1,6 +1,6 @@
 import logging
-from lib.network_manager.nat import Nat
 
+from lib.network_manager.network_operations.nat import Nat
 
 class NatShow(Nat):
     
@@ -10,5 +10,5 @@ class NatShow(Nat):
         self.args = args        
 
     def getNatTable(self, args=None):
-        self.log.info(f"getNatTable()")
+        self.log.debug(f"getNatTable()")
         print(f"{self.getNatIpTable()}")

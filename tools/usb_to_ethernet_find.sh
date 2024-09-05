@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Function to check if a device is a USB to Ethernet adapter based on bus info
 is_usb_to_eth() {

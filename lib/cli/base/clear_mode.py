@@ -1,87 +1,58 @@
-import cmd2
 import logging
-import argparse
+from typing import List
 
-from lib.cli.base.global_operation import GlobalUserCommand
-from lib.cli.common.router_prompt import RouterPrompt
-from lib.cli.base.exec_priv_mode import ExecMode, ExecException
-from lib.network_manager.arp import Arp
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB
-from lib.common.constants import *
+from lib.cli.common.command_class_interface import CmdPrompt
+from lib.cli.common.exec_priv_mode import ExecMode
+from lib.common.constants import STATUS_OK
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+from lib.network_manager.network_operations.arp import Arp
+from lib.network_manager.network_operations.interface import Interface
+from lib.system.system_start_up import SystemStartUp
+
 
 class InvalidClearMode(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class ClearMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
-    """Clear-Mode-Commands"""
+class ClearMode(CmdPrompt):
 
-    def __init__(self, usr_exec_mode: ExecMode, arg=None):
-        super().__init__()
-        GlobalUserCommand.__init__(self)
-        RouterPrompt.__init__(self)
+    def __init__(self, arg=None):
+        super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
+
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().CLEAR_MODE)
+        self.log.setLevel(RSLS().CLEAR_MODE)
         
         self.log.debug(f"Entering Clear({arg})")
 
-        if usr_exec_mode is ExecMode.USER_MODE:
-            msg = f"Does not have necessary configure privileges ({usr_exec_mode})"
-            self.log.error(msg)
-            print(msg)
-            raise ExecException(msg)
-        
-        self.current_exec_mode = usr_exec_mode
-        self.prompt = self.set_prompt()
-        self.clear(arg)
-        
-    def clear(self, args):
-        """
-        Clear entries on router.
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['arp'], append_nested_sub_cmds=['all'] + Interface().get_os_network_interfaces())
+    @CmdPrompt.register_sub_commands(nested_sub_cmds=['router-db'])
+    def clearmode_clear(self, args: List):
 
-        Args:
-            args (str): Command arguments in the format "clear <command>".
-
-        """
         self.log.debug(f"Entering clear({args})")
 
-        # Define a parser with a more informative description and epilog.
-        parser = argparse.ArgumentParser(
-            description="Clear entries on the network device.",
-            epilog="Supported subcommands:\n"
-                    "   arp [interface_name]           Clear ARP cache for a specific interface.\n"
-                    "   router-db                      Clear RouterShell DB cache.\n"
-        )
-
-        # Create a subparser for the 'arp' subcommand.
-        subparsers = parser.add_subparsers(dest="subcommand", help="Subcommands")
-        arp_parser = subparsers.add_parser("arp", help="Clear ARP cache for a specific interface")
-        router_db_parser = subparsers.add_parser("router-db", help="Clear RouterShell Database")
-        arp_parser.add_argument("interface", nargs='?', help="Name of the interface")
-
-        try:
-            parsed_args = parser.parse_args(args.split())
-        except SystemExit:
-            return
-
-        if parsed_args.subcommand == 'arp':
-            self.log.debug("Clear ARP cache command")
-            interface = parsed_args.interface
-            Arp().arp_clear(interface)
-            return
-        
-        elif parsed_args.subcommand == 'router-db':
-            self.log.info(f"Clear RouterShell DB command, EXEC-MODE:({self.get_exec_mode()})")
+        if 'arp' in args[0]:
             
-            if self.get_exec_mode() != ExecMode.PRIV_MODE:
-                print(f"Unable to clear router-db, must be in Privilege Mode")
+            interface = args[1]
+            self.log.debug(f"Clear ARP cache command -> Clear Arp Interface: {interface}")
+            
+            return Arp().arp_clear(interface)
+                
+        if 'router-db' in args[0]:
+            self.log.debug(f"Clear RouterShell DB command")
                        
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':
-                RSDB().reset_database()
+                DB().reset_database()
             else:
                 print("Command canceled.")
+            
+            confirmation = input("Rebuild Router? (yes/no): ").strip().lower()
+            if confirmation == 'yes':
+                SystemStartUp()
+            
+            return STATUS_OK
 
-
-             
+        else:
+            print(f'Invalid clear command: {args}')
+            return STATUS_OK

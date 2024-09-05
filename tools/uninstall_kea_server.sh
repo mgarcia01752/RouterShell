@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Stop KEA DHCP Server
 sudo systemctl stop kea-dhcp4-server

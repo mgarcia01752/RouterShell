@@ -1,26 +1,24 @@
 import logging
 import re
 from typing import List
-from lib.network_manager.dhcp_client import DHCPVersion
-
-from lib.network_manager.nat import Nat, NATDirection
-from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as RSDB
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as DB
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from lib.network_manager.common.interface import InterfaceType
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.network_manager.common.interface import InterfaceType
+from lib.network_manager.network_operations.nat import NATDirection
 
 class InterfaceDatabase:
 
-    rsdb = RSDB()
+    rsdb = DB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().INTERFACE_DB)
+        cls.log.setLevel(RSLS().INTERFACE_DB)
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()  
+            cls.rsdb = DB()  
             
     def db_lookup_interface_exists(cls, interface_name: str) -> Result:
         """
@@ -42,7 +40,8 @@ class InterfaceDatabase:
         """
         return cls.rsdb.interface_exists(interface_name)
 
-    def add_db_interface(cls, interface_name: str, interface_type: InterfaceType, shutdown_status: bool = True) -> bool:
+    def add_db_interface(
+        cls, interface_name: str, interface_type: InterfaceType, shutdown_status: bool = True) -> bool:
         """
         Add an interface to the database.
 
@@ -143,7 +142,8 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_speed(interface_name, speed)
         return result.status
 
-    def update_db_inet_address(cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
+    def update_db_inet_address(
+        cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
         """
         Update or delete an IP address setting for an interface.
 
@@ -218,7 +218,8 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
         return result.status
     
-    def update_db_static_arp(cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
+    def update_db_static_arp(
+        cls, interface_name: str, ip_address: str, mac_address: str, encapsulation: str='arpa', negate=False) -> bool:
         """
         Update a static ARP record in the 'InterfaceStaticArp' table.
 
@@ -231,8 +232,6 @@ class InterfaceDatabase:
         Returns:
             bool: STATUS_OK if the update (or deletion) was successful, STATUS_NOK otherwise.
         """
-        
-          
         if not negate:
             cls.log.debug(f"update_static_arp(INSERT) Interface: {interface_name} -> Arp: -> inet: {ip_address} mac: {mac_address}")
             result = cls.rsdb.update_interface_static_arp(interface_name, ip_address, mac_address, encapsulation)
@@ -242,7 +241,8 @@ class InterfaceDatabase:
 
         return result.status
 
-    def update_db_nat_direction(cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
+    def update_db_nat_direction(
+        cls, interface_name: str, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
         """
         Update a NAT direction configuration for a specified interface and NAT pool.
 
@@ -335,31 +335,6 @@ class InterfaceDatabase:
         """
         pass
 
-    def update_db_dhcp_client(cls, interface_name: str, dhcp_version: DHCPVersion) -> bool:
-        """
-        Update the DHCP version for a specific network interface in the database.
-
-        Args:
-            interface_name (str): The name of the network interface to update.
-            dhcp_version (DHCPVersion): The updated DHCP version (DHCP_V4 or DHCP_V6).
-
-        Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
-
-        This method attempts to update the DHCP version for a network interface in the database. If the update is successful,
-        it returns True (STATUS_OK). If there's an issue during the update, it returns False (STATUS_NOK) and logs an error
-        message with the reason for the failure.
-
-        Note:
-        - The 'dhcp_version' parameter should be of type DHCPVersion, which is an enumeration containing DHCP versions.
-        - The 'STATUS_OK' and 'STATUS_NOK' constants represent success and failure, respectively.
-        """
-        result = cls.rsdb.insert_interface_dhcp_client(interface_name, dhcp_version.value)
-        if result.status:
-            cls.log.error(f"Unable to insert {dhcp_version.value} to interface: {interface_name} - reason: {result.reason}")
-            return STATUS_NOK
-        return STATUS_OK
-
     def update_db_rename_alias(cls, bus_info: str, initial_interface_name: str, alias_interface_name: str) -> bool:
         """
         Update or create an alias for an initial interface and check if they match.
@@ -382,7 +357,7 @@ class InterfaceDatabase:
         
         return cls.rsdb.update_interface_alias(bus_info, initial_interface_name, alias_interface_name).status
 
-    def get_interface_aliases(cls) -> List[dict]:
+    def get_db_interface_aliases(cls) -> List[dict]:
         """
         Get a list of dictionaries representing interface aliases from the InterfaceAlias table.
 
@@ -440,7 +415,10 @@ class InterfaceDatabase:
 
         Returns:
             bool: STATUS_OK if the update operation is successful, STATUS_NOK otherwise.
-        """        
+        """
+        if not description:
+            description = ""
+                    
         result = cls.rsdb.update_interface_description(interface_name, description)
         return result.status
 

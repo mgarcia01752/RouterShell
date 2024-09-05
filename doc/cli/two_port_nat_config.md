@@ -15,7 +15,7 @@ To start configuring the router, follow these steps:
 Create a NAT pool named `home-nat` for translating private LAN IP addresses to a single public IP address for internet access.
 
 ```config
-nat pool home-nat
+nat pool-name home-nat
 ```
 
 ## DHCP Server Configuration

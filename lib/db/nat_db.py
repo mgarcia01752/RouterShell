@@ -2,27 +2,20 @@ import logging
 from typing import List
 
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.db.sqlite_db.router_shell_db import RouterShellDB as RSDB, Result
-
-from lib.cli.common.cmd2_global import  Cmd2GlobalSettings as CGS
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
-from lib.network_manager.nat import *
-
+from lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 class NatDB:
 
-    rsdb = RSDB()
+    rsdb = DB()
     
     def __init__(cls):
         cls.log = logging.getLogger(cls.__class__.__name__)
-        cls.log.setLevel(RSLGS().NAT_DB)
-        
-        '''CMD2 DEBUG LOGGING'''
-        cls.debug = CGS().DEBUG_NAT_DB
+        cls.log.setLevel(RSLS().NAT_DB)
         
         if not cls.rsdb:
             cls.log.debug(f"Connecting RouterShell Database")
-            cls.rsdb = RSDB()  
+            cls.rsdb = DB()  
 
     def pool_name_exists(cls, pool_name: str) -> bool:
         """
@@ -166,7 +159,7 @@ class NatDB:
         Returns:
             bool: STATUS_OK if the inside interface is added successfully, STATUS_NOK otherwise.
         """
-        from lib.network_manager.nat import NATDirection
+        from lib.network_manager.network_operations.nat import NATDirection
         
         cls.log.debug(f"add_inside_interface({nat_pool_name}, {interface_name})")
         
@@ -212,7 +205,7 @@ class NatDB:
         Returns:
             bool: STATUS_OK if the outside interface is added successfully, STATUS_NOK otherwise.
         """
-        from lib.network_manager.nat import NATDirection
+        from lib.network_manager.network_operations.nat import NATDirection
         
         cls.log.debug(f"add_outside_interface({nat_pool_name}, {interface_name})")
         

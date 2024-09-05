@@ -3,9 +3,8 @@ from typing import List
 from tabulate import tabulate
 from lib.common.common import Common
 from lib.common.constants import STATUS_OK
-from lib.network_manager.dhcp_client import DHCPClient
-
-from lib.network_manager.dhcp_server import DhcpServerManager
+from lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient
+from lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpServerManager
 
 class DHCPClientShow():
     """Command set for showing DHCPClient-Show-Command"""
@@ -22,8 +21,17 @@ class DHCPClientShow():
         Returns:
             List[str]: A list of DHCP client flow log entries related to IPv4 address assignment.
         """
-        for line in DHCPClient().get_flow_log():
-            print(line)    
+
+        parsed_logs = [log for log in DHCPClient.get_flow_log() if log]
+        
+        if parsed_logs:
+            headers = list(parsed_logs[0].keys())
+            data = [list(log.values()) for log in parsed_logs]
+            table = tabulate(data, headers=headers, tablefmt='simple')
+            print(table)
+        else:
+            print("No valid log entries found.")
+        
 
 class DHCPServerShow():
     """Command set for showing DHCPServer-Show-Command"""

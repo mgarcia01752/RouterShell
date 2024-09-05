@@ -5,14 +5,18 @@ import shutil
 from typing import List
 from lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from lib.db.router_config_db import RouterConfigurationDatabase
-from lib.network_manager.common.interface import InterfaceType
-from lib.system.system_config import SystemConfig
+from lib.db.system_db import SystemDatabase
+from lib.network_services.common.network_ports import NetworkPorts
+from lib.system.system_call import SystemCall
 
 class RouterConfiguration:
 
-    CONFIG_MSG_START='; RouterShell Configuration'
+    REMARK_SYMBOL = '!'
+    
+    CONFIG_MSG_START=f'{REMARK_SYMBOL} RouterShell Configuration'
+    STARTUP_CONFIG_FILE = f"{ROUTER_CONFIG_DIR}/startup-config.cfg"
     LINE_BREAK = ""
     
     def __init__(self, args=None):
@@ -20,8 +24,23 @@ class RouterConfiguration:
         Initialize the RouterConfiguration instance.
         """
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().ROUTER_CONFIG)
+        self.log.setLevel(RSLS().ROUTER_CONFIG)
         self.rcdb = RouterConfigurationDatabase()
+    
+    def remark_comment(self, comment: str) -> str:
+        """
+        Formats a comment string with the configured remark symbol.
+
+        This method takes a comment string and formats it by prepending the 
+        configured remark symbol defined in RouterConfiguration.
+
+        Args:
+            comment (str): The comment to be formatted.
+
+        Returns:
+            str: The formatted comment string with the remark symbol.
+        """
+        return f'{RouterConfiguration.REMARK_SYMBOL} {comment}'
         
     def copy_running_configuration_to_startup_configuration(self, args=None):
         """
@@ -69,6 +88,8 @@ class RouterConfiguration:
         cmd_lines.extend([self.LINE_BREAK])
         
         cmd_lines.extend(self._get_banner())
+
+        cmd_lines.extend(self._get_system_servers())
         
         # Generate CLI commands for global settings
         global_settings_cmds = self._get_global_settings()
@@ -159,6 +180,7 @@ class RouterConfiguration:
         cmd_lines = []
 
         for bridge_config in bridge_info_results:
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(bridge_config.values()) else line
                 for i, line in enumerate(filter(None, bridge_config.values()))
@@ -188,6 +210,7 @@ class RouterConfiguration:
         cmd_lines = []
 
         for vlan_config in vlan_info_results:
+            cmd_lines.extend([self.LINE_BREAK])
             cmd_lines.extend(
                 ' ' * indent + line if i != 0 and i != len(vlan_config.values()) else line
                 for i, line in enumerate(filter(None, vlan_config.values()))
@@ -235,6 +258,7 @@ class RouterConfiguration:
 
         if status == STATUS_OK:
             for result in results:
+                cmd_lines.extend([self.LINE_BREAK])
                 cmd_setting = result.get('IpNatPoolName')
                 cmd_lines.append(cmd_setting)
             cmd_lines.append(self.LINE_BREAK)
@@ -285,6 +309,10 @@ class RouterConfiguration:
             for _config_line in if_ip_static_arp_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
             
+            status, if_ip_sp_acc_vlan_id_config = self.rcdb.get_interface_switchport_access_vlan(interface_name)
+            for _config_line in if_ip_sp_acc_vlan_id_config:
+                temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
+                     
             status, if_ds_pol_config = self.rcdb.get_interface_dhcp_server_polices(interface_name)
             for _config_line in if_ds_pol_config:
                 temp_interface_cmd_lines.extend(' ' * indent + line for line in filter(None, _config_line.values()))
@@ -318,6 +346,70 @@ class RouterConfiguration:
         
         return cmd_lines
 
+    def _get_system_telnet_server(self) -> List[str]:
+        """
+        Generate a list of system server configuration commands based on the Telnet server status.
+
+        Returns:
+            List[str]: A list containing the system server configuration command.
+        """
+        base_cmd = 'system telnet-server port'
+        status, result = SystemDatabase().get_telnet_server_status()
+
+        if status:
+            self.log.error(f'Error retrieving telnet-server configurations')
+            return []
+        
+        enable = result.get('Enable', False)
+        port = result.get('Port', NetworkPorts.TELNET)
+
+        if enable:
+            base_cmd = f'{base_cmd} {port}'
+        else:
+            base_cmd = f'no {base_cmd} {port}'
+
+        return [base_cmd]
+
+    def _get_system_ssh_server(self) -> List[str]:
+        """
+        Generate a list of system server configuration commands based on the SSH server status.
+
+        Returns:
+            List[str]: A list containing the system server configuration command.
+        """
+        base_cmd = 'system ssh-server port'
+        
+        # Retrieve the SSH server status from the database
+        status, result = SystemDatabase().get_ssh_server_status()
+        
+        # Check if the status retrieval was successful
+        if status == STATUS_NOK:
+            self.log.error(f"Error retrieving SSH server configurations")
+            return []
+
+        enable = result.get('Enable', False)
+        port = result.get('Port', NetworkPorts.SSH)
+        
+        # Construct the command based on the retrieved status
+        if enable:
+            base_cmd = f'{base_cmd} {port}'
+        else:
+            base_cmd = f'no {base_cmd} {port}'
+
+        return [base_cmd]
+
+    def _get_system_servers(self) -> List[str]:
+        """
+        Generate a list of system server configuration commands based on the statuses of telnet and ssh servers.
+
+        Returns:
+            List[str]: A combined list of system server configuration commands.
+        """
+        cmd_lines = self._get_system_telnet_server()
+        cmd_lines.extend(self._get_system_ssh_server())
+
+        return cmd_lines
+    
     def _get_banner(self) -> List[str]:
         """
         Retrieve the banner Message of the Day (Motd) from the RouterShell configuration and split it into a list of strings.
@@ -325,7 +417,7 @@ class RouterConfiguration:
         Returns:
             List[str]: The formatted banner text as a list of strings, where each element represents a line in the banner.
         """
-        banner_text = SystemConfig().get_banner()
+        banner_text = SystemCall().get_banner()
         
         if not banner_text:
             return []
@@ -338,7 +430,7 @@ class RouterConfiguration:
     
     def _get_hostname(self) -> List[str]:
         
-        hostname = f'hostname {SystemConfig().get_hostname()}'
+        hostname = f'hostname {SystemDatabase().get_hostname_db()}'
 
         return [hostname]
 

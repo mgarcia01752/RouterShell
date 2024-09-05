@@ -1,7 +1,7 @@
 import logging
 
 from lib.network_manager.common.run_commands import RunCommand
-from lib.common.router_shell_log_control import  RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from lib.common.constants import STATUS_OK, STATUS_NOK
 
 from enum import Enum, auto
@@ -9,6 +9,7 @@ from enum import Enum, auto
 class State(Enum):
     UP = 'up'
     DOWN = 'down'
+    UNKNOWN = 'unknown'
     
 class Duplex(Enum):
     
@@ -51,12 +52,17 @@ class Speed(Enum):
 
     MBPS_1000 = 1000
     """
-    1000 MBPS: Configures the interface to operate at a fixed speed of 1 gigabit per second (Mbps).
+    1000 MBPS: Configures the interface to operate at a fixed speed of 1 gigabit per second (Gbps).
     """
 
+    MBPS_2500 = 2500
+    """
+    2500 MBPS: Configures the interface to operate at a fixed speed of 2.5 gigabit per second (Gbps).
+    """
+        
     MBPS_10000 = 10000
     """
-    1000 MBPS: Configures the interface to operate at a fixed speed of 10 gigabits per second (Mbps).
+    1000 MBPS: Configures the interface to operate at a fixed speed of 10 gigabits per second (Gbps).
     """
 
     AUTO_NEGOTIATE = True
@@ -78,7 +84,7 @@ class PhyServiceLayer(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().PHY)
+        self.log.setLevel(RSLS().PHY)
             
     def set_duplex(self, interface_name: str, duplex: Duplex):
         """

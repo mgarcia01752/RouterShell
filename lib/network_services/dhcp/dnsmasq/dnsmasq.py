@@ -1,14 +1,15 @@
 from enum import Enum, auto
 import logging
 import os
-from shutil import copy
+
 from lib.common.constants import STATUS_NOK, STATUS_OK
-from lib.common.strings import StringFormats
+from lib.common.string_formats import StringFormats
 from lib.db.dhcp_server_db import DHCPServerDatabase
-from lib.network_manager.network_mgr import NetworkManager
+from lib.network_manager.network_operations.network_mgr import NetworkManager
 from lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
-from lib.common.router_shell_log_control import RouterShellLoggingGlobalSettings as RSLGS
+from lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from lib.system.system_service_control.system_service_control import SysServCntrlAction, SystemServiceControl
 
 class DNSMasqExitCode(Enum):
     """
@@ -48,11 +49,6 @@ class DNSMasqExitCode(Enum):
         else:
             raise ValueError("Invalid DNSMasq exit code")
 
-class Action(Enum):
-    START = 'start'
-    RESTART = 'restart'
-    STOP = 'stop'
-
 class DNSMasqDeploy(Enum):
     GLOBAL = auto()
     INTERFACE = auto()
@@ -64,84 +60,57 @@ class DNSMasqRunStatus(Enum):
 
 class DNSMasqService(NetworkManager):
     """
-    Class for controlling the DNSMasq demon service.
-
+    Class for controlling the DNSMasq daemon service.
     """
 
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_SERVICE)
+        self.log.setLevel(RSLS().DNSMASQ_SERVICE)
         
-    def control_service(self, action: Action) -> bool:
+    def control_service(self, service_action: SysServCntrlAction) -> bool:
         """
-        Control the DNSMasq service.
+        Control the DNSMasq service with the specified action.
 
         Args:
-            action (Action): The action to perform (Action.START, Action.RESTART, or Action.STOP).
+            service_action (SysServCntrlAction): The action to perform on the service (start, restart, stop, status).
 
         Returns:
-            bool: STATUS_OK if the service was controlled successfully, STATUS_NOK otherwise.
+            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
-        if action not in Action:
-            raise ValueError("Invalid action")
-
-        cmd = ['systemctl', action.value, 'dnsmasq']
-        cmd_result = self.run(cmd)
-        
-        if cmd_result.exit_code:
-            self.log.error(f"Failed to {action.value} DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
-            return STATUS_NOK
-        
-        return STATUS_OK
+        result = SystemServiceControl().service_control('dnsmasq', service_action)
+        if result == STATUS_OK:
+            self.log.debug(f"DNSMasq service {service_action.value}ed successfully.")
+        else:
+            self.log.error(f"Failed to {service_action.value} DNSMasq service.")
+        return result
         
     def start_dnsmasq(self) -> bool:
         """
         Start the DNSMasq service.
 
         Returns:
-            bool: True if the service started successfully, False otherwise.
+            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
-        cmd = ['systemctl', 'start', 'dnsmasq']
-        cmd_result = self.run(cmd)
-        
-        if cmd_result.exit_code:
-            self.log.error(f"Failed to start DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
-            return STATUS_NOK
-        
-        return STATUS_OK
+        return self.control_service(SysServCntrlAction.START)
 
     def restart_dnsmasq(self) -> bool:
         """
         Restart the DNSMasq service.
 
         Returns:
-            bool: True if the service restarted successfully, False otherwise.
+            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
-        cmd = ['systemctl', 'restart', 'dnsmasq']
-        cmd_result = self.run(cmd)
-        
-        if cmd_result.exit_code:
-            self.log.error(f"Failed to restart DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
-            return STATUS_NOK
-        
-        return STATUS_OK
+        return self.control_service(SysServCntrlAction.RESTART)
 
     def stop_dnsmasq(self) -> bool:
         """
         Stop the DNSMasq service.
 
         Returns:
-            bool: True if the service stopped successfully, False otherwise.
+            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
-        cmd = ['systemctl', 'stop', 'dnsmasq']
-        cmd_result = self.run(cmd)
-        
-        if cmd_result.exit_code:
-            self.log.error(f"Failed to stop DNSMasq. Exit code: {cmd_result.exit_code}, Error: {cmd_result.stderr}")
-            return STATUS_NOK
-        
-        return STATUS_OK
+        return self.control_service(SysServCntrlAction.STOP)
 
 class DNSMasqInterfaceService(DNSMasqService):
     """
@@ -167,7 +136,7 @@ class DNSMasqInterfaceService(DNSMasqService):
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)
+        self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)
 
         self.dhcp_pool_name = dhcp_pool_name
         self.dhcp_pool_subnet = dhcp_pool_subnet
@@ -193,7 +162,7 @@ class DNSMasqInterfaceService(DNSMasqService):
             bool: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
         """
         # Get the interface names for the DHCP pool
-        interface_names = self.dhcp_srv_db.get_dhcp_poll_interfaces_db(self.dhcp_pool_name)
+        interface_names = self.dhcp_srv_db.get_dhcp_pool_interfaces_db(self.dhcp_pool_name)
         self.log.debug(f"Number of interfaces: {len(interface_names)} -> {interface_names[0]}")
 
         # Get the DHCP pool ranges
@@ -347,4 +316,4 @@ class DNSMasqGlobalService(DNSMasqService):
     def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(RSLGS().DNSMASQ_INTERFACE_SERVICE)    
+        self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)    
