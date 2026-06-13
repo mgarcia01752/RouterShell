@@ -145,9 +145,19 @@ ignore = [
 [tool.pyright]
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
-include = ["src"]
+include = [
+    "src",
+    "tests",
+    "tools/release",
+]
+extraPaths = [
+    "src",
+    ".",
+]
 exclude = [
     "**/__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
 ]
-venvPath = "."
-venv = ".venv"
