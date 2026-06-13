@@ -73,14 +73,112 @@ Please select the specific documentation file you are interested in from the tab
 
 If you have any questions or need further assistance, please feel free to reach out to our community or project team. Thank you for choosing RouterShell!
 
-## Running RouterShell (Temporary until install script is ready)
+- [RouterShell FAQ](doc/faq.md)
+
+## Linux Runtime Install
 
 [README INSTALLATION](install/README.md)
 
-## Run RouterShell
+RouterShell includes a generic installer for non-embedded Linux hosts such as
+Ubuntu, Debian, Fedora, RHEL-compatible systems, and openSUSE. Embedded and
+BusyBox-style targets are intentionally out of scope for this installer.
+
+Production install is the default.
+The installer captures a root-only baseline snapshot under
+`/var/lib/routershell/baseline` before making install changes.
+
+Test installer changes in a disposable VM before running them on a development
+workstation. Use `--development` only when testing editable installs with dev
+dependencies; see [RouterShell VM Install Testing](tools/vm/README.md).
 
 ```bash
-./start.sh
+sudo ./install/install.sh
+routershell
 ```
+
+## Run RouterShell From Source
+
+```bash
+PYTHONPATH=src python3 -m routershell
+```
+
+Run the factory reset workflow from source with:
+
+```bash
+PYTHONPATH=src python3 -m routershell --factory-reset
+```
+
+## Python Development Install
+
+RouterShell now includes Python packaging metadata in `pyproject.toml`.
+For local development, use an isolated virtual environment and install the
+project in editable mode:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+After installation, run the CLI entry point:
+
+```bash
+routershell
+```
+
+Factory reset is also exposed as a console entry point:
+
+```bash
+routershell-factory-reset
+```
+
+Build distribution artifacts with:
+
+```bash
+python -m build
+```
+
+Run validation with:
+
+```bash
+python -m pytest
+python -m ruff check .
+```
+
+## Git Helpers
+
+Git helper scripts live under `tools/git/`:
+
+```bash
+./tools/git/git-save.sh --commit-msg "Update RouterShell"
+./tools/git/git-push.sh --commit-msg "Update RouterShell"
+```
+
+See [RouterShell Git Helpers](tools/git/README.md) for save, push, and guarded branch
+history reset workflows.
+
+## Tools
+
+Operational and development tools are grouped under `tools/` by purpose.
+Review [RouterShell Tools Layout](tools/reference/tools-layout.md) before
+running scripts that can alter disks, networking, packages, or services.
+
+## Release Helpers
+
+Release helper scripts live under `tools/release/`:
+
+```bash
+./tools/release/check_version.py
+./tools/release/release.py --next patch --dry-run
+```
+
+See [RouterShell Release Helpers](tools/release/README.md) for version checks,
+dry runs, releases, and commit reports.
+
+## License
+
+RouterShell is licensed under the [Apache License 2.0](LICENSE). Distributions
+must retain the [NOTICE](NOTICE) file.
 
 ## [TODO](todo.md)

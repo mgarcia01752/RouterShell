@@ -1,26 +1,104 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Check if the script is run as root
-if [ "$EUID" -eq 0 ]; then
-    echo "Please do not run this script as root. Run it as a regular user."
-    exit 1
-fi
+SCRIPT_NAME="$(basename "$0")"
+INSTALL_ROOT="${ROUTERSHELL_INSTALL_ROOT:-/opt/routershell}"
+BIN_DIR="${ROUTERSHELL_BIN_DIR:-/usr/local/bin}"
+REMOVE_RUNTIME_LOGS="false"
 
-# Uninstall specific packages
-packages_to_uninstall="net-tools traceroute bridge-utils ethtool iproute2 hostapd iw openssl python3 dnsmasq"
+usage() {
+  cat <<'EOF'
+Uninstall RouterShell from a general-purpose Linux host.
 
-for package in $packages_to_uninstall; do
-    if dpkg -l | grep -q "ii  $package"; then
-        sudo apt remove $package -y
-        sudo apt purge $package -y
-    fi
+Usage:
+  uninstall.sh [--install-root PATH] [--bin-dir PATH] [--remove-runtime-logs]
+
+Options:
+  --install-root        Runtime install root. Default: /opt/routershell
+  --bin-dir             Directory containing command launchers. Default: /usr/local/bin
+  --remove-runtime-logs Remove /tmp/log RouterShell runtime logs.
+  -h, --help            Show this help.
+
+This script removes RouterShell's runtime virtual environment and launchers.
+It does not remove shared operating-system packages such as Python, iproute,
+dnsmasq, hostapd, or lshw.
+EOF
+}
+
+log() {
+  echo "[${SCRIPT_NAME}] $*"
+}
+
+die() {
+  echo "[${SCRIPT_NAME}] ERROR: $*" >&2
+  exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install-root)
+      shift
+      [[ -n "${1:-}" ]] || die "--install-root requires a path."
+      INSTALL_ROOT="$1"
+      shift
+      ;;
+    --bin-dir)
+      shift
+      [[ -n "${1:-}" ]] || die "--bin-dir requires a path."
+      BIN_DIR="$1"
+      shift
+      ;;
+    --remove-runtime-logs)
+      REMOVE_RUNTIME_LOGS="true"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die "Unknown argument: $1"
+      ;;
+  esac
 done
 
-# Uninstall pip
-echo "Uninstalling pip3..."
-pip uninstall pip3 -y
+require_root() {
+  if [[ "${EUID}" -ne 0 ]]; then
+    die "Run this uninstaller as root, for example: sudo ./install/uninstall.sh"
+  fi
+}
 
-# Remove the added PATH from .bashrc
-sed -i '/export PATH=\$HOME\/.local\/bin:\$PATH/d' ~/.bashrc
+guard_install_root() {
+  case "${INSTALL_ROOT}" in
+    /|/opt|/usr|/usr/local|/home|/root)
+      die "Refusing to remove broad install root: ${INSTALL_ROOT}"
+      ;;
+  esac
+}
 
-echo "Uninstallation completed successfully."
+remove_launchers() {
+  rm -f "${BIN_DIR}/routershell" "${BIN_DIR}/routershell-factory-reset"
+}
+
+remove_runtime() {
+  guard_install_root
+  rm -rf "${INSTALL_ROOT}"
+}
+
+remove_runtime_logs() {
+  if [[ "${REMOVE_RUNTIME_LOGS}" != "true" ]]; then
+    return
+  fi
+
+  rm -f /tmp/log/routershell.log /tmp/log/routershell-command.log
+}
+
+main() {
+  require_root
+  remove_launchers
+  remove_runtime
+  remove_runtime_logs
+  log "RouterShell uninstall complete."
+}
+
+main

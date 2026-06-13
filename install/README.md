@@ -1,59 +1,156 @@
-
 # RouterShell Installation Guide
 
-This guide provides step-by-step instructions for installing and uninstalling RouterShell on your Linux system. RouterShell is a powerful tool for managing network configurations.
+This guide provides step-by-step instructions for installing and uninstalling RouterShell on a general-purpose Linux system.
+This install path is for non-embedded hosts such as Ubuntu, Debian, Fedora, RHEL-compatible systems, and openSUSE.
+
+BusyBox, Alpine, OpenWrt, Buildroot, Yocto images, and embedded/minimal router images are intentionally out of scope until those targets have a dedicated install design.
 
 ## Prerequisites
 
-- You must have sudo privileges to run some installation steps.
-- Make sure your Linux system is connected to the internet to download required packages.
+- You must have sudo privileges.
+- The host must have internet access for operating-system packages and Python dependencies.
+- The host must use `apt-get`, `dnf`, `yum`, or `zypper`.
 
-## Tested
+## Supported Package Managers
 
-   Ubuntu 22.x, 23.x
+- Debian/Ubuntu: `apt-get`
+- Fedora/RHEL/CentOS compatible systems: `dnf` or `yum`
+- openSUSE/SUSE: `zypper`
 
 ## Installation
 
-### Step 1: Install RouterShell (as sudo)
+Run the installer from the repository root:
 
-1. Open a terminal.
+```bash
+sudo ./install/install.sh
+```
 
+This is the production runtime install path. Development tools and VM testing
+helpers are not installed by default.
 
-2. Navigate to the installation directory:
+The installer:
 
-   ```bash
-   cd /path/to/RouterShell/install
-   ```
+- Captures a host/network baseline snapshot under `/var/lib/routershell/baseline`.
+- Installs required host packages for network management workflows.
+- Creates a RouterShell runtime virtual environment under `/opt/routershell`.
+- Installs RouterShell into that virtual environment.
+- Adds `routershell` and `routershell-factory-reset` launchers under `/usr/local/bin`.
+- Creates `/tmp/log` for RouterShell runtime logs.
+- Warns if port 53 is already in use, but does not stop or remove existing services.
 
-3. Run the installation script as sudo:
+### Install Options
 
-   ```bash
-   sudo ./install.sh
-   ```
+Capture a baseline snapshot and exit without installing RouterShell:
 
-   This script will install RouterShell and its dependencies.
+```bash
+sudo ./install/install.sh --snapshot-only
+```
+
+Replace an existing baseline snapshot:
+
+```bash
+sudo ./install/install.sh --force-snapshot
+```
+
+Skip baseline capture:
+
+```bash
+sudo ./install/install.sh --no-snapshot
+```
+
+Install in development mode:
+
+```bash
+sudo ./install/install.sh --development
+```
+
+Development mode installs RouterShell editable with the Python `.[dev]`
+dependencies from `pyproject.toml`. Use this for VM-based installer testing or
+developer validation, not production hosts.
+
+Use a custom install root:
+
+```bash
+sudo ./install/install.sh --install-root /opt/routershell
+```
+
+Use a custom launcher directory:
+
+```bash
+sudo ./install/install.sh --bin-dir /usr/local/bin
+```
+
+Skip operating-system package installation:
+
+```bash
+sudo ./install/install.sh --skip-os-packages
+```
+
+Skip RouterShell Python package installation:
+
+```bash
+sudo ./install/install.sh --skip-python-package
+```
+
+After installation, run:
+
+```bash
+routershell
+```
 
 ## Uninstall
 
+Run the uninstaller from the repository root:
 
-### Step 1: Uninstall RouterShell
+```bash
+sudo ./install/uninstall.sh
+```
 
-1. Open a terminal.
+The uninstaller removes RouterShell's runtime virtual environment and command launchers.
+It does not remove shared operating-system packages such as Python, `iproute`, `dnsmasq`, `hostapd`, or `lshw`.
+It also does not restore network state from the baseline snapshot.
 
-2. Navigate to the installation directory:
+Remove RouterShell runtime logs as well:
 
-   ```bash
-   cd /path/to/RouterShell/install
-   ```
+```bash
+sudo ./install/uninstall.sh --remove-runtime-logs
+```
 
-3. Run the uninstall script as sudo:
+Use matching custom paths if they were used during install:
 
-   ```bash
-   sudo ./uninstall.sh
-   ```
+```bash
+sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local/bin
+```
 
-   This script will remove RouterShell and its dependencies.
+## Notes
 
-## Enjoy using RouterShell
+- The generic installer is intended for normal Linux distributions first.
+- Production install is the default; development install requires `--development`.
+- Baseline snapshot capture is enabled by default and is not overwritten unless `--force-snapshot` is used.
+- Baseline snapshots are saved root-only under `/var/lib/routershell/baseline`.
+- Restore is intentionally not part of uninstall; it should be a separate explicit workflow.
+- Embedded and image-built environments should get separate install logic once their requirements are better understood.
+- VM-based install testing should be used before running this installer on a development workstation.
+- See [RouterShell VM Install Testing](../tools/vm/README.md) for the Multipass test workflow.
 
-You have successfully installed and uninstalled RouterShell. For usage instructions, please refer to the documentation or user guide.
+## Baseline Snapshot
+
+The install-time baseline records current host and network state before
+RouterShell makes install changes. This is intended for audit and future
+restore tooling.
+
+The snapshot includes:
+
+- `/etc/os-release`, `/etc/hostname`, `/etc/hosts`, and `/etc/resolv.conf`.
+- Hostname and kernel output.
+- `ip address`, route, rule, and neighbor state when `ip` is available.
+- Bridge link and VLAN state when `bridge` is available.
+- `iptables-save`, `ip6tables-save`, and `nft list ruleset` when available.
+- Network-related sysctl values when `sysctl` is available.
+- Selected systemd service active/enabled states.
+- Network configuration file metadata for common config directories.
+- A `manifest.json` and `capture-status.log`.
+
+Network configuration file contents are not copied to avoid capturing secrets
+such as WiFi credentials. The snapshot is not restored automatically during
+uninstall.

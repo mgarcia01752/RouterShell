@@ -1,6 +1,6 @@
 # System
 
-[API](../../lib/system/system.py)
+[API](../../src/routershell/lib/system/system.py)
 
 ## Telnet
 

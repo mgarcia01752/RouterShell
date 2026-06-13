@@ -1,0 +1,99 @@
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "routershell"
+version = "0.1.0"
+description = "IOS-like Python CLI distribution for Linux router configuration workflows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+    { name = "Maurice Garcia" },
+]
+keywords = [
+    "cli",
+    "linux",
+    "networking",
+    "router",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "argcomplete>=3.0",
+    "beautifulsoup4>=4.12",
+    "cmd2>=2.4",
+    "jc>=1.25",
+    "prettytable>=3.0",
+    "prompt-toolkit>=3.0",
+    "pyte>=0.8",
+    "tabulate>=0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=8.0",
+    "ruff>=0.5",
+    "twine>=5.0",
+]
+
+[project.scripts]
+routershell = "routershell.cli:main"
+routershell-factory-reset = "routershell.cli:factory_reset"
+
+[project.urls]
+Homepage = "https://github.com/mgarcia01752/RouterShell"
+Repository = "https://github.com/mgarcia01752/RouterShell"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["routershell*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"routershell.lib.db.sqlite_db" = ["*.sql"]
+"routershell.lib.network_services.dhcp.dnsmasq" = ["*.conf"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+pythonpath = [
+    "src",
+]
+testpaths = [
+    "tests",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+exclude = [
+    "src/routershell/lib",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "W",
+]
