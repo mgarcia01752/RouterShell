@@ -57,8 +57,8 @@ assert pyproject["project"]["scripts"]["routershell-factory-reset"] == "routersh
 PY
 
   rs_run_check "version consistency" "${python_bin}" tools/release/check_version.py
-  rs_run_check "compile packaging files" "${python_bin}" -m py_compile routershell/__init__.py routershell/_version.py routershell/cli.py routershell_version.py lib/__init__.py
-  rs_run_check "compile source tree" "${python_bin}" -m compileall -q routershell src lib tools/release tools/support bridge_factory.py bridge_db-test.py test.py routershell_version.py
+  rs_run_check "compile packaging files" "${python_bin}" -m py_compile routershell/__init__.py routershell/_version.py routershell/cli.py lib/__init__.py
+  rs_run_check "compile source tree" "${python_bin}" -m compileall -q routershell src lib tools/release tools/support bridge_factory.py bridge_db-test.py test.py
   rs_run_check "shell syntax" bash -n start.sh install/install.sh install/uninstall.sh tools/git/git-save.sh tools/git/git-push.sh tools/git/git-reset-branch-history.sh tools/git/git-common.sh
 
   if "${python_bin}" -m pytest --version >/dev/null 2>&1; then

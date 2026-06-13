@@ -1,3 +1,42 @@
+### Summary
+Removed the obsolete root-level routershell_version.py module so RouterShell keeps version behavior inside the package and pyproject.toml remains the only stored version source. Updated coding-agent rules and packaging/git/test references to keep the project root clean for non-legacy RouterShell work.
+
+### Modified Files
+- CODING_AGENT.md
+- pyproject.toml
+- routershell_version.py (deleted)
+- tests/test_packaging.py
+- tools/git/README.md
+- tools/git/git-common.sh
+
+### Commands Executed And Results
+- `rg -n "routershell_version|py-modules" pyproject.toml CODING_AGENT.md tests tools routershell README.md install -g !tools/agent-review/**` -> pass; no live references found
+- `python3 -m py_compile routershell/__init__.py routershell/_version.py routershell/cli.py tools/release/check_version.py tools/release/release.py tools/support/bump_version.py tests/test_packaging.py` -> pass
+- `python3 tools/release/check_version.py && python3 tools/support/bump_version.py --current` -> pass; version 0.1.0
+- `bash -n install/install.sh install/uninstall.sh tools/git/git-common.sh tools/git/git-save.sh tools/git/git-push.sh tools/git/git-reset-branch-history.sh tools/vm/multipass-common.sh tools/vm/multipass-create.sh tools/vm/multipass-test-install.sh tools/vm/multipass-shell.sh tools/vm/multipass-destroy.sh` -> pass
+- `python3 -m venv /tmp/routershell-root-clean-check && /tmp/routershell-root-clean-check/bin/python -m pip install --upgrade pip && /tmp/routershell-root-clean-check/bin/python -m pip install -e .[dev]` -> pass
+- `/tmp/routershell-root-clean-check/bin/python -m pytest` -> pass; 4 tests passed
+- `/tmp/routershell-root-clean-check/bin/python -m ruff check routershell tools/release/check_version.py tools/release/release.py tools/support/bump_version.py tests/test_packaging.py` -> pass
+- `/tmp/routershell-root-clean-check/bin/python -m build` -> pass; sdist and wheel built without routershell_version.py
+- `bash -c source tools/git/git-common.sh; rs_run_quality_gates` -> pass available gates; pytest and Ruff skipped for system Python because they are not installed there
+
+### Tests
+- `pytest` -> pass; 4 tests passed
+- `ruff` -> pass on touched Python files
+- `python -m build` -> pass
+- `tools/release/check_version.py` -> pass
+
+### Notes / Warnings
+- `routershell_version.py` was intentionally deleted; RouterShell is treated as non-legacy for package cleanup.
+- Build artifacts under `dist/`, `build/`, and egg-info are ignored by git.
+
+### Remaining TODOs / Follow-Ups
+- None
+
+# FILE: routershell_version.py
+Deleted. Version access now lives in routershell.__version__ and routershell/_version.py.
+
+# FILE: CODING_AGENT.md
 <!-- SPDX-License-Identifier: GPL-2.0-or-later -->
 <!-- Copyright (c) 2026 Maurice Garcia -->
 
@@ -233,3 +272,285 @@ When the user requests "train", read the following sources:
 - `src/pypnm/lib/` (DB/persistence + config helpers)
 - `src/pypnm/api/` (routing/service patterns, where applicable)
 - `tools/agent-review/` (all files, if present)
+
+# FILE: pyproject.toml
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "routershell"
+version = "0.1.0"
+description = "IOS-like Python CLI distribution for Linux router configuration workflows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Maurice Garcia" },
+]
+keywords = [
+    "cli",
+    "linux",
+    "networking",
+    "router",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "argcomplete>=3.0",
+    "beautifulsoup4>=4.12",
+    "cmd2>=2.4",
+    "jc>=1.25",
+    "prettytable>=3.0",
+    "prompt-toolkit>=3.0",
+    "pyte>=0.8",
+    "tabulate>=0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=8.0",
+    "ruff>=0.5",
+    "twine>=5.0",
+]
+
+[project.scripts]
+routershell = "routershell.cli:main"
+routershell-factory-reset = "routershell.cli:factory_reset"
+
+[project.urls]
+Homepage = "https://github.com/mgarcia01752/RouterShell"
+Repository = "https://github.com/mgarcia01752/RouterShell"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["routershell*", "lib*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"lib.db.sqlite_db" = ["*.sql"]
+"lib.network_services.dhcp.dnsmasq" = ["*.conf"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = [
+    "tests",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "W",
+]
+
+# FILE: tests/test_packaging.py
+"""Packaging metadata and entry point smoke tests."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import tomllib
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_pyproject_declares_console_entry_points() -> None:
+    """Verify the packaged console scripts point at the compatibility launcher."""
+    with (PROJECT_ROOT / "pyproject.toml").open("rb") as handle:
+        pyproject = tomllib.load(handle)
+
+    scripts = pyproject["project"]["scripts"]
+
+    assert scripts["routershell"] == "routershell.cli:main"
+    assert scripts["routershell-factory-reset"] == "routershell.cli:factory_reset"
+
+
+def test_lib_package_adds_legacy_import_path() -> None:
+    """Importing ``lib`` exposes the legacy top-level package path."""
+    import lib
+
+    lib_path = str(Path(lib.__file__).resolve().parent)
+
+    assert lib_path in sys.path
+
+
+def test_routershell_entry_point_functions_are_importable() -> None:
+    """The console entry point functions can be imported without starting the CLI."""
+    from routershell import cli
+
+    assert callable(cli.main)
+    assert callable(cli.factory_reset)
+
+
+def test_version_module_matches_pyproject() -> None:
+    """The package version and pyproject version stay aligned."""
+    import routershell
+
+    with (PROJECT_ROOT / "pyproject.toml").open("rb") as handle:
+        pyproject = tomllib.load(handle)
+
+    assert routershell.__version__ == pyproject["project"]["version"]
+
+
+# FILE: tools/git/README.md
+# RouterShell Git Helpers
+
+These scripts provide RouterShell Git workflow helpers adapted from the PyPNM
+tooling style.
+
+## Save Current Work
+
+Run local quality gates, stage all changes, and create a timestamped commit:
+
+```bash
+./tools/git/git-save.sh --commit-msg "Add RouterShell packaging"
+```
+
+Push after committing:
+
+```bash
+./tools/git/git-save.sh --commit-msg "Add RouterShell packaging" --push
+```
+
+## Commit And Push
+
+Create a commit and push the current branch:
+
+```bash
+./tools/git/git-push.sh --commit-msg "Add RouterShell packaging"
+```
+
+Pushing branches other than `main` or `hot-fix` requires confirmation.
+
+## Reset Branch History
+
+Rewrite a branch as a fresh orphan history:
+
+```bash
+./tools/git/git-reset-branch-history.sh --branch main --message "Initial RouterShell clean commit"
+```
+
+This command force-pushes. By default it creates a remote backup branch first.
+Run it only when you intentionally want to rewrite branch history.
+
+## Quality Gates
+
+The save and push helpers run these RouterShell checks by default:
+
+```bash
+./tools/release/check_version.py
+python3 -m py_compile routershell/__init__.py routershell/_version.py routershell/cli.py lib/__init__.py
+python3 -m compileall -q routershell src lib tools/release tools/support bridge_factory.py bridge_db-test.py test.py
+bash -n start.sh install/install.sh install/uninstall.sh tools/git/git-save.sh tools/git/git-push.sh tools/git/git-reset-branch-history.sh tools/git/git-common.sh
+```
+
+If `pytest` or `ruff` are installed, the helpers also run:
+
+```bash
+python3 -m pytest
+python3 -m ruff check .
+```
+
+Use `--skip-checks` only when you are intentionally saving work that is not
+ready for validation.
+
+# FILE: tools/git/git-common.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+rs_run_check() {
+  local label="$1"
+  shift
+
+  echo "[check] ${label}..."
+  if "$@"; then
+    echo "[pass]  ${label}"
+  else
+    echo "[fail]  ${label}" >&2
+    exit 1
+  fi
+}
+
+rs_require_git_repo() {
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "ERROR: This script must be run inside a Git repository." >&2
+    exit 1
+  fi
+}
+
+rs_repo_root() {
+  git rev-parse --show-toplevel
+}
+
+rs_python() {
+  if command -v python3 >/dev/null 2>&1; then
+    command -v python3
+    return
+  fi
+
+  if command -v python >/dev/null 2>&1; then
+    command -v python
+    return
+  fi
+
+  echo "ERROR: python3 or python is required." >&2
+  exit 1
+}
+
+rs_run_quality_gates() {
+  local python_bin
+  python_bin="$(rs_python)"
+
+  rs_run_check "pyproject metadata" "${python_bin}" - <<'PY'
+import tomllib
+from pathlib import Path
+
+with Path("pyproject.toml").open("rb") as handle:
+    pyproject = tomllib.load(handle)
+
+assert pyproject["project"]["name"] == "routershell"
+assert pyproject["project"]["scripts"]["routershell"] == "routershell.cli:main"
+assert pyproject["project"]["scripts"]["routershell-factory-reset"] == "routershell.cli:factory_reset"
+PY
+
+  rs_run_check "version consistency" "${python_bin}" tools/release/check_version.py
+  rs_run_check "compile packaging files" "${python_bin}" -m py_compile routershell/__init__.py routershell/_version.py routershell/cli.py lib/__init__.py
+  rs_run_check "compile source tree" "${python_bin}" -m compileall -q routershell src lib tools/release tools/support bridge_factory.py bridge_db-test.py test.py
+  rs_run_check "shell syntax" bash -n start.sh install/install.sh install/uninstall.sh tools/git/git-save.sh tools/git/git-push.sh tools/git/git-reset-branch-history.sh tools/git/git-common.sh
+
+  if "${python_bin}" -m pytest --version >/dev/null 2>&1; then
+    rs_run_check "pytest" "${python_bin}" -m pytest
+  else
+    echo "[skip]  pytest (not installed)"
+  fi
+
+  if "${python_bin}" -m ruff --version >/dev/null 2>&1; then
+    rs_run_check "ruff check" "${python_bin}" -m ruff check .
+  else
+    echo "[skip]  ruff check (not installed)"
+  fi
+}

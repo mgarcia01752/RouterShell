@@ -47,10 +47,3 @@ def test_version_module_matches_pyproject() -> None:
 
     assert routershell.__version__ == pyproject["project"]["version"]
 
-
-def test_legacy_version_shim_matches_package_version() -> None:
-    """The legacy root version module remains compatible during migration."""
-    import routershell
-    import routershell_version
-
-    assert routershell_version.__version__ == routershell.__version__

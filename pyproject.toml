@@ -60,7 +60,6 @@ Homepage = "https://github.com/mgarcia01752/RouterShell"
 Repository = "https://github.com/mgarcia01752/RouterShell"
 
 [tool.setuptools]
-py-modules = ["routershell_version"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
