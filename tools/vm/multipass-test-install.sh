@@ -15,8 +15,10 @@ Usage:
   multipass-test-install.sh [--development] [--skip-os-packages]
 
 Environment:
-  RS_VM_NAME       VM name. Default: routershell-install-test
-  RS_VM_REPO_DIR   Path inside VM. Default: /tmp/RouterShell
+  RS_VM_NAME                       VM name. Default: routershell-install-test
+  RS_VM_REPO_DIR                   Path inside VM. Default: /tmp/RouterShell
+  RS_VM_VIRTUAL_INTERFACES         Virtual interface count. Default: 10
+  RS_VM_VIRTUAL_INTERFACE_PREFIX   Interface name prefix. Default: rs1g
 
 By default, the VM test runs the production runtime install path. Use
 --development to test editable install mode with development dependencies.
@@ -45,6 +47,8 @@ done
 
 rs_vm_require_multipass
 rs_vm_require_exists
+rs_vm_configure_virtual_interfaces
+rs_vm_verify_virtual_interfaces
 rs_vm_create_archive
 
 rs_vm_log "Copying archive into VM."
@@ -75,9 +79,14 @@ multipass exec "${RS_VM_NAME}" -- bash -lc "
   /opt/routershell/venv/bin/python - <<'PY'
 import routershell
 from routershell import cli
+from routershell.lib.network_manager.network_operations.interface import Interface
 
 assert callable(cli.main)
 assert callable(cli.factory_reset)
+expected = [f'${RS_VM_VIRTUAL_INTERFACE_PREFIX}{index}' for index in range(${RS_VM_VIRTUAL_INTERFACES})]
+interfaces = Interface().get_os_network_interfaces()
+missing = [interface for interface in expected if interface not in interfaces]
+assert not missing, f'Missing RouterShell VM interfaces: {missing}'
 print(f'RouterShell import OK: {routershell.__version__}')
 PY
 "

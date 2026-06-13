@@ -103,6 +103,10 @@ show interface database
 Test installer changes in a disposable VM before running them on a development
 workstation. Use `--development` only when testing editable installs with dev
 dependencies; see [RouterShell VM Install Testing](tools/vm/README.md).
+The VM workflow creates ten virtual network interfaces by default to simulate
+a network-device install target.
+On apt/snapd systems, `--development` also installs Multipass for the VM
+workflow.
 
 ```bash
 sudo ./install/install.sh

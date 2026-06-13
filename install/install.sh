@@ -30,7 +30,7 @@ Usage:
 Options:
   --install-root       Runtime install root. Default: /opt/routershell
   --bin-dir            Directory for command launchers. Default: /usr/local/bin
-  --development        Install RouterShell editable with development dependencies.
+  --development        Install RouterShell editable with development dependencies and VM test tooling.
   --local-env          Create/load a repo-local .env file.
   --global-env         Create/load the system env file. Default for production.
   --global             Alias for --global-env.
@@ -456,6 +456,7 @@ install_os_packages() {
         python3 \
         python3-pip \
         python3-venv \
+        snapd \
         traceroute
       ;;
     dnf|yum)
@@ -496,6 +497,28 @@ install_os_packages() {
       die "Unsupported package manager: ${PACKAGE_MANAGER}"
       ;;
   esac
+}
+
+install_development_vm_tools() {
+  if [[ "${DEVELOPMENT_INSTALL}" != "true" ]]; then
+    return
+  fi
+
+  if command -v multipass >/dev/null 2>&1; then
+    log "Multipass is already installed."
+    return
+  fi
+
+  if [[ "${PACKAGE_MANAGER}" != "apt" ]]; then
+    die "Development VM tooling requires Multipass. Automatic Multipass install is currently supported on apt/snapd systems only."
+  fi
+
+  if ! command -v snap >/dev/null 2>&1; then
+    die "snap is required to install Multipass. Re-run without --skip-os-packages so snapd can be installed."
+  fi
+
+  log "Installing Multipass for RouterShell development VM testing."
+  snap install multipass
 }
 
 check_python_venv() {
@@ -578,6 +601,8 @@ main() {
   else
     install_os_packages
   fi
+
+  install_development_vm_tools
 
   warn_port_53_owner
   prepare_runtime_dirs

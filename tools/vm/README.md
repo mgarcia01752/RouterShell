@@ -12,7 +12,8 @@ of scope until they have a dedicated install design.
 
 ## Prerequisites
 
-- Multipass installed on the development workstation.
+- Multipass installed on the development workstation. On apt/snapd systems,
+  `sudo ./install/install.sh --development` installs Multipass automatically.
 - Network access from the VM for OS packages and Python dependencies.
 
 ## Default VM
@@ -22,11 +23,20 @@ of scope until they have a dedicated install design.
 - CPUs: `2`
 - Memory: `2G`
 - Disk: `12G`
+- Virtual network interfaces: `10`
+- Virtual network interface names: `rs1g0` through `rs1g9`
+- Virtual interface traffic shaping rate: `1gbit`
 
 Override defaults with environment variables:
 
 ```bash
 RS_VM_NAME=routershell-ubuntu-2404 RS_VM_IMAGE=24.04 tools/vm/multipass-create.sh
+```
+
+Override the simulated network-device shape:
+
+```bash
+RS_VM_VIRTUAL_INTERFACES=10 RS_VM_VIRTUAL_INTERFACE_PREFIX=rs1g tools/vm/multipass-create.sh
 ```
 
 ## Workflow
@@ -36,6 +46,10 @@ Create the VM:
 ```bash
 tools/vm/multipass-create.sh
 ```
+
+The create step configures ten Linux virtual network interfaces inside the VM
+by default. These interfaces simulate a small network appliance for RouterShell
+discovery and install testing without reconfiguring the development workstation.
 
 Run the production install test:
 
@@ -81,7 +95,9 @@ in production mode by default, and verifies:
 - `/usr/local/bin/routershell-factory-reset` exists and is executable.
 - `/opt/routershell/venv/bin/python` exists and is executable.
 - `/var/lib/routershell/baseline/manifest.json` exists.
+- The VM has the configured virtual network interfaces.
 - The installed Python environment can import `routershell`, verify console
-  entry functions, and read the package version.
+  entry functions, read the package version, and discover the virtual network
+  interfaces.
 
 The test intentionally does not start the interactive RouterShell CLI.

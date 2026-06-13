@@ -70,6 +70,9 @@ dependencies from `pyproject.toml`. Use this for VM-based installer testing or
 developer validation, not production hosts. Development mode creates a
 repo-local `.env` file and the RouterShell launchers load it before starting
 the CLI.
+On apt/snapd systems, development mode also installs Multipass so the
+`tools/vm/` installer test workflow can create disposable RouterShell test VMs.
+Production installs do not install Multipass.
 
 Force a repo-local `.env` file:
 
@@ -206,6 +209,8 @@ sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local
 - Embedded and image-built environments should get separate install logic once their requirements are better understood.
 - VM-based install testing should be used before running this installer on a development workstation.
 - See [RouterShell VM Install Testing](../tools/vm/README.md) for the Multipass test workflow.
+- The VM test workflow creates ten virtual network interfaces by default so
+  RouterShell discovery can be checked against a network-device-shaped target.
 
 ## Baseline Snapshot
 

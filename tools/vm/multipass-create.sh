@@ -22,5 +22,8 @@ multipass launch "${RS_VM_IMAGE}" \
 rs_vm_log "Waiting for cloud-init."
 multipass exec "${RS_VM_NAME}" -- cloud-init status --wait
 
+rs_vm_configure_virtual_interfaces
+rs_vm_verify_virtual_interfaces
+
 rs_vm_log "VM is ready."
 multipass info "${RS_VM_NAME}"
