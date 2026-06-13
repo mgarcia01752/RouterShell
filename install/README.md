@@ -25,6 +25,9 @@ Run the installer from the repository root:
 sudo ./install/install.sh
 ```
 
+This is the production runtime install path. Development tools and VM testing
+helpers are not installed by default.
+
 The installer:
 
 - Installs required host packages for network management workflows.
@@ -35,6 +38,16 @@ The installer:
 - Warns if port 53 is already in use, but does not stop or remove existing services.
 
 ### Install Options
+
+Install in development mode:
+
+```bash
+sudo ./install/install.sh --development
+```
+
+Development mode installs RouterShell editable with the Python `.[dev]`
+dependencies from `pyproject.toml`. Use this for VM-based installer testing or
+developer validation, not production hosts.
 
 Use a custom install root:
 
@@ -92,5 +105,7 @@ sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local
 ## Notes
 
 - The generic installer is intended for normal Linux distributions first.
+- Production install is the default; development install requires `--development`.
 - Embedded and image-built environments should get separate install logic once their requirements are better understood.
 - VM-based install testing should be used before running this installer on a development workstation.
+- See [RouterShell VM Install Testing](../tools/vm/README.md) for the Multipass test workflow.

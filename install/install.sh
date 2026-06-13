@@ -8,17 +8,19 @@ BIN_DIR="${ROUTERSHELL_BIN_DIR:-/usr/local/bin}"
 VENV_DIR="${INSTALL_ROOT}/venv"
 SKIP_OS_PACKAGES="false"
 SKIP_PYTHON_PACKAGE="false"
+DEVELOPMENT_INSTALL="false"
 
 usage() {
   cat <<'EOF'
 Install RouterShell on a general-purpose Linux host.
 
 Usage:
-  install.sh [--install-root PATH] [--bin-dir PATH] [--skip-os-packages] [--skip-python-package]
+  install.sh [--install-root PATH] [--bin-dir PATH] [--development] [--skip-os-packages] [--skip-python-package]
 
 Options:
   --install-root       Runtime install root. Default: /opt/routershell
   --bin-dir            Directory for command launchers. Default: /usr/local/bin
+  --development        Install RouterShell editable with development dependencies.
   --skip-os-packages   Do not install operating-system packages.
   --skip-python-package
                        Do not create the runtime virtual environment or install RouterShell.
@@ -58,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-os-packages)
       SKIP_OS_PACKAGES="true"
+      shift
+      ;;
+    --development)
+      DEVELOPMENT_INSTALL="true"
       shift
       ;;
     --skip-python-package)
@@ -210,7 +216,12 @@ install_runtime_package() {
   install -d -m 0755 "${INSTALL_ROOT}"
   python3 -m venv "${VENV_DIR}"
   "${VENV_DIR}/bin/python" -m pip install --upgrade pip
-  "${VENV_DIR}/bin/python" -m pip install "${PROJECT_ROOT}"
+
+  if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
+    "${VENV_DIR}/bin/python" -m pip install -e "${PROJECT_ROOT}[dev]"
+  else
+    "${VENV_DIR}/bin/python" -m pip install "${PROJECT_ROOT}"
+  fi
 }
 
 install_launchers() {
@@ -254,6 +265,11 @@ main() {
     log "Skipping RouterShell Python package installation."
   else
     check_python_venv
+    if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
+      log "Installing RouterShell in development mode."
+    else
+      log "Installing RouterShell in production runtime mode."
+    fi
     install_runtime_package
     install_launchers
   fi
