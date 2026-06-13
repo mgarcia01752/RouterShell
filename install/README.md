@@ -129,9 +129,10 @@ starting RouterShell:
 - Development installs create `.env` in the RouterShell project root by default.
 - `--local-env` and `--global-env` can override the default selection.
 
-Existing environment files are left unchanged so local settings are preserved.
-The env file also defines `ROUTERSHELL_DB_FILE`, which controls the SQLite
-runtime database path. Production installs default to
+Existing environment variable values are preserved. If an env file already
+exists, the installer appends missing required RouterShell keys without
+overwriting existing values. The env file also defines `ROUTERSHELL_DB_FILE`,
+which controls the SQLite runtime database path. Production installs default to
 `/var/lib/routershell/routershell.db`; local/development installs default to
 `.routershell/routershell.db` under the project root.
 

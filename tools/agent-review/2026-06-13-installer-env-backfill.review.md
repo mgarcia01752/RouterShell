@@ -1,3 +1,31 @@
+### Summary
+The installer now preserves existing RouterShell env values while appending missing required keys, including ROUTERSHELL_DB_FILE. This fixes stale local .env files that were created before runtime DB path support was added.
+
+### Modified Files
+- install/install.sh
+- install/README.md
+- doc/faq.md
+- tests/install/test_install_env.py
+
+### Commands Executed And Results
+- `bash -n install/install.sh install/uninstall.sh` -> pass
+- `/opt/routershell/venv/bin/python -m pytest tests/install/test_install_env.py` -> pass; 5 tests passed
+- `ROUTERSHELL_INSTALL_SH_NO_MAIN=true bash -c 'source install/install.sh; ... create_env_file'` -> pass; missing env keys were appended while existing LOG_LEVEL stayed DEBUG
+- `/opt/routershell/venv/bin/python tools/release/qa_checker.py --skip-pycycle` -> pass; Ruff passed and pytest passed with 22 tests
+
+### Tests
+- `pytest tests/install/test_install_env.py` -> pass; stale env backfill behavior covered
+- `pytest` -> pass; 22 tests passed through the QA checker
+- `ruff` -> pass; All checks passed through the QA checker
+
+### Notes / Warnings
+- Reinstall is still required for /opt/routershell/venv to pick up source changes; uninstall is not required.
+- Existing env values are preserved; only missing required RouterShell keys are appended.
+
+### Remaining TODOs / Follow-Ups
+- None
+
+# FILE: install/install.sh
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -603,3 +631,435 @@ main() {
 if [[ "${ROUTERSHELL_INSTALL_SH_NO_MAIN:-false}" != "true" ]]; then
   main
 fi
+
+# FILE: install/README.md
+# RouterShell Installation Guide
+
+This guide provides step-by-step instructions for installing and uninstalling RouterShell on a general-purpose Linux system.
+This install path is for non-embedded hosts such as Ubuntu, Debian, Fedora, RHEL-compatible systems, and openSUSE.
+
+BusyBox, Alpine, OpenWrt, Buildroot, Yocto images, and embedded/minimal router images are intentionally out of scope until those targets have a dedicated install design.
+
+## Prerequisites
+
+- You must have sudo privileges.
+- The host must have internet access for operating-system packages and Python dependencies.
+- The host must use `apt-get`, `dnf`, `yum`, or `zypper`.
+
+## Supported Package Managers
+
+- Debian/Ubuntu: `apt-get`
+- Fedora/RHEL/CentOS compatible systems: `dnf` or `yum`
+- openSUSE/SUSE: `zypper`
+
+## Installation
+
+Run the installer from the repository root:
+
+```bash
+sudo ./install/install.sh
+```
+
+This is the production runtime install path. Development tools and VM testing
+helpers are not installed by default.
+
+The installer:
+
+- Captures a host/network baseline snapshot under `/var/lib/routershell/baseline`.
+- Creates a RouterShell environment file for launcher-loaded settings.
+- Installs required host packages for network management workflows.
+- Creates a RouterShell runtime virtual environment under `/opt/routershell`.
+- Installs RouterShell into that virtual environment.
+- Adds `routershell` and `routershell-factory-reset` launchers under `/usr/local/bin`.
+- Creates `/tmp/log` for RouterShell runtime logs.
+- Warns if port 53 is already in use, but does not stop or remove existing services.
+
+### Install Options
+
+Capture a baseline snapshot and exit without installing RouterShell:
+
+```bash
+sudo ./install/install.sh --snapshot-only
+```
+
+Replace an existing baseline snapshot:
+
+```bash
+sudo ./install/install.sh --force-snapshot
+```
+
+Skip baseline capture:
+
+```bash
+sudo ./install/install.sh --no-snapshot
+```
+
+Install in development mode:
+
+```bash
+sudo ./install/install.sh --development
+```
+
+Development mode installs RouterShell editable with the Python `.[dev]`
+dependencies from `pyproject.toml`. Use this for VM-based installer testing or
+developer validation, not production hosts. Development mode creates a
+repo-local `.env` file and the RouterShell launchers load it before starting
+the CLI.
+
+Force a repo-local `.env` file:
+
+```bash
+sudo ./install/install.sh --local-env
+```
+
+Force the system environment file:
+
+```bash
+sudo ./install/install.sh --global-env
+```
+
+The system environment file is `/etc/routershell/routershell.env` by default.
+The `--global` flag is accepted as an alias for `--global-env`.
+
+Use a custom install root:
+
+```bash
+sudo ./install/install.sh --install-root /opt/routershell
+```
+
+Use a custom launcher directory:
+
+```bash
+sudo ./install/install.sh --bin-dir /usr/local/bin
+```
+
+Skip operating-system package installation:
+
+```bash
+sudo ./install/install.sh --skip-os-packages
+```
+
+Skip RouterShell Python package installation:
+
+```bash
+sudo ./install/install.sh --skip-python-package
+```
+
+After installation, run:
+
+```bash
+routershell
+```
+
+## Runtime Logging
+
+RouterShell writes runtime logs to `/tmp/log/routershell.log` by default.
+Logging is configured when the `routershell` and `routershell-factory-reset`
+entry points start.
+
+The installer creates an environment file that those launchers load before
+starting RouterShell:
+
+- Production installs create `/etc/routershell/routershell.env` by default.
+- Development installs create `.env` in the RouterShell project root by default.
+- `--local-env` and `--global-env` can override the default selection.
+
+Existing environment variable values are preserved. If an env file already
+exists, the installer appends missing required RouterShell keys without
+overwriting existing values. The env file also defines `ROUTERSHELL_DB_FILE`,
+which controls the SQLite runtime database path. Production installs default to
+`/var/lib/routershell/routershell.db`; local/development installs default to
+`.routershell/routershell.db` under the project root.
+
+The log file uses rotation to avoid unbounded growth.
+
+Override the log level for one run:
+
+```bash
+ROUTERSHELL_LOG_LEVEL=DEBUG routershell
+```
+
+Use a custom log file:
+
+```bash
+ROUTERSHELL_LOG_FILE=/tmp/log/routershell-debug.log routershell
+```
+
+Disable console logging:
+
+```bash
+ROUTERSHELL_LOG_CONSOLE=false routershell
+```
+
+Disable file logging:
+
+```bash
+ROUTERSHELL_LOG_FILE_ENABLED=false routershell
+```
+
+## Uninstall
+
+Run the uninstaller from the repository root:
+
+```bash
+sudo ./install/uninstall.sh
+```
+
+The uninstaller removes RouterShell's runtime virtual environment and command launchers.
+It does not remove shared operating-system packages such as Python, `iproute`, `dnsmasq`, `hostapd`, or `lshw`.
+It also does not restore network state from the baseline snapshot.
+
+Remove RouterShell runtime logs as well:
+
+```bash
+sudo ./install/uninstall.sh --remove-runtime-logs
+```
+
+Use matching custom paths if they were used during install:
+
+```bash
+sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local/bin
+```
+
+## Notes
+
+- The generic installer is intended for normal Linux distributions first.
+- Production install is the default; development install requires `--development`.
+- Production installs use the system environment file by default.
+- Development installs use the repo-local `.env` file by default.
+- Baseline snapshot capture is enabled by default and is not overwritten unless `--force-snapshot` is used.
+- Baseline snapshots are saved root-only under `/var/lib/routershell/baseline`.
+- Restore is intentionally not part of uninstall; it should be a separate explicit workflow.
+- Embedded and image-built environments should get separate install logic once their requirements are better understood.
+- VM-based install testing should be used before running this installer on a development workstation.
+- See [RouterShell VM Install Testing](../tools/vm/README.md) for the Multipass test workflow.
+
+## Baseline Snapshot
+
+The install-time baseline records current host and network state before
+RouterShell makes install changes. This is intended for audit and future
+restore tooling.
+
+The snapshot includes:
+
+- `/etc/os-release`, `/etc/hostname`, `/etc/hosts`, and `/etc/resolv.conf`.
+- Hostname and kernel output.
+- `ip address`, route, rule, and neighbor state when `ip` is available.
+- Bridge link and VLAN state when `bridge` is available.
+- `iptables-save`, `ip6tables-save`, and `nft list ruleset` when available.
+- Network-related sysctl values when `sysctl` is available.
+- Selected systemd service active/enabled states.
+- Network configuration file metadata for common config directories.
+- A `manifest.json` and `capture-status.log`.
+
+Network configuration file contents are not copied to avoid capturing secrets
+such as WiFi credentials. The snapshot is not restored automatically during
+uninstall.
+
+# FILE: doc/faq.md
+# RouterShell FAQ
+
+## Install fails with setuptools InvalidConfigError
+
+If `sudo ./install/install.sh --development` fails while getting editable
+build requirements and reports this error:
+
+```text
+setuptools.errors.InvalidConfigError: License classifiers have been superseded by license expressions
+```
+
+Update RouterShell to a version whose `pyproject.toml` uses the SPDX
+`license = "Apache-2.0"` expression without deprecated license classifiers,
+then rerun the installer:
+
+```bash
+sudo ./install/install.sh --development
+```
+
+This error is raised by newer setuptools releases during package metadata
+validation.
+
+## VSCode reports unresolved RouterShell imports
+
+If VSCode or Pylance reports unresolved imports for `routershell` or
+`tools.release.qa_checker`, reload the VSCode window after opening the
+RouterShell workspace. The workspace settings select the installed development
+interpreter at `/opt/routershell/venv/bin/python` and add the project `src`
+layout plus release tooling paths to Python analysis.
+
+If command-line Pyright is also needed, reinstall development extras:
+
+```bash
+/opt/routershell/venv/bin/python -m pip install -e ".[dev]"
+```
+
+If VSCode reports a Pylint `E0401:import-error` for a RouterShell module such
+as `routershell.lib.cli.base.clear_mode`, make sure the workspace is using the
+RouterShell interpreter and reload VSCode. The workspace settings configure the
+Pylint extension to run from `/opt/routershell/venv/bin/python` with the
+project `src` layout on the import path.
+
+If the Pylint extension reports that Pylint is missing, refresh development
+dependencies in the installer-created virtual environment:
+
+```bash
+sudo /opt/routershell/venv/bin/python -m pip install -e ".[dev]"
+```
+
+## RouterShell fails with unable to open database file
+
+If `routershell` exits during startup with this error:
+
+```text
+RouterShellDB - ERROR - Error: unable to open database file
+AttributeError: 'NoneType' object has no attribute 'cursor'
+```
+
+the launcher is missing a writable `ROUTERSHELL_DB_FILE` setting or is using an
+older install. Reinstall RouterShell so the launcher-loaded env file gets any
+missing required keys and the installed package receives the current DB path
+code:
+
+```bash
+sudo ./install/install.sh --development
+```
+
+For local/development installs, the default database path is
+`.routershell/routershell.db` under the project root. For production installs,
+the default path is `/var/lib/routershell/routershell.db`.
+
+# FILE: tests/install/test_install_env.py
+"""Installer environment file behavior tests."""
+
+from __future__ import annotations
+
+import subprocess
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _run_bash(script: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", "-c", script],
+        cwd=REPO_ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+
+def test_install_help_documents_env_options() -> None:
+    result = subprocess.run(
+        ["bash", "install/install.sh", "--help"],
+        cwd=REPO_ROOT,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+    assert "--local-env" in result.stdout
+    assert "--global-env" in result.stdout
+    assert "--global" in result.stdout
+
+
+def test_development_install_selects_local_env(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    system_env = tmp_path / "etc" / "routershell.env"
+    project_root.mkdir()
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+source install/install.sh
+PROJECT_ROOT={project_root}
+LOCAL_ENV_FILE="${{PROJECT_ROOT}}/.env"
+SYSTEM_ENV_FILE={system_env}
+DEVELOPMENT_INSTALL=true
+ENV_SCOPE=auto
+select_env_file
+create_env_file
+printf '%s\\n' "${{ACTIVE_ENV_FILE}}"
+"""
+
+    result = _run_bash(script)
+    local_env = project_root / ".env"
+
+    assert result.stdout.strip().endswith(str(local_env))
+    assert local_env.exists()
+    assert "ROUTERSHELL_LOG_LEVEL" in local_env.read_text()
+    assert f'ROUTERSHELL_DB_FILE="{project_root}/.routershell/routershell.db"' in local_env.read_text()
+    assert not system_env.exists()
+
+
+def test_production_install_selects_global_env(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    system_env = tmp_path / "etc" / "routershell.env"
+    project_root.mkdir()
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+source install/install.sh
+PROJECT_ROOT={project_root}
+LOCAL_ENV_FILE="${{PROJECT_ROOT}}/.env"
+SYSTEM_ENV_FILE={system_env}
+STATE_DIR={tmp_path}/state
+DEVELOPMENT_INSTALL=false
+ENV_SCOPE=auto
+select_env_file
+create_env_file
+printf '%s\\n' "${{ACTIVE_ENV_FILE}}"
+"""
+
+    result = _run_bash(script)
+
+    assert result.stdout.strip().endswith(str(system_env))
+    assert system_env.exists()
+    assert "ROUTERSHELL_LOG_FILE" in system_env.read_text()
+    assert f'ROUTERSHELL_DB_FILE="{tmp_path}/state/routershell.db"' in system_env.read_text()
+    assert not (project_root / ".env").exists()
+
+
+def test_existing_env_gets_missing_required_defaults(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    local_env = project_root / ".env"
+    project_root.mkdir()
+    local_env.write_text('ROUTERSHELL_LOG_LEVEL="DEBUG"\n')
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+source install/install.sh
+PROJECT_ROOT={project_root}
+LOCAL_ENV_FILE="${{PROJECT_ROOT}}/.env"
+ACTIVE_ENV_FILE="${{LOCAL_ENV_FILE}}"
+create_env_file
+"""
+
+    _run_bash(script)
+    env_text = local_env.read_text()
+
+    assert 'ROUTERSHELL_LOG_LEVEL="DEBUG"' in env_text
+    assert f'ROUTERSHELL_DB_FILE="{project_root}/.routershell/routershell.db"' in env_text
+    assert 'ROUTERSHELL_LOG_FILE="/tmp/log/routershell.log"' in env_text
+
+
+def test_launchers_source_selected_env_file(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    env_file = tmp_path / "routershell.env"
+    venv_dir = tmp_path / "venv"
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+source install/install.sh
+BIN_DIR={bin_dir}
+ACTIVE_ENV_FILE={env_file}
+VENV_DIR={venv_dir}
+install_launchers
+"""
+
+    _run_bash(script)
+    launcher = bin_dir / "routershell"
+    launcher_text = launcher.read_text()
+
+    assert f'source "{env_file}"' in launcher_text
+    assert f'exec "{venv_dir}/bin/routershell"' in launcher_text
+

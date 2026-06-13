@@ -1,3 +1,26 @@
+### Summary
+Fixed the RouterShell startup import chain by importing ROUTER_CONFIG_DIR from the central constants module instead of common.common. This resolves the ImportError raised when the editable install loads routershell.lib.system.copy_mode.
+
+### Modified Files
+- src/routershell/lib/system/copy_mode.py
+
+### Commands Executed And Results
+- `ROUTERSHELL_DB_FILE=/home/dev01/Projects/RouterShell/.routershell/test-import.db PYTHONPATH=src /opt/routershell/venv/bin/python - <<'PY' ...` -> pass; CLI import chain loaded successfully
+- `/opt/routershell/venv/bin/python -m pytest tests/packaging/test_imports.py` -> pass; 1 test passed
+- `/opt/routershell/venv/bin/python tools/release/qa_checker.py --skip-pycycle` -> pass; Ruff passed and pytest passed with 22 tests
+
+### Tests
+- `pytest tests/packaging/test_imports.py` -> pass
+- `pytest` -> pass; 22 tests passed through the QA checker
+- `ruff` -> pass; All checks passed through the QA checker
+
+### Notes / Warnings
+- The CLI import smoke still logs sudo bridge discovery errors in this restricted shell, but those did not block imports.
+
+### Remaining TODOs / Follow-Ups
+- Consider deferring bridge discovery side effects during import in a future startup cleanup.
+
+# FILE: src/routershell/lib/system/copy_mode.py
 import enum
 import logging
 import os
@@ -72,3 +95,4 @@ class CopyMode:
         self.log.debug(f"Running configuration copied to {copy_type.value} configuration: {config_file}")
         
         return STATUS_OK
+

@@ -57,8 +57,9 @@ AttributeError: 'NoneType' object has no attribute 'cursor'
 ```
 
 the launcher is missing a writable `ROUTERSHELL_DB_FILE` setting or is using an
-older install. Reinstall RouterShell so the launcher-loaded env file includes a
-runtime database path outside the Python package directory:
+older install. Reinstall RouterShell so the launcher-loaded env file gets any
+missing required keys and the installed package receives the current DB path
+code:
 
 ```bash
 sudo ./install/install.sh --development

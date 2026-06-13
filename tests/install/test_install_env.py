@@ -88,6 +88,29 @@ printf '%s\\n' "${{ACTIVE_ENV_FILE}}"
     assert not (project_root / ".env").exists()
 
 
+def test_existing_env_gets_missing_required_defaults(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    local_env = project_root / ".env"
+    project_root.mkdir()
+    local_env.write_text('ROUTERSHELL_LOG_LEVEL="DEBUG"\n')
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+source install/install.sh
+PROJECT_ROOT={project_root}
+LOCAL_ENV_FILE="${{PROJECT_ROOT}}/.env"
+ACTIVE_ENV_FILE="${{LOCAL_ENV_FILE}}"
+create_env_file
+"""
+
+    _run_bash(script)
+    env_text = local_env.read_text()
+
+    assert 'ROUTERSHELL_LOG_LEVEL="DEBUG"' in env_text
+    assert f'ROUTERSHELL_DB_FILE="{project_root}/.routershell/routershell.db"' in env_text
+    assert 'ROUTERSHELL_LOG_FILE="/tmp/log/routershell.log"' in env_text
+
+
 def test_launchers_source_selected_env_file(tmp_path: Path) -> None:
     bin_dir = tmp_path / "bin"
     env_file = tmp_path / "routershell.env"
