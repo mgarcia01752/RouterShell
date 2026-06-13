@@ -52,3 +52,13 @@ def test_vm_install_test_verifies_routershell_interface_discovery() -> None:
     assert "source /etc/routershell/routershell.env" in test_install_script
     assert "Interface().get_os_network_interfaces()" in test_install_script
     assert "Missing RouterShell VM interfaces" in test_install_script
+
+
+def test_vm_cleanup_is_scoped_to_routershell_instances() -> None:
+    cleanup_script = (VM_TOOLS / "multipass-cleanup.sh").read_text()
+
+    assert "multipass list --format csv" in cleanup_script
+    assert "$1 ~ /^routershell-/" in cleanup_script
+    assert '--dry-run' in cleanup_script
+    assert "multipass delete" in cleanup_script
+    assert "multipass purge" in cleanup_script

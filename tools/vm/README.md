@@ -91,6 +91,20 @@ Delete the VM:
 tools/vm/multipass-destroy.sh --purge
 ```
 
+Clean up RouterShell-created VMs:
+
+```bash
+tools/vm/multipass-cleanup.sh --dry-run
+tools/vm/multipass-cleanup.sh --purge
+```
+
+Use `--all` to delete every Multipass instance whose name starts with
+`routershell-`:
+
+```bash
+tools/vm/multipass-cleanup.sh --all --purge
+```
+
 ## What The Test Does
 
 `multipass-test-install.sh` creates a tar archive of the current worktree,
