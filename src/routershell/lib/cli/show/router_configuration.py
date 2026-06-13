@@ -430,9 +430,9 @@ class RouterConfiguration:
     
     def _get_hostname(self) -> list[str]:
         
-        hostname = f'hostname {SystemDatabase().get_hostname_db()}'
+        hostname = SystemDatabase().get_hostname_db() or SystemCall().get_hostname_os()
 
-        return [hostname]
+        return [f'hostname {hostname}']
 
     def _get_global_wifi_policy(self, indent: int=1) -> list[str]:
         """
