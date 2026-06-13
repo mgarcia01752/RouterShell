@@ -59,7 +59,7 @@ multipass exec "${RS_VM_NAME}" -- bash -lc "rm -rf '${RS_VM_REPO_DIR}' && tar -x
 
 install_cmd="sudo '${RS_VM_REPO_DIR}/install/install.sh'"
 if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
-  install_cmd="${install_cmd} --development"
+  install_cmd="sudo ROUTERSHELL_INSTALL_VM_TOOLS=false '${RS_VM_REPO_DIR}/install/install.sh' --development"
 fi
 
 if [[ "${SKIP_OS_PACKAGES}" == "true" ]]; then
@@ -76,6 +76,13 @@ multipass exec "${RS_VM_NAME}" -- bash -lc "
   test -x /usr/local/bin/routershell-factory-reset
   test -x /opt/routershell/venv/bin/python
   sudo test -f /var/lib/routershell/baseline/manifest.json
+  set -a
+  if [[ -r '${RS_VM_REPO_DIR}/.env' ]]; then
+    source '${RS_VM_REPO_DIR}/.env'
+  elif [[ -r /etc/routershell/routershell.env ]]; then
+    source /etc/routershell/routershell.env
+  fi
+  set +a
   /opt/routershell/venv/bin/python - <<'PY'
 import routershell
 from routershell import cli

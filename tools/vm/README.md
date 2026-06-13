@@ -33,6 +33,10 @@ Override defaults with environment variables:
 RS_VM_NAME=routershell-ubuntu-2404 RS_VM_IMAGE=24.04 tools/vm/multipass-create.sh
 ```
 
+The host-side archive defaults to `$HOME/routershell-vm-test.tar.gz` so the
+Multipass snap can read it during transfer. Override it with `RS_VM_ARCHIVE`
+when needed.
+
 Override the simulated network-device shape:
 
 ```bash
@@ -72,6 +76,9 @@ Use `--development` to test editable install mode with development dependencies:
 tools/vm/multipass-test-install.sh --development
 ```
 
+The VM test disables nested Multipass installation inside the guest while still
+testing RouterShell's editable development install path.
+
 Open a shell inside the VM:
 
 ```bash
@@ -87,9 +94,9 @@ tools/vm/multipass-destroy.sh --purge
 ## What The Test Does
 
 `multipass-test-install.sh` creates a tar archive of the current worktree,
-excluding `.git`, `.venv`, caches, and build outputs. It transfers the archive
-into the VM, extracts it under `/tmp/RouterShell`, runs the generic installer
-in production mode by default, and verifies:
+excluding `.git`, `.env`, `.routershell`, `.venv`, caches, and build outputs.
+It transfers the archive into the VM, extracts it under `/tmp/RouterShell`,
+runs the generic installer in production mode by default, and verifies:
 
 - `/usr/local/bin/routershell` exists and is executable.
 - `/usr/local/bin/routershell-factory-reset` exists and is executable.

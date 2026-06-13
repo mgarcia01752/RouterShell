@@ -14,6 +14,7 @@ VENV_DIR="${INSTALL_ROOT}/venv"
 SKIP_OS_PACKAGES="false"
 SKIP_PYTHON_PACKAGE="false"
 DEVELOPMENT_INSTALL="false"
+INSTALL_VM_TOOLS="${ROUTERSHELL_INSTALL_VM_TOOLS:-true}"
 SKIP_SNAPSHOT="false"
 FORCE_SNAPSHOT="false"
 SNAPSHOT_ONLY="false"
@@ -501,6 +502,11 @@ install_os_packages() {
 
 install_development_vm_tools() {
   if [[ "${DEVELOPMENT_INSTALL}" != "true" ]]; then
+    return
+  fi
+
+  if [[ "${INSTALL_VM_TOOLS}" == "false" ]]; then
+    log "Skipping development VM tooling by ROUTERSHELL_INSTALL_VM_TOOLS=false."
     return
   fi
 

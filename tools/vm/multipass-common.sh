@@ -6,7 +6,7 @@ RS_VM_IMAGE="${RS_VM_IMAGE:-24.04}"
 RS_VM_CPUS="${RS_VM_CPUS:-2}"
 RS_VM_MEMORY="${RS_VM_MEMORY:-2G}"
 RS_VM_DISK="${RS_VM_DISK:-12G}"
-RS_VM_ARCHIVE="${RS_VM_ARCHIVE:-/tmp/routershell-vm-test.tar.gz}"
+RS_VM_ARCHIVE="${RS_VM_ARCHIVE:-${HOME}/routershell-vm-test.tar.gz}"
 RS_VM_REPO_DIR="${RS_VM_REPO_DIR:-/tmp/RouterShell}"
 RS_VM_VIRTUAL_INTERFACES="${RS_VM_VIRTUAL_INTERFACES:-10}"
 RS_VM_VIRTUAL_INTERFACE_PREFIX="${RS_VM_VIRTUAL_INTERFACE_PREFIX:-rs1g}"
@@ -46,8 +46,11 @@ rs_vm_create_archive() {
   repo_root="$(rs_vm_repo_root)"
 
   rs_vm_log "Creating repository archive: ${RS_VM_ARCHIVE}"
+  mkdir -p "$(dirname "${RS_VM_ARCHIVE}")"
   tar \
     --exclude=".git" \
+    --exclude=".env" \
+    --exclude=".routershell" \
     --exclude=".venv" \
     --exclude="__pycache__" \
     --exclude="*.pyc" \

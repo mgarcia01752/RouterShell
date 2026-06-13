@@ -183,6 +183,29 @@ install_development_vm_tools
     assert not log_file.exists()
 
 
+def test_development_vm_tools_can_be_skipped_with_env(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    log_file = tmp_path / "snap.log"
+    bin_dir.mkdir()
+    snap = bin_dir / "snap"
+    snap.write_text(f"#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> {log_file}\n")
+    snap.chmod(0o755)
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+export ROUTERSHELL_INSTALL_VM_TOOLS=false
+export PATH={bin_dir}:$PATH
+source install/install.sh
+DEVELOPMENT_INSTALL=true
+PACKAGE_MANAGER=apt
+install_development_vm_tools
+"""
+
+    _run_bash(script)
+
+    assert not log_file.exists()
+
+
 def test_development_vm_tools_require_apt_snap_for_auto_install() -> None:
     script = """
 export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
