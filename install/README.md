@@ -31,6 +31,7 @@ helpers are not installed by default.
 The installer:
 
 - Captures a host/network baseline snapshot under `/var/lib/routershell/baseline`.
+- Creates a RouterShell environment file for launcher-loaded settings.
 - Installs required host packages for network management workflows.
 - Creates a RouterShell runtime virtual environment under `/opt/routershell`.
 - Installs RouterShell into that virtual environment.
@@ -66,7 +67,24 @@ sudo ./install/install.sh --development
 
 Development mode installs RouterShell editable with the Python `.[dev]`
 dependencies from `pyproject.toml`. Use this for VM-based installer testing or
-developer validation, not production hosts.
+developer validation, not production hosts. Development mode creates a
+repo-local `.env` file and the RouterShell launchers load it before starting
+the CLI.
+
+Force a repo-local `.env` file:
+
+```bash
+sudo ./install/install.sh --local-env
+```
+
+Force the system environment file:
+
+```bash
+sudo ./install/install.sh --global-env
+```
+
+The system environment file is `/etc/routershell/routershell.env` by default.
+The `--global` flag is accepted as an alias for `--global-env`.
 
 Use a custom install root:
 
@@ -103,6 +121,15 @@ routershell
 RouterShell writes runtime logs to `/tmp/log/routershell.log` by default.
 Logging is configured when the `routershell` and `routershell-factory-reset`
 entry points start.
+
+The installer creates an environment file that those launchers load before
+starting RouterShell:
+
+- Production installs create `/etc/routershell/routershell.env` by default.
+- Development installs create `.env` in the RouterShell project root by default.
+- `--local-env` and `--global-env` can override the default selection.
+
+Existing environment files are left unchanged so local settings are preserved.
 
 The log file uses rotation to avoid unbounded growth.
 
@@ -158,6 +185,8 @@ sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local
 
 - The generic installer is intended for normal Linux distributions first.
 - Production install is the default; development install requires `--development`.
+- Production installs use the system environment file by default.
+- Development installs use the repo-local `.env` file by default.
 - Baseline snapshot capture is enabled by default and is not overwritten unless `--force-snapshot` is used.
 - Baseline snapshots are saved root-only under `/var/lib/routershell/baseline`.
 - Restore is intentionally not part of uninstall; it should be a separate explicit workflow.

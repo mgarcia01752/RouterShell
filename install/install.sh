@@ -6,6 +6,9 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALL_ROOT="${ROUTERSHELL_INSTALL_ROOT:-/opt/routershell}"
 BIN_DIR="${ROUTERSHELL_BIN_DIR:-/usr/local/bin}"
 STATE_DIR="${ROUTERSHELL_STATE_DIR:-/var/lib/routershell}"
+SYSTEM_ENV_DIR="${ROUTERSHELL_SYSTEM_ENV_DIR:-/etc/routershell}"
+SYSTEM_ENV_FILE="${ROUTERSHELL_SYSTEM_ENV_FILE:-${SYSTEM_ENV_DIR}/routershell.env}"
+LOCAL_ENV_FILE="${PROJECT_ROOT}/.env"
 BASELINE_DIR="${STATE_DIR}/baseline"
 VENV_DIR="${INSTALL_ROOT}/venv"
 SKIP_OS_PACKAGES="false"
@@ -14,18 +17,23 @@ DEVELOPMENT_INSTALL="false"
 SKIP_SNAPSHOT="false"
 FORCE_SNAPSHOT="false"
 SNAPSHOT_ONLY="false"
+ENV_SCOPE="auto"
+ACTIVE_ENV_FILE=""
 
 usage() {
   cat <<'EOF'
 Install RouterShell on a general-purpose Linux host.
 
 Usage:
-  install.sh [--install-root PATH] [--bin-dir PATH] [--development] [--snapshot-only] [--force-snapshot] [--no-snapshot] [--skip-os-packages] [--skip-python-package]
+  install.sh [--install-root PATH] [--bin-dir PATH] [--development] [--local-env] [--global-env] [--snapshot-only] [--force-snapshot] [--no-snapshot] [--skip-os-packages] [--skip-python-package]
 
 Options:
   --install-root       Runtime install root. Default: /opt/routershell
   --bin-dir            Directory for command launchers. Default: /usr/local/bin
   --development        Install RouterShell editable with development dependencies.
+  --local-env          Create/load a repo-local .env file.
+  --global-env         Create/load the system env file. Default for production.
+  --global             Alias for --global-env.
   --snapshot-only      Capture the host baseline snapshot and exit.
   --force-snapshot     Replace an existing baseline snapshot.
   --no-snapshot        Skip baseline snapshot capture.
@@ -74,6 +82,14 @@ while [[ $# -gt 0 ]]; do
       DEVELOPMENT_INSTALL="true"
       shift
       ;;
+    --local-env)
+      ENV_SCOPE="local"
+      shift
+      ;;
+    --global-env|--global)
+      ENV_SCOPE="global"
+      shift
+      ;;
     --snapshot-only)
       SNAPSHOT_ONLY="true"
       shift
@@ -104,6 +120,30 @@ validate_snapshot_options() {
   if [[ "${SNAPSHOT_ONLY}" == "true" && "${SKIP_SNAPSHOT}" == "true" ]]; then
     die "--snapshot-only cannot be used with --no-snapshot."
   fi
+}
+
+select_env_file() {
+  local resolved_scope="${ENV_SCOPE}"
+
+  if [[ "${resolved_scope}" == "auto" ]]; then
+    if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
+      resolved_scope="local"
+    else
+      resolved_scope="global"
+    fi
+  fi
+
+  case "${resolved_scope}" in
+    local)
+      ACTIVE_ENV_FILE="${LOCAL_ENV_FILE}"
+      ;;
+    global)
+      ACTIVE_ENV_FILE="${SYSTEM_ENV_FILE}"
+      ;;
+    *)
+      die "Unsupported environment file scope: ${ENV_SCOPE}"
+      ;;
+  esac
 }
 
 require_root() {
@@ -317,6 +357,47 @@ capture_baseline_snapshot() {
   chmod -R go-rwx "${BASELINE_DIR}"
 }
 
+write_env_defaults() {
+  local env_file="$1"
+
+  cat > "${env_file}" <<EOF
+# RouterShell environment file.
+# This file is loaded by RouterShell command launchers.
+
+ROUTERSHELL_PROJECT_ROOT="${PROJECT_ROOT}"
+ROUTERSHELL_LOG_LEVEL="INFO"
+ROUTERSHELL_LOG_FILE="/tmp/log/routershell.log"
+ROUTERSHELL_LOG_CONSOLE="true"
+ROUTERSHELL_LOG_FILE_ENABLED="true"
+EOF
+}
+
+create_env_file() {
+  local env_dir
+
+  [[ -n "${ACTIVE_ENV_FILE}" ]] || die "Environment file path was not selected."
+
+  if [[ -e "${ACTIVE_ENV_FILE}" ]]; then
+    log "Environment file already exists at ${ACTIVE_ENV_FILE}; leaving it unchanged."
+    return
+  fi
+
+  env_dir="$(dirname "${ACTIVE_ENV_FILE}")"
+  install -d -m 0755 "${env_dir}"
+  write_env_defaults "${ACTIVE_ENV_FILE}"
+
+  if [[ "${ACTIVE_ENV_FILE}" == "${LOCAL_ENV_FILE}" && -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" ]]; then
+    chown "${SUDO_UID}:${SUDO_GID}" "${ACTIVE_ENV_FILE}"
+    chmod 0600 "${ACTIVE_ENV_FILE}"
+  elif [[ "${ACTIVE_ENV_FILE}" == "${LOCAL_ENV_FILE}" ]]; then
+    chmod 0600 "${ACTIVE_ENV_FILE}"
+  else
+    chmod 0644 "${ACTIVE_ENV_FILE}"
+  fi
+
+  log "Created environment file at ${ACTIVE_ENV_FILE}."
+}
+
 install_os_packages() {
   case "${PACKAGE_MANAGER}" in
     apt)
@@ -408,11 +489,25 @@ install_launchers() {
 
   cat > "${BIN_DIR}/routershell" <<EOF
 #!/usr/bin/env bash
+set -euo pipefail
+if [[ -r "${ACTIVE_ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ACTIVE_ENV_FILE}"
+  set +a
+fi
 exec "${VENV_DIR}/bin/routershell" "\$@"
 EOF
 
   cat > "${BIN_DIR}/routershell-factory-reset" <<EOF
 #!/usr/bin/env bash
+set -euo pipefail
+if [[ -r "${ACTIVE_ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ACTIVE_ENV_FILE}"
+  set +a
+fi
 exec "${VENV_DIR}/bin/routershell-factory-reset" "\$@"
 EOF
 
@@ -429,6 +524,7 @@ main() {
   load_os_release
   reject_embedded_targets
   detect_package_manager
+  select_env_file
 
   log "Detected ${OS_NAME} with package manager: ${PACKAGE_MANAGER}"
   capture_baseline_snapshot
@@ -446,6 +542,7 @@ main() {
 
   warn_port_53_owner
   prepare_runtime_dirs
+  create_env_file
 
   if [[ "${SKIP_PYTHON_PACKAGE}" == "true" ]]; then
     log "Skipping RouterShell Python package installation."
@@ -464,4 +561,6 @@ main() {
   log "Run RouterShell with: routershell"
 }
 
-main
+if [[ "${ROUTERSHELL_INSTALL_SH_NO_MAIN:-false}" != "true" ]]; then
+  main
+fi

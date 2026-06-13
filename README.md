@@ -85,7 +85,10 @@ BusyBox-style targets are intentionally out of scope for this installer.
 
 Production install is the default.
 The installer captures a root-only baseline snapshot under
-`/var/lib/routershell/baseline` before making install changes.
+`/var/lib/routershell/baseline` before making install changes. Production
+installs create `/etc/routershell/routershell.env` for launcher-loaded
+environment settings. Development installs create a repo-local `.env` by
+default; use `--global-env` to force the system environment file.
 
 Test installer changes in a disposable VM before running them on a development
 workstation. Use `--development` only when testing editable installs with dev
