@@ -40,21 +40,19 @@ Run it only when you intentionally want to rewrite branch history.
 
 ## Quality Gates
 
-The save and push helpers run these RouterShell checks by default:
+The save and push helpers run the RouterShell software QA checker before
+staging or committing:
 
 ```bash
-./tools/release/check_version.py
-python3 -m py_compile src/routershell/__init__.py src/routershell/__main__.py src/routershell/_version.py src/routershell/cli.py src/routershell/lib/__init__.py
-python3 -m compileall -q src tests tools/examples tools/hardware tools/release tools/support
-find start.sh install tools -path "tools/agent-review" -prune -o -name "*.sh" -exec bash -n {} \;
+python3 tools/release/qa_checker.py --skip-pycycle
 ```
 
-If `pytest` or `ruff` are installed, the helpers also run:
+The checker runs metadata, version, compile, shell syntax, Ruff, and pytest
+checks. Git helpers pass `--skip-pycycle` so commits do not require pycycle to
+be installed locally.
 
-```bash
-python3 -m pytest
-python3 -m ruff check .
-```
+The helpers prefer the active virtual environment, then
+`/opt/routershell/venv`, then `.venv`, before falling back to system Python.
 
 Use `--skip-checks` only when you are intentionally saving work that is not
 ready for validation.
