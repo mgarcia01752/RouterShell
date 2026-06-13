@@ -88,7 +88,9 @@ The installer captures a root-only baseline snapshot under
 `/var/lib/routershell/baseline` before making install changes. Production
 installs create `/etc/routershell/routershell.env` for launcher-loaded
 environment settings. Development installs create a repo-local `.env` by
-default; use `--global-env` to force the system environment file.
+default; use `--global-env` to force the system environment file. The env file
+sets `ROUTERSHELL_DB_FILE` so RouterShell stores runtime SQLite state outside
+the installed Python package.
 
 Test installer changes in a disposable VM before running them on a development
 workstation. Use `--development` only when testing editable installs with dev

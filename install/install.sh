@@ -359,12 +359,20 @@ capture_baseline_snapshot() {
 
 write_env_defaults() {
   local env_file="$1"
+  local db_file
+
+  if [[ "${env_file}" == "${LOCAL_ENV_FILE}" ]]; then
+    db_file="${PROJECT_ROOT}/.routershell/routershell.db"
+  else
+    db_file="${STATE_DIR}/routershell.db"
+  fi
 
   cat > "${env_file}" <<EOF
 # RouterShell environment file.
 # This file is loaded by RouterShell command launchers.
 
 ROUTERSHELL_PROJECT_ROOT="${PROJECT_ROOT}"
+ROUTERSHELL_DB_FILE="${db_file}"
 ROUTERSHELL_LOG_LEVEL="INFO"
 ROUTERSHELL_LOG_FILE="/tmp/log/routershell.log"
 ROUTERSHELL_LOG_CONSOLE="true"

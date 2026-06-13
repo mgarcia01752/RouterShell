@@ -56,6 +56,7 @@ printf '%s\\n' "${{ACTIVE_ENV_FILE}}"
     assert result.stdout.strip().endswith(str(local_env))
     assert local_env.exists()
     assert "ROUTERSHELL_LOG_LEVEL" in local_env.read_text()
+    assert f'ROUTERSHELL_DB_FILE="{project_root}/.routershell/routershell.db"' in local_env.read_text()
     assert not system_env.exists()
 
 
@@ -70,6 +71,7 @@ source install/install.sh
 PROJECT_ROOT={project_root}
 LOCAL_ENV_FILE="${{PROJECT_ROOT}}/.env"
 SYSTEM_ENV_FILE={system_env}
+STATE_DIR={tmp_path}/state
 DEVELOPMENT_INSTALL=false
 ENV_SCOPE=auto
 select_env_file
@@ -82,6 +84,7 @@ printf '%s\\n' "${{ACTIVE_ENV_FILE}}"
     assert result.stdout.strip().endswith(str(system_env))
     assert system_env.exists()
     assert "ROUTERSHELL_LOG_FILE" in system_env.read_text()
+    assert f'ROUTERSHELL_DB_FILE="{tmp_path}/state/routershell.db"' in system_env.read_text()
     assert not (project_root / ".env").exists()
 
 

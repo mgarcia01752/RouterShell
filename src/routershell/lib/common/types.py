@@ -20,6 +20,7 @@ ClientIdText: TypeAlias = str
 ClientName: TypeAlias = str
 CommandName: TypeAlias = str
 DbTableName: TypeAlias = str
+DbFilePath: TypeAlias = str | Path
 DhcpPoolName: TypeAlias = str
 DomainNameText: TypeAlias = str
 EnvironmentVariableName: TypeAlias = str

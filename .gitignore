@@ -131,6 +131,7 @@ celerybeat.pid
 
 # Environments
 .env
+.routershell/
 .venv
 env/
 venv/
