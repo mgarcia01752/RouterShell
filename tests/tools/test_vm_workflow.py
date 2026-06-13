@@ -62,3 +62,15 @@ def test_vm_cleanup_is_scoped_to_routershell_instances() -> None:
     assert '--dry-run' in cleanup_script
     assert "multipass delete" in cleanup_script
     assert "multipass purge" in cleanup_script
+
+
+def test_vm_readme_documents_manual_shell_workflow() -> None:
+    vm_readme = (VM_TOOLS / "README.md").read_text()
+
+    assert "## Manual RouterShell Testing" in vm_readme
+    assert "tools/vm/multipass-create.sh" in vm_readme
+    assert "tools/vm/multipass-test-install.sh --development" in vm_readme
+    assert "tools/vm/multipass-shell.sh" in vm_readme
+    assert "routershell" in vm_readme
+    assert "rs1g0" in vm_readme
+    assert "rs1g9" in vm_readme
