@@ -5,6 +5,7 @@ from routershell.lib.common.router_shell_log_control import RouterShellLoggerSet
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_operations.interface import Interface
+from routershell.lib.system.system_call import SystemCall
 
 
 class SystemStartUp(Interface):
@@ -24,6 +25,8 @@ class SystemStartUp(Interface):
 
         if not self.fetch_db_interface_names():
             self.update_interface_db_from_os()
+            
+        SystemCall().seed_hostname_db_from_os()
             
         self.set_os_rename_interface()
         

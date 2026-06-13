@@ -110,6 +110,34 @@ class SystemCall(RunCommand):
             return STATUS_NOK
 
         return STATUS_OK
+
+    def seed_hostname_db_from_os(self) -> StatusResult:
+        """
+        Seed the RouterShell hostname database value from the operating system.
+
+        The database starts with an empty hostname on a fresh install. This
+        method records the current OS hostname only when RouterShell does not
+        already have a configured hostname, avoiding unnecessary host
+        reconfiguration during startup.
+
+        Returns:
+            StatusResult: STATUS_OK if the database already has a hostname or
+                is seeded successfully, STATUS_NOK otherwise.
+        """
+        host_name = self.sys_db.get_hostname_db()
+        if host_name:
+            return STATUS_OK
+
+        host_name = self.get_hostname_os()
+        if not host_name:
+            self.log.error("Unable to seed hostname DB because OS hostname is empty")
+            return STATUS_NOK
+
+        if self.sys_db.set_hostname_db(host_name):
+            self.log.error(f"Failed to seed hostname DB from OS hostname: ({host_name})")
+            return STATUS_NOK
+
+        return STATUS_OK
     
     def set_hostname_os(self, hostname: HostnameText) -> StatusResult:
         """

@@ -11,7 +11,7 @@ def main() -> int:
 
     from routershell.lib.cli.router_main_cli import RouterCLI
 
-    RouterCLI().run()
+    RouterCLI(system_start_up=True).run()
     return 0
 
 

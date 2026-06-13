@@ -92,6 +92,14 @@ default; use `--global-env` to force the system environment file. The env file
 sets `ROUTERSHELL_DB_FILE` so RouterShell stores runtime SQLite state outside
 the installed Python package.
 
+On first launch, `routershell` creates the runtime SQLite database when needed
+and discovers Linux network interfaces into the interface database. Verify the
+seeded interface state from the CLI:
+
+```text
+show interface database
+```
+
 Test installer changes in a disposable VM before running them on a development
 workstation. Use `--development` only when testing editable installs with dev
 dependencies; see [RouterShell VM Install Testing](tools/vm/README.md).
