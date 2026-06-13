@@ -73,11 +73,20 @@ Please select the specific documentation file you are interested in from the tab
 
 If you have any questions or need further assistance, please feel free to reach out to our community or project team. Thank you for choosing RouterShell!
 
-## Running RouterShell (Temporary until install script is ready)
+## Linux Runtime Install
 
 [README INSTALLATION](install/README.md)
 
-## Run RouterShell
+RouterShell includes a generic installer for non-embedded Linux hosts such as
+Ubuntu, Debian, Fedora, RHEL-compatible systems, and openSUSE. Embedded and
+BusyBox-style targets are intentionally out of scope for this installer.
+
+```bash
+sudo ./install/install.sh
+routershell
+```
+
+## Run RouterShell From Source
 
 ```bash
 ./start.sh

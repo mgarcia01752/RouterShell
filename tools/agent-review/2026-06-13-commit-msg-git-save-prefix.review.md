@@ -1,3 +1,26 @@
+### Summary
+Updated RouterShell agent instructions so commit-message responses always include the `./tools/git/git-save.sh --commit-msg` prefix. This keeps future commit suggestions directly usable with the repository's save workflow.
+
+### Modified Files
+- CODING_AGENT.md
+
+### Commands Executed And Results
+- `nl -ba CODING_AGENT.md | sed -n '143,174p'` -> pass; reviewed the workflow and commit-message sections before editing.
+- `git diff -- CODING_AGENT.md` -> pass; confirmed the change is limited to the commit-message format rule.
+- `rg -n "[[:blank:]]$" CODING_AGENT.md || true` -> pass; no trailing whitespace found.
+
+### Tests
+- Markdown inspection -> pass; added one normal Markdown bullet.
+- `pytest` -> not run; documentation-only instruction update.
+- `ruff` -> not run; documentation-only instruction update.
+
+### Notes / Warnings
+- Existing uncommitted installer changes are still present in the worktree.
+
+### Remaining TODOs / Follow-Ups
+- None.
+
+# FILE: CODING_AGENT.md
 <!-- SPDX-License-Identifier: GPL-2.0-or-later -->
 <!-- Copyright (c) 2026 Maurice Garcia -->
 
