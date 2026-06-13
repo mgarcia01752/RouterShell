@@ -30,6 +30,7 @@ helpers are not installed by default.
 
 The installer:
 
+- Captures a host/network baseline snapshot under `/var/lib/routershell/baseline`.
 - Installs required host packages for network management workflows.
 - Creates a RouterShell runtime virtual environment under `/opt/routershell`.
 - Installs RouterShell into that virtual environment.
@@ -38,6 +39,24 @@ The installer:
 - Warns if port 53 is already in use, but does not stop or remove existing services.
 
 ### Install Options
+
+Capture a baseline snapshot and exit without installing RouterShell:
+
+```bash
+sudo ./install/install.sh --snapshot-only
+```
+
+Replace an existing baseline snapshot:
+
+```bash
+sudo ./install/install.sh --force-snapshot
+```
+
+Skip baseline capture:
+
+```bash
+sudo ./install/install.sh --no-snapshot
+```
 
 Install in development mode:
 
@@ -89,6 +108,7 @@ sudo ./install/uninstall.sh
 
 The uninstaller removes RouterShell's runtime virtual environment and command launchers.
 It does not remove shared operating-system packages such as Python, `iproute`, `dnsmasq`, `hostapd`, or `lshw`.
+It also does not restore network state from the baseline snapshot.
 
 Remove RouterShell runtime logs as well:
 
@@ -106,6 +126,31 @@ sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local
 
 - The generic installer is intended for normal Linux distributions first.
 - Production install is the default; development install requires `--development`.
+- Baseline snapshot capture is enabled by default and is not overwritten unless `--force-snapshot` is used.
+- Baseline snapshots are saved root-only under `/var/lib/routershell/baseline`.
+- Restore is intentionally not part of uninstall; it should be a separate explicit workflow.
 - Embedded and image-built environments should get separate install logic once their requirements are better understood.
 - VM-based install testing should be used before running this installer on a development workstation.
 - See [RouterShell VM Install Testing](../tools/vm/README.md) for the Multipass test workflow.
+
+## Baseline Snapshot
+
+The install-time baseline records current host and network state before
+RouterShell makes install changes. This is intended for audit and future
+restore tooling.
+
+The snapshot includes:
+
+- `/etc/os-release`, `/etc/hostname`, `/etc/hosts`, and `/etc/resolv.conf`.
+- Hostname and kernel output.
+- `ip address`, route, rule, and neighbor state when `ip` is available.
+- Bridge link and VLAN state when `bridge` is available.
+- `iptables-save`, `ip6tables-save`, and `nft list ruleset` when available.
+- Network-related sysctl values when `sysctl` is available.
+- Selected systemd service active/enabled states.
+- Network configuration file metadata for common config directories.
+- A `manifest.json` and `capture-status.log`.
+
+Network configuration file contents are not copied to avoid capturing secrets
+such as WiFi credentials. The snapshot is not restored automatically during
+uninstall.

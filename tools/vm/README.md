@@ -49,6 +49,9 @@ By default, the VM test runs:
 sudo /tmp/RouterShell/install/install.sh
 ```
 
+That production install captures a baseline snapshot in the VM under
+`/var/lib/routershell/baseline`.
+
 Use `--development` to test editable install mode with development dependencies:
 
 ```bash
@@ -77,6 +80,7 @@ in production mode by default, and verifies:
 - `/usr/local/bin/routershell` exists and is executable.
 - `/usr/local/bin/routershell-factory-reset` exists and is executable.
 - `/opt/routershell/venv/bin/python` exists and is executable.
+- `/var/lib/routershell/baseline/manifest.json` exists.
 - The installed Python environment can import `routershell` and
   `routershell_version`.
 

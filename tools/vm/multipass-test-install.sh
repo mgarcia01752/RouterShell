@@ -71,6 +71,7 @@ multipass exec "${RS_VM_NAME}" -- bash -lc "
   test -x /usr/local/bin/routershell
   test -x /usr/local/bin/routershell-factory-reset
   test -x /opt/routershell/venv/bin/python
+  sudo test -f /var/lib/routershell/baseline/manifest.json
   /opt/routershell/venv/bin/python - <<'PY'
 import routershell
 import routershell_version

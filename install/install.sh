@@ -5,22 +5,30 @@ SCRIPT_NAME="$(basename "$0")"
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALL_ROOT="${ROUTERSHELL_INSTALL_ROOT:-/opt/routershell}"
 BIN_DIR="${ROUTERSHELL_BIN_DIR:-/usr/local/bin}"
+STATE_DIR="${ROUTERSHELL_STATE_DIR:-/var/lib/routershell}"
+BASELINE_DIR="${STATE_DIR}/baseline"
 VENV_DIR="${INSTALL_ROOT}/venv"
 SKIP_OS_PACKAGES="false"
 SKIP_PYTHON_PACKAGE="false"
 DEVELOPMENT_INSTALL="false"
+SKIP_SNAPSHOT="false"
+FORCE_SNAPSHOT="false"
+SNAPSHOT_ONLY="false"
 
 usage() {
   cat <<'EOF'
 Install RouterShell on a general-purpose Linux host.
 
 Usage:
-  install.sh [--install-root PATH] [--bin-dir PATH] [--development] [--skip-os-packages] [--skip-python-package]
+  install.sh [--install-root PATH] [--bin-dir PATH] [--development] [--snapshot-only] [--force-snapshot] [--no-snapshot] [--skip-os-packages] [--skip-python-package]
 
 Options:
   --install-root       Runtime install root. Default: /opt/routershell
   --bin-dir            Directory for command launchers. Default: /usr/local/bin
   --development        Install RouterShell editable with development dependencies.
+  --snapshot-only      Capture the host baseline snapshot and exit.
+  --force-snapshot     Replace an existing baseline snapshot.
+  --no-snapshot        Skip baseline snapshot capture.
   --skip-os-packages   Do not install operating-system packages.
   --skip-python-package
                        Do not create the runtime virtual environment or install RouterShell.
@@ -66,6 +74,18 @@ while [[ $# -gt 0 ]]; do
       DEVELOPMENT_INSTALL="true"
       shift
       ;;
+    --snapshot-only)
+      SNAPSHOT_ONLY="true"
+      shift
+      ;;
+    --force-snapshot)
+      FORCE_SNAPSHOT="true"
+      shift
+      ;;
+    --no-snapshot)
+      SKIP_SNAPSHOT="true"
+      shift
+      ;;
     --skip-python-package)
       SKIP_PYTHON_PACKAGE="true"
       shift
@@ -79,6 +99,12 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+validate_snapshot_options() {
+  if [[ "${SNAPSHOT_ONLY}" == "true" && "${SKIP_SNAPSHOT}" == "true" ]]; then
+    die "--snapshot-only cannot be used with --no-snapshot."
+  fi
+}
 
 require_root() {
   if [[ "${EUID}" -ne 0 ]]; then
@@ -136,6 +162,159 @@ detect_package_manager() {
   fi
 
   die "No supported package manager found. Expected apt-get, dnf, yum, or zypper."
+}
+
+write_file_if_present() {
+  local source_path="$1"
+  local target_name="$2"
+
+  if [[ -e "${source_path}" ]]; then
+    cp -a "${source_path}" "${BASELINE_DIR}/${target_name}"
+    echo "copy:${source_path}:ok" >> "${BASELINE_DIR}/capture-status.log"
+  else
+    echo "copy:${source_path}:missing" >> "${BASELINE_DIR}/capture-status.log"
+  fi
+}
+
+capture_command() {
+  local label="$1"
+  local output_file="$2"
+  shift 2
+
+  if "$@" > "${BASELINE_DIR}/${output_file}" 2> "${BASELINE_DIR}/${output_file}.stderr"; then
+    echo "command:${label}:ok" >> "${BASELINE_DIR}/capture-status.log"
+  else
+    echo "command:${label}:failed" >> "${BASELINE_DIR}/capture-status.log"
+  fi
+}
+
+capture_command_if_available() {
+  local required_command="$1"
+  local label="$2"
+  local output_file="$3"
+  shift 3
+
+  if command -v "${required_command}" >/dev/null 2>&1; then
+    capture_command "${label}" "${output_file}" "$@"
+  else
+    echo "command:${label}:missing:${required_command}" >> "${BASELINE_DIR}/capture-status.log"
+  fi
+}
+
+capture_network_config_metadata() {
+  local output_file="${BASELINE_DIR}/network-config-files.txt"
+
+  : > "${output_file}"
+  for config_path in \
+    /etc/netplan \
+    /etc/network \
+    /etc/NetworkManager/system-connections \
+    /etc/systemd/network \
+    /etc/sysconfig/network \
+    /etc/sysconfig/network-scripts
+  do
+    if [[ -e "${config_path}" ]]; then
+      {
+        echo "# ${config_path}"
+        find "${config_path}" -maxdepth 2 -printf "%M %u %g %s %TY-%Tm-%Td %TH:%TM %p\n" 2>/dev/null || true
+        echo
+      } >> "${output_file}"
+    fi
+  done
+}
+
+capture_service_state() {
+  local output_file="${BASELINE_DIR}/systemd-services.tsv"
+  local service
+
+  {
+    echo -e "service\tis-active\tis-enabled"
+    for service in dnsmasq hostapd ssh sshd NetworkManager systemd-networkd systemd-resolved; do
+      if command -v systemctl >/dev/null 2>&1; then
+        echo -e "${service}\t$(systemctl is-active "${service}" 2>/dev/null || true)\t$(systemctl is-enabled "${service}" 2>/dev/null || true)"
+      else
+        echo -e "${service}\tsystemctl-missing\tsystemctl-missing"
+      fi
+    done
+  } > "${output_file}"
+}
+
+write_snapshot_manifest() {
+  local install_mode="production"
+  local snapshot_timestamp
+
+  if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
+    install_mode="development"
+  fi
+
+  snapshot_timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+  cat > "${BASELINE_DIR}/manifest.json" <<EOF
+{
+  "schema_version": 1,
+  "created_at_utc": "${snapshot_timestamp}",
+  "hostname": "$(hostname 2>/dev/null || true)",
+  "kernel": "$(uname -r 2>/dev/null || true)",
+  "os_id": "${OS_ID}",
+  "os_name": "${OS_NAME}",
+  "package_manager": "${PACKAGE_MANAGER}",
+  "install_mode": "${install_mode}",
+  "baseline_dir": "${BASELINE_DIR}",
+  "restore_supported": false,
+  "notes": [
+    "Snapshot is captured before RouterShell installation changes.",
+    "Uninstall does not restore this baseline.",
+    "Network configuration file contents are not copied to avoid capturing secrets."
+  ]
+}
+EOF
+}
+
+capture_baseline_snapshot() {
+  if [[ "${SKIP_SNAPSHOT}" == "true" ]]; then
+    log "Skipping baseline snapshot by request."
+    return
+  fi
+
+  if [[ -e "${BASELINE_DIR}/manifest.json" && "${FORCE_SNAPSHOT}" != "true" ]]; then
+    log "Baseline snapshot already exists at ${BASELINE_DIR}; leaving it unchanged."
+    return
+  fi
+
+  if [[ -e "${BASELINE_DIR}" && "${FORCE_SNAPSHOT}" == "true" ]]; then
+    rm -rf "${BASELINE_DIR}"
+  fi
+
+  install -d -m 0700 "${BASELINE_DIR}"
+  : > "${BASELINE_DIR}/capture-status.log"
+
+  log "Capturing baseline snapshot at ${BASELINE_DIR}."
+
+  write_file_if_present /etc/os-release os-release
+  write_file_if_present /etc/hostname etc-hostname
+  write_file_if_present /etc/hosts hosts
+  write_file_if_present /etc/resolv.conf resolv.conf
+
+  capture_command "hostname" "hostname.txt" hostname
+  capture_command "uname" "uname.txt" uname -a
+  capture_command_if_available ip "ip-address-json" "ip-address.json" ip -json address show
+  capture_command_if_available ip "ip-address" "ip-address.txt" ip address show
+  capture_command_if_available ip "ip-route-json" "ip-route.json" ip -json route show table all
+  capture_command_if_available ip "ip-route" "ip-route.txt" ip route show table all
+  capture_command_if_available ip "ip-rule" "ip-rule.txt" ip rule show
+  capture_command_if_available ip "ip-neigh" "ip-neigh.txt" ip neigh show
+  capture_command_if_available bridge "bridge-link" "bridge-link.txt" bridge link show
+  capture_command_if_available bridge "bridge-vlan" "bridge-vlan.txt" bridge vlan show
+  capture_command_if_available iptables-save "iptables-save" "iptables-save.v4" iptables-save
+  capture_command_if_available ip6tables-save "ip6tables-save" "ip6tables-save.v6" ip6tables-save
+  capture_command_if_available nft "nft-ruleset" "nft-list-ruleset.txt" nft list ruleset
+  capture_command_if_available sysctl "sysctl-net" "sysctl-net.conf" bash -c "sysctl -a 2>/dev/null | awk '/^net\\./ { print }'"
+
+  capture_service_state
+  capture_network_config_metadata
+  write_snapshot_manifest
+
+  chmod -R go-rwx "${BASELINE_DIR}"
 }
 
 install_os_packages() {
@@ -246,11 +425,18 @@ prepare_runtime_dirs() {
 
 main() {
   require_root
+  validate_snapshot_options
   load_os_release
   reject_embedded_targets
   detect_package_manager
 
   log "Detected ${OS_NAME} with package manager: ${PACKAGE_MANAGER}"
+  capture_baseline_snapshot
+
+  if [[ "${SNAPSHOT_ONLY}" == "true" ]]; then
+    log "Snapshot-only mode complete."
+    exit 0
+  fi
 
   if [[ "${SKIP_OS_PACKAGES}" == "true" ]]; then
     log "Skipping operating-system package installation."

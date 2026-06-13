@@ -82,6 +82,8 @@ Ubuntu, Debian, Fedora, RHEL-compatible systems, and openSUSE. Embedded and
 BusyBox-style targets are intentionally out of scope for this installer.
 
 Production install is the default.
+The installer captures a root-only baseline snapshot under
+`/var/lib/routershell/baseline` before making install changes.
 
 Test installer changes in a disposable VM before running them on a development
 workstation. Use `--development` only when testing editable installs with dev
