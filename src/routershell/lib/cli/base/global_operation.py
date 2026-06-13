@@ -1,13 +1,15 @@
-import os
 import argparse
-
-from bs4 import Comment
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
-from routershell.lib.common.common import STATUS_NOK, STATUS_OK, Common
+import os
 import subprocess
 
-from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 import parser
+from bs4 import Comment
+
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
+from routershell.lib.common.common import Common
+from routershell.lib.common.types import InterfaceName
+from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class GlobalPrivCommand(NetworkManager):
 
@@ -22,11 +24,11 @@ class GlobalPrivCommand(NetworkManager):
             line (str): Additional arguments (not used).
         
         Returns:
-            bool: False if reboot is canceled, otherwise returns False.
+            StatusResult: False if reboot is canceled, otherwise returns False.
         '''
         
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to reboot, must be in Privilege Mode")
+            print("Unable to reboot, must be in Privilege Mode")
             return
         
         try:
@@ -46,7 +48,7 @@ class GlobalPrivCommand(NetworkManager):
             else:
                 print("Reboot canceled.")
         
-    def do_flush(self, interface_name: str):
+    def do_flush(self, interface_name: InterfaceName):
         """
         Command to flush the configuration of a network interface.
 
@@ -63,7 +65,7 @@ class GlobalPrivCommand(NetworkManager):
             flush eth0
         """
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to flush, must be in Privilege Mode")
+            print("Unable to flush, must be in Privilege Mode")
             return
                 
         self.flush_interface(interface_name)
@@ -76,10 +78,10 @@ class GlobalPrivCommand(NetworkManager):
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False (implementation pending).
+            StatusResult: False (implementation pending).
         '''
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to add user, must be in Privilege Mode")
+            print("Unable to add user, must be in Privilege Mode")
             return
                 
         return False
@@ -92,10 +94,10 @@ class GlobalPrivCommand(NetworkManager):
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False (implementation pending).
+            StatusResult: False (implementation pending).
         '''
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to delete user, must be in Privilege Mode")
+            print("Unable to delete user, must be in Privilege Mode")
             return
         return False
     
@@ -112,7 +114,7 @@ class GlobalPrivCommand(NetworkManager):
         
         self.prompt_prefix = prefix
 
-class GlobalUserCommand():
+class GlobalUserCommand:
 
     def __init__(self, args=None):
         pass
@@ -153,7 +155,7 @@ class GlobalUserCommand():
             line (str): Additional arguments (not used).
         
         Returns:
-            bool: Always returns False.
+            StatusResult: Always returns False.
         '''
         
         print(Comment.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
@@ -167,7 +169,7 @@ class GlobalUserCommand():
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False if reboot is canceled, otherwise returns False.
+            StatusResult: False if reboot is canceled, otherwise returns False.
         '''
         self.do_reboot(args=None)
         return False
@@ -180,7 +182,7 @@ class GlobalUserCommand():
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False.
+            StatusResult: False.
         '''
         if len(args=None.split()) < 1:
             print("Takes no arguments")
@@ -196,7 +198,7 @@ class GlobalUserCommand():
             args=None (str): The destination to ping.
         
         Returns:
-            bool: True if the ping is successful, otherwise False.
+            StatusResult: True if the ping is successful, otherwise False.
         '''
         try:
             # Split the input args=None into individual arguments
@@ -236,7 +238,7 @@ class GlobalUserCommand():
             args=None (str): The destination to ping.
         
         Returns:
-            bool: False (implementation pending).
+            StatusResult: False (implementation pending).
         '''
         return False
         
@@ -248,7 +250,7 @@ class GlobalUserCommand():
             args=None (str): The destination to trace.
         
         Returns:
-            bool: True if the traceroute is successful, otherwise False.
+            StatusResult: True if the traceroute is successful, otherwise False.
         '''
         try:
             # Split the input args=None into individual arguments

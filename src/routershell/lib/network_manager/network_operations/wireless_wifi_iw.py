@@ -1,9 +1,19 @@
-from enum import Enum
 import logging
+from enum import Enum
+
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
+from routershell.lib.common.types import (
+    InterfaceName,
+    PredicateResult,
+    SsidText,
+    StatusResult,
+    WifiPassphraseText,
+    WifiPolicyName,
+)
 from routershell.lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class WPAVersion(Enum):
     WPA1 = 1
@@ -33,7 +43,7 @@ class AuthAlgorithms(Enum):
     OSA = 'OSA'
     SKA = 'SKA'
 
-class WifiPolicy():
+class WifiPolicy:
     """
     Represents a Wi-Fi policy for network management.
 
@@ -50,7 +60,7 @@ class WifiPolicy():
 
     """
 
-    def __init__(self, wifi_policy_name: str, negate=False):
+    def __init__(self, wifi_policy_name: WifiPolicyName, negate=False):
         """
         Initializes a new Wi-Fi policy with the given parameters.
 
@@ -74,17 +84,17 @@ class WifiPolicy():
         self.negate = negate
         self.wifi_policy_status = STATUS_OK
 
-    def status(self) -> bool:
+    def status(self) -> StatusResult:
         """
         Get the status of the Wi-Fi policy.
 
         Returns:
-            bool: The status of the Wi-Fi policy (STATUS_OK or STATUS_NOK).
+            StatusResult: The status of the Wi-Fi policy (STATUS_OK or STATUS_NOK).
 
         """
         return self.wifi_policy_status
 
-    def _set_status(self, status: bool) -> bool:
+    def _set_status(self, status: bool) -> StatusResult:
         """
         Set the status of the Wi-Fi policy.
 
@@ -92,7 +102,7 @@ class WifiPolicy():
             status (bool): The status to set (STATUS_OK or STATUS_NOK).
 
         Returns:
-            bool: STATUS_OK if the status is successfully set.
+            StatusResult: STATUS_OK if the status is successfully set.
 
         """
         self.wifi_policy_status = status
@@ -107,10 +117,10 @@ class Wifi(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().WIFI)
 
-    def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
+    def wifi_policy_name_exist(self, wifi_policy_name:WifiPolicyName) -> PredicateResult:
         return True 
 
-    def wifi_interface_exist(self, wifi_interface_name: str) -> bool:
+    def wifi_interface_exist(self, wifi_interface_name: InterfaceName) -> PredicateResult:
         """
         Check if a Wi-Fi interface exists.
 
@@ -118,7 +128,7 @@ class Wifi(NetworkManager):
             wifi_interface_name (str): The name of the Wi-Fi interface to check.
 
         Returns:
-            bool: True if the Wi-Fi interface exists, False otherwise.
+            StatusResult: True if the Wi-Fi interface exists, False otherwise.
         """
         output = self.run(['iw', 'dev', wifi_interface_name , 'info'])
         
@@ -127,7 +137,7 @@ class Wifi(NetworkManager):
             return False
         return True
             
-    def set_ssid(self, wifi_interface_name: str, ssid: str) -> bool:
+    def set_ssid(self, wifi_interface_name: InterfaceName, ssid: SsidText) -> StatusResult:
         """
         Set the SSID (Service Set Identifier) for a Wi-Fi interface.
 
@@ -136,7 +146,7 @@ class Wifi(NetworkManager):
             ssid (str): The SSID to set.
 
         Returns:
-            bool: STATUS_OK if the SSID was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the SSID was successfully set, STATUS_NOK otherwise.
         """
         output = self.run(['iw', 'dev', wifi_interface_name, 'set', 'ssid', ssid])
         
@@ -146,7 +156,7 @@ class Wifi(NetworkManager):
         
         return STATUS_OK
 
-    def set_wpa_passphrase(self, wifi_interface_name: str, pass_phrase: str) -> bool:
+    def set_wpa_passphrase(self, wifi_interface_name: InterfaceName, pass_phrase: WifiPassphraseText) -> StatusResult:
         """
         Set the WPA passphrase for a Wi-Fi interface using the iw command.
 
@@ -155,7 +165,7 @@ class Wifi(NetworkManager):
             pass_phrase (str): The WPA passphrase to set.
 
         Returns:
-            bool: STATUS_OK if the WPA passphrase was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the WPA passphrase was successfully set, STATUS_NOK otherwise.
         """
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'wpa_passphrase', pass_phrase]
         output = self.run(cmd)
@@ -166,7 +176,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
     
-    def set_wpa_key_mgmt(self, wifi_interface_name: str, wpa_key_mgmt: WPAkeyManagement) -> bool:
+    def set_wpa_key_mgmt(self, wifi_interface_name: InterfaceName, wpa_key_mgmt: WPAkeyManagement) -> StatusResult:
         """
         Set the WPA key management method for a Wi-Fi interface using the iw command.
 
@@ -175,7 +185,7 @@ class Wifi(NetworkManager):
             wpa_key_mgmt (WPAkeyManagement): The key management method to set.
 
         Returns:
-            bool: STATUS_OK if the key management method was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the key management method was successfully set, STATUS_NOK otherwise.
         """
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'key_mgmt', wpa_key_mgmt.value]
         output = self.run(cmd)
@@ -186,7 +196,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_wpa_pairwise(self, wifi_interface_name: str, wpa_pairwise: Pairwise) -> bool:
+    def set_wpa_pairwise(self, wifi_interface_name: InterfaceName, wpa_pairwise: Pairwise) -> StatusResult:
         """
         Set the WPA pairwise cipher for a Wi-Fi interface using the iw command.
 
@@ -195,7 +205,7 @@ class Wifi(NetworkManager):
             wpa_pairwise (str): The WPA pairwise cipher to set (CCMP, TKIP, etc.).
 
         Returns:
-            bool: STATUS_OK if the WPA pairwise cipher was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the WPA pairwise cipher was successfully set, STATUS_NOK otherwise.
         """
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'wpa_pairwise', wpa_pairwise.value]
         output = self.run(cmd)
@@ -206,7 +216,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_rsn_pairwise(self, wifi_interface_name: str, rsn_pairwise: Pairwise) -> bool:
+    def set_rsn_pairwise(self, wifi_interface_name: InterfaceName, rsn_pairwise: Pairwise) -> StatusResult:
         """
         Set the RSN pairwise cipher for a Wi-Fi interface using the iw command.
 
@@ -215,7 +225,7 @@ class Wifi(NetworkManager):
             rsn_pairwise (str): The RSN pairwise cipher to set (CCMP, TKIP, etc.).
 
         Returns:
-            bool: STATUS_OK if the RSN pairwise cipher was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the RSN pairwise cipher was successfully set, STATUS_NOK otherwise.
         """
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'rsn_pairwise', rsn_pairwise.value]
         output = self.run(cmd)
@@ -226,7 +236,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
     
-    def set_wifi_mode(self, wifi_interface_name: str, mode: HardwareMode) -> bool:
+    def set_wifi_mode(self, wifi_interface_name: InterfaceName, mode: HardwareMode) -> StatusResult:
         """
         Set the Wi-Fi mode for a Wi-Fi interface using the iw command.
 
@@ -235,7 +245,7 @@ class Wifi(NetworkManager):
             mode (str): The Wi-Fi mode to set (a, b, g, ad, ax, any).
 
         Returns:
-            bool: STATUS_OK if the Wi-Fi mode was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the Wi-Fi mode was successfully set, STATUS_NOK otherwise.
         """
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'mode', mode.value]
         output = self.run(cmd)
@@ -246,7 +256,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_wifi_channel(self, wifi_interface_name: str, channel: int) -> bool:
+    def set_wifi_channel(self, wifi_interface_name: InterfaceName, channel: int) -> StatusResult:
         """
         Set the Wi-Fi channel for a Wi-Fi interface using the iw command.
 
@@ -255,7 +265,7 @@ class Wifi(NetworkManager):
             channel (int): The Wi-Fi channel to set (1, 2, 3, 4, 5, 6, 8, 7, 8, 9, 10, 11).
 
         Returns:
-            bool: STATUS_OK if the Wi-Fi channel was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the Wi-Fi channel was successfully set, STATUS_NOK otherwise.
         """
         if channel < 1 or channel > 11:
             self.log.error("Invalid Wi-Fi channel. The channel must be in the range 1 to 11.")
@@ -270,7 +280,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_auth_algs(self, wifi_interface_name: str, auth_alg: AuthAlgorithms) -> bool:
+    def set_auth_algs(self, wifi_interface_name: InterfaceName, auth_alg: AuthAlgorithms) -> StatusResult:
         """
         Set the authentication algorithms for a Wi-Fi interface using the iw command.
 
@@ -279,7 +289,7 @@ class Wifi(NetworkManager):
             auth_alg (AuthAlgorithms): The authentication algorithm to set (AuthAlgorithms.OSA or AuthAlgorithms.SKA).
 
         Returns:
-            bool: STATUS_OK if the authentication algorithm was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the authentication algorithm was successfully set, STATUS_NOK otherwise.
         """
         cmd = ['iw', 'dev', wifi_interface_name, 'set', 'auth-algs', auth_alg.value]
         output = self.run(cmd)
@@ -290,5 +300,5 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_ieee80211(self, ieee802_support:HostapdIEEE802Config, negate=False) -> bool:
+    def set_ieee80211(self, ieee802_support:HostapdIEEE802Config, negate=False) -> StatusResult:
         return STATUS_OK

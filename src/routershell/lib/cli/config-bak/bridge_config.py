@@ -1,16 +1,17 @@
 import logging
+
 import cmd2
 
-from tabulate import tabulate
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-
 from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
+from routershell.lib.common.constants import *
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import State
-from routershell.lib.common.constants import *
-
 from routershell.lib.network_manager.network_operations.bridge import Bridge
+
+
+from routershell.lib.common.types import BridgeName, StatusResult
 class InvalidBridge(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -20,7 +21,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
 
     PROMPT_CMD_ALIAS = InterfaceType.BRIDGE.value
     
-    def __init__(self, bridge_name: str):
+    def __init__(self, bridge_name: BridgeName):
         super().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)
@@ -45,7 +46,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
     def do_stp(self, args=None, negate=False):
         return
     
-    def do_shutdown(self, args=None, negate=False) -> bool:
+    def do_shutdown(self, args=None, negate=False) -> StatusResult:
         """
         Change the state of a network interface.
 
@@ -79,5 +80,5 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
             self.do_shutdown(None, negate=True)
     
     def default(self, args):
-        print(f'Invalid command')
+        print('Invalid command')
     

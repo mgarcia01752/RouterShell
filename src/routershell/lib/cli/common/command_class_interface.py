@@ -1,14 +1,15 @@
 import inspect
 import logging
 import re
-
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.prompt_response import PromptResponse
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import StatusResult
+
 
 class CmdInterface(ABC):
     """
@@ -16,12 +17,12 @@ class CmdInterface(ABC):
     """
 
     @abstractmethod
-    def isGlobal(self) -> bool:
+    def isGlobal(self) -> StatusResult:
         """
         Check if the command is a global command.
 
         Returns:
-            bool: True if the command is global, False otherwise.
+            StatusResult: True if the command is global, False otherwise.
         """
         pass
     
@@ -36,7 +37,7 @@ class CmdInterface(ABC):
         pass
     
     @abstractmethod
-    def execute(self, subcommand: list = None) -> bool:
+    def execute(self, subcommand: list = None) -> StatusResult:
         """
         Execute a subcommand.
 
@@ -44,7 +45,7 @@ class CmdInterface(ABC):
             subcommand (list, optional): Subcommand to execute. Defaults to None.
         
         Returns:
-            bool: Status indicating whether the execution was successful.
+            StatusResult: Status indicating whether the execution was successful.
         """
         pass
     
@@ -54,7 +55,7 @@ class CmdInterface(ABC):
         Get a list of class methods.
 
         Returns:
-            list: List of class methods.
+            list: list of class methods.
         """
         pass
     
@@ -64,7 +65,7 @@ class CmdInterface(ABC):
         Get a list of available commands.
 
         Returns:
-            list: List of available commands.
+            list: list of available commands.
         """
         pass
     
@@ -126,7 +127,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
         self.log.debug(f'Class Name String lower: {self.CLASS_NAME}')
         return self.CLASS_NAME
             
-    def execute(self, commands: list) -> bool:
+    def execute(self, commands: list) -> StatusResult:
         """
         Execute a subcommand.
 
@@ -134,10 +135,10 @@ class CmdPrompt(CmdInterface, PromptResponse):
             commands (list): Commands to execute. Defaults.
         
         Returns:
-            bool: STATUS_OK indicating the execution was successful, else STATUS_NOK.
+            StatusResult: STATUS_OK indicating the execution was successful, else STATUS_NOK.
         """
         if not commands:
-            self.log.error(f'Command(s) Not Found')
+            self.log.error('Command(s) Not Found')
             return STATUS_NOK
                 
         self.log.debug(f'execute() -> Commands: {commands}')
@@ -170,7 +171,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
         Get a list of class methods.
 
         Returns:
-            list: List of class methods.
+            list: list of class methods.
         """
         return [attr for attr in dir(self) if attr.startswith(f'{self.CLASS_NAME}') 
                 and inspect.ismethod(getattr(self, attr))]
@@ -180,7 +181,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
         Get a list of available commands.
 
         Returns:
-            list: List of available commands.
+            list: list of available commands.
         """
         elements = self.class_methods()
         prefix_length = len(self.CLASS_NAME) + 1
@@ -218,7 +219,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
             self.log.error(f"Error accessing command dictionary: {e}")
             return {}
       
-    def isGlobal(self) -> bool:
+    def isGlobal(self) -> StatusResult:
         return self.IS_GLOBAL
     
     def help(self) -> None:
@@ -230,20 +231,20 @@ class CmdPrompt(CmdInterface, PromptResponse):
 
     @classmethod
     def register_sub_commands(cls,
-                              sub_cmds: Optional[List[str]] = None, 
-                              nested_sub_cmds: Optional[List[str]] = None,
-                              extend_nested_sub_cmds: Optional[List[str]] = None,
-                              append_nested_sub_cmds: Optional[List[str]] = None,   
-                              help: Optional[str] = None):
+                              sub_cmds: list[str] | None = None, 
+                              nested_sub_cmds: list[str] | None = None,
+                              extend_nested_sub_cmds: list[str] | None = None,
+                              append_nested_sub_cmds: list[str] | None = None,   
+                              help: str | None = None):
         """
         Decorator function for registering sub-commands along with their help messages.
 
         Args:
-            sub_cmds (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
-            nested_sub_cmds: (Optional[List[str]]): A list of sub-commands to register. Defaults to None.
-            extend_nested_sub_cmds (Optional[List[str]]): A list of additional sub-commands to extend the registration. Defaults to None.
-            append_nested_sub_cmds (Optional[List[str]]): A list of additional sub-commands to append the registration. Defaults to None.
-            help (Optional[str]): The help message associated with the sub-commands. Defaults to None.
+            sub_cmds (list[str] | None): A list of sub-commands to register. Defaults to None.
+            nested_sub_cmds: (list[str] | None): A list of sub-commands to register. Defaults to None.
+            extend_nested_sub_cmds (list[str] | None): A list of additional sub-commands to extend the registration. Defaults to None.
+            append_nested_sub_cmds (list[str] | None): A list of additional sub-commands to append the registration. Defaults to None.
+            help (str | None): The help message associated with the sub-commands. Defaults to None.
 
         Returns:
             Callable: The decorator function.
@@ -353,12 +354,12 @@ class CmdPrompt(CmdInterface, PromptResponse):
         return cmd_dict
 
     @classmethod
-    def _update_help_dict(cls, cmd_list: List[str], msg: str) -> str:
+    def _update_help_dict(cls, cmd_list: list[str], msg: str) -> str:
         """
         Update the help dictionary with a message for the given command list.
 
         Args:
-            cmd_list (List[str]): The list of command strings.
+            cmd_list (list[str]): The list of command strings.
             msg (str): The message to be associated with the command list.
 
         Returns:
@@ -382,14 +383,14 @@ class CmdPrompt(CmdInterface, PromptResponse):
         try:
             return cls._help_dict[cmd_list_hash]
         except KeyError:
-            return f"Error: No Help"
+            return "Error: No Help"
 
-    def get_command_registry(self) -> Dict[str, dict]:
+    def get_command_registry(self) -> dict[str, dict]:
         """
         Get the command registry containing nested dictionaries of available commands.
 
         Returns:
-            Dict[str, dict]: The nested dictionary of available commands.
+            dict[str, dict]: The nested dictionary of available commands.
         """
         try:
             return self._nested_word_complete_cmd_dict

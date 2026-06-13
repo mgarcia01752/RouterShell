@@ -1,15 +1,21 @@
-from enum import Enum, auto
 import logging
 import os
+from enum import Enum, auto
 
+from routershell.lib.common.constants import DNSMASQ_CONFIG_DIR as DEFAULT_DNSMASQ_CONFIG_DIR
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import DhcpPoolName, InetCidrText, StatusResult
 from routershell.lib.db.dhcp_server_db import DHCPServerDatabase
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.system.system_service_control.system_service_control import SysServCntrlAction, SystemServiceControl
+from routershell.lib.system.system_service_control.system_service_control import (
+    SysServCntrlAction,
+    SystemServiceControl,
+)
+
 
 class DNSMasqExitCode(Enum):
     """
@@ -68,7 +74,7 @@ class DNSMasqService(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DNSMASQ_SERVICE)
         
-    def control_service(self, service_action: SysServCntrlAction) -> bool:
+    def control_service(self, service_action: SysServCntrlAction) -> StatusResult:
         """
         Control the DNSMasq service with the specified action.
 
@@ -76,7 +82,7 @@ class DNSMasqService(NetworkManager):
             service_action (SysServCntrlAction): The action to perform on the service (start, restart, stop, status).
 
         Returns:
-            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
         result = SystemServiceControl().service_control('dnsmasq', service_action)
         if result == STATUS_OK:
@@ -85,30 +91,30 @@ class DNSMasqService(NetworkManager):
             self.log.error(f"Failed to {service_action.value} DNSMasq service.")
         return result
         
-    def start_dnsmasq(self) -> bool:
+    def start_dnsmasq(self) -> StatusResult:
         """
         Start the DNSMasq service.
 
         Returns:
-            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
         return self.control_service(SysServCntrlAction.START)
 
-    def restart_dnsmasq(self) -> bool:
+    def restart_dnsmasq(self) -> StatusResult:
         """
         Restart the DNSMasq service.
 
         Returns:
-            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
         return self.control_service(SysServCntrlAction.RESTART)
 
-    def stop_dnsmasq(self) -> bool:
+    def stop_dnsmasq(self) -> StatusResult:
         """
         Stop the DNSMasq service.
 
         Returns:
-            bool: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the command succeeds, STATUS_NOK otherwise.
         """
         return self.control_service(SysServCntrlAction.STOP)
 
@@ -129,11 +135,11 @@ class DNSMasqInterfaceService(DNSMasqService):
 
     DNSMASQ_FILENAME_SUFFIX = '_dnsmasq.conf'
     DNSMASQ_GLOBAL_FILENAME = 'dnsmasq.conf'
-    DNSMASQ_CONFIG_DIR = '/etc/dnsmasq.d'
+    DNSMASQ_CONFIG_DIR = DEFAULT_DNSMASQ_CONFIG_DIR
     DEFAULT_LEASE_TIME = 86400
     DEFAULT_DNS_LISTEN_PORT=5353 # '''Setting DNS to 5353 prevents conflict if there is already DNS running'''
 
-    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+    def __init__(self, dhcp_pool_name: DhcpPoolName, dhcp_pool_subnet: InetCidrText, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)
@@ -147,11 +153,11 @@ class DNSMasqInterfaceService(DNSMasqService):
         self.dhcp_srv_db = DHCPServerDatabase()
         self._build_global_configuration()
 
-    def _build_global_configuration(self) -> bool:
+    def _build_global_configuration(self) -> StatusResult:
         self.d_masq_global_config.add_listen_port(self.DEFAULT_DNS_LISTEN_PORT)
         return STATUS_OK
     
-    def build_interface_configuration(self) -> bool:
+    def build_interface_configuration(self) -> StatusResult:
         """
         Build the interface configuration for DNSMasq.
 
@@ -159,7 +165,7 @@ class DNSMasqInterfaceService(DNSMasqService):
         DHCP pool ranges, and DHCP host reservations.
 
         Returns:
-            bool: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the configuration was successfully built, STATUS_NOK otherwise.
         """
         # Get the interface names for the DHCP pool
         interface_names = self.dhcp_srv_db.get_dhcp_pool_interfaces_db(self.dhcp_pool_name)
@@ -215,7 +221,7 @@ class DNSMasqInterfaceService(DNSMasqService):
         
         return STATUS_OK
     
-    def deploy_configuration(self, deploy_type: DNSMasqDeploy) -> bool:
+    def deploy_configuration(self, deploy_type: DNSMasqDeploy) -> StatusResult:
         """
         Deploy the DNSMasq configuration.
 
@@ -223,7 +229,7 @@ class DNSMasqInterfaceService(DNSMasqService):
             deploy_type (DNSMasqDeploy): The type of DNSMasq configuration to deploy (DNSMasqDeploy.GLOBAL or DNSMasqDeploy.INTERFACE).
 
         Returns:
-            bool: STATUS_OK if the configuration was successfully deployed, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the configuration was successfully deployed, STATUS_NOK otherwise.
         """
         if deploy_type == DNSMasqDeploy.GLOBAL:
             configurator = self.d_masq_global_config
@@ -255,12 +261,12 @@ class DNSMasqInterfaceService(DNSMasqService):
 
         return STATUS_OK
 
-    def clear_configurations(self) -> bool:
+    def clear_configurations(self) -> StatusResult:
         """
         Clear DNSMasq configurations for the DHCP pool.
 
         Returns:
-            bool: STATUS_OK if configurations were successfully cleared, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if configurations were successfully cleared, STATUS_NOK otherwise.
         """
         config_dir = self.DNSMASQ_CONFIG_DIR
         
@@ -313,7 +319,7 @@ class DNSMasqGlobalService(DNSMasqService):
         service = DNSMasqService("home", "192.168.1.0/24")
     """
 
-    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+    def __init__(self, dhcp_pool_name: DhcpPoolName, dhcp_pool_subnet: InetCidrText, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)    

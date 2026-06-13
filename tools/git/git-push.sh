@@ -88,10 +88,10 @@ if git diff --quiet && git diff --cached --quiet; then
 fi
 
 if [[ "${skip_checks}" != "true" ]]; then
-  echo "Running RouterShell quality gates..."
+  echo "Running RouterShell software QA checker before staging..."
   rs_run_quality_gates
 else
-  echo "Quality gates skipped by request."
+  echo "Software QA checker skipped by request."
 fi
 
 echo "Staging changes..."

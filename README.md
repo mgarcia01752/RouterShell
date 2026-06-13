@@ -85,7 +85,12 @@ BusyBox-style targets are intentionally out of scope for this installer.
 
 Production install is the default.
 The installer captures a root-only baseline snapshot under
-`/var/lib/routershell/baseline` before making install changes.
+`/var/lib/routershell/baseline` before making install changes. Production
+installs create `/etc/routershell/routershell.env` for launcher-loaded
+environment settings. Development installs create a repo-local `.env` by
+default; use `--global-env` to force the system environment file. The env file
+sets `ROUTERSHELL_DB_FILE` so RouterShell stores runtime SQLite state outside
+the installed Python package.
 
 Test installer changes in a disposable VM before running them on a development
 workstation. Use `--development` only when testing editable installs with dev
@@ -133,6 +138,13 @@ Factory reset is also exposed as a console entry point:
 routershell-factory-reset
 ```
 
+Runtime logs default to `/tmp/log/routershell.log`. Override logging for one
+run with environment variables such as:
+
+```bash
+ROUTERSHELL_LOG_LEVEL=DEBUG routershell
+```
+
 Build distribution artifacts with:
 
 ```bash
@@ -145,6 +157,15 @@ Run validation with:
 python -m pytest
 python -m ruff check .
 ```
+
+Or run the standard software QA sweep with:
+
+```bash
+routershell-software-qa-checker
+```
+
+See [RouterShell Software QA Checker](doc/tests/software-qa.md) for the full
+check sequence and options.
 
 ## Git Helpers
 

@@ -1,8 +1,11 @@
 import os
 import re
-from typing import List, Optional
-from routershell.lib.network_manager.common.run_commands import RunCommand
 from enum import Enum
+
+from routershell.lib.common.constants import SYSTEMD_RUNTIME_DIR, SYSV_BOOT_LOG_FILE, SYSV_MESSAGES_LOG_FILE
+from routershell.lib.common.types import PredicateResult
+from routershell.lib.network_manager.common.run_commands import RunCommand
+
 
 class InitSystem(Enum):
     SYSTEMD = 'systemd'
@@ -14,8 +17,8 @@ class InitSystemChecker(RunCommand):
     A class to check whether the Linux system is using SysV init or Systemd, implemented as a Singleton.
     """
 
-    _instance: Optional['InitSystemChecker'] = None
-    _init_system: Optional[InitSystem] = None
+    _instance: 'InitSystemChecker | None' = None
+    _init_system: InitSystem | None = None
 
     def __new__(cls, *args, **kwargs) -> 'InitSystemChecker':
         """
@@ -29,7 +32,7 @@ class InitSystemChecker(RunCommand):
             InitSystemChecker: The singleton instance of InitSystemChecker.
         """
         if cls._instance is None:
-            cls._instance = super(InitSystemChecker, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls, *args, **kwargs)
             cls._instance._initialize()
         return cls._instance
 
@@ -47,7 +50,7 @@ class InitSystemChecker(RunCommand):
             InitSystem: An enum representing the init system.
         """
         try:
-            if os.path.exists('/run/systemd/system'):
+            if os.path.exists(SYSTEMD_RUNTIME_DIR):
                 return InitSystem.SYSTEMD
             
             result = self.run(['systemctl', '--version'], suppress_error=True)
@@ -62,21 +65,21 @@ class InitSystemChecker(RunCommand):
         
         return InitSystem.SYSV
 
-    def is_systemd(self) -> bool:
+    def is_systemd(self) -> PredicateResult:
         """
         Checks if the system is using Systemd.
 
         Returns:
-            bool: True if Systemd is in use, False otherwise.
+            StatusResult: True if Systemd is in use, False otherwise.
         """
         return self._init_system == InitSystem.SYSTEMD
 
-    def is_sysv(self) -> bool:
+    def is_sysv(self) -> PredicateResult:
         """
         Checks if the system is using SysV init.
 
         Returns:
-            bool: True if SysV is in use, False otherwise.
+            StatusResult: True if SysV is in use, False otherwise.
         """
         return self._init_system == InitSystem.SYSV
     
@@ -97,17 +100,17 @@ class SysV:
     def __init__(self):
         self.run_command = RunCommand()
     
-    def get_messages(self, grep: Optional[str] = None) -> List[str]:
+    def get_messages(self, grep: str | None = None) -> list[str]:
         """
         Retrieves the system messages from the /var/log/messages file.
 
         Args:
-            grep (Optional[str]): A regular expression string to filter the log messages. If None, all messages are returned.
+            grep (str | None): A regular expression string to filter the log messages. If None, all messages are returned.
 
         Returns:
-            List[str]: A list of log messages from /var/log/messages. If the command fails, an empty list is returned.
+            list[str]: A list of log messages from /var/log/messages. If the command fails, an empty list is returned.
         """
-        command = ['cat', '/var/log/messages']
+        command = ['cat', str(SYSV_MESSAGES_LOG_FILE)]
         result = self.run_command.run(command, suppress_error=True)
         
         if result.exit_code:
@@ -120,17 +123,17 @@ class SysV:
         
         return lines
     
-    def get_boot_log(self, grep: Optional[str] = None) -> List[str]:
+    def get_boot_log(self, grep: str | None = None) -> list[str]:
         """
         Retrieves the system messages from the /var/log/boot file.
 
         Args:
-            grep (Optional[str]): A regular expression string to filter the log messages. If None, all messages are returned.
+            grep (str | None): A regular expression string to filter the log messages. If None, all messages are returned.
 
         Returns:
-            List[str]: A list of boot log messages from /var/log/boot. If the command fails, an empty list is returned.
+            list[str]: A list of boot log messages from /var/log/boot. If the command fails, an empty list is returned.
         """
-        command = ['cat', '/var/log/boot']
+        command = ['cat', str(SYSV_BOOT_LOG_FILE)]
         result = self.run_command.run(command, suppress_error=True)
         
         if result.exit_code:

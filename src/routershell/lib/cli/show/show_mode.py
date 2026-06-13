@@ -1,13 +1,12 @@
-import json
-import cmd2
-import logging
 import argparse
+import json
+import logging
 
-from tabulate import tabulate
+import cmd2
 
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
+from routershell.lib.cli.common.exec_priv_mode import ExecException, ExecMode
 from routershell.lib.cli.common.router_prompt import RouterPrompt
-from routershell.lib.cli.common.exec_priv_mode import ExecMode, ExecException
 from routershell.lib.cli.show.arp_show import ArpShow
 from routershell.lib.cli.show.bridge_show import BridgeShow
 from routershell.lib.cli.show.dhcp_show import DHCPClientShow, DHCPServerShow
@@ -16,10 +15,9 @@ from routershell.lib.cli.show.ip_route_show import RouteShow
 from routershell.lib.cli.show.nat_show import NatShow
 from routershell.lib.cli.show.router_configuration import RouterConfiguration
 from routershell.lib.cli.show.vlan_show import VlanShow
-from routershell.lib.db.vlan_db import VlanDatabase
 from routershell.lib.db.interface_db import InterfaceDatabase
 from routershell.lib.db.nat_db import NatDB
-from routershell.lib.common.constants import *
+from routershell.lib.db.vlan_db import VlanDatabase
 from routershell.lib.hardware.hardware_detection import HardwareDetection
 
 

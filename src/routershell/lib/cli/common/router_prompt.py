@@ -1,18 +1,20 @@
 import logging
-from typing import Any, List, Optional, Union
-
 from time import sleep
-from prompt_toolkit import PromptSession
-from prompt_toolkit.history import InMemoryHistory
-from prompt_toolkit.completion import NestedCompleter
-from prompt_toolkit import print_formatted_text as print
+
 from common.common import Common
+from prompt_toolkit import PromptSession
+from prompt_toolkit import print_formatted_text as print
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.history import InMemoryHistory
+
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import CommandName, FilePath, StatusResult
 from routershell.lib.system.system_call import SystemCall
+
 
 class PromptFeeder:
     """
@@ -22,23 +24,23 @@ class PromptFeeder:
     allowing them to be processed sequentially.
 
     Attributes:
-        prompt_feed (List[List[str]]): The initial list of prompts/commands.
+        prompt_feed (list[list[str]]): The initial list of prompts/commands.
         start_length (int): The length of the initial prompt feed.
 
     Methods:
-        pop() -> bool:
+        pop() -> StatusResult:
             Removes the top entry from the prompt feed.
-        top() -> List[str]:
+        top() -> list[str]:
             Returns the top entry from the prompt feed without removing it.
         length() -> int:
             Returns the current length of the prompt feed.
         get_start_length() -> int:
             Returns the initial length of the prompt feed.
-        next() -> List[str]:
+        next() -> list[str]:
             Returns and removes the top entry from the prompt feed.
     """
     @staticmethod
-    def process_file(file_path: str) -> List[List[str]]:
+    def process_file(file_path: FilePath) -> list[list[str]]:
         """
         Processes a file and creates a nested list where each line is a list,
         and each word in the line is a string.
@@ -47,12 +49,12 @@ class PromptFeeder:
             file_path (str): The path to the input file.
 
         Returns:
-            List[List[str]]: The processed nested list.
+            list[list[str]]: The processed nested list.
         """
         nested_list = []
 
         try:
-            with open(file_path, 'r') as file:
+            with open(file_path) as file:
                 for line in file:
                     line_list = [word for word in line.strip().split()]
                     nested_list.append(line_list)
@@ -64,12 +66,12 @@ class PromptFeeder:
 
         return nested_list
     
-    def __init__(self, prompt_feed: List[List[str]] = []):
+    def __init__(self, prompt_feed: list[list[str]] = []):
         """
         Initializes the PromptFeed with a list of prompts/commands.
 
         Args:
-            prompt_feed (List[List[str]]): The initial list of prompts/commands.
+            prompt_feed (list[list[str]]): The initial list of prompts/commands.
         """
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().PROMPT_FEEDER)
@@ -77,23 +79,23 @@ class PromptFeeder:
         self.prompt_feed = prompt_feed[:]
         self.start_length = len(self.prompt_feed)
 
-    def pop(self) -> bool:
+    def pop(self) -> StatusResult:
         """
         Removes the top entry from the prompt feed.
 
         Returns:
-            bool: STATUS_OK if the operation is successful.
+            StatusResult: STATUS_OK if the operation is successful.
         """
         if self.prompt_feed:
             self.prompt_feed.pop(0)
         return STATUS_OK
 
-    def top(self) -> List[str]:
+    def top(self) -> list[str]:
         """
         Returns the top entry from the prompt feed without removing it.
 
         Returns:
-            List[str]: The top entry or an empty list if the prompt feed is empty.
+            list[str]: The top entry or an empty list if the prompt feed is empty.
         """
         if self.prompt_feed:
             return self.prompt_feed[0]
@@ -117,12 +119,12 @@ class PromptFeeder:
         """
         return self.start_length
 
-    def next(self) -> List[str]:
+    def next(self) -> list[str]:
         """
         Returns and removes the top entry from the prompt feed.
 
         Returns:
-            List[str]: The top entry from the prompt feed, or an empty list if the prompt feed is empty.
+            list[str]: The top entry from the prompt feed, or an empty list if the prompt feed is empty.
         """
         if self.prompt_feed:
             return self.prompt_feed.pop(0)
@@ -173,7 +175,7 @@ class RouterPrompt:
     _current_execute_mode = ExecMode.USER_MODE
     
     def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, 
-                 sub_cmd_name: str = None) -> None:
+                 sub_cmd_name: CommandName | None = None) -> None:
         """
         Initializes RouterPromptSession instance.
         """
@@ -214,16 +216,16 @@ class RouterPrompt:
         """
         return RouterPrompt._prompt_feeder_obj.length()
     
-    def get_prompt_feeder(self) -> Optional[PromptFeeder]:
+    def get_prompt_feeder(self) -> PromptFeeder | None:
         """
         Get the current prompt feeder.
 
         Returns:
-            Optional[PromptFeeder]: The current prompt feeder if available, otherwise None.
+            PromptFeeder | None: The current prompt feeder if available, otherwise None.
         """
         return RouterPrompt._prompt_feeder_obj
     
-    def load_prompt_feeder(self, pf: PromptFeeder) -> bool:
+    def load_prompt_feeder(self, pf: PromptFeeder) -> StatusResult:
         """
         Load a new prompt feeder.
 
@@ -231,7 +233,7 @@ class RouterPrompt:
             pf (PromptFeeder):  The new prompt feeder to load. 
 
         Returns:
-            bool: STATUS_OK if the prompt feeder is successfully loaded, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the prompt feeder is successfully loaded, STATUS_NOK otherwise.
         """
         if not isinstance(pf, PromptFeeder):
             return False
@@ -248,7 +250,7 @@ class RouterPrompt:
     def rs_prompt(self, 
                   split: bool=True, 
                   ws_trim_lead: bool=True,
-                  ws_reduce: bool=True) -> List|Any:
+                  ws_reduce: bool=True) -> list[str] | str:
         """
         Displays router prompt and returns user input.
 
@@ -284,7 +286,7 @@ class RouterPrompt:
                     
         return _.split(' ')
 
-    def register_top_lvl_cmds(self, class_name: CmdPrompt) -> bool:
+    def register_top_lvl_cmds(self, class_name: CmdPrompt) -> StatusResult:
         """
         Register top-level commands for the router prompt session.
 
@@ -293,7 +295,7 @@ class RouterPrompt:
             class_nested_cmds (bool, optional): Whether the commands are nested or not. Defaults to False.
         
         Returns:
-            bool: Status indicating whether the registration was successful.
+            StatusResult: Status indicating whether the registration was successful.
         """
         self.log.debug(f'register_top_lvl_cmds() -> {class_name}')
         
@@ -384,12 +386,12 @@ class RouterPrompt:
     def get_exec_mode(self) -> ExecMode:
         return self.execute_mode
         
-    def update_prompt_hostname(self) -> bool:
+    def update_prompt_hostname(self) -> StatusResult:
         """
         Update the prompt hostname attribute based on the hostname retrieved from the 'SystemConfig'.
 
         Returns:
-            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
         self._prompt_dict['Hostname'] = SystemCall().get_hostname_os()
             
@@ -404,15 +406,15 @@ class RouterPrompt:
         """
         return self._prompt_dict['Hostname']
 
-    def get_top_level_cmd_object(self, cmd: List[str]) -> Union[CmdPrompt, None]:
+    def get_top_level_cmd_object(self, cmd: list[str]) -> CmdPrompt | None:
         """
         Retrieve the top-level command object.
 
         Args:
-            cmd (List[str]): List of command parts to search for.
+            cmd (list[str]): list of command parts to search for.
 
         Returns:
-            Union[CmdPrompt, None]: The command object if found, else None.
+            CmdPrompt | None: The command object if found, else None.
         """
         self.log.debug(f'get_top_level_cmd_object() -> cmds: {cmd}')
         
@@ -441,7 +443,7 @@ class RouterPrompt:
         """
         self.session.completer = None
 
-    def _process_prompt_feeder_line(self, line: List[str]) -> List[str]:
+    def _process_prompt_feeder_line(self, line: list[str]) -> list[str]:
         """
         Processes a single line from the prompt feeder.
 
@@ -449,10 +451,10 @@ class RouterPrompt:
         Additionally, it updates the execution mode if the line contains the 'enable' command.
 
         Args:
-            line (List[str]): The line to be processed, represented as a list of strings.
+            line (list[str]): The line to be processed, represented as a list of strings.
 
         Returns:
-            List[str]: The processed line, or an empty list if the line is a remark or contains the 'enable' command.
+            list[str]: The processed line, or an empty list if the line is a remark or contains the 'enable' command.
         """
         # Check if the line is empty
         if not line:
@@ -470,7 +472,7 @@ class RouterPrompt:
 
         return line
 
-    def _read_prompt_file(self, pf: PromptFeeder , sleep_ms: float=200) -> bool:
+    def _read_prompt_file(self, pf: PromptFeeder , sleep_ms: float=200) -> StatusResult:
        
         self.log.debug(f'_read_prompt_file() PromptFeed: {pf.__str__()} - sleep_ms: {sleep_ms}')
        
@@ -481,14 +483,14 @@ class RouterPrompt:
             line = self._process_prompt_feeder_line(line)
             
             if sleep_ms > 0:
-                sleep((sleep_ms/1000))
+                sleep(sleep_ms/1000)
             
             if self._process_command(line):
                 break
                     
         return STATUS_OK
 
-    def start(self, pf : PromptFeeder = None) -> bool:
+    def start(self, pf : PromptFeeder = None) -> StatusResult:
         """
         Start the process with an optional prompt feeder.
 
@@ -496,7 +498,7 @@ class RouterPrompt:
             pf PromptFeeder`: The optional prompt feeder object.
 
         Returns:
-            bool: STATUS_OK if the process starts successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the process starts successfully, STATUS_NOK otherwise.
         """
         self._DEBUG_print_top_lvl_cmds()
         
@@ -540,7 +542,7 @@ class RouterPrompt:
         self.log.debug(f'start-cmd: {command}')
         return command
 
-    def _process_command(self, commands: list) -> bool:
+    def _process_command(self, commands: list) -> StatusResult:
         """
         Process the user command.
 
@@ -548,7 +550,7 @@ class RouterPrompt:
             commands (list): The user command split into components.
 
         Returns:
-            bool: STATUS_OK if the loop should exit, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the loop should exit, STATUS_NOK otherwise.
         """
         if not commands or not commands[0]:
             self.log.debug('No command input')
@@ -569,7 +571,7 @@ class RouterPrompt:
 
         return STATUS_OK
 
-    def _execute_commands(self, cmd: str, args: list) -> bool:
+    def _execute_commands(self, cmd: str, args: list) -> StatusResult:
         """
         Execute the given command with its arguments.
 
@@ -578,7 +580,7 @@ class RouterPrompt:
             args (list): The arguments for the command.
 
         Returns:
-            bool: True if the command was executed successfully, False otherwise.
+            StatusResult: True if the command was executed successfully, False otherwise.
         """
         self.log.debug(f'_execute_commands() -> cmd: {cmd} -> args: {args}')
         

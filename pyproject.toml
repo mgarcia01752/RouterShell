@@ -33,6 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: System :: Networking",
     "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
 ]
 dependencies = [
     "argcomplete>=3.0",
@@ -48,6 +49,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "build>=1.2",
+    "pycycle>=0.0.8",
+    "pyright>=1.1.407",
+    "pylint>=3.3",
     "pytest>=8.0",
     "ruff>=0.5",
     "twine>=5.0",
@@ -56,6 +60,7 @@ dev = [
 [project.scripts]
 routershell = "routershell.cli:main"
 routershell-factory-reset = "routershell.cli:factory_reset"
+routershell-software-qa-checker = "tools.release.qa_checker:main"
 
 [project.urls]
 Homepage = "https://github.com/mgarcia01752/RouterShell"
@@ -71,6 +76,7 @@ include = ["routershell*"]
 namespaces = true
 
 [tool.setuptools.package-data]
+"routershell" = ["py.typed"]
 "routershell.lib.db.sqlite_db" = ["*.sql"]
 "routershell.lib.network_services.dhcp.dnsmasq" = ["*.conf"]
 
@@ -84,16 +90,75 @@ testpaths = [
 ]
 
 [tool.ruff]
+src = ["src"]
 target-version = "py310"
 line-length = 120
 exclude = [
-    "src/routershell/lib",
+    "tools",
+    "src/routershell/lib/cli/config-bak",
+    "**/*-bak.py",
+    "**/*-orig.py",
 ]
 
 [tool.ruff.lint]
 select = [
-    "E",
     "F",
-    "I",
+    "E",
     "W",
+    "I",
+    "B",
+    "UP",
+    "ANN",
+    "SIM",
+    "PERF",
+]
+ignore = [
+    "E501",
+    "B006",
+    "ANN001",
+    "ANN002",
+    "ANN003",
+    "ANN201",
+    "ANN202",
+    "ANN204",
+    "ANN205",
+    "ANN206",
+    "W291",
+    "W292",
+    "W293",
+    "B007",
+    "B018",
+    "B024",
+    "B904",
+    "E711",
+    "F811",
+    "F841",
+    "SIM",
+    "PERF",
+    "UP022",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "ANN",
+]
+
+[tool.pyright]
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+include = [
+    "src",
+    "tests",
+    "tools/release",
+]
+extraPaths = [
+    "src",
+    ".",
+]
+exclude = [
+    "**/__pycache__",
+    ".pytest_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
 ]

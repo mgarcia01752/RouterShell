@@ -1,5 +1,8 @@
 from tabulate import tabulate
+
+from routershell.lib.common.types import DbTableName
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+
 
 class DbDumpShow:
     
@@ -33,7 +36,7 @@ class DbDumpShow:
         
         return cursor.fetchall()
 
-    def _fetch_schema(self, table_name: str):
+    def _fetch_schema(self, table_name: DbTableName):
         """
         Fetches the schema of a specific table.
 
@@ -47,7 +50,7 @@ class DbDumpShow:
         cursor.execute(f"PRAGMA table_info({table_name});")
         return cursor.fetchall()
 
-    def _fetch_data(self, table_name: str):
+    def _fetch_data(self, table_name: DbTableName):
         """
         Fetches the data of a specific table.
 
@@ -63,7 +66,7 @@ class DbDumpShow:
         column_names = [description[0] for description in cursor.description]
         return column_names, rows
 
-    def _print_schema(self, table_name: str, schema):
+    def _print_schema(self, table_name: DbTableName, schema):
         """
         Prints the schema of a table in a human-readable format.
 
@@ -76,7 +79,7 @@ class DbDumpShow:
         schema_table.extend([[col[1], col[2], col[3], col[4]] for col in schema])
         print(tabulate(schema_table, headers='firstrow', tablefmt='grid'))
 
-    def _print_data(self, table_name: str, column_names, rows):
+    def _print_data(self, table_name: DbTableName, column_names, rows):
         """
         Prints the data of a table in a human-readable format.
 

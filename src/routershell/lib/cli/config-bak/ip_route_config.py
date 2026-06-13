@@ -1,15 +1,15 @@
 import ipaddress
-import cmd2
 import logging
 
-from tabulate import tabulate
+import cmd2
 
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from routershell.lib.network_manager.network_operations.route import Route
-from routershell.lib.common.common import Common
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from routershell.lib.common.constants import *
+from routershell.lib.network_manager.network_operations.route import Route
 
+
+from routershell.lib.common.types import StatusResult
 class InvalidRouteConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -68,7 +68,7 @@ class IpRouteConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Route):
         print("ip")
         print("ipv6")
             
-    def do_classless(self, negate=False) -> bool:
+    def do_classless(self, negate=False) -> StatusResult:
         '''usage: no classless disable classless routeing'''
         
         if self.set_classless_routing(not negate):
@@ -80,7 +80,7 @@ class IpRouteConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Route):
         completions = ['metric', 'via']
         return [comp for comp in completions if comp.startswith(text)]
     
-    def do_route(self, args: str, negate=False) -> bool:
+    def do_route(self, args: str, negate=False) -> StatusResult:
         '''usage: [no] [ip|ipv6] route <destination>/<mask> <next-hop> <metric>'''
         
         do_route_min_arg = 3
@@ -136,7 +136,7 @@ class IpRouteConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Route):
         completions = ['classless', 'route']
         return [comp for comp in completions if comp.startswith(text)]
     
-    def do_ip(self, args:str, negate=False) -> bool:
+    def do_ip(self, args:str, negate=False) -> StatusResult:
         
         self.log.debug(f"do_ip() -> line: {args}")
         args_parts = args.strip().split()

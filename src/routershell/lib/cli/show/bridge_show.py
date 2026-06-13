@@ -1,12 +1,13 @@
 import json
 import logging
-from typing import Any, Dict, List
 
 from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_operations.bridge import Bridge
+
 
 class BridgeShow(RunCommand):
     """Command set for showing Bridge-Show-Command"""
@@ -19,7 +20,7 @@ class BridgeShow(RunCommand):
     def bridge(self, arg=None):
         Bridge().get_bridge()
 
-    def show_bridge_group_interface_table(self) -> bool:
+    def show_bridge_group_interface_table(self) -> StatusResult:
         
         json_data = self.run(['ip', '-json', 'addr'])
         
@@ -28,12 +29,12 @@ class BridgeShow(RunCommand):
             return STATUS_NOK
         
         try:
-            network_data: List[Dict[str, Any]] = json.loads(json_data.stdout)
+            network_data: list[dict[str, object]] = json.loads(json_data.stdout)
         except json.JSONDecodeError as e:
             print(f"Error loading JSON data: {e}")
             exit()        
         
-        bridge_group_interfacess: List[Dict[str, str]] = []
+        bridge_group_interfacess: list[dict[str, str]] = []
 
         for item in network_data:
             # Check if the item has a 'master' key

@@ -1,9 +1,11 @@
 import logging
-from typing import List
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, NatPoolName, PredicateResult, StatusResult
+from routershell.lib.db.sqlite_db.router_shell_db import Result
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+
 
 class NatDB:
 
@@ -14,10 +16,10 @@ class NatDB:
         cls.log.setLevel(RSLS().NAT_DB)
         
         if not cls.rsdb:
-            cls.log.debug(f"Connecting RouterShell Database")
+            cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()  
 
-    def pool_name_exists(cls, pool_name: str) -> bool:
+    def pool_name_exists(cls, pool_name: NatPoolName) -> PredicateResult:
         """
         Check if a NAT pool with the given name exists in the NAT database.
 
@@ -25,13 +27,13 @@ class NatDB:
             pool_name (str): The name of the NAT pool to check for existence.
 
         Returns:
-            bool: True if a NAT pool with the specified name exists, False otherwise.
+            StatusResult: True if a NAT pool with the specified name exists, False otherwise.
 
         """
         cls.log.debug(f"pool_name_exists() Pool-Name: {pool_name}")
         return cls.rsdb.global_nat_pool_name_exists(pool_name).status
        
-    def insert_global_nat_pool_name(cls, pool_name: str) -> bool:
+    def insert_global_nat_pool_name(cls, pool_name: NatPoolName) -> StatusResult:
         """
         Create a new global NAT pool configuration in the NAT database.
 
@@ -39,7 +41,7 @@ class NatDB:
             pool_name (str): The name of the NAT pool to create.
 
         Returns:
-            bool: True if the NAT pool is created successfully, False otherwise.
+            StatusResult: True if the NAT pool is created successfully, False otherwise.
 
         """
         try:
@@ -61,7 +63,7 @@ class NatDB:
             cls.log.error(f"An error occurred while creating global NAT pool: {e}")
             return STATUS_NOK
 
-    def delete_global_nat_pool_name(cls, pool_name: str) -> bool:
+    def delete_global_nat_pool_name(cls, pool_name: NatPoolName) -> StatusResult:
         """
         Delete a global NAT pool configuration from the NAT database.
 
@@ -69,7 +71,7 @@ class NatDB:
             pool_name (str): The name of the NAT pool to be deleted.
 
         Returns:
-            bool: True if the NAT pool is deleted successfully, False otherwise.
+            StatusResult: True if the NAT pool is deleted successfully, False otherwise.
         """
         try:
             if not cls.pool_name_exists(pool_name):
@@ -106,7 +108,7 @@ class NatDB:
             cls.log.error(f"An error occurred while retrieving global NAT pool names: {e}")
             return []
 
-    def is_interface_direction_in_nat_pool(cls, interface_name: str, nat_pool_name: str, direction: str) -> Result:
+    def is_interface_direction_in_nat_pool(cls, interface_name: InterfaceName, nat_pool_name: NatPoolName, direction: str) -> Result:
         """
         Check if the specified interface is associated with the given NAT pool and direction.
 
@@ -127,7 +129,7 @@ class NatDB:
         cls.log.debug(f"is_interface_direction_in_nat_pool({interface_name} -> {nat_pool_name} -> {direction})")
         return cls.rsdb.select_nat_interface_direction(interface_name, nat_pool_name, direction)
 
-    def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: str, direction: str) -> List[Result]:
+    def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: NatPoolName, direction: str) -> list[Result]:
         """
         Get list of interfaces is associated with the given NAT pool and direction.
 
@@ -135,7 +137,7 @@ class NatDB:
             nat_pool_name (str): The name of the NAT pool to check.
             direction (str): The direction to check (inside or outside).
 
-        Returns List:
+        Returns list:
             Result: A Result object with the following fields:
             - status (bool): True if the interface is found in the specified NAT pool and direction, False otherwise.
             - row_id (int): The row ID of the found entry, or 0 if not found.
@@ -148,7 +150,7 @@ class NatDB:
         
         return cls.rsdb.select_nat_interface_direction_list(nat_pool_name, direction)
 
-    def add_inside_interface(cls, nat_pool_name: str, interface_name: str) -> bool:
+    def add_inside_interface(cls, nat_pool_name: NatPoolName, interface_name: InterfaceName) -> StatusResult:
         """
         Add an inside interface to a NAT pool configuration.
 
@@ -157,7 +159,7 @@ class NatDB:
             interface_name (str): The name of the inside interface to add.
 
         Returns:
-            bool: STATUS_OK if the inside interface is added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the inside interface is added successfully, STATUS_NOK otherwise.
         """
         from routershell.lib.network_manager.network_operations.nat import NATDirection
         
@@ -191,10 +193,10 @@ class NatDB:
             cls.log.error(f"An error occurred while adding inside interface to '{nat_pool_name}': {e}")
             return STATUS_NOK
 
-    def delete_inside_interface(cls, pool_name: str, interface_name: str) -> bool:
+    def delete_inside_interface(cls, pool_name: NatPoolName, interface_name: InterfaceName) -> StatusResult:
         pass
     
-    def add_outside_interface(cls, nat_pool_name: str, interface_name: str) -> bool:
+    def add_outside_interface(cls, nat_pool_name: NatPoolName, interface_name: InterfaceName) -> StatusResult:
         """
         Add an outside interface to a NAT pool configuration DB.
 
@@ -203,7 +205,7 @@ class NatDB:
             interface_name (str): The name of the outside interface to add.
 
         Returns:
-            bool: STATUS_OK if the outside interface is added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the outside interface is added successfully, STATUS_NOK otherwise.
         """
         from routershell.lib.network_manager.network_operations.nat import NATDirection
         
@@ -229,6 +231,6 @@ class NatDB:
             cls.log.error(f"An error occurred while inserting outside interface to '{nat_pool_name}': {e}")
             return STATUS_NOK
                     
-    def delete_outside_interface(cls, pool_name: str, interface_name: str) -> str:
+    def delete_outside_interface(cls, pool_name: NatPoolName, interface_name: InterfaceName) -> str:
         pass
     

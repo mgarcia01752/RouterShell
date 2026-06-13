@@ -1,18 +1,19 @@
+import datetime
 import ipaddress
+import logging
+import os
 import random
 import re
 import socket
-import os
-import datetime
 import subprocess
-import logging
 from datetime import datetime
-from typing import List 
 
-from routershell.lib.common.constants import *
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, SYSTEMD_RUNTIME_DIR, SYSV_INIT_DIR
+from routershell.lib.common.types import EnvironmentVariableName, HostnameText, InterfaceName, PredicateResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 
-class Common():
+
+class Common:
     '''Commonly used Static Methods'''
 
     def __init__(self) -> None:
@@ -31,12 +32,12 @@ class Common():
     @staticmethod
     def get_reboot_command() -> str:
         ''''''
-        # Check if the /etc/init directory exists (indicating SysV init)
-        if os.path.exists('/etc/init'):
+        # Check if the SysV init directory exists.
+        if os.path.exists(SYSV_INIT_DIR):
             return 'sudo init 6'  # Use SysV init reboot command
 
-        # Check if the /run/systemd/system directory exists (indicating systemd)
-        if os.path.exists('/run/systemd/system'):
+        # Check if the systemd runtime directory exists.
+        if os.path.exists(SYSTEMD_RUNTIME_DIR):
             return 'sudo systemctl reboot'  # Use systemd reboot command
 
         # Default to 'sudo reboot' if neither init system is found
@@ -45,12 +46,12 @@ class Common():
     @staticmethod
     def get_shutdown_command() -> str:
 
-        # Check if the /etc/init directory exists (indicating SysV init)
-        if os.path.exists('/etc/init'):
+        # Check if the SysV init directory exists.
+        if os.path.exists(SYSV_INIT_DIR):
             return 'sudo init 0'  # Use SysV init reboot command
 
-        # Check if the /run/systemd/system directory exists (indicating systemd)
-        if os.path.exists('/run/systemd/system'):
+        # Check if the systemd runtime directory exists.
+        if os.path.exists(SYSTEMD_RUNTIME_DIR):
             return 'sudo systemctl shutdown'  # Use systemd reboot command
 
         # Default to 'sudo shutdown' if neither init system is found
@@ -168,7 +169,7 @@ class Common():
         return mac_address
  
     @staticmethod
-    def is_valid_ip(ip_str: str) -> bool:
+    def is_valid_ip(ip_str: str) -> PredicateResult:
         '''Check both IPv4 and IPv6 is properly formatted'''
         try:
             ipaddress.IPv4Address(ip_str)  # Check if it's a valid IPv4 address
@@ -185,13 +186,13 @@ class Common():
         return [item for item in simple_list]
 
     @staticmethod
-    def remove_substrings_and_concatenate(input_list: List[str], substrings: List[str]) -> str:
+    def remove_substrings_and_concatenate(input_list: list[str], substrings: list[str]) -> str:
         """
         Removes all specified substrings from each element in the input list and concatenates the results into a single string.
 
         Args:
-            input_list (List[str]): The list of strings to be processed.
-            substrings (List[str]): The substrings to be removed from each element.
+            input_list (list[str]): The list of strings to be processed.
+            substrings (list[str]): The substrings to be removed from each element.
 
         Returns:
             str: A single string with substrings removed and elements concatenated.
@@ -224,7 +225,7 @@ class Common():
             return "N/A" 
 
     @staticmethod
-    def is_valid_hostname(hostname: str) -> bool:
+    def is_valid_hostname(hostname: HostnameText) -> PredicateResult:
         """
         Check if a hostname is valid based on DNS standards.
 
@@ -232,7 +233,7 @@ class Common():
             hostname (str): The hostname to be validated.
 
         Returns:
-            bool: True if the hostname is valid, False otherwise.
+            StatusResult: True if the hostname is valid, False otherwise.
         """
         if not hostname or len(hostname) > 255:
             return False
@@ -252,7 +253,7 @@ class Common():
         return True
     
     @staticmethod
-    def get_env(var_name: str) -> str:
+    def get_env(var_name: EnvironmentVariableName) -> str:
         """
         Get the value of an environment variable.
         
@@ -265,16 +266,16 @@ class Common():
         return os.environ.get(var_name)
 
     @staticmethod
-    def is_loopback_if_name_valid(interface_name: str, add_loopback_if_name: List[str] = None) -> bool:
+    def is_loopback_if_name_valid(interface_name: InterfaceName, add_loopback_if_name: list[str] = None) -> PredicateResult:
         """
         Check if the given interface name is in the loopback format or starts with any of the specified prefixes.
 
         Args:
             interface_name (str): The name of the network interface.
-            loopback_if_check_list (List[str], optional): List of additional interface name prefixes to check against. Default is None.
+            loopback_if_check_list (list[str], optional): list of additional interface name prefixes to check against. Default is None.
 
         Returns:
-            bool: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.
+            StatusResult: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.
         """
         if add_loopback_if_name is None:
             add_loopback_if_name = []

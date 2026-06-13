@@ -1,13 +1,14 @@
 import logging
-from typing import List
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.common import Common
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
+
 
 class LoopbackConfig(CmdPrompt):
 
@@ -24,7 +25,7 @@ class LoopbackConfig(CmdPrompt):
         self.lio = loopback_interface_obj
         self.log.debug(f'Loopback: {self.lio.get_interface_name}')
                
-    def loopbackconfig_help(self, args: List=None) -> None:
+    def loopbackconfig_help(self, args: list=None) -> None:
         """
         Display help for available commands.
         """
@@ -33,7 +34,7 @@ class LoopbackConfig(CmdPrompt):
             print(f"{method.__doc__}")
 
     @CmdPrompt.register_sub_commands()         
-    def loopbackconfig_description(self, line: List[str] = None) -> bool:
+    def loopbackconfig_description(self, line: list[str] = None) -> StatusResult:
         """
         Configures the description of the loopback network interface.
 
@@ -58,16 +59,16 @@ class LoopbackConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'])         
-    def loopbackconfig_ip(self, args: List[str] = None, negate: bool = False) -> bool:
+    def loopbackconfig_ip(self, args: list[str] = None, negate: bool = False) -> StatusResult:
         """
         Configures the IP address of the loopback interface.
 
         Args:
-            args (List[str], optional): Arguments for the configuration. Expected to contain at least 'address' and a valid IP address.
+            args (list[str], optional): Arguments for the configuration. Expected to contain at least 'address' and a valid IP address.
             negate (bool, optional): Flag to determine if the address should be added or removed. Defaults to False.
 
         Returns:
-            bool: Returns STATUS_OK to indicate the function executed successfully, or STATUS_NOK if there was an error.
+            StatusResult: Returns STATUS_OK to indicate the function executed successfully, or STATUS_NOK if there was an error.
         """
         try:
             self.log.debug(f'loopbackconfig_ip -> {args}')
@@ -92,21 +93,21 @@ class LoopbackConfig(CmdPrompt):
             return STATUS_NOK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'])         
-    def loopbackconfig_ipv6(self, args: List=None, negate: bool=False) -> bool:
+    def loopbackconfig_ipv6(self, args: list=None, negate: bool=False) -> StatusResult:
         self.log.debug(f'loopbackconfig_ipv6 -> {args}')
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()         
-    def loopbackconfig_shutdown(self, args: List[str] = None, negate: bool = False) -> bool:
+    def loopbackconfig_shutdown(self, args: list[str] = None, negate: bool = False) -> StatusResult:
         """
         Configures the shutdown state of the loopback interface.
 
         Args:
-            args (List[str], optional): Additional arguments for the configuration. Defaults to None.
+            args (list[str], optional): Additional arguments for the configuration. Defaults to None.
             negate (bool, optional): Flag to determine the state. If True, set the state to DOWN; otherwise, set to UP. Defaults to False.
 
         Returns:
-            bool: Returns STATUS_OK to indicate the function executed successfully.
+            StatusResult: Returns STATUS_OK to indicate the function executed successfully.
         """
         try:
             self.log.debug(f'loopbackconfig_shutdown -> {args}')
@@ -119,7 +120,7 @@ class LoopbackConfig(CmdPrompt):
             return STATUS_NOK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['YES'])
-    def loopbackconfig_destroy(self, args: List=None) -> bool:
+    def loopbackconfig_destroy(self, args: list=None) -> StatusResult:
         """
         Destroys a loopback configuration if the confirmation argument 'YES' is provided.
 
@@ -129,12 +130,12 @@ class LoopbackConfig(CmdPrompt):
         performing any action.
 
         Args:
-            args (List, optional): A list of arguments. The method checks for the presence
+            args (list, optional): A list of arguments. The method checks for the presence
                                    of 'YES' in this list to confirm the destruction of 
                                    the loopback configuration.
 
         Returns:
-            bool: STATUS_OK if the 'YES' argument is not provided or if the loopback 
+            StatusResult: STATUS_OK if the 'YES' argument is not provided or if the loopback 
                   configuration is destroyed successfully. STATUS_NOK otherwise.
         """
         if 'YES' in args:
@@ -144,7 +145,7 @@ class LoopbackConfig(CmdPrompt):
         return STATUS_OK   
         
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['ip', 'ipv6', 'shutdown'])         
-    def loopbackconfig_no(self, args: List=None) -> bool:
+    def loopbackconfig_no(self, args: list=None) -> StatusResult:
         self.log.debug(f'loopbackconfig_no -> {args}')
         
         if 'ip' in args:

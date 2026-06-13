@@ -1,7 +1,10 @@
 import logging
+
 from routershell.lib.cli.config.bridge.bridge_config import BridgeConfig
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName
+
 
 class BridgeConfigCmdError(Exception):
     """Custom exception for BridgeConfigError errors."""
@@ -13,7 +16,7 @@ class BridgeConfigCmdError(Exception):
         return f'BridgeConfigError: {self.message}'
    
 class BridgeConfigCmd(ConfigurePrompt):
-    def __init__(self, bridge_name:str, negate=False):
+    def __init__(self, bridge_name:BridgeName, negate=False):
         super().__init__(sub_cmd_name='br')
         bridge_name = bridge_name[0]
         self.register_top_lvl_cmds(BridgeConfig(bridge_name, negate))
@@ -22,7 +25,7 @@ class BridgeConfigCmd(ConfigurePrompt):
         self.log.setLevel(RSLS().BRIDGE_CONFIG_CMD)
     
     def intro(self) -> str:
-        return f'Starting Test Config....'
+        return 'Starting Test Config....'
                     
     def help(self):
         pass

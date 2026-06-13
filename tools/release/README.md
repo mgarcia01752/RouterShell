@@ -17,6 +17,23 @@ JSON output is also available:
 ./tools/release/check_version.py --json
 ```
 
+## Software QA Checker
+
+Run the standard local QA sweep:
+
+```bash
+./tools/release/qa_checker.py
+```
+
+After an editable dev install, the same checker is available as:
+
+```bash
+routershell-software-qa-checker
+```
+
+See [RouterShell Software QA Checker](../../doc/tests/software-qa.md) for the
+full check sequence and options.
+
 ## Release Dry Run
 
 Show the planned release steps without changing files:

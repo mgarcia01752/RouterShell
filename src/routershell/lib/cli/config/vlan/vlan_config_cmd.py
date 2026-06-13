@@ -1,7 +1,9 @@
 import logging
+
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
 from routershell.lib.cli.config.vlan.vlan_config import VlanConfig
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+
 
 class VlanConfigCmdError(Exception):
     """Custom exception for VlanConfigCmdError errors."""
@@ -23,7 +25,7 @@ class VlanConfigCmd(ConfigurePrompt):
         self.log.debug(f'Starting Vlan config Command for VlanID: {vlan_id}')
     
     def intro(self) -> str:
-        return f'Starting Vlan Config....'
+        return 'Starting Vlan Config....'
                     
     def help(self):
         pass

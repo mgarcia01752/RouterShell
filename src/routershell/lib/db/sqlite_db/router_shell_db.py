@@ -1,13 +1,38 @@
-import sqlite3
 import logging
 import os
-from typing import Dict, List, Optional
+import sqlite3
+from pathlib import Path
+
 from tabulate import tabulate
 
-from routershell.lib.common.constants import ROUTER_SHELL_SQL_STARTUP, STATUS_NOK, STATUS_OK, ROUTER_SHELL_DB
-from routershell.lib.common.singleton import Singleton
-from routershell.lib.network_manager.common.interface import InterfaceType
+from routershell.lib.common.constants import (
+    ROUTER_SHELL_DB,
+    ROUTER_SHELL_DB_FILE_ENV,
+    ROUTER_SHELL_PROJECT_ROOT_ENV,
+    ROUTER_SHELL_SQL_STARTUP,
+    ROUTERSHELL_STATE_DIR,
+    STATUS_NOK,
+    STATUS_OK,
+)
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.singleton import Singleton
+from routershell.lib.common.types import (
+    BridgeName,
+    DbFilePath,
+    DhcpPoolName,
+    HostnameText,
+    InetAddressText,
+    InetCidrText,
+    InterfaceName,
+    MacAddressText,
+    NatPoolName,
+    SsidText,
+    StatusResult,
+    VlanName,
+    WifiPassphraseText,
+    WifiPolicyName,
+)
+from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPVersion
@@ -24,7 +49,7 @@ class Result:
         status (bool): A boolean indicating the operation's success: STATUS_OK (0) for success, STATUS_NOK (1) for failure.
         row_id (int, optional): The row ID associated with the database operation.
         reason (str, optional): An optional result message that provides additional information about the operation.
-        result (Dict, optional): SQL query result Dict{SQL-COLUMN_NAME:value}
+        result (dict, optional): SQL query result dict{SQL-COLUMN_NAME:value}
 
     Example:
     You can use the Result class to handle the outcome of database operations, such as insertions, updates, or deletions.
@@ -37,7 +62,7 @@ class Result:
     - 'result' SQL query result single row {sql_table_column_name:value}
     """
 
-    def __init__(self, status: bool, row_id: int = None, reason: str = None, result=Dict):
+    def __init__(self, status: bool, row_id: int = None, reason: str = None, result=dict):
         self.status = status
         self.row_id = row_id
         self.reason = reason
@@ -47,15 +72,15 @@ class Result:
         return f"Status: {self.status}, Row ID: {self.row_id}, Reason: {self.reason}, Result: {self.result}"
 
     @staticmethod
-    def sql_result_to_value_list(results: List['Result']) -> List[List]:
+    def sql_result_to_value_list(results: list['Result']) -> list[list]:
         """
         Extract values from a list of Result objects into a list of lists for Result objects with a 'result' attribute containing a dictionary.
 
         Args:
-            results (List[Result]): A list of Result objects.
+            results (list[Result]): A list of Result objects.
 
         Returns:
-            List[List]: A list of lists containing values from Result objects with a 'result' attribute containing a dictionary.
+            list[list]: A list of lists containing values from Result objects with a 'result' attribute containing a dictionary.
         """
         value_lists = []
         for result in results:
@@ -73,12 +98,34 @@ class RouterShellDB(metaclass=Singleton):
     ROW_ID_NOT_FOUND = 0
     FK_NOT_FOUND = -1
 
+    @staticmethod
+    def default_db_file_path() -> DbFilePath:
+        """
+        Return the runtime SQLite database file path.
+
+        RouterShell must not write runtime database files into the installed
+        Python package directory. The installer sets `ROUTERSHELL_DB_FILE`;
+        development/local installs can fall back to
+        `ROUTERSHELL_PROJECT_ROOT/.routershell/routershell.db`.
+
+        Returns:
+            DbFilePath: The SQLite database file path RouterShell should use.
+        """
+        configured_db_file = os.environ.get(ROUTER_SHELL_DB_FILE_ENV)
+        if configured_db_file:
+            return configured_db_file
+
+        project_root = os.environ.get(ROUTER_SHELL_PROJECT_ROOT_ENV)
+        if project_root:
+            return Path(project_root) / ".routershell" / ROUTER_SHELL_DB
+
+        return ROUTERSHELL_STATE_DIR / ROUTER_SHELL_DB
+
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().ROUTER_SHELL_DB)
 
-        self.db_file_path = os.path.join(
-            os.path.dirname(__file__), ROUTER_SHELL_DB)
+        self.db_file_path = self.default_db_file_path()
         self.sql_file_path = os.path.join(
             os.path.dirname(__file__), ROUTER_SHELL_SQL_STARTUP)
 
@@ -99,22 +146,23 @@ class RouterShellDB(metaclass=Singleton):
         else:
             self.log.debug(f"Already Connected to DB {self.db_file_path}")
 
-    def create_database(self) -> bool:
+    def create_database(self) -> StatusResult:
         """
         Create an SQLite database file and populate it with tables and data from an SQL file.
 
         Returns:
-            bool: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
+            StatusResult: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
         """
         self.log.debug("create_database()")
 
         try:
+            Path(self.db_file_path).parent.mkdir(parents=True, exist_ok=True)
             self.connection = sqlite3.connect(
                 self.db_file_path, check_same_thread=True)
 
             cursor = self.connection.cursor()
 
-            with open(self.sql_file_path, 'r') as sql_file:
+            with open(self.sql_file_path) as sql_file:
                 sql_script = sql_file.read()
 
             cursor.executescript(sql_script)
@@ -129,12 +177,12 @@ class RouterShellDB(metaclass=Singleton):
 
         return STATUS_OK
 
-    def open_connection(self) -> bool:
+    def open_connection(self) -> StatusResult:
         """
         Open a connection to the SQLite database.
 
         Returns:
-            bool: STATUS_OK if the connection is successful, STATUS_NOK if there is an error.
+            StatusResult: STATUS_OK if the connection is successful, STATUS_NOK if there is an error.
         """
         self.log.debug("open_connection()")
 
@@ -159,12 +207,12 @@ class RouterShellDB(metaclass=Singleton):
         if self.connection:
             self.connection.close()
 
-    def reset_database(self) -> bool:
+    def reset_database(self) -> StatusResult:
         """
         Remove the existing database file and create a new one.
 
         Returns:
-            bool: STATUS_OK if the reset is successful, STATUS_NOK if there is an error.
+            StatusResult: STATUS_OK if the reset is successful, STATUS_NOK if there is an error.
         """
         self.log.debug("reset_database")
 
@@ -298,7 +346,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error selecting BannerMotd: %s", e)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-    def hostname_exists(self, hostname: str) -> Result:
+    def hostname_exists(self, hostname: HostnameText) -> Result:
         """
         Check if a hostname already exists in the 'SystemConfiguration' table.
 
@@ -343,7 +391,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=False, row_id=None, reason=error_message)
 
-    def update_hostname(self, hostname: str) -> Result:
+    def update_hostname(self, hostname: HostnameText) -> Result:
         """
         Insert data into the 'SystemConfiguration' table for the hostname.
 
@@ -422,7 +470,7 @@ class RouterShellDB(metaclass=Singleton):
                         BRIDGE DATABASE
     '''
 
-    def bridge_exist_db(self, bridge_name: str) -> Result:
+    def bridge_exist_db(self, bridge_name: BridgeName) -> Result:
         """
         Check if a bridge with the given name exists in the Interfaces table.
 
@@ -453,7 +501,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, reason=str(e))
 
-    def is_bridge_in_bridge_group(self, bridge_name: str) -> Result:
+    def is_bridge_in_bridge_group(self, bridge_name: BridgeName) -> Result:
         """
         Check if a bridge with the given name exists in the BridgeGroups table.
 
@@ -486,7 +534,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, reason=str(e))
 
-    def insert_interface_bridge(self, bridge_name: str, shutdown_status: bool = True) -> Result:
+    def insert_interface_bridge(self, bridge_name: BridgeName, shutdown_status: bool = True) -> Result:
         """
         Insert a new bridge interface into the 'Interfaces' and 'Bridges' tables.
 
@@ -533,7 +581,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error inserting bridge interface {bridge_name}: {e}")
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
-    def delete_interface_bridge(self, bridge_name: str) -> Result:
+    def delete_interface_bridge(self, bridge_name: BridgeName) -> Result:
         """
         Delete a bridge interface from the 'Bridges' table, the corresponding entry from the 'Interfaces' table,
         and any related IP address entries from the 'InterfaceIpAddress' table.
@@ -591,22 +639,22 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error deleting bridge interface {bridge_name}: {e}")
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
-    def update_bridge(self, bridge_name: str,
-                      protocol: Optional[BridgeProtocol] = None,
-                      stp_status: Optional[STP_STATE] = None,
-                      management_inet: Optional[str] = None,
-                      description: Optional[str] = None,
-                      shutdown_status: Optional[State] = None) -> Result:
+    def update_bridge(self, bridge_name: BridgeName,
+                      protocol: BridgeProtocol | None = None,
+                      stp_status: STP_STATE | None = None,
+                      management_inet: str | None = None,
+                      description: str | None = None,
+                      shutdown_status: State | None = None) -> Result:
         """
         Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
 
         Args:
             bridge_name (str): The name of the bridge to update.
-            protocol (Optional[BridgeProtocol]): The new protocol for the bridge (if changing).
-            stp_status (Optional[STP_STATE]): The new STP status (if changing).
-            management_inet (Optional[str]): The management IP address for the bridge (if changing).
-            description (Optional[str]): The new description for the bridge interface (if changing).
-            shutdown_status (Optional[bool]): The new shutdown status for the bridge interface (if changing).
+            protocol (BridgeProtocol | None): The new protocol for the bridge (if changing).
+            stp_status (STP_STATE | None): The new STP status (if changing).
+            management_inet (str | None): The management IP address for the bridge (if changing).
+            description (str | None): The new description for the bridge interface (if changing).
+            shutdown_status (bool | None): The new shutdown status for the bridge interface (if changing).
 
         Returns:
             Result: A Result object with the status of the update.
@@ -686,7 +734,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, reason=str(e))
 
-    def delete_bridge(self, bridge_name:str) -> Result:
+    def delete_bridge(self, bridge_name:BridgeName) -> Result:
         
         if not self.bridge_exist_db(bridge_name).status:
             return Result(status=STATUS_OK, reason=f"No need to delete bridge: {bridge_name}, does not exists")
@@ -759,7 +807,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"VlanID: {vlan_id} inserted sucessfully, error: {e}")
             return Result(status=STATUS_NOK, row_id=None, reason=str(e))
         
-    def insert_vlan(self, vlanid: int, vlan_name: str, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
+    def insert_vlan(self, vlanid: int, vlan_name: VlanName, vlan_interfaces_fk: int = ROW_ID_NOT_FOUND) -> Result:
         """
         Insert data into the 'Vlans' table.
 
@@ -806,7 +854,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error inserting data into 'Vlans': %s", e)
             return Result(status=STATUS_NOK, row_id=None, reason=str(e))
 
-    def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: str) -> Result:
+    def update_vlan_name_by_vlan_id(self, vlan_id: int, vlan_name: VlanName) -> Result:
         """
         Update the Vlan-Name of a VLAN in the database.
 
@@ -862,7 +910,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error updating VLAN description: %s", e)
             return Result(status=STATUS_NOK, row_id=vlan_id, reason=str(e))
 
-    def insert_vlan_interface(self, vlan_id: int, interface_name: str) -> Result:
+    def insert_vlan_interface(self, vlan_id: int, interface_name: InterfaceName) -> Result:
         """
         Inserts a VLAN interface into the database.
         """
@@ -918,7 +966,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Unexpected error linking VLAN to interface: %s", e)
             return Result(status=STATUS_NOK, row_id=RouterShellDB.FK_NOT_FOUND, reason="Unexpected error occurred.")
 
-    def delete_vlan_interface(self, vlan_id: int, interface_name: str) -> Result:
+    def delete_vlan_interface(self, vlan_id: int, interface_name: InterfaceName) -> Result:
         """
         Deletes an interface from a VLAN in the database.
         
@@ -999,7 +1047,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error:", e)
             return []
 
-    def select_vlan_interfaces_id(self, vlan_name: str) -> int:
+    def select_vlan_interfaces_id(self, vlan_name: VlanName) -> int:
         """
         Retrieve the ID of VLAN interfaces by the VLAN name.
 
@@ -1032,7 +1080,7 @@ class RouterShellDB(metaclass=Singleton):
             vlan_id (int): The VLAN ID to search for.
 
         Returns:
-            Optional[Result]: A Result object representing the outcome of the database operation.
+            Result | None: A Result object representing the outcome of the database operation.
                 - If the operation is successful, the Result object will have 'status' set to True,
                   'row_id' representing the unique identifier of the affected row, and 'result' containing the dict: {'VlanName'}.
                 - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
@@ -1062,7 +1110,7 @@ class RouterShellDB(metaclass=Singleton):
             vlan_id (int): The VLAN ID to search for.
 
         Returns:
-            Optional[Result]: A Result object representing the outcome of the database operation.
+            Result | None: A Result object representing the outcome of the database operation.
                 - If the operation is successful, the Result object will have 'status' set to True,
                   'row_id' representing the unique identifier of the affected row, and 'result' containing the dict: {'VlanName'}.
                 - If there is an error, the Result object will have 'status' set to False, 'reason' providing additional
@@ -1084,7 +1132,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
 
-    def select_vlan_id_by_vlan_name(self, vlan_name: str) -> Result:
+    def select_vlan_id_by_vlan_name(self, vlan_name: VlanName) -> Result:
         """
         Retrieves the VLAN ID associated with a given VLAN name from the database.
 
@@ -1094,9 +1142,9 @@ class RouterShellDB(metaclass=Singleton):
         Returns:
             Result: An instance of the Result class.
                 - status (bool): STATUS_OK if the VLAN ID is found, STATUS_NOK otherwise.
-                - row_id (Optional[int]): The row ID of the VLAN entry if found, None otherwise.
-                - result (Optional[dict]): A dictionary containing the VLAN ID if found, None otherwise.
-                - reason (Optional[str]): A reason for the failure if STATUS_NOK.
+                - row_id (int | None): The row ID of the VLAN entry if found, None otherwise.
+                - result (dict | None): A dictionary containing the VLAN ID if found, None otherwise.
+                - reason (str | None): A reason for the failure if STATUS_NOK.
         """
         try:
             cursor = self.connection.cursor()
@@ -1114,7 +1162,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=None, reason=error_message)
 
-    def select_interfaces_by_vlan_id(self, vlan_id: int) -> List[Result]:
+    def select_interfaces_by_vlan_id(self, vlan_id: int) -> list[Result]:
         """
         Retrieves a list of interfaces associated with a given VLAN ID from the database.
         The list contains Result objects with interface information.
@@ -1172,7 +1220,7 @@ class RouterShellDB(metaclass=Singleton):
                         NAT DATABASE
     '''
 
-    def global_nat_pool_name_exists(self, pool_name: str) -> Result:
+    def global_nat_pool_name_exists(self, pool_name: NatPoolName) -> Result:
         """
         Check if a NAT pool with the given name exists in the NAT database.
 
@@ -1208,7 +1256,7 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"Error checking NAT pool existence: {e}"
             return Result(False, row_id=0, reason=error_message)
 
-    def insert_global_nat_pool(self, nat_pool_name: str) -> Result:
+    def insert_global_nat_pool(self, nat_pool_name: NatPoolName) -> Result:
         """
         Insert a new global NAT configuration into the 'Nats' table.
 
@@ -1238,7 +1286,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, reason=error_message)
 
-    def delete_global_nat_pool_name(self, nat_pool_name: str) -> Result:
+    def delete_global_nat_pool_name(self, nat_pool_name: NatPoolName) -> Result:
         """
         Delete a global NAT configuration from the 'Nats' table by NAT pool name.
 
@@ -1265,7 +1313,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, reason=error_message)
 
-    def update_nat_interface_direction(self, nat_pool_name: str, interface_name: str, direction: str) -> Result:
+    def update_nat_interface_direction(self, nat_pool_name: NatPoolName, interface_name: InterfaceName, direction: str) -> Result:
         """
         Update the association between a global NAT pool and an inside interface in the 'NatDirections' table.
 
@@ -1319,7 +1367,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def select_global_nat_row_id(self, nat_pool_name: str) -> Result:
+    def select_global_nat_row_id(self, nat_pool_name: NatPoolName) -> Result:
         """
         Retrieve the row ID of a global NAT configuration in the 'Nats' table based on its name.
 
@@ -1351,7 +1399,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, reason=error_message)
 
-    def insert_interface_nat_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
+    def insert_interface_nat_direction(self, interface_name: InterfaceName, nat_pool_name: NatPoolName, direction: str) -> Result:
         """
         Insert a new NAT direction configuration into the 'NatDirections' table.
 
@@ -1402,7 +1450,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def delete_interface_nat_direction(self, interface_name: str, nat_pool_name: str) -> Result:
+    def delete_interface_nat_direction(self, interface_name: InterfaceName, nat_pool_name: NatPoolName) -> Result:
         """
         Delete all NAT direction configurations for a specified interface and NAT pool.
 
@@ -1450,7 +1498,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"An error occurred while retrieving global NAT pool names: {e}")
             return []
 
-    def inside_interface_exists(self, pool_name: str, interface_name: str) -> Result:
+    def inside_interface_exists(self, pool_name: NatPoolName, interface_name: InterfaceName) -> Result:
         """
         Check if an inside interface is associated with a NAT pool configuration.
 
@@ -1508,7 +1556,7 @@ class RouterShellDB(metaclass=Singleton):
             error_message = f"An error occurred while checking inside interface association: {e}"
             return Result(False, reason=error_message)
 
-    def nat_direction_interface_exists(self, pool_name: str, interface_name: str, direction: str) -> Result:
+    def nat_direction_interface_exists(self, pool_name: NatPoolName, interface_name: InterfaceName, direction: str) -> Result:
 
         try:
             if not pool_name or not interface_name:
@@ -1562,7 +1610,7 @@ class RouterShellDB(metaclass=Singleton):
             direction (str): The direction to check (e.g., 'inside' or 'outside').
 
         Returns:
-            bool: True if the specified NAT direction exists, False otherwise.
+            StatusResult: True if the specified NAT direction exists, False otherwise.
         """
         try:
             cursor = self.connection.cursor()
@@ -1577,7 +1625,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"An error occurred while checking NAT direction existence: {e}")
             return False
 
-    def select_nat_interface_direction(self, interface_name: str, nat_pool_name: str, direction: str) -> Result:
+    def select_nat_interface_direction(self, interface_name: InterfaceName, nat_pool_name: NatPoolName, direction: str) -> Result:
         """
         Check if the specified interface is associated with the given NAT pool and direction.
 
@@ -1635,7 +1683,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def select_nat_interface_direction_list(self, nat_pool_name: str, direction: str) -> List[Result]:
+    def select_nat_interface_direction_list(self, nat_pool_name: NatPoolName, direction: str) -> list[Result]:
         """
         Selects a list of interfaces associated with a specific NAT pool and direction.
 
@@ -1691,12 +1739,12 @@ class RouterShellDB(metaclass=Singleton):
                         DHCP-SERVER DATABASE
     '''
 
-    def select_dhcp_server_pool_list(self) -> List['Result']:
+    def select_dhcp_server_pool_list(self) -> list['Result']:
         """
         Retrieve a list of DHCP server pool names from the 'DHCPServer' table.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a row from the 'DHCPServer' table.
+            list[Result]: A list of Result objects, each representing a row from the 'DHCPServer' table.
                           Each Result contains a dictionary with the key 'DhcpPoolname' and its value.
 
         Note:
@@ -1729,7 +1777,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def insert_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
+    def insert_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> Result:
         """
         Inserts a DHCP pool name into the DHCPServer table.
 
@@ -1755,7 +1803,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert '{dhcp_pool_name}' pool. Error: {str(e)}")
 
-    def dhcp_pool_name_exist(self, dhcp_pool_name: str) -> Result:
+    def dhcp_pool_name_exist(self, dhcp_pool_name: DhcpPoolName) -> Result:
         """
         Checks if a DHCP pool name exists in the DHCPServer table.
 
@@ -1784,7 +1832,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking pool name existence: {str(e)}")
 
-    def insert_dhcp_pool_subnet(self, dhcp_pool_name: str, inet_subnet_cidr: str) -> Result:
+    def insert_dhcp_pool_subnet(self, dhcp_pool_name: DhcpPoolName, inet_subnet_cidr: InetCidrText) -> Result:
         """
         Inserts a DHCP subnet associated with a DHCP pool name into the DHCPSubnet table if it does not exist.
 
@@ -1825,7 +1873,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert subnet into '{dhcp_pool_name}' pool. Error: {str(e)}")
 
-    def dhcp_pool_subnet_exist(self, inet_subnet_cidr: str) -> Result:
+    def dhcp_pool_subnet_exist(self, inet_subnet_cidr: InetCidrText) -> Result:
         """
         Checks if a DHCP subnet with a specific CIDR notation exists in the DHCPSubnet table.
 
@@ -1862,7 +1910,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking subnet existence: {str(e)}")
 
-    def insert_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> Result:
+    def insert_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: InetCidrText, inet_address_start: InetAddressText, inet_address_end: InetAddressText, inet_address_subnet_cidr: InetCidrText) -> Result:
         """
         Inserts an address range associated with a DHCP subnet specified by its CIDR notation.
 
@@ -1902,7 +1950,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"insert_dhcp_subnet_inet_address_range() ERROR-Reason: Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert address range into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
-    def insert_dhcp_subnet_reservation(self, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> Result:
+    def insert_dhcp_subnet_reservation(self, inet_subnet_cidr: InetCidrText, hw_address: MacAddressText, inet_address: InetAddressText) -> Result:
         """
         Inserts a DHCP reservation for a specific subnet.
 
@@ -1943,7 +1991,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert reservation into subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
-    def dhcp_subnet_reservation_exist(self, hw_address: str, inet_address: str) -> Result:
+    def dhcp_subnet_reservation_exist(self, hw_address: MacAddressText, inet_address: InetAddressText) -> Result:
         """
         Checks if a DHCP reservation with a specific MAC address and IP address exists in the DHCPSubnetReservations table.
 
@@ -1973,7 +2021,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking reservation existence: {str(e)}")
 
-    def insert_dhcp_subnet_option(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> Result:
+    def insert_dhcp_subnet_option(self, inet_subnet_cidr: InetCidrText, dhcp_option: str, option_value: str) -> Result:
         """
         Inserts DHCP options associated with a specific DHCP subnet specified by its CIDR notation.
 
@@ -2044,7 +2092,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking DHCP option existence: {str(e)}")
 
-    def insert_dhcp_subnet_reservation_option(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
+    def insert_dhcp_subnet_reservation_option(self, inet_subnet_cidr: InetCidrText, hw_address: MacAddressText, dhcp_option: str, option_value: str) -> Result:
         """
         Inserts DHCP options associated with a specific DHCP reservation for a specified DHCP subnet.
 
@@ -2118,7 +2166,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error while checking DHCP option existence: {str(e)}")
 
-    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str, negate: bool = False) -> Result:
+    def update_dhcp_pool_name_interface(self, dhcp_pool_name: DhcpPoolName, interface_name: InterfaceName, negate: bool = False) -> Result:
         """
         Update the interface associated with a specific DHCP pool name in the DHCPServer table.
 
@@ -2175,7 +2223,7 @@ class RouterShellDB(metaclass=Singleton):
             error_msg = f"Failed to update interface for DHCP pool '{dhcp_pool_name}' to '{interface_name}'. Error: {str(e)}"
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_msg)
 
-    def update_dhcp_pool_dhcp_version_mode(self, dhcp_pool_name: str, mode: str) -> Result:
+    def update_dhcp_pool_dhcp_version_mode(self, dhcp_pool_name: DhcpPoolName, mode: str) -> Result:
         """
         Update the DHCP version mode for a specific DHCP pool.
 
@@ -2214,7 +2262,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def delete_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: str, inet_address_start: str, inet_address_end: str, inet_address_subnet_cidr: str) -> Result:
+    def delete_dhcp_subnet_inet_address_range(self, inet_subnet_cidr: InetCidrText, inet_address_start: InetAddressText, inet_address_end: InetAddressText, inet_address_subnet_cidr: InetCidrText) -> Result:
         """
         Deletes a range of IP addresses associated with a specific DHCP subnet.
 
@@ -2259,7 +2307,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete IP address range from '{inet_address_start}' to '{inet_address_end}' in subnet '{inet_subnet_cidr}'. Error: {str(e)}")
 
-    def delete_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
+    def delete_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> Result:
         """
         Deletes a DHCP pool name from the DHCPServer table.
 
@@ -2295,7 +2343,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP pool name '{dhcp_pool_name}'. Error: {str(e)}")
 
-    def delete_dhcp_subnet_reservation_option(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
+    def delete_dhcp_subnet_reservation_option(self, inet_subnet_cidr: InetCidrText, hw_address: MacAddressText, dhcp_option: str, option_value: str) -> Result:
         try:
 
             option_exist_result = self.dhcp_subnet_reservation_option_exist(
@@ -2309,14 +2357,14 @@ class RouterShellDB(metaclass=Singleton):
             self.connection.commit()
 
             if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet reservation option successfully.")
+                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason="Deleted DHCP subnet reservation option successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet reservation option.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="Failed to delete DHCP subnet reservation option.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet reservation option. Error: {str(e)}")
 
-    def dhcp_subnet_reservation_option_exist(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> Result:
+    def dhcp_subnet_reservation_option_exist(self, inet_subnet_cidr: InetCidrText, hw_address: MacAddressText, dhcp_option: str, option_value: str) -> Result:
         """
         Checks if a DHCP subnet reservation option exists in the DHCPOptions table.
 
@@ -2353,7 +2401,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Error checking DHCP subnet reservation option existence: {str(e)}")
 
-    def delete_dhcp_subnet_option(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> Result:
+    def delete_dhcp_subnet_option(self, inet_subnet_cidr: InetCidrText, dhcp_option: str, option_value: str) -> Result:
         """
         Deletes a DHCP subnet option from the DHCPOptions table.
 
@@ -2386,14 +2434,14 @@ class RouterShellDB(metaclass=Singleton):
 
             # Check if any rows were deleted
             if cursor.rowcount > 0:
-                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted DHCP subnet option successfully.")
+                return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason="Deleted DHCP subnet option successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="Failed to delete DHCP subnet option.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete DHCP subnet option. Error: {str(e)}")
 
-    def select_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: str) -> Result:
+    def select_dhcp_pool_subnet_via_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> Result:
         """
         Retrieve the DHCP pool subnet information associated with a DHCP pool name from the database.
 
@@ -2422,7 +2470,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP subnet information. Error: {str(e)}")
 
-    def dhcp_pool_dhcp_version(self, dhcp_pool_name: str) -> Result:
+    def dhcp_pool_dhcp_version(self, dhcp_pool_name: DhcpPoolName) -> Result:
         """
         Retrieve the DHCP version for a specified DHCP pool.
 
@@ -2473,11 +2521,11 @@ class RouterShellDB(metaclass=Singleton):
                         DHCP-SERVER CONFIGURATION BUILDING
     '''
 
-    def select_global_options(self) -> List[Result]:
+    def select_global_options(self) -> list[Result]:
         '''TODO'''
         return []
 
-    def select_dhcp_pool_interfaces(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_interfaces(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve the interfaces associated with a DHCP pool name from the database.
 
@@ -2485,7 +2533,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing an interface, or an empty list if none are found.
+            list[Result]: A list of Result objects, each representing an interface, or an empty list if none are found.
         """
         try:
             cursor = self.connection.cursor()
@@ -2507,7 +2555,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP pool interfaces. Error: {str(e)}")]
 
-    def select_dhcp_pool_inet_range(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_inet_range(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve the IP address range associated with a DHCP pool name from the database.
 
@@ -2515,7 +2563,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing an IP address range, or an empty list if none are found.
+            list[Result]: A list of Result objects, each representing an IP address range, or an empty list if none are found.
         """
         try:
             cursor = self.connection.cursor()
@@ -2537,7 +2585,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve IP address ranges. Error: {str(e)}")]
 
-    def select_dhcp_pool_reservation(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_reservation(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve DHCP reservations associated with a DHCP pool name from the database.
 
@@ -2545,7 +2593,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a DHCP reservation, or an empty list if none are found.
+            list[Result]: A list of Result objects, each representing a DHCP reservation, or an empty list if none are found.
         """
         try:
             cursor = self.connection.cursor()
@@ -2567,7 +2615,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to retrieve DHCP reservations. Error: {str(e)}")]
 
-    def select_dhcp_pool_options(self, dhcp_pool_name: str) -> List[Result]:
+    def select_dhcp_pool_options(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve DHCP options associated with a DHCP pool name from the database.
 
@@ -2575,7 +2623,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a DHCP option, or an empty list if none are found.
+            list[Result]: A list of Result objects, each representing a DHCP option, or an empty list if none are found.
 
         """
         try:
@@ -2625,7 +2673,7 @@ class RouterShellDB(metaclass=Singleton):
                         DHCP-CLIENT DATABASE
     '''
 
-    def insert_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
+    def insert_interface_dhcp_client(self, interface_name: InterfaceName, dhcp_version: str) -> Result:
         """
         Insert a new DHCP client entry into the database.
 
@@ -2656,7 +2704,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(f"Failed to add DHCP client: {e}")
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-    def update_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
+    def update_interface_dhcp_client(self, interface_name: InterfaceName, dhcp_version: str) -> Result:
         """
         Update the DHCP version for an existing DHCP client entry in the database.
         If the update fails because the entry does not exist, insert a new entry.
@@ -2706,7 +2754,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(err)
             return Result(STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-    def remove_interface_dhcp_client(self, interface_name: str, dhcp_version: str) -> Result:
+    def remove_interface_dhcp_client(self, interface_name: InterfaceName, dhcp_version: str) -> Result:
         """
         Remove a DHCP client entry from the database.
 
@@ -2741,7 +2789,7 @@ class RouterShellDB(metaclass=Singleton):
                         INTERFACE DATABASE
     '''
 
-    def select_interface_details(self, interface_name: str = None) -> List[Result]:
+    def select_interface_details(self, interface_name: InterfaceName | None = None) -> list[Result]:
         """
         Select details for the specified interface or all interfaces.
 
@@ -2750,7 +2798,7 @@ class RouterShellDB(metaclass=Singleton):
                 If None, details for all interfaces will be retrieved.
 
         Returns:
-            List[Result]: A list of Result objects containing the interface details.
+            list[Result]: A list of Result objects containing the interface details.
         """
         try:
             cursor = self.connection.cursor()
@@ -2817,7 +2865,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_type(self, interface_name: str) -> InterfaceType:
+    def select_interface_type(self, interface_name: InterfaceName) -> InterfaceType:
         """
         Retrieve the type of an interface by its name.
 
@@ -2842,7 +2890,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error retrieving 'Interfaces' type: %s", e)
         return None
 
-    def select_interface_id(self, if_name: str) -> int:
+    def select_interface_id(self, if_name: InterfaceName) -> int:
         """
         Retrieve the ID of an interface by its name.
 
@@ -2866,7 +2914,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error retrieving 'Interfaces' ID: %s", e)
         return None
 
-    def interface_exists(self, if_name: str) -> Result:
+    def interface_exists(self, if_name: InterfaceName) -> Result:
         """
         Check if an interface with the given name exists in the 'Interfaces' table.
 
@@ -2941,7 +2989,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error inserting data into 'Interfaces': %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
-    def delete_interface(self, interface_name: str) -> Result:
+    def delete_interface(self, interface_name: InterfaceName) -> Result:
         """
         Delete an interface from the 'Interfaces' table.
 
@@ -2969,7 +3017,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error("Error deleting interface: %s", e)
             return Result(status=STATUS_NOK, row_id=0, reason=f"{e}")
 
-    def update_interface_shutdown(self, interface_name: str, shutdown_status: bool) -> Result:
+    def update_interface_shutdown(self, interface_name: InterfaceName, shutdown_status: bool) -> Result:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
@@ -3006,7 +3054,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error updating shutdown status for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
 
-    def update_interface_duplex(self, interface_name: str, duplex: str) -> Result:
+    def update_interface_duplex(self, interface_name: InterfaceName, duplex: str) -> Result:
         """
         Update the duplex setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -3055,7 +3103,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error updating duplex setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=str(e))
 
-    def update_interface_mac_address(self, interface_name: str, mac_address: str) -> Result:
+    def update_interface_mac_address(self, interface_name: InterfaceName, mac_address: MacAddressText) -> Result:
         """
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -3100,7 +3148,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error updating MAC address setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=str(e))
 
-    def update_interface_speed(self, interface_name: str, speed: str) -> Result:
+    def update_interface_speed(self, interface_name: InterfaceName, speed: str) -> Result:
         """
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -3147,7 +3195,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error updating speed: {speed} setting for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
-    def update_interface_description(self, interface_name: str, description: str) -> Result:
+    def update_interface_description(self, interface_name: InterfaceName, description: str) -> Result:
         """
         Update the description of a network interface in the database.
 
@@ -3192,7 +3240,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error updating description for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=existing_result.row_id, reason=f"{e}")
 
-    def update_interface_name(self, existing_interface_name: str, new_interface_name: str) -> Result:
+    def update_interface_name(self, existing_interface_name: InterfaceName, new_interface_name: InterfaceName) -> Result:
         """
         Update the name of a network interface in the database.
 
@@ -3237,7 +3285,7 @@ class RouterShellDB(metaclass=Singleton):
                     INTERFACE-IP-ADDRESS DATABASE
     '''
 
-    def insert_interface_inet_address(self, interface_name: str, ip_address: str, is_secondary: bool) -> Result:
+    def insert_interface_inet_address(self, interface_name: InterfaceName, ip_address: InetAddressText, is_secondary: bool) -> Result:
         """
         Insert an IP address entry for an interface into the 'InterfaceIpAddress' table.
 
@@ -3274,7 +3322,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error inserting IP address for interface {interface_name}: {e}")
             return Result(status=STATUS_NOK, row_id=interface_id, reason=f"{e}")
 
-    def delete_interface_inet_address(self, interface_name: str, ip_address: str) -> Result:
+    def delete_interface_inet_address(self, interface_name: InterfaceName, ip_address: InetAddressText) -> Result:
         """
         Delete the entire row associated with an IP address for an interface from the 'InterfaceIpAddress' table.
 
@@ -3332,7 +3380,7 @@ class RouterShellDB(metaclass=Singleton):
                     INTERFACE-SUB-OPTIONS DATABASE
     '''
 
-    def interface_and_sub_option_exist(self, interface_name: str) -> Result:
+    def interface_and_sub_option_exist(self, interface_name: InterfaceName) -> Result:
         """
         Check if an interface with the given name exists in the 'Interfaces' table and if a corresponding row exists in
         the 'InterfaceSubOptions' table.
@@ -3359,7 +3407,7 @@ class RouterShellDB(metaclass=Singleton):
         else:
             return Result(status=False, reason="Interface exists, but no corresponding row in InterfaceSubOptions")
 
-    def update_interface_proxy_arp(self, interface_name: str, status: bool) -> Result:
+    def update_interface_proxy_arp(self, interface_name: InterfaceName, status: bool) -> Result:
         """
         Update the Proxy ARP setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -3405,7 +3453,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"update_interface_proxy_arp() -> Error updating Proxy ARP setting for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, reason=str(e))
 
-    def update_interface_drop_gratuitous_arp(self, interface_name: str, status: bool) -> Result:
+    def update_interface_drop_gratuitous_arp(self, interface_name: InterfaceName, status: bool) -> Result:
         """
         Update the 'Drop Gratuitous ARP' setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -3451,7 +3499,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"update_interface_drop_gratuitous_arp() -> Error updating 'Drop Gratuitous ARP' setting for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=if_sub_opt.row_id, reason=str(e))
 
-    def update_interface_static_arp(self, interface_name: str, ip_address: str, mac_address: str, encapsulation: str) -> Result:
+    def update_interface_static_arp(self, interface_name: InterfaceName, ip_address: InetAddressText, mac_address: MacAddressText, encapsulation: str) -> Result:
         """
         Create a default entry in the 'InterfaceStaticArp' table if it does not already exist, or update it if it exists.
 
@@ -3508,7 +3556,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error creating or updating static ARP entry for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=0, reason=str(e))
 
-    def delete_interface_static_arp(self, interface_name: str, ip_address: str) -> Result:
+    def delete_interface_static_arp(self, interface_name: InterfaceName, ip_address: InetAddressText) -> Result:
         """
         Delete a static ARP record from the 'InterfaceStaticArp' table.
 
@@ -3552,7 +3600,7 @@ class RouterShellDB(metaclass=Singleton):
                 f"Error deleting static ARP record for interface {interface_name}: {e}")
             return Result(STATUS_NOK, row_id=interface_id, reason=str(e))
 
-    def insert_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
+    def insert_interface_bridge_group(self, interface_name: InterfaceName, bridge_name: BridgeName) -> Result:
         """
         Insert an interface into a bridge group in the 'BridgeGroups' table.
 
@@ -3597,7 +3645,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def delete_interface_bridge_group(self, interface_name: str, bridge_name: str) -> Result:
+    def delete_interface_bridge_group(self, interface_name: InterfaceName, bridge_name: BridgeName) -> Result:
         """
         Remove an interface from a bridge group in the 'BridgeGroups' table.
 
@@ -3638,7 +3686,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(STATUS_NOK, reason=error_message)
 
-    def _insert_default_row_in_interface_sub_option(self, interface_name: str) -> Result:
+    def _insert_default_row_in_interface_sub_option(self, interface_name: InterfaceName) -> Result:
         """
         Insert a default row into the InterfaceSubOptions table if it does not already exist.
 
@@ -3676,7 +3724,7 @@ class RouterShellDB(metaclass=Singleton):
                         INTERFACE-RENAME-ALIAS
     '''
 
-    def update_interface_alias(self, bus_info: str, initial_interface: str, alias_interface: str) -> Result:
+    def update_interface_alias(self, bus_info: str, initial_interface: InterfaceName, alias_interface: InterfaceName) -> Result:
         """
         Update or insert a record in the RenameInterface table to associate an alias interface with the initial interface.
 
@@ -3717,7 +3765,7 @@ class RouterShellDB(metaclass=Singleton):
             # Handle database-related errors and return the Result instance with the error details
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=str(e))
 
-    def is_initial_interface_alias_exist(self, initial_interface: str) -> Result:
+    def is_initial_interface_alias_exist(self, initial_interface: InterfaceName) -> Result:
         """
         Check if an alias exists for the given initial interface.
 
@@ -3750,15 +3798,15 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=False, row_id=None, reason=str(e))
 
-    def select_interface_aliases(self) -> List[Result]:
+    def select_interface_aliases(self) -> list[Result]:
         """
         Select all interface aliases from the InterfaceAlias table.
 
         Returns:
-            List[Result]: A list of Result objects representing the entries in the InterfaceAlias table.
+            list[Result]: A list of Result objects representing the entries in the InterfaceAlias table.
                 Each Result object contains:
                 - status (bool): True if the selection is successful, False otherwise.
-                - data (Dict, optional): A dictionary containing the selected data if successful.
+                - data (dict, optional): A dictionary containing the selected data if successful.
                 - reason (str, optional): A descriptive message indicating the reason for failure, if any.
         """
         try:
@@ -3785,7 +3833,7 @@ class RouterShellDB(metaclass=Singleton):
                         WIRELESS-POLICY-WIFI
     '''
 
-    def wifi_policy_exist(self, wireless_wifi_policy: str) -> Result:
+    def wifi_policy_exist(self, wireless_wifi_policy: WifiPolicyName) -> Result:
         """
         Check if a wireless Wi-Fi policy exists in the database.
 
@@ -3819,7 +3867,7 @@ class RouterShellDB(metaclass=Singleton):
                         WIRELESS-POLICY-WIFI DELETE
     '''
 
-    def delete_wifi_policy(self, wireless_wifi_policy: str) -> Result:
+    def delete_wifi_policy(self, wireless_wifi_policy: WifiPolicyName) -> Result:
         """
         Delete a wireless Wi-Fi policy from the database.
 
@@ -3855,7 +3903,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def delete_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
+    def delete_wifi_ssid(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText) -> Result:
         """
         Delete a row from the 'WirelessWifiSecurityPolicy' table for a specific wireless Wi-Fi policy and SSID.
 
@@ -3887,12 +3935,12 @@ class RouterShellDB(metaclass=Singleton):
             if cursor.rowcount > 0:
                 return Result(status=STATUS_OK, row_id=cursor.rowcount, reason=f"Deleted row for SSID '{ssid}' from policy '{wireless_wifi_policy}' successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching row found for deletion.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No matching row found for deletion.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete row for SSID '{ssid}' from policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def delete_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
+    def delete_wifi_hostapd_option(self, wireless_wifi_policy: WifiPolicyName, hostapd_option: str, hostapd_value: str) -> Result:
         """
         Delete a Hostapd option associated with a specific wireless Wi-Fi policy.
 
@@ -3933,7 +3981,7 @@ class RouterShellDB(metaclass=Singleton):
             if affected_rows > 0:
                 return Result(status=STATUS_OK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Deleted Hostapd option for policy '{wireless_wifi_policy}' successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and Hostapd option found for the deletion or the option value is incorrect.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No matching policy and Hostapd option found for the deletion or the option value is incorrect.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to delete Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
@@ -3942,12 +3990,12 @@ class RouterShellDB(metaclass=Singleton):
                         WIRELESS-POLICY-WIFI SELECT
     '''
 
-    def select_wifi_policies(self) -> List[Result]:
+    def select_wifi_policies(self) -> list[Result]:
         """
         Retrieves information about all wireless WiFi policies.
 
         Returns:
-        - List[Result]: A list of Result objects containing information about wireless WiFi policies.
+        - list[Result]: A list of Result objects containing information about wireless WiFi policies.
         """
         results = []
 
@@ -3978,7 +4026,7 @@ class RouterShellDB(metaclass=Singleton):
                 Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message))
             return results
 
-    def select_all_wifi_hostapd_options(self, wireless_wifi_policy: str) -> List[Result]:
+    def select_all_wifi_hostapd_options(self, wireless_wifi_policy: WifiPolicyName) -> list[Result]:
         """
         Retrieve a list of all Hostapd options associated with a specific wireless Wi-Fi policy.
 
@@ -3986,7 +4034,7 @@ class RouterShellDB(metaclass=Singleton):
         wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to retrieve Hostapd options for.
 
         Returns:
-        List[Result]: A list of Result objects representing the outcome of the operation for each Hostapd option.
+        list[Result]: A list of Result objects representing the outcome of the operation for each Hostapd option.
             - Each Result object has:
                 - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
                 - `row_id` contains the Hostapd option's unique ID if the retrieval is successful, or 0 if it fails.
@@ -4024,7 +4072,7 @@ class RouterShellDB(metaclass=Singleton):
                            reason=f"Failed to retrieve Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
-    def select_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> List[Result]:
+    def select_wifi_hostapd_option(self, wireless_wifi_policy: WifiPolicyName, hostapd_option: str, hostapd_value: str) -> list[Result]:
         """
         Retrieve a list of Hostapd options associated with a specific wireless Wi-Fi policy and matching option.
 
@@ -4034,7 +4082,7 @@ class RouterShellDB(metaclass=Singleton):
         hostapd_value (str): The value associated with the Hostapd option.
 
         Returns:
-        List[Result]: A list of Result objects representing the outcome of the operation for each matching Hostapd option.
+        list[Result]: A list of Result objects representing the outcome of the operation for each matching Hostapd option.
             - Each Result object has:
                 - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
                 - `row_id` contains the Hostapd option's unique ID if the retrieval is successful, or 0 if it fails.
@@ -4075,7 +4123,7 @@ class RouterShellDB(metaclass=Singleton):
                            reason=f"Failed to retrieve matching Hostapd options for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
-    def select_wifi_policy_interfaces(self, wireless_wifi_policy: str) -> List[Result]:
+    def select_wifi_policy_interfaces(self, wireless_wifi_policy: WifiPolicyName) -> list[Result]:
         """
         Retrieve a list of network interfaces associated with a specific wireless Wi-Fi policy.
 
@@ -4083,7 +4131,7 @@ class RouterShellDB(metaclass=Singleton):
         wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to retrieve associated network interfaces for.
 
         Returns:
-        List[Result]: A list of Result objects representing the outcome of the operation for each associated network interface.
+        list[Result]: A list of Result objects representing the outcome of the operation for each associated network interface.
             - Each Result object has:
                 - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
                 - `row_id` contains the network interface's unique ID if the retrieval is successful, or 0 if it fails.
@@ -4123,7 +4171,7 @@ class RouterShellDB(metaclass=Singleton):
                            reason=f"Failed to retrieve associated network interfaces for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
-    def select_wifi_security_policy(self, wireless_wifi_policy: str) -> List[Result]:
+    def select_wifi_security_policy(self, wireless_wifi_policy: WifiPolicyName) -> list[Result]:
         """
         Retrieve a list of security policies associated with a specific wireless Wi-Fi policy.
 
@@ -4131,7 +4179,7 @@ class RouterShellDB(metaclass=Singleton):
             wireless_wifi_policy (str): The name of the wireless Wi-Fi policy to retrieve security policies for.
 
         Returns:
-            List[Result]: A list of Result objects representing the outcome of the operation for each security policy.
+            list[Result]: A list of Result objects representing the outcome of the operation for each security policy.
             - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
             - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
             - `reason` provides an optional result message with additional information about the operation.
@@ -4172,7 +4220,7 @@ class RouterShellDB(metaclass=Singleton):
                            reason=f"Failed to retrieve security policies for policy '{wireless_wifi_policy}'. Error: {str(e)}"))
             return results
 
-    def select_wifi_security_policy_via_ssid(self, wireless_wifi_policy: str, ssid: str) -> List[Result]:
+    def select_wifi_security_policy_via_ssid(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText) -> list[Result]:
         """
         Select Wi-Fi security policies based on wireless Wi-Fi policy and SSID.
 
@@ -4181,7 +4229,7 @@ class RouterShellDB(metaclass=Singleton):
             ssid (str): The SSID (Service Set Identifier) to use for filtering.
 
         Returns:
-            List[Result]: A list of Result objects representing the outcome of the operation for each matching security policy.
+            list[Result]: A list of Result objects representing the outcome of the operation for each matching security policy.
             - `status` set to STATUS_OK for successful retrievals and STATUS_NOK for failed ones.
             - `row_id` containing the policy ID if the retrieval is successful, or 0 if it fails.
             - `reason` provides an optional result message with additional information about the operation.
@@ -4227,7 +4275,7 @@ class RouterShellDB(metaclass=Singleton):
                         WIRELESS-POLICY-WIFI UPDATE
     '''
 
-    def update_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
+    def update_wifi_wpa_passphrase(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText, passphrase: str, wpa_version: int) -> Result:
         """
         Update the WPA passphrase for a specific wireless Wi-Fi policy and SSID.
 
@@ -4269,12 +4317,12 @@ class RouterShellDB(metaclass=Singleton):
             if affected_rows > 0:
                 return Result(status=STATUS_OK, row_id=affected_rows, reason=f"Updated WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}' successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and SSID found for the update.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No matching policy and SSID found for the update.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update WPA passphrase and version for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
 
-    def update_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
+    def update_wifi_ssid(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText) -> Result:
         """
         Update an existing wireless Wi-Fi SSID in the database for a specific policy.
 
@@ -4306,12 +4354,12 @@ class RouterShellDB(metaclass=Singleton):
             if cursor.rowcount > 0:
                 return Result(status=STATUS_OK, row_id=cursor.rowcount, reason=f"Updated SSID for policy '{wireless_wifi_policy}' to '{ssid}' successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for the update.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No matching policy found for the update.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update SSID for policy '{wireless_wifi_policy}' to '{ssid}'. Error: {str(e)}", result=None)
 
-    def update_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
+    def update_wifi_hostapd_option(self, wireless_wifi_policy: WifiPolicyName, hostapd_option: str, hostapd_value: str) -> Result:
         """
         Update the value of a Hostapd option for a specific wireless Wi-Fi policy.
 
@@ -4352,12 +4400,12 @@ class RouterShellDB(metaclass=Singleton):
             if affected_rows > 0:
                 return Result(status=STATUS_OK, row_id=affected_rows, reason=f"Updated Hostapd option value for policy '{wireless_wifi_policy}' successfully.")
             else:
-                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy and Hostapd option found for the update.")
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No matching policy and Hostapd option found for the update.")
 
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Hostapd option value for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def update_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
+    def update_wifi_channel(self, wireless_wifi_policy: WifiPolicyName, channel: str) -> Result:
         """
         Update the Wi-Fi channel associated with a wireless Wi-Fi policy.
 
@@ -4380,7 +4428,7 @@ class RouterShellDB(metaclass=Singleton):
             # Check if the wireless Wi-Fi policy exists
             policy_exist_result = self.wifi_policy_exist(wireless_wifi_policy)
             if not policy_exist_result.status:
-                return Result(status=STATUS_NOK, row_id=ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
+                return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=policy_exist_result.reason)
 
             # Define the SQL query to update the Wi-Fi channel.
             query = "UPDATE WirelessWifiPolicy SET Channel = ? WHERE WifiPolicyName = ?"
@@ -4397,7 +4445,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi channel for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
-    def update_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
+    def update_wifi_hardware_mode(self, wireless_wifi_policy: WifiPolicyName, hw_mode: str) -> Result:
         """
         Update the Wi-Fi hardware mode associated with a wireless Wi-Fi policy.
 
@@ -4434,14 +4482,14 @@ class RouterShellDB(metaclass=Singleton):
             else:
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"No matching policy found for update: '{wireless_wifi_policy}' - query: {query}")
 
-        except sqlite3.Error as e:
+        except sqlite3.Error:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to update Wi-Fi hardware mode for policy {wireless_wifi_policy} - query: {query}")
 
     '''
                         WIRELESS-POLICY-WIFI INSERT
     '''
 
-    def insert_wifi_policy(self, wireless_wifi_policy: str) -> Result:
+    def insert_wifi_policy(self, wireless_wifi_policy: WifiPolicyName) -> Result:
         """
         Insert a new wireless Wi-Fi policy into the database.
 
@@ -4472,7 +4520,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert wireless Wi-Fi policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
-    def insert_wifi_ssid(self, wireless_wifi_policy: str, ssid: str) -> Result:
+    def insert_wifi_ssid(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText) -> Result:
         """
         Insert a new wireless Wi-Fi SSID into the database for a specific policy.
 
@@ -4506,7 +4554,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert SSID '{ssid}' for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def insert_wifi_access_security_group(self, wireless_wifi_policy: str, ssid: str, pass_phrase: str, mode: str) -> Result:
+    def insert_wifi_access_security_group(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText, pass_phrase: WifiPassphraseText, mode: str) -> Result:
         """
         Insert a new Wi-Fi access security group into the database associated with a wireless Wi-Fi policy.
 
@@ -4552,7 +4600,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi access security group for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
-    def insert_wifi_access_security_group_default(self, wireless_wifi_policy: str) -> Result:
+    def insert_wifi_access_security_group_default(self, wireless_wifi_policy: WifiPolicyName) -> Result:
         """
         Insert the default Wi-Fi access security group settings into the database for a wireless Wi-Fi policy.
 
@@ -4594,7 +4642,7 @@ class RouterShellDB(metaclass=Singleton):
                           row_id=self.ROW_ID_NOT_FOUND,
                           reason=f"Failed to insert default Wi-Fi access security group settings for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
-    def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: str, ssid: str, passphrase: str, wpa_version: int) -> Result:
+    def insert_wifi_wpa_passphrase(self, wireless_wifi_policy: WifiPolicyName, ssid: SsidText, passphrase: str, wpa_version: int) -> Result:
         """
         Insert a new WPA passphrase for a specific wireless Wi-Fi policy and SSID.
 
@@ -4635,7 +4683,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert WPA passphrase for policy '{wireless_wifi_policy}' and SSID '{ssid}'. Error: {str(e)}", result=None)
 
-    def insert_wifi_policy_to_wifi_interface(self, wireless_wifi_policy: str, wifi_interface: str) -> Result:
+    def insert_wifi_policy_to_wifi_interface(self, wireless_wifi_policy: WifiPolicyName, wifi_interface: InterfaceName) -> Result:
         """
         Associate a wireless Wi-Fi policy with a specific network interface.
 
@@ -4674,7 +4722,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to associate wireless Wi-Fi policy '{wireless_wifi_policy}' with network interface '{wifi_interface}'. Error: {str(e)}")
 
-    def insert_wifi_hostapd_option(self, wireless_wifi_policy: str, hostapd_option: str, hostapd_value: str) -> Result:
+    def insert_wifi_hostapd_option(self, wireless_wifi_policy: WifiPolicyName, hostapd_option: str, hostapd_value: str) -> Result:
         """
         Insert a new Hostapd option for a specific wireless Wi-Fi policy.
 
@@ -4714,7 +4762,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Hostapd option for policy '{wireless_wifi_policy}'. Error: {str(e)}", result=None)
 
-    def insert_wifi_channel(self, wireless_wifi_policy: str, channel: str) -> Result:
+    def insert_wifi_channel(self, wireless_wifi_policy: WifiPolicyName, channel: str) -> Result:
         """
         Insert a Wi-Fi channel into the database associated with a wireless Wi-Fi policy.
 
@@ -4751,7 +4799,7 @@ class RouterShellDB(metaclass=Singleton):
         except sqlite3.Error as e:
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=f"Failed to insert Wi-Fi channel for policy '{wireless_wifi_policy}'. Error: {str(e)}")
 
-    def insert_wifi_hardware_mode(self, wireless_wifi_policy: str, hw_mode: str) -> Result:
+    def insert_wifi_hardware_mode(self, wireless_wifi_policy: WifiPolicyName, hw_mode: str) -> Result:
         """
         Insert a Wi-Fi hardware mode into the database associated with a wireless Wi-Fi policy.
 
@@ -4794,7 +4842,7 @@ class RouterShellDB(metaclass=Singleton):
                             ROUTER-CONFIGURATION-INTERFACE
     '''
 
-    def select_interfaces(self) -> List[Result]:
+    def select_interfaces(self) -> list[Result]:
         """
         Select a list of interface names based on the specified interface type.
 
@@ -4802,7 +4850,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_type (InterfaceType): The type of interface to filter by.
 
         Returns:
-            List[Result]: A list of Result objects containing the interface names.
+            list[Result]: A list of Result objects containing the interface names.
         """
         try:
             cursor = self.connection.cursor()
@@ -4825,7 +4873,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> List[Result]:
+    def select_interfaces_by_interface_type(self, interface_type: InterfaceType) -> list[Result]:
         """
         Select a list of interface names based on the specified interface type.
 
@@ -4833,7 +4881,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_type (InterfaceType): The type of interface to filter by.
 
         Returns:
-            List[Result]: A list of Result objects containing the interface names.
+            list[Result]: A list of Result objects containing the interface names.
         """
         try:
             cursor = self.connection.cursor()
@@ -4857,7 +4905,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_configuration(self, interface_name: str) -> Result:
+    def select_interface_configuration(self, interface_name: InterfaceName) -> Result:
         """
         Select information about a specific interface.
 
@@ -4939,7 +4987,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def select_interface_ip_dhcp_server_policies(self, interface_name: str) -> List[Result]:
+    def select_interface_ip_dhcp_server_policies(self, interface_name: InterfaceName) -> list[Result]:
         """
         Retrieve DHCP server pool information associated with a specific interface.
 
@@ -4947,7 +4995,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_name (str): The name of the interface for which to retrieve DHCP server pool information.
 
         Returns:
-            List[Result]: A list of Result objects representing the outcomes of the operation.
+            list[Result]: A list of Result objects representing the outcomes of the operation.
                 Each Result object contains either the DHCP server pool information or an error message.
         """
         try:
@@ -4978,7 +5026,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_switchport_access_vlan_id(self, interface_name: str) -> List[Result]:
+    def select_interface_switchport_access_vlan_id(self, interface_name: InterfaceName) -> list[Result]:
         """
         Retrieve DHCP server pool information associated with a specific interface.
 
@@ -4986,7 +5034,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_name (str): The name of the interface for which to retrieve DHCP server pool information.
 
         Returns:
-            List[Result]: A list of Result objects representing the outcomes of the operation.
+            list[Result]: A list of Result objects representing the outcomes of the operation.
                 Each Result object contains either the DHCP server pool information or an error message.
         """
         try:
@@ -5018,7 +5066,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_dhcp_client_configuration(self, interface_name: str) -> List[Result]:
+    def select_interface_dhcp_client_configuration(self, interface_name: InterfaceName) -> list[Result]:
         """
         Retrieve DHCP client configuration information associated with a specific interface.
 
@@ -5026,7 +5074,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_name (str): The name of the interface for which to retrieve DHCP client configuration information.
 
         Returns:
-            List[Result]: A list of Result objects representing the outcomes of the operation.
+            list[Result]: A list of Result objects representing the outcomes of the operation.
                 Each Result object contains either the DHCP client configuration information or an error message.
         """
         try:
@@ -5061,7 +5109,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_ip_address_configuration(self, interface_name: str) -> List[Result]:
+    def select_interface_ip_address_configuration(self, interface_name: InterfaceName) -> list[Result]:
         """
         Select distinct IP addresses for a specific interface.
 
@@ -5069,7 +5117,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_name (str): The name of the interface.
 
         Returns:
-            List[Result]: A list of Result objects containing the IP addresses for the interface.
+            list[Result]: A list of Result objects containing the IP addresses for the interface.
         """
         try:
             cursor = self.connection.cursor()
@@ -5100,7 +5148,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_ip_static_arp_configuration(self, interface_name: str) -> List[Result]:
+    def select_interface_ip_static_arp_configuration(self, interface_name: InterfaceName) -> list[Result]:
         """
         Select distinct static ARP entries for a specific interface.
 
@@ -5108,7 +5156,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_name (str): The name of the interface.
 
         Returns:
-            List[Result]: A list of Result objects containing the static ARP entries for the interface.
+            list[Result]: A list of Result objects containing the static ARP entries for the interface.
         """
         try:
             cursor = self.connection.cursor()
@@ -5139,7 +5187,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_interface_wifi_configuration(self, interface_name: str) -> List[Result]:
+    def select_interface_wifi_configuration(self, interface_name: InterfaceName) -> list[Result]:
         """
         Select distinct wireless wifi policy entries for a given interface.
 
@@ -5147,7 +5195,7 @@ class RouterShellDB(metaclass=Singleton):
             interface_name (str): The name of the interface.
 
         Returns:
-            List[Result]: A list of Result objects containing the wireless wifi policy names.
+            list[Result]: A list of Result objects containing the wireless wifi policy names.
         """
         try:
             cursor = self.connection.cursor()
@@ -5182,12 +5230,12 @@ class RouterShellDB(metaclass=Singleton):
                             ROUTER-CONFIGURATION-GLOBAL
     '''
 
-    def select_global_interface_rename_configuration(self) -> List[Result]:
+    def select_global_interface_rename_configuration(self) -> list[Result]:
         """
         Retrieve data from the 'RenameInterface' table and format it into a list of Result objects.
 
         Returns:
-            List[Result]: A list of Result objects containing data from the 'RenameInterface' table.
+            list[Result]: A list of Result objects containing data from the 'RenameInterface' table.
         """
         query = '''
             SELECT DISTINCT
@@ -5213,12 +5261,12 @@ class RouterShellDB(metaclass=Singleton):
 
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_bridge_configuration(self) -> List[Result]:
+    def select_global_bridge_configuration(self) -> list[Result]:
         """
         Retrieve bridge configuration data from the 'Bridges' table.
 
         Returns:
-            List[Result]: A list of Result objects containing bridge configuration data.
+            list[Result]: A list of Result objects containing bridge configuration data.
         """
         query = '''
             SELECT DISTINCT
@@ -5264,12 +5312,12 @@ class RouterShellDB(metaclass=Singleton):
 
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_vlan_configuration(self) -> List[Result]:
+    def select_global_vlan_configuration(self) -> list[Result]:
         """
         Retrieve VLAN configuration data from the 'Vlans' table.
 
         Returns:
-            List[Result]: A list of Result objects containing VLAN configuration data.
+            list[Result]: A list of Result objects containing VLAN configuration data.
         """
         query = '''
             SELECT DISTINCT
@@ -5304,12 +5352,12 @@ class RouterShellDB(metaclass=Singleton):
 
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_nat_configuration(self) -> List[Result]:
+    def select_global_nat_configuration(self) -> list[Result]:
         """
         Select distinct NAT pool names from the 'Nats' table.
 
         Returns:
-        List[Result]: A list of Result objects with the selected NAT pool names.
+        list[Result]: A list of Result objects with the selected NAT pool names.
         """
         self.log.debug("select_global_nat_configuration()")
 
@@ -5334,12 +5382,12 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(STATUS_NOK, reason=error_message)]
 
-    def select_global_dhcp_server_configuration(self) -> List[Result]:
+    def select_global_dhcp_server_configuration(self) -> list[Result]:
         """
         Retrieve a list of global DHCP server configurations.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a row from the DHCPServer and DHCPSubnet tables.
+            list[Result]: A list of Result objects, each representing a row from the DHCPServer and DHCPSubnet tables.
 
         Note:
         - This method assumes that the necessary tables (DHCPServer, DHCPSubnet) exist with the specified schema.
@@ -5378,7 +5426,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_dhcp_server_pool(self, dhcp_pool_name: str) -> List[Result]:
+    def select_global_dhcp_server_pool(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve a list of global DHCP server pool IP address configurations.
 
@@ -5386,7 +5434,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP server pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a row from the DHCPSubnetPools table.
+            list[Result]: A list of Result objects, each representing a row from the DHCPSubnetPools table.
 
         Note:
         - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools) exist with the specified schema.
@@ -5426,7 +5474,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_dhcp_server_reservation_pool(self, dhcp_pool_name: str) -> List[Result]:
+    def select_global_dhcp_server_reservation_pool(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve a list of global DHCP server reservation pool configurations.
 
@@ -5434,7 +5482,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP server pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a row from the DHCPSubnetReservations table.
+            list[Result]: A list of Result objects, each representing a row from the DHCPSubnetReservations table.
 
         Note:
         - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetReservations) exist with the specified schema.
@@ -5473,7 +5521,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_dhcp_server_subnet_option_pool(self, dhcp_pool_name: str) -> List[Result]:
+    def select_global_dhcp_server_subnet_option_pool(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve a list of global DHCP server subnet option pool configurations.
 
@@ -5481,7 +5529,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP server pool.
 
         Returns:
-            List[Result]: A list of Result objects, each representing a row from the DHCPOptions table.
+            list[Result]: A list of Result objects, each representing a row from the DHCPOptions table.
 
         Note:
         - This method assumes that the necessary tables (DHCPServer, DHCPSubnet, DHCPSubnetPools, DHCPOptions) exist with the specified schema.
@@ -5521,7 +5569,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_dhcpv6_server_options(self, dhcp_pool_name: str) -> List[Result]:
+    def select_global_dhcpv6_server_options(self, dhcp_pool_name: DhcpPoolName) -> list[Result]:
         """
         Retrieve DHCP Server Options for a specified DHCP pool name.
 
@@ -5529,7 +5577,7 @@ class RouterShellDB(metaclass=Singleton):
             dhcp_pool_name (str): The name of the DHCP pool for which to retrieve options.
 
         Returns:
-            List[Result]: A list of Result objects representing the outcomes of the operation.
+            list[Result]: A list of Result objects representing the outcomes of the operation.
         """
         try:
             query = """
@@ -5569,7 +5617,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return [Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)]
 
-    def select_global_wireless_wifi_policy(self, wifi_policy_name: str) -> Result:
+    def select_global_wireless_wifi_policy(self, wifi_policy_name: WifiPolicyName) -> Result:
         """
         Selects global wireless WiFi policy based on the provided WifiPolicyName.
 
@@ -5624,7 +5672,7 @@ class RouterShellDB(metaclass=Singleton):
             self.log.error(error_message)
             return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason=error_message)
 
-    def select_global_wireless_wifi_security_policy(self, wifi_policy_name: str) -> List[Result]:
+    def select_global_wireless_wifi_security_policy(self, wifi_policy_name: WifiPolicyName) -> list[Result]:
         """
         Selects global wireless WiFi security policy based on the provided WifiPolicyName.
 
@@ -5632,7 +5680,7 @@ class RouterShellDB(metaclass=Singleton):
         - wifi_policy_name (str): The WifiPolicyName to search for.
 
         Returns:
-        - List[Result]: A list of dictionaries containing selected wireless WiFi security policy information.
+        - list[Result]: A list of dictionaries containing selected wireless WiFi security policy information.
         """
         try:
             cursor = self.connection.cursor()
@@ -5653,7 +5701,7 @@ class RouterShellDB(metaclass=Singleton):
 
             if results:
                 # Create a list of dictionaries for each result
-                result_list: List[Result] = [
+                result_list: list[Result] = [
                     {
                         'Ssid': result[0],
                         'WpaPassPhrase': result[1],
@@ -5728,14 +5776,14 @@ class RouterShellDB(metaclass=Singleton):
 
             if not result:
                 self.log.error(
-                    f'update_global_telnet_server() -> TelnetServer_FK: No FK Key found')
+                    'update_global_telnet_server() -> TelnetServer_FK: No FK Key found')
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No entry found in 'SystemConfiguration' table for ID 1.")
 
             telnet_server_id = result[0]
 
             if telnet_server_id is None:
                 self.log.error(
-                    f'update_global_telnet_server() -> No TelnetServer linked in SystemConfiguration table.')
+                    'update_global_telnet_server() -> No TelnetServer linked in SystemConfiguration table.')
                 return Result(status=STATUS_NOK, row_id=self.ROW_ID_NOT_FOUND, reason="No TelnetServer linked in 'SystemConfiguration' table.")
 
             # Update the Telnet server configuration

@@ -1,11 +1,18 @@
 import logging
 import os
 
-from typing import Dict, List
-
-from routershell.lib.common.constants import DNSMASQ_LEASE_FILE_PATH
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import DNSMASQ_LEASE_FILE_PATH
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import (
+    DhcpPoolName,
+    InetAddressText,
+    InetCidrText,
+    InterfaceName,
+    MacAddressText,
+    PredicateResult,
+    StatusResult,
+)
 from routershell.lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from routershell.lib.network_manager.common.inet import InetServiceLayer, InetVersion
 from routershell.lib.network_manager.common.mac import MacServiceLayer
@@ -31,7 +38,7 @@ class DHCPServer(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DHCP_SERVER)
     
-    def dhcp_pool_name_exists(self, dhcp_pool_name: str) -> bool:
+    def dhcp_pool_name_exists(self, dhcp_pool_name: DhcpPoolName) -> PredicateResult:
         """
         Check if a DHCP pool with the given name exists.
 
@@ -39,11 +46,11 @@ class DHCPServer(NetworkManager):
             dhcp_pool_name (str): The name of the DHCP pool to check.
 
         Returns:
-            bool: True if the pool exists, False otherwise.
+            StatusResult: True if the pool exists, False otherwise.
         """
         return DSD().dhcp_pool_name_exists_db(dhcp_pool_name)
 
-    def get_dhcp_pool_name_list(self) -> List[str]:
+    def get_dhcp_pool_name_list(self) -> list[str]:
         """
         Retrieve a list of DHCP pool names from the DSD class.
 
@@ -51,11 +58,11 @@ class DHCPServer(NetworkManager):
         of the DSD class to get the list of DHCP pool names.
 
         Returns:
-            List[str]: A list of DHCP pool names.
+            list[str]: A list of DHCP pool names.
         """
         return DSD().dhcp_pool_name_list()
     
-    def dhcp_pool_subnet_exists(self, dhcp_pool_subnet_cidr: str) -> bool:
+    def dhcp_pool_subnet_exists(self, dhcp_pool_subnet_cidr: InetCidrText) -> PredicateResult:
         """
         Check if a DHCP subnet within a DHCP pool exists.
 
@@ -63,11 +70,11 @@ class DHCPServer(NetworkManager):
             dhcp_pool_subnet_cidr (str): The subnet CIDR to check.
 
         Returns:
-            bool: True if the subnet exists, False otherwise.
+            StatusResult: True if the subnet exists, False otherwise.
         """
         return DSD().dhcp_pool_subnet_exist_db(dhcp_pool_subnet_cidr)
     
-    def get_dhcp_pool_subnet(self, dhcp_pool_name:str) -> str:
+    def get_dhcp_pool_subnet(self, dhcp_pool_name:DhcpPoolName) -> str:
         """
         Retrieve the DHCP pool subnet from the RouterShell database using the provided DHCP pool name.
 
@@ -80,7 +87,7 @@ class DHCPServer(NetworkManager):
         """        
         return DSD().get_dhcp_pool_subnet_name_db(dhcp_pool_name)
     
-    def add_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+    def add_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> StatusResult:
         """
         Add a DHCP pool name to the DHCP server if it does not already exist.
 
@@ -88,7 +95,7 @@ class DHCPServer(NetworkManager):
             dhcp_pool_name (str): The name of the DHCP pool to add.
 
         Returns:
-            bool: STATUS_OK if the pool name was added successfully or already exists, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the pool name was added successfully or already exists, STATUS_NOK otherwise.
         """
         if self.dhcp_pool_name_exists(dhcp_pool_name):
             self.log.debug(f"DHCP pool-name: {dhcp_pool_name}, already exists")
@@ -96,7 +103,7 @@ class DHCPServer(NetworkManager):
 
         return DSD().add_dhcp_pool_name_db(dhcp_pool_name)
     
-    def del_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+    def del_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> StatusResult:
         """
         Delete a DHCP pool by its name.
         
@@ -104,14 +111,14 @@ class DHCPServer(NetworkManager):
             dhcp_pool_name (str): The name of the DHCP pool to be deleted.
         
         Returns:
-            bool: STATUS_NOK if the DHCP pool does not exist, otherwise the status of the delete operation.
+            StatusResult: STATUS_NOK if the DHCP pool does not exist, otherwise the status of the delete operation.
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
             self.log.debug(f"DHCP pool-name: {dhcp_pool_name} does not exist")
             return STATUS_NOK
         return DSD().del_dhcp_pool_name(dhcp_pool_name)
 
-    def add_dhcp_pool_subnet(self, dhcp_pool_name: str, dhcp_pool_subnet_cidr: str) -> bool:
+    def add_dhcp_pool_subnet(self, dhcp_pool_name: DhcpPoolName, dhcp_pool_subnet_cidr: InetCidrText) -> StatusResult:
         """
         Add a DHCP subnet to the DHCP server for the specified DHCP pool if it does not already exist.
 
@@ -120,7 +127,7 @@ class DHCPServer(NetworkManager):
             dhcp_pool_subnet_cidr (str): The subnet CIDR to add.
 
         Returns:
-            bool: STATUS_OK if the subnet was added successfully or already exists, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the subnet was added successfully or already exists, STATUS_NOK otherwise.
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
             self.log.critical(f"Unable to add DHCP subnet to the DHCP server, dhcp-pool-name : {dhcp_pool_name} , does not exists")
@@ -132,11 +139,11 @@ class DHCPServer(NetworkManager):
                     
         return DSD().add_dhcp_pool_subnet_db(dhcp_pool_name, dhcp_pool_subnet_cidr)
  
-    def add_dhcp_pool_subnet_inet_range(self, dhcp_pool_name:str, 
-                                        dhcp_pool_subnet_cidr: str, 
-                                        inet_pool_start: str, 
-                                        inet_pool_end: str, 
-                                        inet_pool_subnet_cidr: str) -> bool:
+    def add_dhcp_pool_subnet_inet_range(self, dhcp_pool_name:DhcpPoolName, 
+                                        dhcp_pool_subnet_cidr: InetCidrText, 
+                                        inet_pool_start: InetAddressText, 
+                                        inet_pool_end: InetAddressText, 
+                                        inet_pool_subnet_cidr: InetCidrText) -> StatusResult:
         """
         Add an IP address range to a DHCP subnet within a DHCP pool.
 
@@ -148,7 +155,7 @@ class DHCPServer(NetworkManager):
             inet_pool_subnet_cidr (str): The subnet CIDR of the range.
 
         Returns:
-            bool: STATUS_OK if the range was added successfully, STATUS_NOK otherwise
+            StatusResult: STATUS_OK if the range was added successfully, STATUS_NOK otherwise
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
             self.log.critical(f"Unable to add subnet pool inet range, dhcp-pool-name : {dhcp_pool_name} , does not exist")
@@ -164,9 +171,9 @@ class DHCPServer(NetworkManager):
                                                            inet_pool_end, 
                                                            inet_pool_subnet_cidr)
     
-    def add_dhcp_pool_reservation(self, dhcp_pool_name: str, 
-                                  inet_subnet_cidr: str, 
-                                  hw_address: str, inet_address: str) -> bool:
+    def add_dhcp_pool_reservation(self, dhcp_pool_name: DhcpPoolName, 
+                                  inet_subnet_cidr: InetCidrText, 
+                                  hw_address: MacAddressText, inet_address: InetAddressText) -> StatusResult:
         """
         Add a reservation to a DHCP pool.
 
@@ -177,7 +184,7 @@ class DHCPServer(NetworkManager):
             inet_address (str): The reserved IP address.
 
         Returns:
-            bool: STATUS_OK if the reservation was added successfully, STATUS_NOK otherwise
+            StatusResult: STATUS_OK if the reservation was added successfully, STATUS_NOK otherwise
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
             self.log.critical(f"Unable to add a reservation to a DHCP pool, dhcp-pool-name : {dhcp_pool_name} , does not exist")
@@ -185,7 +192,7 @@ class DHCPServer(NetworkManager):
         
         return DSD().add_dhcp_subnet_reservation_db(inet_subnet_cidr, hw_address, inet_address)
     
-    def add_dhcp_pool_option(self, dhcp_pool_name: str, inet_subnet_cidr: str, dhcp_option: str, value: str) -> bool:
+    def add_dhcp_pool_option(self, dhcp_pool_name: DhcpPoolName, inet_subnet_cidr: InetCidrText, dhcp_option: str, value: str) -> StatusResult:
         """
         Add a DHCP option to a DHCP pool.
 
@@ -196,7 +203,7 @@ class DHCPServer(NetworkManager):
             value (str): The value of the DHCP option.
 
         Returns:
-            bool: STATUS_OK if the option was added successfully, STATUS_NOK otherwise
+            StatusResult: STATUS_OK if the option was added successfully, STATUS_NOK otherwise
         """
         if not self.dhcp_pool_name_exists(dhcp_pool_name):
             self.log.critical(f"Unable to add DHCP option to a DHCP pool, dhcp-pool-name : {dhcp_pool_name} , does not exist")
@@ -204,7 +211,7 @@ class DHCPServer(NetworkManager):
 
         return DSD().add_dhcp_subnet_option_db(inet_subnet_cidr, dhcp_option, value)
 
-    def add_dhcp_pool_to_interface(self, dhcp_pool_name: str, interface_name: str, negate:bool=False) -> bool:
+    def add_dhcp_pool_to_interface(self, dhcp_pool_name: DhcpPoolName, interface_name: InterfaceName, negate:bool=False) -> StatusResult:
         """
         Adds a DHCP pool to an interface.
 
@@ -215,7 +222,7 @@ class DHCPServer(NetworkManager):
             interface_name (str): The name of the interface to associate with the DHCP pool.
 
         Returns:
-            bool: STATUS_OK if the DHCP pool was successfully added to the interface, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the DHCP pool was successfully added to the interface, STATUS_NOK otherwise.
 
         """
         
@@ -238,20 +245,20 @@ class DHCPServer(NetworkManager):
             return STATUS_OK
         
         if DMIS.build_interface_configuration():
-            self.log.error(f"Unable to build DNSMasq Configuration")
+            self.log.error("Unable to build DNSMasq Configuration")
             return STATUS_NOK
         
         if DMIS.deploy_configuration(DNSMasqDeploy.INTERFACE):
-            self.log.error(f"Unable to set DNSMasq interface configuration")
+            self.log.error("Unable to set DNSMasq interface configuration")
             return STATUS_NOK
         
         if DMIS.control_service(SysServCntrlAction.RESTART):
-            self.log.error(f"Unable to restart DNSMasq")
+            self.log.error("Unable to restart DNSMasq")
             return STATUS_NOK    
         
         return STATUS_OK
 
-    def update_dhcp_pool_mode(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
+    def update_dhcp_pool_mode(self, dhcp_pool_name: DhcpPoolName, mode: DHCPv6Modes) -> StatusResult:
         """
         Update the DHCP version mode for a specific DHCP pool.
 
@@ -260,7 +267,7 @@ class DHCPServer(NetworkManager):
             mode (DHCPv6Modes): The DHCP version mode to set.
 
         Returns:
-            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update is successful, STATUS_NOK otherwise.
 
         This method checks if the specified DHCP pool exists. If the pool exists, it proceeds to update
         the DHCP version mode for that pool using the provided mode. If the update is successful,
@@ -277,9 +284,9 @@ class DHCPServer(NetworkManager):
 
         return DSD().update_dhcp_pool_mode_db(dhcp_pool_name, mode)
 
-class DhcpPoolFactory():
+class DhcpPoolFactory:
 
-    def __init__(self, dhcp_pool_name: str):
+    def __init__(self, dhcp_pool_name: DhcpPoolName):
         """
         Initialize the DhcpPoolFactory instance.
 
@@ -308,25 +315,25 @@ class DhcpPoolFactory():
         self.dhcp_pool_inet_subnet_cidr = self.dhcp_srv_obj.get_dhcp_pool_subnet(dhcp_pool_name)
         self.log.debug(f"Create DhcpPoolFactory({dhcp_pool_name} , {self.dhcp_pool_inet_subnet_cidr}) ")
 
-    def delete_pool_name(self) -> bool:
+    def delete_pool_name(self) -> StatusResult:
         """
         Delete a DHCP pool by its name.
                 
         Returns:
-            bool: The status of the delete operation.
+            StatusResult: The status of the delete operation.
         """
         return self.dhcp_srv_obj.del_dhcp_pool_name(self.dhcp_pool_name)
 
-    def status(self) -> bool:
+    def status(self) -> StatusResult:
         """
         Get the status of the DhcpPoolFactory.
 
         Returns:
-            bool: True if the factory status is OK, False otherwise.
+            StatusResult: True if the factory status is OK, False otherwise.
         """
         return self.factory_status
     
-    def add_pool_subnet(self, inet_subnet_cidr: str) -> bool:
+    def add_pool_subnet(self, inet_subnet_cidr: InetCidrText) -> StatusResult:
         """
         Add a subnet to the DHCP pool.
 
@@ -334,7 +341,7 @@ class DhcpPoolFactory():
             inet_subnet_cidr (str): The subnet CIDR to add.
 
         Returns:
-            bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
         """     
 
         is_valid, error_msg = InetServiceLayer.validate_subnet_format(inet_subnet_cidr)
@@ -345,7 +352,7 @@ class DhcpPoolFactory():
             return STATUS_NOK
 
         if not self.status():
-            self.log.error(f"Unable to add DHCP Pool subnet - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP Pool subnet - ERROR: DhcpPoolFactory()")
             return STATUS_NOK        
 
         self.dhcp_pool_inet_subnet_cidr = inet_subnet_cidr
@@ -356,7 +363,7 @@ class DhcpPoolFactory():
 
         return STATUS_OK
 
-    def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
+    def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: InetCidrText) -> StatusResult:
         """
         Add an IP address range to the DHCP pool.
 
@@ -366,10 +373,10 @@ class DhcpPoolFactory():
             inet_subnet_cidr (str): The subnet CIDR of the range.
 
         Returns:
-            bool: STATUS_OK if the range was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the range was added successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to add DHCP pool - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP pool - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         if not InetServiceLayer.validate_inet_ranges(self.dhcp_pool_inet_subnet_cidr, inet_start, inet_end):
@@ -382,7 +389,7 @@ class DhcpPoolFactory():
             inet_start, inet_end, inet_subnet_cidr
         )
 
-    def add_reservation(self, hw_address: str, inet_address: str) -> bool:
+    def add_reservation(self, hw_address: MacAddressText, inet_address: InetAddressText) -> StatusResult:
         """
         Add a reservation to the DHCP pool.
 
@@ -391,10 +398,10 @@ class DhcpPoolFactory():
             inet_address (str): The reserved IP address.
 
         Returns:
-            bool: STATUS_OK if the reservation was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the reservation was added successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         if not MacServiceLayer().is_valid_mac_address(hw_address) and not MacServiceLayer().is_valid_duid_ll(hw_address):
@@ -409,7 +416,7 @@ class DhcpPoolFactory():
                                                            self.dhcp_pool_inet_subnet_cidr,
                                                            hw_address, inet_address)
     
-    def add_option(self, dhcp_option: str, value: str) -> bool:
+    def add_option(self, dhcp_option: str, value: str) -> StatusResult:
         """
         Add a DHCP option to the DHCP pool.
 
@@ -418,10 +425,10 @@ class DhcpPoolFactory():
             value (str): The value of the DHCP option.
 
         Returns:
-            bool: STATUS_OK if the option was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the option was added successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to add DHCP options - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP options - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         return self.dhcp_srv_obj.add_dhcp_pool_option(self.dhcp_pool_name,
@@ -446,7 +453,7 @@ class DhcpPoolFactory():
         else:
             return DHCPVersion.DHCP_V6
 
-    def add_dhcp_mode(self, mode: DHCPv6Modes) -> bool:
+    def add_dhcp_mode(self, mode: DHCPv6Modes) -> StatusResult:
         """
         Update the DHCP mode for DHCPv6 subnets.
 
@@ -458,14 +465,14 @@ class DhcpPoolFactory():
             mode (DHCPv6Modes): The desired DHCP mode for DHCPv6 subnets.
 
         Returns:
-            bool: STATUS_OK if the DHCP mode was updated successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the DHCP mode was updated successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to update DHCP Mode - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to update DHCP Mode - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         if self.get_subnet_inet_version() == DHCPVersion.DHCP_V4:
-            self.log.debug(f'DHCP Mode is reserved for DHCPv6 subnet')
+            self.log.debug('DHCP Mode is reserved for DHCPv6 subnet')
             return STATUS_NOK
         
         return self.dhcp_srv_obj.update_dhcp_pool_mode(self.dhcp_pool_name, mode)
@@ -493,12 +500,12 @@ class DhcpServerManager(RunCommand):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DHCP_SERVER_MANAGER)
 
-    def get_leases(self) -> List[Dict[str, str]]:
+    def get_leases(self) -> list[dict[str, str]]:
         """
         Retrieve a list of DHCP leases from the dnsmasq leases file.
 
         Returns:
-            List[Dict[str, str]]: A list of dictionaries containing lease information.
+            list[dict[str, str]]: A list of dictionaries containing lease information.
                 Each dictionary has the following keys:
                 - 'ip_address': The leased IP address.
                 - 'mac_address': The MAC address of the device.
@@ -509,7 +516,7 @@ class DhcpServerManager(RunCommand):
             leases_path = DNSMASQ_LEASE_FILE_PATH
 
             if os.path.exists(leases_path):
-                with open(leases_path, 'r') as leases_file:
+                with open(leases_path) as leases_file:
                     leases_raw = leases_file.readlines()
 
                 leases = []
@@ -543,12 +550,12 @@ class DhcpServerManager(RunCommand):
             self.log.error(f"Error retrieving DHCP leases: {e}")
             return []
         
-    def status(self) -> bool:
+    def status(self) -> StatusResult:
         """
         Get the status of dnsmasq.
 
         Returns:
-            bool: STATUS_OK is active, otherwise STATUS_NOK
+            StatusResult: STATUS_OK is active, otherwise STATUS_NOK
 
         """
 
@@ -564,12 +571,12 @@ class DhcpServerManager(RunCommand):
 
         return STATUS_OK
 
-    def test_dhcp_server(self) -> bool:
+    def test_dhcp_server(self) -> StatusResult:
         """
         Test the syntax of dnsmasq configuration files.
 
         Returns:
-            bool: STATUS_OK if the syntax test is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the syntax test is successful, STATUS_NOK otherwise.
         """
 
         result = self.run(["dnsmasq", "--test"])
@@ -580,12 +587,12 @@ class DhcpServerManager(RunCommand):
         self.log.debug(f"dnsmasq syntax test passed: {result.stdout}")
         return STATUS_OK
 
-    def lease_log(self) -> List[str]:
+    def lease_log(self) -> list[str]:
         """
         Get the DHCP-related log entries from the system journal.
 
         Returns:
-            List[str]: A list of DHCP-related log entries.
+            list[str]: A list of DHCP-related log entries.
         """
         result = self.run(['journalctl | grep dnsmasq-dhcp'], shell=True, sudo=False)
         
@@ -595,12 +602,12 @@ class DhcpServerManager(RunCommand):
         log_entries = result.stdout.split('\n')
         return log_entries
 
-    def server_log(self) -> List[str]:
+    def server_log(self) -> list[str]:
         """
         Get the DHCP-related log entries from the system journal.
 
         Returns:
-            List[str]: A list of DHCP-related log entries.
+            list[str]: A list of DHCP-related log entries.
         """
         command = 'journalctl | grep dnsmasq\\['
 

@@ -1,13 +1,17 @@
 import logging
 import re
-from typing import List
 
 from routershell.lib.common.constants import STATUS_NOK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, StatusResult
 from routershell.lib.db.dhcp_client_db import DHCPClientDatabase
-from routershell.lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import DHCPClientFactory, DHCPClientOperations
+from routershell.lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import (
+    DHCPClientFactory,
+    DHCPClientOperations,
+)
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
 from routershell.lib.system.init_system import InitSystemChecker, SysV
+
 
 class DHCPClientException(Exception):
     """
@@ -44,7 +48,7 @@ class DHCPClient(DHCPClientDatabase):
         get_flow_log(): Retrieve DHCP client flow logs from the system journal.
         get_last_status(): Get the last status of the DHCP client.
     """
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient with the network interface name and DHCP stack version.
 
@@ -70,12 +74,12 @@ class DHCPClient(DHCPClientDatabase):
         """
         return self._dhcp_client.get_last_status()
                 
-    def start(self) -> bool:
+    def start(self) -> StatusResult:
         """
         Start the DHCP client with the configured stack version.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         self.log.debug(f'Start DHCP client on interface {self._dhcp_client.get_interface()}')
         if self._dhcp_client.start():
@@ -83,12 +87,12 @@ class DHCPClient(DHCPClientDatabase):
         
         return self.update_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version)
         
-    def stop(self) -> bool:
+    def stop(self) -> StatusResult:
         """
         Stop the DHCP client.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         self.log.debug(f'Stop DHCP client on interface {self._dhcp_client.get_interface()}')
         if self._dhcp_client.stop():
@@ -96,22 +100,22 @@ class DHCPClient(DHCPClientDatabase):
         
         return self.remove_db_dhcp_client(self._dhcp_client.get_interface(), self._dhcp_stack_version.value)
     
-    def restart(self) -> bool:
+    def restart(self) -> StatusResult:
         """
         Restart the DHCP client service.
 
         Returns:
-            bool: STATUS_OK if the DHCP client service restart was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the DHCP client service restart was successful, STATUS_NOK otherwise.
         """        
         return self._dhcp_client.restart()
 
     @staticmethod
-    def get_flow_log() -> List[dict]:
+    def get_flow_log() -> list[dict]:
         """
         Retrieve DHCP client flow logs (DORA/SAAR) from the system journal.
 
         Returns:
-            List[dict]: A list of DHCP client flow log entries.
+            list[dict]: A list of DHCP client flow log entries.
         """
         isc = InitSystemChecker()
         

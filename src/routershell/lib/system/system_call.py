@@ -3,14 +3,15 @@ import os
 import platform
 import shutil
 import textwrap
-from typing import List
 
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import ETC_HOSTNAME_FILE
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import HostnameText, StatusResult
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_manager.common.run_commands import RunCommand, RunLog
 from routershell.lib.system.init_system import InitSystemChecker
-from routershell.lib.system.os.os import OSChecker
+
 
 class InvalidSystemConfig(Exception):
     def __init__(self, message):
@@ -46,7 +47,7 @@ class SystemCall(RunCommand):
 
         return banner_text
             
-    def set_banner(self, banner_motd: str) -> bool:
+    def set_banner(self, banner_motd: str) -> StatusResult:
         """
         Set the banner Message of the Day (Motd) in the RouterShell configuration.
 
@@ -54,18 +55,18 @@ class SystemCall(RunCommand):
             banner_motd (str): The new banner text.
 
         Returns:
-            bool: STATUS_OK if the banner is successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the banner is successfully set, STATUS_NOK otherwise.
         """
         return self.sys_db.set_banner_motd(banner_motd)
     
-    def del_banner(self) -> bool:
+    def del_banner(self) -> StatusResult:
         """
         Delete the banner Message of the Day (MOTD).
 
         This method sets the banner MOTD in the system configuration to an empty string, effectively removing any existing banner.
 
         Returns:
-            bool: True if the banner MOTD is successfully deleted, False otherwise.
+            StatusResult: True if the banner MOTD is successfully deleted, False otherwise.
 
         Example:
             To delete the banner MOTD, you can use the 'del_banner' method as follows:
@@ -82,7 +83,7 @@ class SystemCall(RunCommand):
         """
         return self.sys_db.set_banner_motd('')
 
-    def set_hostname_from_db(self) -> bool:
+    def set_hostname_from_db(self) -> StatusResult:
         """
         Sets the hostname from the system database if available; otherwise, uses the system configuration.
 
@@ -90,7 +91,7 @@ class SystemCall(RunCommand):
         Attempts to set the system hostname to the retrieved value.
 
         Returns:
-            bool: STATUS_OK if the hostname is successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the hostname is successfully set, STATUS_NOK otherwise.
         """
         host_name = self.sys_db.get_hostname_db()
         self.log.debug(f'set_hostname_from_db() -> Retrieved hostname from DB: {host_name}')
@@ -110,7 +111,7 @@ class SystemCall(RunCommand):
 
         return STATUS_OK
     
-    def set_hostname_os(self, hostname: str) -> bool:
+    def set_hostname_os(self, hostname: HostnameText) -> StatusResult:
         """
         Set the system hostname.
         
@@ -120,15 +121,15 @@ class SystemCall(RunCommand):
         hostname (str): The desired hostname to set.
 
         Returns:
-        bool: STATUS_OK if successful, STATUS_NOK otherwise.
+        StatusResult: STATUS_OK if successful, STATUS_NOK otherwise.
         """
         current_os = platform.system()
 
         if current_os == "Linux":
             try:
                 if InitSystemChecker().is_sysv():
-                    # Set the hostname permanently in /etc/hostname
-                    with open('/etc/hostname', 'w') as f:
+                    # Set the hostname permanently.
+                    with open(ETC_HOSTNAME_FILE, 'w') as f:
                         f.write(hostname + '\n')
 
                     # Check if the hostname command is available
@@ -150,7 +151,7 @@ class SystemCall(RunCommand):
                         return STATUS_NOK
 
                 else:
-                    self.log.error(f"set_hostname_os(): Unsupported init system.")
+                    self.log.error("set_hostname_os(): Unsupported init system.")
                     return STATUS_NOK
 
                 self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
@@ -175,12 +176,12 @@ class SystemCall(RunCommand):
         self.log.debug(f'get_hostname() -> {hostname}')
         return hostname
     
-    def get_run_log(self) -> List[str]:
+    def get_run_log(self) -> list[str]:
         """
         Retrieve the run log from the RunLog utility class.
 
         Returns:
-            List[str]: A list of strings representing each line of the run log file.
+            list[str]: A list of strings representing each line of the run log file.
 
         Example:
             >>> instance = SomeOtherClass()

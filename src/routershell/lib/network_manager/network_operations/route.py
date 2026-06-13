@@ -1,10 +1,14 @@
 import ipaddress
 import logging
+import subprocess
 
 from tabulate import tabulate
-from routershell.lib.network_manager.common.sysctl import SysCtl
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import StatusResult
+from routershell.lib.network_manager.common.sysctl import SysCtl
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class Route(NetworkManager):
 
@@ -22,7 +26,7 @@ class Route(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.arg = arg
 
-    def set_default_gateway(self, gateway_ip) -> bool:
+    def set_default_gateway(self, gateway_ip) -> StatusResult:
         """
         Configure the default gateway using the 'ip' command.
 
@@ -30,7 +34,7 @@ class Route(NetworkManager):
             gateway_ip (str): The IP address of the default gateway.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if self.run(["ip", "route", "add", "default", "via", gateway_ip]).exit_code:
             self.log.error(f"Unable to add static default route -> {gateway_ip}")
@@ -38,7 +42,7 @@ class Route(NetworkManager):
         
         return STATUS_OK
 
-    def set_classless_routing(self, enable=True) -> bool:
+    def set_classless_routing(self, enable=True) -> StatusResult:
         """
         Enable or disable classless routing using the 'sysctl' command.
 
@@ -46,7 +50,7 @@ class Route(NetworkManager):
             negate (bool): True to disable classless routing, False to enable it (default).
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if enable:
             enable_stat = 1
@@ -59,7 +63,7 @@ class Route(NetworkManager):
         
         return STATUS_OK
 
-    def set_src_net_route(self, src_net, dest_net:str="0.0.0.0" , negate=False) -> bool:
+    def set_src_net_route(self, src_net, dest_net:str="0.0.0.0" , negate=False) -> StatusResult:
         """
         Configure or remove the default network using the 'ip' command.
 
@@ -68,7 +72,7 @@ class Route(NetworkManager):
             negate (bool): True to remove the route, False to add it (default).
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if negate:
             add_del = 'del'
@@ -81,7 +85,7 @@ class Route(NetworkManager):
         
         return STATUS_OK
 
-    def add_route(self, destination_ip_mask, next_hop, metric: int = 100, negate=False) -> bool:
+    def add_route(self, destination_ip_mask, next_hop, metric: int = 100, negate=False) -> StatusResult:
         """
         Add or delete a route to/from the routing table using the 'ip' command.
 
@@ -92,7 +96,7 @@ class Route(NetworkManager):
             negate (bool): True to delete the route, False to add it (default).
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if negate:
             add_del = 'del'

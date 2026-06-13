@@ -1,8 +1,16 @@
 import datetime
 import logging
 import os
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+
+from routershell.lib.common.constants import (
+    ROUTERSHELL_RUNTIME_LOG_DIR,
+    ROUTERSHELL_SYSCTL_LOG_FILE,
+    STATUS_NOK,
+    STATUS_OK,
+)
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
+
 
 class SysCtl(RunCommand):
     """
@@ -15,11 +23,11 @@ class SysCtl(RunCommand):
     def __init__(self):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
-        self.sys_ctl_log_dir = '/tmp/log'
+        self.sys_ctl_log_dir = ROUTERSHELL_RUNTIME_LOG_DIR
         if not os.path.exists(self.sys_ctl_log_dir):
             os.makedirs(self.sys_ctl_log_dir)
 
-    def write_sysctl(self, sysctl_param: str, value:str) -> bool:
+    def write_sysctl(self, sysctl_param: str, value:str) -> StatusResult:
         """
         Write a value to a sysctl parameter using sudo and log the action.
 
@@ -71,7 +79,7 @@ class SysCtl(RunCommand):
         """
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"{timestamp} - {command}"
-        log_path = f"{self.sys_ctl_log_dir}/sysctl.log"
+        log_path = ROUTERSHELL_SYSCTL_LOG_FILE
         
         self.log.debug(log_entry)
 

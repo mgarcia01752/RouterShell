@@ -1,15 +1,15 @@
 import logging
-import subprocess
 import os
-from typing import List
+import subprocess
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
-from routershell.lib.common.common import STATUS_NOK, STATUS_OK, Common
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
+from routershell.lib.common.common import STATUS_OK, Common
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, StatusResult
 from routershell.lib.network_manager.network_operations.interface import Interface
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
-from routershell.lib.system.system_call import SystemCall
+
 
 class Global(CmdPrompt, NetworkManager):
     """
@@ -57,7 +57,7 @@ class Global(CmdPrompt, NetworkManager):
         return False
 
     @CmdPrompt.register_sub_commands() 
-    def global_reload(self, args=None) -> bool:
+    def global_reload(self, args=None) -> StatusResult:
         confirmation = input("Are you sure you want to reboot? (yes/no): ")
         if confirmation.lower() == 'yes':
             reboot_command = Common.get_reboot_command()
@@ -144,7 +144,7 @@ class Global(CmdPrompt, NetworkManager):
             return False  # Command execution failed
         
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces())       
-    def global_flush(self, interface_name: str) -> bool:
+    def global_flush(self, interface_name: InterfaceName) -> StatusResult:
         """
         Command to flush the configuration of a network interface.
 

@@ -1,12 +1,12 @@
 import logging
 from itertools import count
-from typing import Dict, List, Tuple
-
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.common.interface import InterfaceType
+
 
 class RouterConfigurationDatabase:
 
@@ -18,10 +18,10 @@ class RouterConfigurationDatabase:
         cls.log.setLevel(RSLS().ROUTER_CONFIG_DB)
         
         if not cls.rsdb:
-            cls.log.debug(f"Connecting RouterShell Database")
+            cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()
             
-    def get_interface_name_list(cls, interface_type: InterfaceType = InterfaceType.UNKNOWN) -> List[str]:
+    def get_interface_name_list(cls, interface_type: InterfaceType = InterfaceType.UNKNOWN) -> list[str]:
         """
         Get a list of interface names based on the specified interface type.
 
@@ -29,7 +29,7 @@ class RouterConfigurationDatabase:
             interface_type (InterfaceType): The type of interface to filter by.
 
         Returns:
-            List[str]: A list of interface names.
+            list[str]: A list of interface names.
         """
         interface_list = []
 
@@ -51,7 +51,7 @@ class RouterConfigurationDatabase:
 
         return interface_list
     
-    def get_interface_configuration(cls, interface_name: str) -> Tuple[bool, dict]:
+    def get_interface_configuration(cls, interface_name: InterfaceName) -> tuple[bool, dict]:
         """
         Get the configuration for a specific interface.
 
@@ -59,7 +59,7 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface.
 
         Returns:
-            Tuple[bool, dict]: A tuple containing a boolean indicating the status and a dictionary with the interface configuration.
+            tuple[bool, dict]: A tuple containing a boolean indicating the status and a dictionary with the interface configuration.
         """
         if_result = cls.rsdb.select_interface_configuration(interface_name)
         
@@ -67,7 +67,7 @@ class RouterConfigurationDatabase:
         
         return if_result.status, if_result.result
 
-    def get_interface_dhcp_client_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+    def get_interface_dhcp_client_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Retrieve DHCP client configuration information associated with a specific interface.
 
@@ -75,7 +75,7 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface for which to retrieve DHCP client configuration information.
 
         Returns:
-            Tuple[bool, List[dict]]: A tuple containing a boolean indicating the success of the operation (True for success, False for failure)
+            tuple[bool, list[dict]]: A tuple containing a boolean indicating the success of the operation (True for success, False for failure)
                 and a list of dictionaries representing the DHCP client configuration information.
                 Each dictionary contains the DHCP client version information.
 
@@ -94,7 +94,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, dhcp_config_list
         
-    def get_interface_ip_address_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+    def get_interface_ip_address_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Retrieve IP address configuration for a specific interface.
 
@@ -102,7 +102,7 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface.
 
         Returns:
-            Tuple[bool, List[dict]]: 
+            tuple[bool, list[dict]]: 
                 A tuple containing a boolean indicating the success of the operation
                     and a list of dictionaries with IP address configuration data.
                 If the operation is successful, the boolean will be True, and the list
@@ -122,7 +122,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, ip_config_list
 
-    def get_interface_dhcp_server_polices(cls, interface_name: str) -> Tuple[bool, List[Dict[str, str]]]:
+    def get_interface_dhcp_server_polices(cls, interface_name: InterfaceName) -> tuple[bool, list[dict[str, str]]]:
         """
         Retrieve DHCP server policies for a specific interface.
 
@@ -130,7 +130,7 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface.
 
         Returns:
-            Tuple[bool, List[Dict[str, str]]]: 
+            tuple[bool, list[dict[str, str]]]: 
                 A tuple containing a boolean indicating the success of the operation
                     and a list of dictionaries with DHCP server policies data.
                 If the operation is successful, the boolean will be True, and the list
@@ -148,7 +148,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, dhcp_server_policies
 
-    def get_interface_switchport_access_vlan(cls, interface_name: str) -> Tuple[bool, List[Dict[str, str]]]:
+    def get_interface_switchport_access_vlan(cls, interface_name: InterfaceName) -> tuple[bool, list[dict[str, str]]]:
         
         if_switch_port_access_vlan_id_result = cls.rsdb.select_interface_switchport_access_vlan_id(interface_name)
 
@@ -161,7 +161,7 @@ class RouterConfigurationDatabase:
         
         return STATUS_OK, if_switch_port_access_vlan_id
 
-    def get_interface_ip_static_arp_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+    def get_interface_ip_static_arp_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Retrieve IP static ARP configuration for a specific interface.
 
@@ -169,7 +169,7 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface.
 
         Returns:
-            Tuple[bool, List[dict]]: A tuple containing a boolean indicating the success of the operation
+            tuple[bool, list[dict]]: A tuple containing a boolean indicating the success of the operation
                                     and a list of dictionaries with IP static ARP configuration data.
                                     If the operation is successful, the boolean will be True, and the list
                                     will contain dictionaries with IP static ARP details.
@@ -188,7 +188,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, static_arp_config_list
 
-    def get_interface_wifi_configuration(cls, interface_name: str) -> Tuple[bool, List[dict]]:
+    def get_interface_wifi_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Get the wireless wifi configuration for a specified interface.
 
@@ -196,7 +196,7 @@ class RouterConfigurationDatabase:
             interface_name (str): The name of the interface.
 
         Returns:
-            Tuple[bool, List[dict]]: A tuple containing a boolean status and a list of dictionaries
+            tuple[bool, list[dict]]: A tuple containing a boolean status and a list of dictionaries
             representing the wireless wifi configuration for the given interface.
         """
         wifi_config_result = cls.rsdb.select_interface_wifi_configuration(interface_name)
@@ -208,12 +208,12 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, wifi_config_list
      
-    def get_interface_rename_configuration(cls) -> Tuple[bool, List[Dict]]:
+    def get_interface_rename_configuration(cls) -> tuple[bool, list[dict]]:
         """
         Retrieve data from the 'RenameInterface' table.
 
         Returns:
-            Tuple[bool, List[Dict]]:
+            tuple[bool, list[dict]]:
             - A tuple containing a boolean indicating the success of the operation
                     and a list of dictionaries with data from the 'RenameInterface' table.
             - If the operation is successful, the boolean will be True, and the list will contain dictionaries
@@ -238,12 +238,12 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, rename_list
 
-    def get_bridge_configuration(cls) -> Tuple[bool, List[Dict]]:
+    def get_bridge_configuration(cls) -> tuple[bool, list[dict]]:
         """
         Retrieve bridge configuration data.
 
         Returns:
-            Tuple[bool, List[Dict]]:
+            tuple[bool, list[dict]]:
             - A tuple containing a boolean indicating the success of the operation
               and a list of dictionaries with bridge configuration data.
             - If the operation is successful, the boolean will be True, and the list will contain dictionaries
@@ -268,12 +268,12 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, bridge_config_list
 
-    def get_vlan_configuration(cls) -> Tuple[bool, List[Dict]]:
+    def get_vlan_configuration(cls) -> tuple[bool, list[dict]]:
         """
         Retrieve VLAN configuration data.
 
         Returns:
-            Tuple[bool, List[Dict]]:CONFIG_MODE
+            tuple[bool, list[dict]]:CONFIG_MODE
             - A tuple containing a boolean indicating the success of the operation
               and a list of dictionaries with VLAN configuration data.
             - If the operation is successful, the boolean will be True, and the list will contain dictionaries
@@ -298,12 +298,12 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, vlan_config_list
 
-    def get_nat_configuration(cls) -> Tuple[bool, List[Dict]]:
+    def get_nat_configuration(cls) -> tuple[bool, list[dict]]:
         """
         Get the NAT configurations.
 
         Returns:
-        Tuple[bool, List[Dict]]: A tuple containing a boolean indicating success and a list of NAT configurations as dictionaries.
+        tuple[bool, list[dict]]: A tuple containing a boolean indicating success and a list of NAT configurations as dictionaries.
         """
         cls.log.debug('get_nat_configuration()')
 
@@ -320,12 +320,12 @@ class RouterConfigurationDatabase:
             cls.log.error("Failed to retrieve NAT configurations.")
             return STATUS_NOK, []
 
-    def get_dhcp_server_configuration(cls) -> Tuple[bool, List[Dict]]:
+    def get_dhcp_server_configuration(cls) -> tuple[bool, list[dict]]:
         """
         Retrieve global DHCP server configuration data, including pool details, reservations, and subnet options.
 
         Returns:
-            Tuple[bool, List[Dict]]: A tuple containing a boolean status and a list of dictionaries representing DHCP server configuration data.
+            tuple[bool, list[dict]]: A tuple containing a boolean status and a list of dictionaries representing DHCP server configuration data.
             - The boolean status is STATUS_OK if the retrieval is successful, and STATUS_NOK otherwise.
             - The list includes dictionaries for each type of data, making it easy to distinguish between pool details,
               reservations, and subnet options.
@@ -374,7 +374,7 @@ class RouterConfigurationDatabase:
         
         return STATUS_OK, config_data
 
-    def get_banner(cls) -> Tuple[bool, Dict]:
+    def get_banner(cls) -> tuple[bool, dict]:
         """
         Retrieve the banner Message of the Day (Motd) from the database.
 
@@ -382,7 +382,7 @@ class RouterConfigurationDatabase:
             cls: The RouterShellDB class.
 
         Returns:
-            Tuple[bool, Dict]: A tuple containing a boolean indicating the operation's success or failure,
+            tuple[bool, dict]: A tuple containing a boolean indicating the operation's success or failure,
             and a dictionary with the banner Motd if found.
 
         """
@@ -394,12 +394,12 @@ class RouterConfigurationDatabase:
         
         return STATUS_OK, result.result
 
-    def get_wifi_policy_configuration(cls) -> Tuple[bool, Dict]:
+    def get_wifi_policy_configuration(cls) -> tuple[bool, dict]:
         """
         Retrieves WiFi policy configuration data including global policy information and associated security policies.
 
         Returns:
-        - Tuple[bool, Dict]: A tuple containing a boolean status and a dictionary with WiFi policy configuration data.
+        - tuple[bool, dict]: A tuple containing a boolean status and a dictionary with WiFi policy configuration data.
 
         """
         wifi_policy_result = cls.rsdb.select_wifi_policies()

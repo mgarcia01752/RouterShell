@@ -1,9 +1,10 @@
 import logging
+
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.config.config_cmds import ConfigCmd
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
-from routershell.lib.common.constants import STATUS_NOK
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+
 
 class ConfigMode(ConfigurePrompt):
 
@@ -19,7 +20,7 @@ class ConfigMode(ConfigurePrompt):
             self.log.warning("Config mode is not available in non-privileged mode")
         
     def intro(self) -> str:
-        return f'Starting Configuration Mode....'
+        return 'Starting Configuration Mode....'
         
     def help(self):
         return 'No Help'

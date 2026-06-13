@@ -1,21 +1,23 @@
 import logging
-from typing import List
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
-from routershell.lib.network_manager.common.phy import State
+
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName, StatusResult
+from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_interface import BridgeInterface
+
 
 class BridgeInterfaceFactory:
     """
     Factory class for creating and managing bridge interface commands.
 
     Attributes:
-        _bridge_config_command_list (List['BridgeInterface']): A list that holds the bridge configuration commands 
+        _bridge_config_command_list (list['BridgeInterface']): A list that holds the bridge configuration commands 
         for different bridges. This list is used to store and manage the configuration commands for bridges 
         created by the factory.
         
     Methods:
-        __init__(bridge_name: str):
+        __init__(bridge_name: BridgeName):
             Initializes the BridgeConfigFactory with the given bridge name and sets up logging.
         
         get_bridge_interface() -> 'BridgeInterface':
@@ -23,9 +25,9 @@ class BridgeInterfaceFactory:
             Returns the newly created BridgeInterface object.
     """
     
-    _bridge_interface_list: List[BridgeInterface] = []
+    _bridge_interface_list: list[BridgeInterface] = []
     
-    def __init__(self, bridge_name: str):
+    def __init__(self, bridge_name: BridgeName):
         """
         Initializes the BridgeConfigFactory with the given bridge name and sets up logging.
 
@@ -36,7 +38,7 @@ class BridgeInterfaceFactory:
         self.log.setLevel(RSLS().BRIDGE_INTERFACE_FACTORY)        
         self._bridge_name = bridge_name
     
-    def destroy_bridge(self) -> bool:
+    def destroy_bridge(self) -> StatusResult:
         """
         Destroy the bridge associated with the current object.
 
@@ -44,7 +46,7 @@ class BridgeInterfaceFactory:
         destroys the bridge if it matches the current bridge name.
 
         Returns:
-            bool: STATUS_OK if the bridge was successfully destroyed, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the bridge was successfully destroyed, STATUS_NOK otherwise.
         """
         if BridgeInterfaceFactory._bridge_interface_list:
             for bcc in BridgeInterfaceFactory._bridge_interface_list:
@@ -75,7 +77,7 @@ class BridgeInterfaceFactory:
             
         return bcc
     
-    def set_shutdown_status_all_bridges(self, shutdown_state: State) -> bool:
+    def set_shutdown_status_all_bridges(self, shutdown_state: State) -> StatusResult:
         """
         Sets the shutdown status for all bridges managed by the system using the BridgeInterface class.
 
@@ -89,7 +91,7 @@ class BridgeInterfaceFactory:
                 This should be an instance of the `State` enum, such as `State.UP` or `State.DOWN`.
 
         Returns:
-            bool: STATUS_OK if the shutdown status was successfully set for all bridges, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the shutdown status was successfully set for all bridges, STATUS_NOK otherwise.
         """
         if not BridgeInterfaceFactory._bridge_interface_list:
             self.log.error("No BridgeInterface Found")

@@ -1,8 +1,8 @@
 import logging
-from typing import List, Optional
+
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_manager.common.run_commands import RunCommand
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 
 class InvalidLinuxSystem(Exception):
@@ -20,14 +20,14 @@ class LinuxSystem(RunCommand):
         self.arg = arg
         self.sys_db = SystemDatabase()
 
-    def get_dmesg(self, args: Optional[List[str]] = None) -> str:
+    def get_dmesg(self, args: list[str] | None = None) -> str:
         """Queries the kernel ring buffer using 'dmesg' command.
 
         This function retrieves kernel ring buffer messages based on provided arguments.
         It handles potential errors and returns the message output as a string.
 
         Args:
-            args (Optional[List[str]]): Optional arguments to pass to 'dmesg'
+            args (list[str] | None): optional arguments to pass to 'dmesg'
                 (implementation may vary, consult 'dmesg' documentation).
 
         Returns:
@@ -51,14 +51,14 @@ class LinuxSystem(RunCommand):
         return result.stdout.strip()
 
     
-    def get_journalctl(self, args: Optional[List[str]] = None) -> str:
+    def get_journalctl(self, args: list[str] | None = None) -> str:
         """Queries the systemd journal using 'journalctl' command.
 
         This function retrieves systemd journal entries based on provided arguments.
         It handles potential errors and returns the journal output as a string.
 
         Args:
-            args (Optional[List[str]]): Optional arguments to pass to 'journalctl'
+            args (list[str] | None): optional arguments to pass to 'journalctl'
                 (e.g., `-u <service>`, `--since yesterday`).
 
         Returns:

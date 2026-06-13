@@ -1,5 +1,6 @@
 from routershell.lib.common.common import Common
 
+
 class PromptResponse:
     
     @staticmethod

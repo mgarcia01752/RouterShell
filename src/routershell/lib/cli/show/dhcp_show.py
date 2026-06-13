@@ -1,12 +1,14 @@
 import logging
-from typing import List
+
 from tabulate import tabulate
+
 from routershell.lib.common.common import Common
 from routershell.lib.common.constants import STATUS_OK
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient
 from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpServerManager
 
-class DHCPClientShow():
+
+class DHCPClientShow:
     """Command set for showing DHCPClient-Show-Command"""
 
     def __init__(self, args=None):
@@ -14,12 +16,12 @@ class DHCPClientShow():
         self.log = logging.getLogger(self.__class__.__name__)
         self.args = args
     
-    def flow_log(self) -> List[str]:
+    def flow_log(self) -> list[str]:
         """
         Retrieve DHCP client flow logs related to IPv4 address assignment from the system journal.
 
         Returns:
-            List[str]: A list of DHCP client flow log entries related to IPv4 address assignment.
+            list[str]: A list of DHCP client flow log entries related to IPv4 address assignment.
         """
 
         parsed_logs = [log for log in DHCPClient.get_flow_log() if log]
@@ -33,7 +35,7 @@ class DHCPClientShow():
             print("No valid log entries found.")
         
 
-class DHCPServerShow():
+class DHCPServerShow:
     """Command set for showing DHCPServer-Show-Command"""
 
     def __init__(self, args=None):
@@ -73,22 +75,22 @@ class DHCPServerShow():
         else:
             return 'Not Active'
 
-    def dhcp_lease_log(self) -> List[str]:
+    def dhcp_lease_log(self) -> list[str]:
         """
         Get the DHCP-related log entries from the system journal.
 
         Returns:
-            List[str]: A list of DHCP-related log entries.
+            list[str]: A list of DHCP-related log entries.
         """
         for line in DhcpServerManager().lease_log():
             print(line)
 
-    def dhcp_server_log(self) -> List[str]:
+    def dhcp_server_log(self) -> list[str]:
         """
         Get the DHCP-related log entries from the system journal.
 
         Returns:
-            List[str]: A list of DHCP-related log entries.
+            list[str]: A list of DHCP-related log entries.
         """
         for line in DhcpServerManager().server_log():
             print(line)

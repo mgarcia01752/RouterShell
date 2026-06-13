@@ -1,8 +1,7 @@
 import logging
-from typing import List, Optional
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.prompt_response import PromptResponse
 from routershell.lib.cli.show.arp_show import ArpShow
 from routershell.lib.cli.show.bridge_show import BridgeShow
@@ -12,10 +11,11 @@ from routershell.lib.cli.show.interface_show import InterfaceShow
 from routershell.lib.cli.show.ip_route_show import RouteShow
 from routershell.lib.cli.show.nat_show import NatShow
 from routershell.lib.cli.show.router_configuration import RouterConfiguration
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.common.string_formats import StringFormats
-from routershell.lib.hardware.hardware_detection import HardwareDetection
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import StatusResult
+from routershell.lib.hardware.hardware_detection import HardwareDetection
 from routershell.lib.system.linux_calls import LinuxSystem
 from routershell.lib.system.system_call import SystemCall
 
@@ -31,7 +31,7 @@ class Show(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().SHOW_MODE)
                
-    def show_help(self, args: List=None) -> None:
+    def show_help(self, args: list=None) -> None:
         """
         Display help for available commands.
         """
@@ -41,12 +41,12 @@ class Show(CmdPrompt):
         STATUS_OK
     
     @CmdPrompt.register_sub_commands()         
-    def show_arp(self, args: List=None) -> None:
+    def show_arp(self, args: list=None) -> None:
         ArpShow().arp(args)
         STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'])      
-    def show_bridge(self, args: List=None) -> None:
+    def show_bridge(self, args: list=None) -> None:
                 
         if not args:
             BridgeShow().show_bridges()
@@ -58,7 +58,7 @@ class Show(CmdPrompt):
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['client' , 'log'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['server', 'leases' , 'lease-log', 'server-log', 'status'])
-    def show_dhcp(self, args: List=None) -> None:
+    def show_dhcp(self, args: list=None) -> None:
         self.log.debug(f'show_dhcp: {args}')
         
         if '?'in args:
@@ -91,7 +91,7 @@ class Show(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['brief'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['statistic'])
-    def show_interface(self, args:List) -> None:
+    def show_interface(self, args:list) -> None:
         """interfaces\t\t\tDisplay information about network interfaces."""
         
         self.log.debug(f'show_interfaces: {args}')
@@ -116,7 +116,7 @@ class Show(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['cpu'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['network'])
-    def show_hardware(self, args: List) -> None:
+    def show_hardware(self, args: list) -> None:
         """hardware\t\t\tDisplay information about hardware."""
         
         self.log.debug(f'show_hardware: {args}')
@@ -140,7 +140,7 @@ class Show(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
-    def show_ip(self, args: List) -> None:
+    def show_ip(self, args: list) -> None:
         """ip\t\t\t\tDisplay information about IP addresses."""
         
         self.log.debug(f'show_ip: {args}')
@@ -154,7 +154,7 @@ class Show(CmdPrompt):
             STATUS_OK   
     
     @CmdPrompt.register_sub_commands()    
-    def show_route(self, args: List) -> None:
+    def show_route(self, args: list) -> None:
         
         self.log.debug(f'show_route: {args}')
         
@@ -167,7 +167,7 @@ class Show(CmdPrompt):
             STATUS_OK
         
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['configuration', 'system-commands'])      
-    def show_running(self, args: List) -> None:
+    def show_running(self, args: list) -> None:
 
         self.log.debug(f'show_running: {args}')
 
@@ -186,7 +186,7 @@ class Show(CmdPrompt):
         STATUS_OK
                 
     @CmdPrompt.register_sub_commands()      
-    def show_nat(self, args: List) -> None:
+    def show_nat(self, args: list) -> None:
 
         self.log.debug(f'show_running: {args}')
 
@@ -198,7 +198,7 @@ class Show(CmdPrompt):
             NatShow().getNatTable()
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['all', 'interface', 'nat', 'bridge', 'vlan'])     
-    def show_db(self, args: List) -> None:
+    def show_db(self, args: list) -> None:
         if 'all' in args:
             DbDumpShow().dump_db()
             
@@ -218,14 +218,14 @@ class Show(CmdPrompt):
             PromptResponse.print_invalid_cmd_response(args)
                 
     @CmdPrompt.register_sub_commands()
-    def show_dmesg(self, args: Optional[List[str]] = None) -> bool:
+    def show_dmesg(self, args: list[str] | None = None) -> StatusResult:
         """Displays kernel ring buffer messages using LinuxSystem.get_dmesg().
 
         This function retrieves kernel ring buffer messages and prints them
         to the console.
 
         Args:
-            args (Optional[List[str]]): Optional arguments passed to
+            args (list[str] | None): optional arguments passed to
                 LinuxSystem.get_dmesg() (implementation may vary).
 
         Returns:
@@ -236,14 +236,14 @@ class Show(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['--help'])
-    def show_journalctl(self, args: Optional[List[str]] = None) -> int:
+    def show_journalctl(self, args: list[str] | None = None) -> int:
         """Displays systemd journal entries using LinuxSystem.get_journalctl().
 
         This function retrieves systemd journal entries based on provided
         arguments and prints them to the console.
 
         Args:
-            args (Optional[List[str]]): Optional arguments passed to
+            args (list[str] | None): optional arguments passed to
                 LinuxSystem.get_journalctl() (implementation may vary).
 
         Returns:

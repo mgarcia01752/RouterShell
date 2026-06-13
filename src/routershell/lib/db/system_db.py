@@ -1,11 +1,11 @@
 import logging
-import textwrap
-from typing import Dict, Tuple
-
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, Status
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import HostnameText, StatusResult
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+
+
 class SystemDatabase:
 
     rsdb = DB()
@@ -15,10 +15,10 @@ class SystemDatabase:
         cls.log.setLevel(RSLS().SYSTEM_DB)
         
         if not cls.rsdb:
-            cls.log.debug(f"Connecting RouterShell Database")
+            cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()
     
-    def set_hostname_db(cls, host_name: str) -> bool:
+    def set_hostname_db(cls, host_name: HostnameText) -> StatusResult:
         """
         Sets the hostname in the system database.
 
@@ -28,7 +28,7 @@ class SystemDatabase:
             host_name (str): The new hostname to set.
 
         Returns:
-            bool: STATUS_OK if the hostname is successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the hostname is successfully updated, STATUS_NOK otherwise.
         """
         return cls.rsdb.update_hostname(host_name).status
     
@@ -46,7 +46,7 @@ class SystemDatabase:
             return result.result.get('Hostname')
         return None
 
-    def set_banner_motd(cls, motd_banner:str) -> bool:
+    def set_banner_motd(cls, motd_banner:str) -> StatusResult:
         """
         Set the banner Message of the Day (Motd) in the RouterShell configuration.
 
@@ -55,11 +55,11 @@ class SystemDatabase:
             motd_banner (str): The new banner text.
 
         Returns:
-            bool: STATUS_OK if the banner is successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the banner is successfully set, STATUS_NOK otherwise.
         """        
         return cls.rsdb.update_banner_motd(motd_banner).status
     
-    def get_banner_motd(cls) -> Tuple[bool, str]:
+    def get_banner_motd(cls) -> tuple[bool, str]:
         """
         Retrieve the banner Message of the Day (Motd) from the RouterShell configuration.
 
@@ -67,18 +67,18 @@ class SystemDatabase:
             cls: The RouterShellDB class
 
         Returns:
-            Tuple[bool, str]: A tuple containing the status (STATUS_OK | STATUS_NOK) of the operation and the formatted banner text with lines
+            tuple[bool, str]: A tuple containing the status (STATUS_OK | STATUS_NOK) of the operation and the formatted banner text with lines
         """
         result = cls.rsdb.select_banner_motd()
 
         return result.status, result.result.get('BannerMotd')
 
-    def get_telnet_server_status(cls) -> Tuple[bool, Dict]:
+    def get_telnet_server_status(cls) -> tuple[bool, dict]:
         """
         Retrieve the Telnet server status and port from the database.
 
         Returns:
-            Tuple[bool, Dict]: A tuple containing a boolean indicating the success of the operation and a dictionary.
+            tuple[bool, dict]: A tuple containing a boolean indicating the success of the operation and a dictionary.
                             The dictionary contains the Telnet server status ('Enable') and port ('Port') if the 
                             operation is successful. If the operation fails, the boolean is STATUS_NOK and the dictionary is empty.
         """
@@ -94,7 +94,7 @@ class SystemDatabase:
             cls.log.error(f"Unexpected error while retrieving Telnet server status: {e}")
             return STATUS_NOK, {}
 
-    def set_telnet_server_status(cls, telnet_server_status: bool, port: int) -> bool:
+    def set_telnet_server_status(cls, telnet_server_status: bool, port: int) -> StatusResult:
         """
         Sets the status of the Telnet server and updates the port configuration.
 
@@ -103,17 +103,17 @@ class SystemDatabase:
         port (int): The port number for the Telnet server.
 
         Returns:
-        bool: The status indicating whether the update was successful.
+        StatusResult: The status indicating whether the update was successful.
         """
         result = cls.rsdb.update_global_telnet_server(telnet_server_status, port)
         return result.status
 
-    def get_ssh_server_status(cls) -> Tuple[bool, Dict]:
+    def get_ssh_server_status(cls) -> tuple[bool, dict]:
         """
         Retrieve the SSH server status and port from the database.
 
         Returns:
-            Tuple[bool, Dict]: A tuple containing a boolean indicating the success of the operation 
+            tuple[bool, dict]: A tuple containing a boolean indicating the success of the operation 
                                and a dictionary. The dictionary contains the SSH server status ('Enable') 
                                and port ('Port') if the operation is successful. If the operation fails, 
                                the boolean is STATUS_NOK and the dictionary is empty.
@@ -130,7 +130,7 @@ class SystemDatabase:
             cls.log.error(f"Unexpected error while retrieving SSH server status: {e}")
             return STATUS_NOK, {}
 
-    def set_ssh_server_status(cls, ssh_server_status: Status) -> bool:
+    def set_ssh_server_status(cls, ssh_server_status: Status) -> StatusResult:
         """
         Set the status of the SSH server.
 
@@ -138,7 +138,7 @@ class SystemDatabase:
             ssh_server_status (Status): The desired status of the SSH server (ENABLE or DISABLE).
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         tss = ssh_server_status == Status.ENABLE
         return cls.rsdb.insert_global_ssh_server(tss).status

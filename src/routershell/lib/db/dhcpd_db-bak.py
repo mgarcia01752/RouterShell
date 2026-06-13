@@ -1,20 +1,20 @@
-import copy
 import ipaddress
 import json
 import logging
-from typing import Dict, Union
+from enum import Enum
 
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 
-from enum import Enum
+
+from routershell.lib.common.types import DhcpPoolName, FilePath, HostnameText, InetAddressText, InetCidrText, MacAddressText, NatPoolName, PredicateResult, StatusResult
 class DhcpVersion(Enum):
     DHCP_V4 = 4
     DHCP_V6 = 6
 
-class DHCPDatabaseFactory():
+class DHCPDatabaseFactory:
     
     def __init__(self, 
-                 dhcp_pool_name: str, 
+                 dhcp_pool_name: DhcpPoolName, 
                  ip_subnet_mask: ipaddress.IPv4Network,
                  negate=False):
         
@@ -50,7 +50,7 @@ class DHCPDatabaseFactory():
                     self.log.error(f"Unable to delete or does not exists DHCP Subnet-ID: {pool_name_id}")
                     return STATUS_NOK
                 
-                self.log.debug(f"Remove references pointers to preserve db")
+                self.log.debug("Remove references pointers to preserve db")
                 self.kea_v4_db, self.dhcp_pool_db = None
 
             else:                    
@@ -63,7 +63,7 @@ class DHCPDatabaseFactory():
         else:
             pass
 
-    def _set_pool_name(self, pool_name: str, subnet_id: int = -1) -> bool:
+    def _set_pool_name(self, pool_name: NatPoolName, subnet_id: int = -1) -> StatusResult:
         """
         Add a pool name to the DHCP configuration and associate it with a subnet ID.
 
@@ -73,7 +73,7 @@ class DHCPDatabaseFactory():
                 Default subnet_id = -1, if subnet ID is not know at the time of add
 
         Returns:
-            bool: STATUS_OK if the pool name was added successfully, STATUS_NOK if it already exists.
+            StatusResult: STATUS_OK if the pool name was added successfully, STATUS_NOK if it already exists.
         """
         # Check if the pool name already exists
         for pool_entry in self.dhcp_pool_db["DhcpPool"]["pool-name"]:
@@ -88,7 +88,7 @@ class DHCPDatabaseFactory():
         self.dhcp_pool_db["DhcpPool"]["pool-name"].append(new_pool_entry)
         return STATUS_OK
         
-    def _set_subnet(self, ip_subnet_mask: ipaddress.IPv4Network, dhcp_version: int, subnet_id: int = 0) -> bool:
+    def _set_subnet(self, ip_subnet_mask: ipaddress.IPv4Network, dhcp_version: int, subnet_id: int = 0) -> StatusResult:
         """
         Add a new subnet to the DHCP configuration.
 
@@ -98,7 +98,7 @@ class DHCPDatabaseFactory():
             subnet_id (int, optional): The ID of the subnet you're adding. If not provided, it will be automatically assigned based on existing subnets.
 
         Returns:
-            bool: STATUS_OK if the subnet was successfully added to the configuration, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the subnet was successfully added to the configuration, STATUS_NOK otherwise.
         """
         if not subnet_id:
             subnet_id = (DHCPDatabase.get_number_of_subnets(dhcp_version) + 1)
@@ -155,7 +155,7 @@ class DHCPDatabaseFactory():
             subnet_mask (str): The subnet mask in CIDR notation (e.g., "24" for a /24 subnet).
 
         Returns:
-            bool: STATUS_OK if the pool was successfully added, STATUS_NOK if there was an error.
+            StatusResult: STATUS_OK if the pool was successfully added, STATUS_NOK if there was an error.
         """
         subnet_pool = self.get_subnet_pool()  # Check if a subnet is defined
         if subnet_pool is None:
@@ -183,7 +183,7 @@ class DHCPDatabaseFactory():
                     }
                                    
                     if "pools" not in self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]:
-                        self.log.debug(f"add_pool() -> pools entry not found -> adding pools array entry")
+                        self.log.debug("add_pool() -> pools entry not found -> adding pools array entry")
                         self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]["pools"] = []
 
                     self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]["pools"].append(pool_entry)
@@ -272,7 +272,7 @@ class DHCPDatabase:
         }
     }
     
-    def __init__(self, config_file: str = None):
+    def __init__(self, config_file: FilePath | None = None):
         """
         Initialize the DHCPDatabase instance.
 
@@ -282,7 +282,7 @@ class DHCPDatabase:
         self.log = logging.getLogger(self.__class__.__name__)
         self.config_file = config_file
 
-    def add_subnet(self, subnet_id: int, subnet_range: str, client_class: str="", relay_ip: str=""):
+    def add_subnet(self, subnet_id: int, subnet_range: InetCidrText, client_class: str="", relay_ip: InetAddressText=""):
         """
         Add a subnet to the DHCP configuration.
 
@@ -307,7 +307,7 @@ class DHCPDatabase:
         # Add the new subnet to the existing configuration
         self.kea_v4_db["Dhcp4"]["subnet4"].append(new_subnet)
 
-    def add_reservation_to_subnet(self, subnet_id: int, mac: str, ip: str, hostname: str = ""):
+    def add_reservation_to_subnet(self, subnet_id: int, mac: MacAddressText, ip: str, hostname: HostnameText = ""):
         """
         Add a reservation to a subnet.
 
@@ -332,7 +332,7 @@ class DHCPDatabase:
                 subnet["pools"][0]["reservations"].append(new_reservation)
                 break  # Exit the loop once the subnet is found
 
-    def add_pool_to_subnet(self, subnet_id: int, ip_pool_start: str, ip_pool_end: str):
+    def add_pool_to_subnet(self, subnet_id: int, ip_pool_start: InetAddressText, ip_pool_end: InetAddressText):
         """
         Add an IP pool to a subnet.
 
@@ -353,7 +353,7 @@ class DHCPDatabase:
                 subnet["pools"].append(new_pool)
                 break  # Exit the loop once the subnet is found
 
-    def add_pool_name(self, pool_name: str, subnet_id: int = -1) -> bool:
+    def add_pool_name(self, pool_name: NatPoolName, subnet_id: int = -1) -> StatusResult:
         """
         Add a pool name to the DHCP configuration and associate it with a subnet ID.
 
@@ -363,7 +363,7 @@ class DHCPDatabase:
                 Default subnet_id = -1, if subnet ID is not know at the time of add
 
         Returns:
-            bool: STATUS_OK if the pool name was added successfully, STATUS_NOK if it already exists.
+            StatusResult: STATUS_OK if the pool name was added successfully, STATUS_NOK if it already exists.
         """
         # Check if the pool name already exists
         for pool_entry in self.dhcp_pool["DhcpPool"]["pool-name"]:
@@ -378,7 +378,7 @@ class DHCPDatabase:
         self.dhcp_pool["DhcpPool"]["pool-name"].append(new_pool_entry)
         return STATUS_OK  # Pool name added successfully
 
-    def update_pool_name(self, pool_name: str, new_subnet_id: int) -> bool:
+    def update_pool_name(self, pool_name: NatPoolName, new_subnet_id: int) -> StatusResult:
         """
         Update the subnet ID associated with a pool name in the DHCP configuration.
 
@@ -387,7 +387,7 @@ class DHCPDatabase:
             new_subnet_id (int): The new subnet ID to associate with the pool.
 
         Returns:
-            bool: STATUS_OK if the pool name was updated successfully, STATUS_NOK if the pool name doesn't exist.
+            StatusResult: STATUS_OK if the pool name was updated successfully, STATUS_NOK if the pool name doesn't exist.
         """
         # Find the pool entry by name
         for pool_entry in self.dhcp_pool["DhcpPool"]["pool-name"]:
@@ -421,7 +421,7 @@ class DHCPDatabase:
         else:
             return 0
 
-    def pool_name_exists(self, pool_name: str) -> bool:
+    def pool_name_exists(self, pool_name: NatPoolName) -> PredicateResult:
         """
         Check if a pool name exists in the DHCP configuration.
 
@@ -429,7 +429,7 @@ class DHCPDatabase:
             pool_name (str): The pool name to check.
 
         Returns:
-            bool: True if the pool name exists, False otherwise.
+            StatusResult: True if the pool name exists, False otherwise.
         """
         # Check if the pool name exists
         for pool_entry in self.dhcp_pool["DhcpPool"]["pool-name"]:
@@ -437,13 +437,13 @@ class DHCPDatabase:
                 return True  # Pool name exists
         return False  # Pool name does not exist
 
-    def update_global_config(self, dhcp_option: str, value: Union[str, int, bool], dhcp_version: int = 0):
+    def update_global_config(self, dhcp_option: str, value: str | int | bool, dhcp_version: int = 0):
         """
         Update a key-value pair in the global DHCP configuration.
 
         Args:
             dhcp_option (str): The DHCP option to update in the global configuration.
-            value (Union[str, int, bool]): The new value for the DHCP option.
+            value (str | int | bool): The new value for the DHCP option.
             dhcp_version (int, optional): 0 for DHCPv4, 1 for DHCPv6.
 
         Raises:
@@ -507,7 +507,7 @@ class DHCPDatabase:
         """
         return self.kea_v4_db
 
-    def delete_pool_name(self, pool_name:str) -> bool:
+    def delete_pool_name(self, pool_name:NatPoolName) -> StatusResult:
         """
         Delete a DHCP pool by name.
 
@@ -515,14 +515,14 @@ class DHCPDatabase:
             pool_name (str): The name of the DHCP pool to delete.
 
         Returns:
-            bool: STATUS_OK if the pool was successfully deleted, STATUS_NOK if the pool was not found.
+            StatusResult: STATUS_OK if the pool was successfully deleted, STATUS_NOK if the pool was not found.
         """
         if pool_name in self.dhcp_pool["DhcpPool"]["pool-name"]:
             self.dhcp_pool["DhcpPool"]["pool-name"].remove(pool_name)
             return STATUS_OK
         return STATUS_NOK
 
-    def delete_subnet(self, subnet_id: int) -> bool:
+    def delete_subnet(self, subnet_id: int) -> StatusResult:
         """
         Delete a DHCP subnet by ID.
 
@@ -530,7 +530,7 @@ class DHCPDatabase:
             subnet_id (int): The ID of the DHCP subnet to delete.
 
         Returns:
-            bool: STATUS_OK if the subnet was successfully deleted, STATUS_NOK if the subnet was not found.
+            StatusResult: STATUS_OK if the subnet was successfully deleted, STATUS_NOK if the subnet was not found.
         """
         for subnet in self.kea_v4_db["Dhcp4"]["subnet4"]:
             if subnet["id"] == subnet_id:
@@ -538,7 +538,7 @@ class DHCPDatabase:
                 return STATUS_OK
         return STATUS_NOK
 
-    def get_pool_name_id(self, pool_name:str) -> int:
+    def get_pool_name_id(self, pool_name:NatPoolName) -> int:
         """
         Get the ID of a DHCP pool by its name.
 
@@ -667,7 +667,7 @@ class DhcpOptionsLUT:
             "v4-access-domain": "fqdn"
         }
 
-    def dhcp_option_exists(self, dhcp_option: str) -> bool:
+    def dhcp_option_exists(self, dhcp_option: str) -> PredicateResult:
         """
         Verify if DHCP option exists in the DHCP configuration options.
 
@@ -675,11 +675,11 @@ class DhcpOptionsLUT:
             key (str): The key to check.
 
         Returns:
-            bool: True if the key exists, False otherwise.
+            StatusResult: True if the key exists, False otherwise.
         """
         return dhcp_option in self.dhcp_options
 
-    def get_data_type(self, dhcp_option: str) -> Union[None, str]:
+    def get_data_type(self, dhcp_option: str) -> None | str:
         """
         Get the data type associated with a key in the DHCP configuration options.
 
@@ -687,7 +687,7 @@ class DhcpOptionsLUT:
             key (str): The key to retrieve the data type for.
 
         Returns:
-            Union[None, str]: The data type of the key, or None if the key does not exist.
+            None | str: The data type of the key, or None if the key does not exist.
         """
         if self.dhcp_option_exists(dhcp_option):
             return self.dhcp_options[dhcp_option]

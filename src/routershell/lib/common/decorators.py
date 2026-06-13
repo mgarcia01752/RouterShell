@@ -1,5 +1,6 @@
-from enum import Enum
 import functools
+from enum import Enum
+
 
 class Color(Enum):
     RED = "\033[91m"

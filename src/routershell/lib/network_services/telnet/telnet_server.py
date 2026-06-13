@@ -1,10 +1,12 @@
 import logging
-from typing import Optional
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, TELNET_SYSV_CONFIG_FILE
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import FilePath, StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_services.common.network_ports import NetworkPorts
-from routershell.lib.system.init_system import InitSystemChecker, InitSystem
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.system.init_system import InitSystem, InitSystemChecker
+
 
 class TelnetService(RunCommand):
     """
@@ -12,18 +14,18 @@ class TelnetService(RunCommand):
 
     Attributes:
         port (int): The port number on which the Telnet service listens.
-        telnet_config_file (Optional[str]): Path to the Telnet configuration file for SysV init.
+        telnet_config_file (str | None): Path to the Telnet configuration file for SysV init.
         init_system (InitSystem): The init system in use (SysV or Systemd).
     """
     
-    _instance: Optional['TelnetService'] = None
+    _instance: 'TelnetService | None' = None
     init_system: InitSystem
     port: int
-    telnet_config_file: Optional[str] = None
+    telnet_config_file: FilePath | None = None
 
     def __new__(cls, *args, **kwargs) -> 'TelnetService':
         if cls._instance is None:
-            cls._instance = super(TelnetService, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls, *args, **kwargs)
             cls._instance._initialize()
         return cls._instance
 
@@ -42,11 +44,11 @@ class TelnetService(RunCommand):
         
         # Set configuration file path based on init system
         if self.init_system == InitSystem.SYSV:
-            self.telnet_config_file = '/etc/xinetd.d/telnet'
+            self.telnet_config_file = TELNET_SYSV_CONFIG_FILE
         else:
             self.telnet_config_file = None  # For Systemd, config management might differ
 
-    def set_port(self, port: int) -> bool:
+    def set_port(self, port: int) -> StatusResult:
         """
         Sets a new port for the Telnet service and updates the configuration.
 
@@ -54,7 +56,7 @@ class TelnetService(RunCommand):
             port (int): The new port number for the Telnet service.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, False otherwise.
+            StatusResult: STATUS_OK if the operation was successful, False otherwise.
         """
         self.log.debug(f'set_port() -> {port}')
         self.port = port
@@ -65,28 +67,28 @@ class TelnetService(RunCommand):
         # For Systemd, port configuration might be managed differently
         return STATUS_OK
     
-    def set_timeout(self, timeout: int=60) -> bool:
+    def set_timeout(self, timeout: int=60) -> StatusResult:
         '''timeout in seconds if no login is achived'''
         return STATUS_OK
     
-    def set_max_login_attempts(self, max_attemps: int=3) -> bool:
+    def set_max_login_attempts(self, max_attemps: int=3) -> StatusResult:
         '''max login attempts the restart login'''
         return STATUS_OK
     
-    def set_max_concurrent_users(self, max_users: int=5) -> bool:
+    def set_max_concurrent_users(self, max_users: int=5) -> StatusResult:
         '''max concurrent users'''
         return STATUS_OK
 
-    def update_telnet_config(self) -> bool:
+    def update_telnet_config(self) -> StatusResult:
         """
         Updates the Telnet configuration file with the new port and restarts the service.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if self.telnet_config_file:
             try:
-                with open(self.telnet_config_file, 'r') as file:
+                with open(self.telnet_config_file) as file:
                     lines = file.readlines()
                 
                 with open(self.telnet_config_file, 'w') as file:
@@ -99,18 +101,18 @@ class TelnetService(RunCommand):
                             
                 return self.restart_service()
             
-            except IOError as e:
+            except OSError as e:
                 self.log.error(f"An error occurred while updating the config file: {e}")
                 return STATUS_NOK
             
         return STATUS_OK
 
-    def start_service(self) -> bool:
+    def start_service(self) -> StatusResult:
         """
         Starts the Telnet service.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if self.init_system == InitSystem.SYSV:
             rtn = self.run(['service', 'xinetd', 'start'])
@@ -128,12 +130,12 @@ class TelnetService(RunCommand):
         
         return STATUS_OK
 
-    def stop_service(self) -> bool:
+    def stop_service(self) -> StatusResult:
         """
         Stops the Telnet service.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if self.init_system == InitSystem.SYSV:
             rtn = self.run(['service', 'xinetd', 'stop'])
@@ -151,12 +153,12 @@ class TelnetService(RunCommand):
             
         return STATUS_OK
 
-    def restart_service(self) -> bool:
+    def restart_service(self) -> StatusResult:
         """
         Restarts the Telnet service.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         if self.init_system == InitSystem.SYSV:
             rtn = self.run(['service', 'xinetd', 'restart'])
@@ -174,12 +176,12 @@ class TelnetService(RunCommand):
             
         return STATUS_OK
 
-    def status_service(self) -> bool:
+    def status_service(self) -> StatusResult:
         """
         Checks the status of the Telnet service.
 
         Returns:
-            bool: True if the service status check was successful, False otherwise.
+            StatusResult: True if the service status check was successful, False otherwise.
         """
         if self.init_system == InitSystem.SYSV:
             result = self.run(['service', 'xinetd', 'status'])

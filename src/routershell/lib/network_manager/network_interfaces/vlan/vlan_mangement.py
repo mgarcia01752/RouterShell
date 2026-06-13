@@ -1,8 +1,10 @@
 import logging
-from typing import List, Optional
+
 from routershell.lib.common.constants import STATUS_OK
-from routershell.lib.network_manager.network_operations.vlan import Vlan
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import StatusResult, VlanName
+from routershell.lib.network_manager.network_operations.vlan import Vlan
+
 
 class VlanMangementException(Exception):
     def __init__(self, message):
@@ -42,7 +44,7 @@ class VlanMangement:
         """
         return self._vlan_id
     
-    def set_name(self, vlan_name: str) -> bool:
+    def set_name(self, vlan_name: VlanName) -> StatusResult:
         """
         Set the name for the VLAN.
 
@@ -50,7 +52,7 @@ class VlanMangement:
             vlan_name (str): The name to be set for the VLAN.
 
         Returns:
-            bool: True if the VLAN name was successfully updated, False otherwise.
+            StatusResult: True if the VLAN name was successfully updated, False otherwise.
 
         Raises:
             ValueError: If the vlan_name is None.
@@ -60,16 +62,16 @@ class VlanMangement:
         
         return Vlan().update_vlan_name(self._vlan_id, vlan_name)
 
-    def set_description(self, description: Optional[List[str]] = None) -> bool:
+    def set_description(self, description: list[str] | None = None) -> StatusResult:
         """
         Set the description for the VLAN.
 
         Args:
-            description (Optional[List[str]]): The description to be set for the VLAN. If None, it will be set as an empty string.
+            description (list[str] | None): The description to be set for the VLAN. If None, it will be set as an empty string.
                                             If a list is provided, it will be joined into a single string with spaces.
 
         Returns:
-            bool: True if the VLAN description was successfully updated, False otherwise.
+            StatusResult: True if the VLAN description was successfully updated, False otherwise.
         """
         if description is None:
             description_str = ""
@@ -78,6 +80,6 @@ class VlanMangement:
 
         return Vlan().update_vlan_description(self._vlan_id, description_str)
 
-    def destroy_vlan(self) -> bool:
+    def destroy_vlan(self) -> StatusResult:
         return STATUS_OK
 

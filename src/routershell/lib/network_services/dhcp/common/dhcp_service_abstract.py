@@ -1,20 +1,23 @@
 from abc import ABC, abstractmethod
 
+from routershell.lib.common.types import StatusResult
+
+
 class DHCPServerAbstract(ABC):
     
     @abstractmethod
-    def status(self) -> bool:
+    def status(self) -> StatusResult:
         pass
     
     @abstractmethod
-    def restart(self) -> bool:
+    def restart(self) -> StatusResult:
         pass
     
     @abstractmethod
-    def start(self) -> bool:
+    def start(self) -> StatusResult:
         pass
 
     @abstractmethod
-    def stop(self) -> bool:
+    def stop(self) -> StatusResult:
         pass
     

@@ -2,14 +2,14 @@ import datetime
 import logging
 import os
 import shutil
-from typing import List
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK, ROUTER_CONFIG_DIR
 
+from routershell.lib.common.constants import ROUTER_CONFIG_DIR, STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.router_config_db import RouterConfigurationDatabase
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_services.common.network_ports import NetworkPorts
 from routershell.lib.system.system_call import SystemCall
+
 
 class RouterConfiguration:
 
@@ -65,12 +65,12 @@ class RouterConfiguration:
 
         self.log.debug(f"Running configuration copied to startup configuration: {startup_config_file}")
                 
-    def get_running_configuration(self, verbose: bool = False, indent: int = 1) -> List[str]:
+    def get_running_configuration(self, verbose: bool = False, indent: int = 1) -> list[str]:
         """
         Generate the running configuration for the router CLI.
 
         Returns:
-            List[str]: List of CLI commands representing the running configuration.
+            list[str]: list of CLI commands representing the running configuration.
         """
         
         cmd_lines = []
@@ -107,12 +107,12 @@ class RouterConfiguration:
         
         return cmd_lines
 
-    def _get_global_settings(self) -> List[str]:
+    def _get_global_settings(self) -> list[str]:
             """
             Generate CLI commands for global settings.
 
             Returns:
-                List[str]: List of CLI commands for global settings.
+                list[str]: list of CLI commands for global settings.
             """
             
             cmd_lines = []
@@ -126,7 +126,7 @@ class RouterConfiguration:
 
             return cmd_lines
 
-    def _get_global_dhcp_server_config(self, indent: int = 1) -> List[str]:
+    def _get_global_dhcp_server_config(self, indent: int = 1) -> list[str]:
         """
         Generate CLI commands for global DHCP server configuration based on retrieved information.
 
@@ -134,7 +134,7 @@ class RouterConfiguration:
             indent (int, optional): The number of spaces to use for indentation in the generated commands. Defaults to 1.
 
         Returns:
-            List[str]: A list of CLI commands representing global DHCP server configuration.
+            list[str]: A list of CLI commands representing global DHCP server configuration.
             
         Note:
         - This method retrieves DHCP server configuration information using the `get_dhcp_server_configuration` method.
@@ -162,7 +162,7 @@ class RouterConfiguration:
             
         return cmd_lines
      
-    def _get_global_bridge_config(self, indent: int = 1) -> List[str]:
+    def _get_global_bridge_config(self, indent: int = 1) -> list[str]:
         """
         Generate CLI commands for global bridge configuration.
 
@@ -170,7 +170,7 @@ class RouterConfiguration:
             indent (int, optional): The number of spaces to indent each line. Defaults to 1.
 
         Returns:
-            List[str]: List of CLI commands for global bridge configuration.
+            list[str]: list of CLI commands for global bridge configuration.
         """
         status, bridge_info_results = self.rcdb.get_bridge_configuration()
 
@@ -192,7 +192,7 @@ class RouterConfiguration:
 
         return cmd_lines
 
-    def _get_global_vlan_config(self, indent: int = 1) -> List[str]:
+    def _get_global_vlan_config(self, indent: int = 1) -> list[str]:
         """
         Generate CLI commands for global VLAN configuration.
 
@@ -200,7 +200,7 @@ class RouterConfiguration:
             indent (int, optional): The number of spaces to indent each line. Defaults to 1.
 
         Returns:
-            List[str]: List of CLI commands for global VLAN configuration.
+            list[str]: list of CLI commands for global VLAN configuration.
         """
         status, vlan_info_results = self.rcdb.get_vlan_configuration()
 
@@ -222,12 +222,12 @@ class RouterConfiguration:
 
         return cmd_lines
 
-    def _get_global_rename_interface_config(self) -> List[str]:
+    def _get_global_rename_interface_config(self) -> list[str]:
         """
         Generate CLI commands for renaming interface configurations based on the database.
 
         Returns:
-            List[str]: A list of CLI commands for renaming interface configurations.
+            list[str]: A list of CLI commands for renaming interface configurations.
         """
         cmd_lines = []
 
@@ -244,12 +244,12 @@ class RouterConfiguration:
             self.log.error("Failed to retrieve interface rename configurations.")
             return []
 
-    def _get_global_nat_config(self) -> List[str]:
+    def _get_global_nat_config(self) -> list[str]:
         """
         Get the global NAT configuration from the database.
 
         Returns:
-        List[str]: A list of global NAT pool names.
+        list[str]: A list of global NAT pool names.
         """
         cmd_lines = []
 
@@ -268,12 +268,12 @@ class RouterConfiguration:
             self.log.debug("Failed to retrieve global NAT configurations.")
             return []
          
-    def _get_interface_settings(self, indent: int = 1) -> List[str]:
+    def _get_interface_settings(self, indent: int = 1) -> list[str]:
         """
         Generate CLI commands for interface settings.
 
         Returns:
-            List[str]: List of CLI commands for interface settings.
+            list[str]: list of CLI commands for interface settings.
         """
         cmd_lines = []
 
@@ -335,29 +335,29 @@ class RouterConfiguration:
 
         return cmd_lines
 
-    def _get_access_control_list(self) -> List[str]:
+    def _get_access_control_list(self) -> list[str]:
         """
         Generate CLI commands for access control lists.
 
         Returns:
-            List[str]: List of CLI commands for access control lists.
+            list[str]: list of CLI commands for access control lists.
         """
         cmd_lines = []
         
         return cmd_lines
 
-    def _get_system_telnet_server(self) -> List[str]:
+    def _get_system_telnet_server(self) -> list[str]:
         """
         Generate a list of system server configuration commands based on the Telnet server status.
 
         Returns:
-            List[str]: A list containing the system server configuration command.
+            list[str]: A list containing the system server configuration command.
         """
         base_cmd = 'system telnet-server port'
         status, result = SystemDatabase().get_telnet_server_status()
 
         if status:
-            self.log.error(f'Error retrieving telnet-server configurations')
+            self.log.error('Error retrieving telnet-server configurations')
             return []
         
         enable = result.get('Enable', False)
@@ -370,12 +370,12 @@ class RouterConfiguration:
 
         return [base_cmd]
 
-    def _get_system_ssh_server(self) -> List[str]:
+    def _get_system_ssh_server(self) -> list[str]:
         """
         Generate a list of system server configuration commands based on the SSH server status.
 
         Returns:
-            List[str]: A list containing the system server configuration command.
+            list[str]: A list containing the system server configuration command.
         """
         base_cmd = 'system ssh-server port'
         
@@ -384,7 +384,7 @@ class RouterConfiguration:
         
         # Check if the status retrieval was successful
         if status == STATUS_NOK:
-            self.log.error(f"Error retrieving SSH server configurations")
+            self.log.error("Error retrieving SSH server configurations")
             return []
 
         enable = result.get('Enable', False)
@@ -398,24 +398,24 @@ class RouterConfiguration:
 
         return [base_cmd]
 
-    def _get_system_servers(self) -> List[str]:
+    def _get_system_servers(self) -> list[str]:
         """
         Generate a list of system server configuration commands based on the statuses of telnet and ssh servers.
 
         Returns:
-            List[str]: A combined list of system server configuration commands.
+            list[str]: A combined list of system server configuration commands.
         """
         cmd_lines = self._get_system_telnet_server()
         cmd_lines.extend(self._get_system_ssh_server())
 
         return cmd_lines
     
-    def _get_banner(self) -> List[str]:
+    def _get_banner(self) -> list[str]:
         """
         Retrieve the banner Message of the Day (Motd) from the RouterShell configuration and split it into a list of strings.
 
         Returns:
-            List[str]: The formatted banner text as a list of strings, where each element represents a line in the banner.
+            list[str]: The formatted banner text as a list of strings, where each element represents a line in the banner.
         """
         banner_text = SystemCall().get_banner()
         
@@ -428,13 +428,13 @@ class RouterConfiguration:
 
         return config_cmd
     
-    def _get_hostname(self) -> List[str]:
+    def _get_hostname(self) -> list[str]:
         
         hostname = f'hostname {SystemDatabase().get_hostname_db()}'
 
         return [hostname]
 
-    def _get_global_wifi_policy(self, indent: int=1) -> List[str]:
+    def _get_global_wifi_policy(self, indent: int=1) -> list[str]:
         """
         Generate CLI commands for WiFi policy configuration.
 
@@ -442,7 +442,7 @@ class RouterConfiguration:
             indent (int, optional): The number of spaces to use for indentation. Defaults to 1.
 
         Returns:
-            List[str]: List of CLI commands for WiFi policy configuration. Each command is indented based on the specified 'indent' parameter.
+            list[str]: list of CLI commands for WiFi policy configuration. Each command is indented based on the specified 'indent' parameter.
         """
         cmd_lines = []
 

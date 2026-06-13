@@ -2,12 +2,14 @@ import ipaddress
 import json
 import logging
 import subprocess
-from typing import List
+
 from tabulate import tabulate
 
-from routershell.lib.network_manager.common.inet import InetServiceLayer
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, PredicateResult, StatusResult
+from routershell.lib.network_manager.common.inet import InetServiceLayer
+
 
 class InterfaceNotFoundError(Exception):
     """
@@ -26,7 +28,7 @@ class NetworkManager(InetServiceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().NETWORK_MANAGER)
     
-    def net_mgr_interface_exist(self, interface_name) -> bool:
+    def net_mgr_interface_exist(self, interface_name) -> PredicateResult:
         """
         Check if a network interface with the given name exists on the system.
 
@@ -37,7 +39,7 @@ class NetworkManager(InetServiceLayer):
             interface_name (str): The name of the network interface to check.
 
         Returns:
-            bool: A status indicating whether the interface is valid or not.
+            StatusResult: A status indicating whether the interface is valid or not.
             - 'True': If the interface exists.
             - 'False': If the interface does not exist or an error occurred.
         """
@@ -57,7 +59,7 @@ class NetworkManager(InetServiceLayer):
             print(f"Error: {e}")
             return 'STATUS_NOK'
 
-    def flush_interface(self, interface_name: str) -> bool:
+    def flush_interface(self, interface_name: InterfaceName) -> StatusResult:
         """
         Flush the configuration of a specific network interface.
 
@@ -67,7 +69,7 @@ class NetworkManager(InetServiceLayer):
             interface_name (str): The name of the network interface to flush.
 
         Returns:
-            bool: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
         """
         self.log.debug(f"flush_interface() -> interface_name: {interface_name}")
 
@@ -80,7 +82,7 @@ class NetworkManager(InetServiceLayer):
 
         return STATUS_OK
 
-    def get_vlan_interfaces(self) -> List[str]:
+    def get_vlan_interfaces(self) -> list[str]:
         return []
     
     def get_interfaces(self, args=None):

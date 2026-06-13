@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from routershell.lib.network_manager.network_operations.arp import Arp
 
@@ -17,7 +16,7 @@ class ArpShow(Arp):
 
     Methods
     -------
-    arp(args: List=None)
+    arp(args: list=None)
         Calls the get_arp method from the parent Arp class to perform an ARP (Address Resolution Protocol) action.
     """
 
@@ -34,13 +33,13 @@ class ArpShow(Arp):
         self.log = logging.getLogger(self.__class__.__name__)
         self.arg = arg        
 
-    def arp(self, args: List=None):
+    def arp(self, args: list=None):
         """
         Executes the ARP (Address Resolution Protocol) action by calling the get_arp method from the parent Arp class.
 
         Parameters
         ----------
-        args : List, optional
+        args : list, optional
             A list of arguments that can be passed to the ARP method (default is None)
         """
         self.get_arp()

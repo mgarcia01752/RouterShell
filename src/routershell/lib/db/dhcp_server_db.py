@@ -1,11 +1,20 @@
 import logging
-from typing import Dict, List
 
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.constants import STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import (
+    DhcpPoolName,
+    InetAddressText,
+    InetCidrText,
+    InterfaceName,
+    MacAddressText,
+    PredicateResult,
+    StatusResult,
+)
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
+
 
 class DHCPServerDatabase:
     """
@@ -20,7 +29,7 @@ class DHCPServerDatabase:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DHCP_SERVER_DB)
 
-    def dhcp_pool_name_dhcp_version_db(self, dhcp_pool_name: str) -> DHCPVersion:
+    def dhcp_pool_name_dhcp_version_db(self, dhcp_pool_name: DhcpPoolName) -> DHCPVersion:
         """
         Retrieve the DHCP version for a specified DHCP pool name from the database.
 
@@ -48,7 +57,7 @@ class DHCPServerDatabase:
             self.log.error(f"Failed to retrieve DHCP version for '{dhcp_pool_name}'. Error: {str(e)}")
             return DHCPVersion.UNKNOWN
 
-    def dhcp_pool_name_exists_db(self, dhcp_pool_name: str) -> bool:
+    def dhcp_pool_name_exists_db(self, dhcp_pool_name: DhcpPoolName) -> PredicateResult:
         """
         Check if a DHCP pool name exists in the database.
 
@@ -56,11 +65,11 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The DHCP pool name to check.
 
         Returns:
-            bool: True if the DHCP pool name exists, False otherwise.
+            StatusResult: True if the DHCP pool name exists, False otherwise.
         """
         return DB().dhcp_pool_name_exist(dhcp_pool_name).status
 
-    def dhcp_pool_name_list(self) -> List[str]:
+    def dhcp_pool_name_list(self) -> list[str]:
         """
         Retrieve a list of DHCP pool names from the database.
 
@@ -69,7 +78,7 @@ class DHCPServerDatabase:
         are included in the returned list.
 
         Returns:
-            List[str]: A list of DHCP pool names with STATUS_OK.
+            list[str]: A list of DHCP pool names with STATUS_OK.
         """
         
         dhcp_pool_names = []
@@ -80,7 +89,7 @@ class DHCPServerDatabase:
         
         return dhcp_pool_names
 
-    def dhcp_pool_subnet_exist_db(self, inet_subnet_cidr: str) -> bool:
+    def dhcp_pool_subnet_exist_db(self, inet_subnet_cidr: InetCidrText) -> PredicateResult:
         """
         Check if a DHCP pool subnet with the given subnet CIDR exists in the database.
 
@@ -88,11 +97,11 @@ class DHCPServerDatabase:
             inet_subnet_cidr (str): The subnet CIDR to check for existence.
 
         Returns:
-            bool: True if the DHCP pool subnet exists, False otherwise.
+            StatusResult: True if the DHCP pool subnet exists, False otherwise.
         """
         return DB().dhcp_pool_subnet_exist(inet_subnet_cidr).status
 
-    def get_dhcp_pool_subnet_name_db(self, dhcp_pool_name: str) -> str:
+    def get_dhcp_pool_subnet_name_db(self, dhcp_pool_name: DhcpPoolName) -> str:
         """
         Retrieve the DHCP pool subnet from the RouterShell database using the provided DHCP pool name.
 
@@ -108,7 +117,7 @@ class DHCPServerDatabase:
         else:
             return None
 
-    def add_dhcp_pool_name_db(self, dhcp_pool_name: str) -> bool:
+    def add_dhcp_pool_name_db(self, dhcp_pool_name: DhcpPoolName) -> StatusResult:
         """
         Add a DHCP pool name to the database.
 
@@ -116,11 +125,11 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to add.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().insert_dhcp_pool_name(dhcp_pool_name).status
 
-    def add_dhcp_pool_subnet_db(self, dhcp_pool_name: str, inet_subnet_cidr: str) -> bool:
+    def add_dhcp_pool_subnet_db(self, dhcp_pool_name: DhcpPoolName, inet_subnet_cidr: InetCidrText) -> StatusResult:
         """
         Add a DHCP pool subnet to the database.
 
@@ -129,14 +138,14 @@ class DHCPServerDatabase:
             inet_subnet_cidr (str): The subnet CIDR to add to the pool.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().insert_dhcp_pool_subnet(dhcp_pool_name, inet_subnet_cidr).status
 
-    def add_dhcp_subnet_inet_address_range_db(self, inet_subnet_cidr: str, 
-                                              inet_address_start: str, 
-                                              inet_address_end: str, 
-                                              inet_address_subnet_cidr: str) -> bool:
+    def add_dhcp_subnet_inet_address_range_db(self, inet_subnet_cidr: InetCidrText, 
+                                              inet_address_start: InetAddressText, 
+                                              inet_address_end: InetAddressText, 
+                                              inet_address_subnet_cidr: InetCidrText) -> StatusResult:
         """
         Add an address range to a DHCP subnet in the database.
 
@@ -147,14 +156,14 @@ class DHCPServerDatabase:
             inet_address_subnet_cidr (str): The subnet CIDR of the address range.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().insert_dhcp_subnet_inet_address_range(inet_subnet_cidr, 
                                                           inet_address_start, 
                                                           inet_address_end, 
                                                           inet_address_subnet_cidr).status
 
-    def add_dhcp_subnet_reservation_db(self, inet_subnet_cidr: str, hw_address: str, inet_address: str) -> bool:
+    def add_dhcp_subnet_reservation_db(self, inet_subnet_cidr: InetCidrText, hw_address: MacAddressText, inet_address: InetAddressText) -> StatusResult:
         """
         Add a DHCP subnet reservation to the database.
 
@@ -164,11 +173,11 @@ class DHCPServerDatabase:
             inet_address (str): The reserved IP address.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().insert_dhcp_subnet_reservation(inet_subnet_cidr, hw_address, inet_address).status
 
-    def add_dhcp_subnet_option_db(self, inet_subnet_cidr: str, dhcp_option: str, option_value: str) -> bool:
+    def add_dhcp_subnet_option_db(self, inet_subnet_cidr: InetCidrText, dhcp_option: str, option_value: str) -> StatusResult:
         """
         Add a DHCP subnet option to the database.
 
@@ -178,11 +187,11 @@ class DHCPServerDatabase:
             option_value (str): The value of the DHCP option.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().insert_dhcp_subnet_option(inet_subnet_cidr, dhcp_option, option_value).status
 
-    def add_dhcp_subnet_reservation_option_db(self, inet_subnet_cidr: str, hw_address: str, dhcp_option: str, option_value: str) -> bool:
+    def add_dhcp_subnet_reservation_option_db(self, inet_subnet_cidr: InetCidrText, hw_address: MacAddressText, dhcp_option: str, option_value: str) -> StatusResult:
         """
         Add a DHCP subnet reservation option to the database.
 
@@ -193,11 +202,11 @@ class DHCPServerDatabase:
             option_value (str): The value of the DHCP option.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().insert_dhcp_subnet_reservation_option(inet_subnet_cidr, hw_address, dhcp_option, option_value).status
     
-    def del_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+    def del_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> StatusResult:
         """
         Delete a DHCP pool by its name from the DB.
         
@@ -205,11 +214,11 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to be deleted.
         
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().delete_dhcp_pool_name(dhcp_pool_name).status
 
-    def update_dhcp_pool_name_interface(self, dhcp_pool_name: str, interface_name: str, negate: bool=False) -> bool:
+    def update_dhcp_pool_name_interface(self, dhcp_pool_name: DhcpPoolName, interface_name: InterfaceName, negate: bool=False) -> StatusResult:
         """
         Update the interface associated with a DHCP pool in the database.
 
@@ -218,11 +227,11 @@ class DHCPServerDatabase:
             interface_name (str): The new interface name.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         return DB().update_dhcp_pool_name_interface(dhcp_pool_name, interface_name, negate).status
 
-    def update_dhcp_pool_mode_db(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
+    def update_dhcp_pool_mode_db(self, dhcp_pool_name: DhcpPoolName, mode: DHCPv6Modes) -> StatusResult:
         """
         Update the DHCP version mode for a specific DHCP pool.
 
@@ -231,7 +240,7 @@ class DHCPServerDatabase:
             mode (DHCPv6Modes): The DHCP version mode to set.
 
         Returns:
-            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
         return DB().update_dhcp_pool_dhcp_version_mode(dhcp_pool_name, mode.value).status
 
@@ -239,10 +248,10 @@ class DHCPServerDatabase:
                                 DHCP-DNSMasq - Configuration Building
     '''
 
-    def get_global_options(self) -> List[List]:
+    def get_global_options(self) -> list[list]:
         return []
     
-    def get_dhcp_pool_interfaces_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_interfaces_db(self, dhcp_pool_name: DhcpPoolName) -> list[dict]:
         """
         Retrieve the interfaces associated with a DHCP pool name from the database.
 
@@ -250,7 +259,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            List[Dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
+            list[dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
             or an empty list if none are found.
         """
         sql_result = DB().select_dhcp_pool_interfaces(dhcp_pool_name)
@@ -267,7 +276,7 @@ class DHCPServerDatabase:
 
         return results
 
-    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: DhcpPoolName) -> list[dict]:
         """
         Retrieve the DHCP pool's internet range information from the database.
 
@@ -275,7 +284,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to query.
 
         Returns:
-            List[Dict]: A list of dictionaries containing internet range information.
+            list[dict]: A list of dictionaries containing internet range information.
                 Each dictionary has the following keys:
                 - 'inet_start' (str): The start of the internet range.
                 - 'inet_end' (str): The end of the internet range.
@@ -296,7 +305,7 @@ class DHCPServerDatabase:
 
         return results
 
-    def get_dhcp_pool_reservation_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_reservation_db(self, dhcp_pool_name: DhcpPoolName) -> list[dict]:
         """
         Retrieve the DHCP pool's reservation information from the database.
 
@@ -304,7 +313,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to query.
 
         Returns:
-            List[Dict]: A list of dictionaries containing reservation information.
+            list[dict]: A list of dictionaries containing reservation information.
                 Each dictionary has the following keys:
                 - 'mac_address' (str): The MAC address of the reserved device.
                 - 'inet_address' (str): The internet address reserved for the device.
@@ -323,7 +332,7 @@ class DHCPServerDatabase:
 
         return results
 
-    def get_dhcp_pool_options_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_options_db(self, dhcp_pool_name: DhcpPoolName) -> list[dict]:
         """
         Retrieve the DHCP pool's options information from the database.
 
@@ -331,7 +340,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to query.
 
         Returns:
-            List[Dict]: A list of dictionaries containing DHCP options information.
+            list[dict]: A list of dictionaries containing DHCP options information.
                 Each dictionary has the following keys:
                 - 'option' (str): The DHCP option.
                 - 'value' (str): The value associated with the option.

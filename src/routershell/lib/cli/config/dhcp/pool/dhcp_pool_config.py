@@ -1,10 +1,10 @@
 import logging
-from typing import List
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import DhcpPoolName, InetCidrText, StatusResult
 from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpPoolFactory
 
 
@@ -20,7 +20,7 @@ class DhcpPoolConfig(CmdPrompt):
         _dhcp_pool_factory (DhcpPoolFactory): Factory instance for managing DHCP pools.
     """
 
-    def __init__(self, dhcp_pool_name: str, negate: bool) -> None:
+    def __init__(self, dhcp_pool_name: DhcpPoolName, negate: bool) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
@@ -32,19 +32,19 @@ class DhcpPoolConfig(CmdPrompt):
         
         self._dhcp_pool_fact = DhcpPoolFactory(dhcp_pool_name)
                    
-    def dhcppoolconfig_help(self, args: List = None) -> None:
+    def dhcppoolconfig_help(self, args: list = None) -> None:
         """
         Display help for available commands.
         
         Args:
-            args (List, optional): List of arguments (not used).
+            args (list, optional): list of arguments (not used).
         """
         for method_name in self.class_methods():
             method = getattr(self, method_name)
             print(f"{method.__doc__}")
     
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_subnet(self, inet_subnet_cidr: str | list[str]) -> bool:
+    def dhcppoolconfig_subnet(self, inet_subnet_cidr: InetCidrText | list[str]) -> StatusResult:
         """
         Configure a subnet for the DHCP pool.
         
@@ -52,7 +52,7 @@ class DhcpPoolConfig(CmdPrompt):
             inet_subnet_cidr (str | list[str]): The CIDR notation of the subnet or a list containing one CIDR notation.
         
         Returns:
-            bool: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the subnet was added successfully, STATUS_NOK otherwise.
         """
         # Check if inet_subnet_cidr is a list and ensure it has only one entry
         if isinstance(inet_subnet_cidr, list):
@@ -66,18 +66,18 @@ class DhcpPoolConfig(CmdPrompt):
         return self._dhcp_pool_fact.add_pool_subnet(inet_subnet_cidr)
 
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_pool(self, args: List[str]) -> bool:
+    def dhcppoolconfig_pool(self, args: list[str]) -> StatusResult:
         """
         Configure the IP range for the DHCP pool.
         
         Args:
-            args (List, optional): List of arguments [start_ip, end_ip, subnet_cidr].
+            args (list, optional): list of arguments [start_ip, end_ip, subnet_cidr].
         
         Returns:
-            bool: STATUS_OK if the pool was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the pool was added successfully, STATUS_NOK otherwise.
         """
         if len(args) != 3:
-            self.log.error(f'pool must have 3 arguments')
+            self.log.error('pool must have 3 arguments')
             return STATUS_NOK
             
         return self._dhcp_pool_fact.add_inet_pool_range(inet_start=args[0],
@@ -85,18 +85,18 @@ class DhcpPoolConfig(CmdPrompt):
                                                         inet_subnet_cidr=args[2])
 
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_option(self, args: List[str]) -> bool:
+    def dhcppoolconfig_option(self, args: list[str]) -> StatusResult:
         """
         Configure DHCP options.
         
         Args:
-            args (List, optional): List of arguments [option_name, value].
+            args (list, optional): list of arguments [option_name, value].
         
         Returns:
-            bool: STATUS_OK if the option was added successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the option was added successfully, STATUS_NOK otherwise.
         """
         if len(args) != 2:
-            self.log.error(f'dhcp option must have 2 arguments')
+            self.log.error('dhcp option must have 2 arguments')
             return STATUS_NOK        
         return self._dhcp_pool_fact.add_option(dhcp_option=args[0],
                                                   value=args[1])

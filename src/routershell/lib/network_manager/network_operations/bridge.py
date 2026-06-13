@@ -1,12 +1,11 @@
 import json
 import logging
-from typing import List, Optional
 
-from routershell.lib.db.bridge_db import BridgeDatabase 
-from routershell.lib.network_manager.common.phy import State
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
-
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName, InterfaceName, PredicateResult, StatusResult
+from routershell.lib.db.bridge_db import BridgeDatabase
+from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 
@@ -20,12 +19,12 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().BRIDGE)
         
-    def get_bridge_list_os(self) -> List[str]:
+    def get_bridge_list_os(self) -> list[str]:
         """
         Get a list of bridge names from OS
 
         Returns:
-            List[str]: A list of bridge names.
+            list[str]: A list of bridge names.
         """
         result = self.run(['ip', '-j', 'link', 'show', 'type', 'bridge'])
 
@@ -46,7 +45,7 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Unexpected data format: {e}")
             return []
 
-    def add_bridge(self, bridge_name: str, fix_os_db_inconsistency: bool = False) -> bool:
+    def add_bridge(self, bridge_name: BridgeName, fix_os_db_inconsistency: bool = False) -> StatusResult:
         """
         Adds a bridge to both the operating system (OS) and the database (DB).
 
@@ -59,7 +58,7 @@ class Bridge(RunCommand, BridgeDatabase):
                                             the OS and DB should be fixed.
 
         Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
         if self._does_bridge_exist_os(bridge_name):
             return self._handle_bridge_os_db_inconsistencies(bridge_name, fix_os_db_inconsistency, os_exists=True)
@@ -79,12 +78,12 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return STATUS_OK
 
-    def update_bridge(self, bridge_name: str, 
-                        protocol: Optional[BridgeProtocol] = None, 
-                        stp_status: Optional[STP_STATE] = None,
-                        management_inet: Optional[str] = None,
-                        description: Optional[str] = None,
-                        shutdown_status: Optional[State] = None) -> bool:
+    def update_bridge(self, bridge_name: BridgeName, 
+                        protocol: BridgeProtocol | None = None, 
+                        stp_status: STP_STATE | None = None,
+                        management_inet: str | None = None,
+                        description: str | None = None,
+                        shutdown_status: State | None = None) -> StatusResult:
         """
         Update the bridge configuration both on the operating system and in the database.
 
@@ -94,14 +93,14 @@ class Bridge(RunCommand, BridgeDatabase):
 
         Args:
             bridge_name (str): The name of the bridge to update.
-            protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
-            stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
-            management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
-            description (Optional[str]): The new description for the bridge. Defaults to None.
-            shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
+            protocol (BridgeProtocol | None): The new protocol for the bridge. Defaults to None.
+            stp_status (STP_STATE | None): The new STP status for the bridge. Defaults to None.
+            management_inet (str | None): The management IP address for the bridge. Defaults to None.
+            description (str | None): The new description for the bridge. Defaults to None.
+            shutdown_status (State | None): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
-            bool: STATUS_OK if both OS and DB updates were successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if both OS and DB updates were successful, STATUS_NOK otherwise.
         """
         # Update the bridge on the operating system
         if self._update_bridge_via_os(bridge_name, protocol, stp_status, management_inet, shutdown_status):
@@ -130,7 +129,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"Bridge {bridge_name} successfully updated in both OS and DB")
         return STATUS_OK
 
-    def get_shutdown_status_os(self, bridge_name: str) -> State:
+    def get_shutdown_status_os(self, bridge_name: BridgeName) -> State:
         """
         Retrieve the shutdown status of a bridge from the operating system.
 
@@ -166,7 +165,7 @@ class Bridge(RunCommand, BridgeDatabase):
 
         return State.UNKNOWN
 
-    def get_bridge_stp_status_os(self, bridge_name: str) -> STP_STATE:
+    def get_bridge_stp_status_os(self, bridge_name: BridgeName) -> STP_STATE:
         """
         Retrieve the STP status of a bridge from the operating system.
 
@@ -202,7 +201,7 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.error(f"Error parsing STP status for bridge {bridge_name}: {e}")
             return STP_STATE.STP_DISABLE
 
-    def del_bridge(self, bridge_name: str) -> bool:
+    def del_bridge(self, bridge_name: BridgeName) -> StatusResult:
         """
         Delete a bridge from the operating system and the database.
 
@@ -215,7 +214,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to delete.
 
         Returns:
-            bool: `STATUS_OK` if the bridge was successfully deleted from both the OS and the DB,
+            StatusResult: `STATUS_OK` if the bridge was successfully deleted from both the OS and the DB,
                 `STATUS_NOK` otherwise.
         """
         if self._del_bridge_via_os(bridge_name):
@@ -228,7 +227,7 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return STATUS_OK
     
-    def does_bridge_exist(self, bridge_name: str) -> bool:
+    def does_bridge_exist(self, bridge_name: BridgeName) -> PredicateResult:
         """
         Check if a bridge exists both on the operating system and in the database.
 
@@ -240,7 +239,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to check.
 
         Returns:
-            bool: True if the bridge exists on the operating system and does not exist in the database, 
+            StatusResult: True if the bridge exists on the operating system and does not exist in the database, 
                 indicating that it needs to be added to the database. False otherwise.
         """
         if not self._does_bridge_exist_os(bridge_name):
@@ -259,7 +258,7 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return True
 
-    def add_interface_to_bridge_group(self, interface_name: str, bridge_group: str) -> bool:
+    def add_interface_to_bridge_group(self, interface_name: InterfaceName, bridge_group: BridgeName) -> StatusResult:
         """
         Adds a specified network interface to a bridge group both in the OS and the database.
 
@@ -273,7 +272,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_group (str): The name of the bridge group to which the interface should be added.
 
         Returns:
-            bool: STATUS_OK if the interface was successfully added to the bridge group in both 
+            StatusResult: STATUS_OK if the interface was successfully added to the bridge group in both 
                 the OS and the database, STATUS_NOK otherwise.
         """
         if self._add_interface_to_bridge_group_os(interface_name, bridge_group):
@@ -286,7 +285,7 @@ class Bridge(RunCommand, BridgeDatabase):
         
         return STATUS_OK
 
-    def del_interface_to_bridge_group(self, interface_name: str, bridge_group: str) -> bool:
+    def del_interface_to_bridge_group(self, interface_name: InterfaceName, bridge_group: BridgeName) -> StatusResult:
         """
         Deletes a specified network interface from a bridge group.
 
@@ -299,7 +298,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_group (str): The name of the bridge group from which the interface should be removed.
 
         Returns:
-            bool: STATUS_OK if the interface was successfully removed from the bridge group,
+            StatusResult: STATUS_OK if the interface was successfully removed from the bridge group,
                 STATUS_NOK otherwise.
         """
 
@@ -313,7 +312,7 @@ class Bridge(RunCommand, BridgeDatabase):
 
         return STATUS_OK
 
-    def _add_interface_to_bridge_group_os(self, interface_name: str, bridge_group: str) -> bool:
+    def _add_interface_to_bridge_group_os(self, interface_name: InterfaceName, bridge_group: BridgeName) -> StatusResult:
         """
         Adds a specified network interface to a bridge group using OS commands.
 
@@ -328,7 +327,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_group (str): The name of the bridge group to which the interface should be added.
 
         Returns:
-            bool: STATUS_OK if the interface was successfully added to the bridge group, 
+            StatusResult: STATUS_OK if the interface was successfully added to the bridge group, 
                 STATUS_NOK otherwise.
         """
         if self._is_interface_attached_to_any_bridge_group_os(interface_name):
@@ -347,7 +346,7 @@ class Bridge(RunCommand, BridgeDatabase):
             return STATUS_NOK
         return STATUS_OK
 
-    def _is_interface_attached_to_bridge_group_os(self, interface_name: str, bridge_group: str) -> bool:
+    def _is_interface_attached_to_bridge_group_os(self, interface_name: InterfaceName, bridge_group: BridgeName) -> PredicateResult:
         """
         Checks if a specified network interface is attached to a specific bridge group using OS commands with JSON output.
 
@@ -360,7 +359,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_group (str): The name of the bridge group to check against.
 
         Returns:
-            bool: True if the interface is attached to the specified bridge group, False otherwise.
+            StatusResult: True if the interface is attached to the specified bridge group, False otherwise.
         """
         command = ['ip', '-j', 'link', 'show', interface_name]
         result = self.run(command)
@@ -381,7 +380,7 @@ class Bridge(RunCommand, BridgeDatabase):
 
         return False
 
-    def _is_interface_attached_to_any_bridge_group_os(self, interface_name: str) -> bool:
+    def _is_interface_attached_to_any_bridge_group_os(self, interface_name: InterfaceName) -> PredicateResult:
         """
         Checks if a specified network interface is attached to any bridge group using OS commands with JSON output.
 
@@ -393,7 +392,7 @@ class Bridge(RunCommand, BridgeDatabase):
             interface_name (str): The name of the network interface to check.
 
         Returns:
-            bool: True if the interface is attached to any bridge group, False otherwise.
+            StatusResult: True if the interface is attached to any bridge group, False otherwise.
         """
         command = ['ip', '-j', 'link', 'show', interface_name]
         result = self.run(command)
@@ -414,7 +413,7 @@ class Bridge(RunCommand, BridgeDatabase):
 
         return False
 
-    def _del_interface_from_bridge_group_os(self, interface_name: str, bridge_group: str) -> bool:
+    def _del_interface_from_bridge_group_os(self, interface_name: InterfaceName, bridge_group: BridgeName) -> StatusResult:
         """
         Removes a specified network interface from a bridge group using OS commands.
 
@@ -427,7 +426,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_group (str): The name of the bridge group from which the interface should be removed.
 
         Returns:
-            bool: STATUS_OK if the interface was successfully removed from the bridge group, 
+            StatusResult: STATUS_OK if the interface was successfully removed from the bridge group, 
                 STATUS_NOK otherwise.
         """
         command = ['ip', 'link', 'set', 'dev', interface_name, 'nomaster']
@@ -437,7 +436,7 @@ class Bridge(RunCommand, BridgeDatabase):
             return STATUS_NOK
         return STATUS_OK
 
-    def _does_bridge_exist_os(self, bridge_name:str, suppress_error=False) -> bool:
+    def _does_bridge_exist_os(self, bridge_name:BridgeName, suppress_error=False) -> PredicateResult:
         """
         Check if a bridge with the given name exists via iproute.
         Will also remove bridge name in db if the interface is not available
@@ -446,7 +445,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to check.
 
         Returns:
-            bool: True if the bridge exists, False otherwise.
+            StatusResult: True if the bridge exists, False otherwise.
         """
         self.log.debug(f"_does_bridge_exist_os() -> Checking bridge name exists: {bridge_name}")
         
@@ -459,7 +458,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"_does_bridge_exist_os(exit-code({output.exit_code})) -> Bridge does exist: {bridge_name}")
         return True
 
-    def _del_bridge_via_os(self, bridge_name: str) -> bool:
+    def _del_bridge_via_os(self, bridge_name: BridgeName) -> StatusResult:
         """
         Delete a bridge from the operating system. If there are any interfaces linked to the bridge,
         they will be unlinked before the bridge is deleted.
@@ -471,7 +470,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to delete.
 
         Returns:
-            bool: STATUS_OK if the bridge was successfully deleted from the OS, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the bridge was successfully deleted from the OS, STATUS_NOK otherwise.
         """
         if not self._does_bridge_exist_os(bridge_name):
             self.log.debug(f"Bridge {bridge_name} does not exist on OS. No deletion performed.")
@@ -496,7 +495,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"Bridge {bridge_name} successfully deleted from OS")
         return STATUS_OK
         
-    def _get_linked_interfaces(self, bridge_name: str) -> List[str]:
+    def _get_linked_interfaces(self, bridge_name: BridgeName) -> list[str]:
         """
         Retrieve a list of interfaces linked to the given bridge using JSON output for parsing.
 
@@ -504,7 +503,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to check.
 
         Returns:
-            List[str]: A list of interface names that are linked to the bridge.
+            list[str]: A list of interface names that are linked to the bridge.
         """
         result = self.run(['ip','-json','show', 'master', bridge_name], suppress_error=True)
         
@@ -522,11 +521,11 @@ class Bridge(RunCommand, BridgeDatabase):
 
         return interfaces
 
-    def _update_bridge_via_os(self, bridge_name: str, 
-                            protocol: Optional[BridgeProtocol] = None, 
-                            stp_status: Optional[STP_STATE] = None,
-                            management_inet: Optional[str] = None,
-                            shutdown_status: Optional[State] = None) -> bool:
+    def _update_bridge_via_os(self, bridge_name: BridgeName, 
+                            protocol: BridgeProtocol | None = None, 
+                            stp_status: STP_STATE | None = None,
+                            management_inet: str | None = None,
+                            shutdown_status: State | None = None) -> StatusResult:
         """
         Update a bridge on the operating system with the specified parameters.
 
@@ -535,13 +534,13 @@ class Bridge(RunCommand, BridgeDatabase):
 
         Args:
             bridge_name (str): The name of the bridge to update.
-            protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
-            stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
-            management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
-            shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
+            protocol (BridgeProtocol | None): The new protocol for the bridge. Defaults to None.
+            stp_status (STP_STATE | None): The new STP status for the bridge. Defaults to None.
+            management_inet (str | None): The management IP address for the bridge. Defaults to None.
+            shutdown_status (State | None): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
-            bool: True if the bridge was successfully updated, False otherwise.
+            StatusResult: True if the bridge was successfully updated, False otherwise.
         """
         if not self._does_bridge_exist_os(bridge_name):
             self.log.debug(f"Bridge {bridge_name} does not exist on OS. No update performed.")
@@ -554,7 +553,7 @@ class Bridge(RunCommand, BridgeDatabase):
         cmd = []
 
         if protocol:
-            self.log.debug(f'Bridge Protocol is not supported with iproute')
+            self.log.debug('Bridge Protocol is not supported with iproute')
             
         if stp_status:
             stp_command = '1' if stp_status == STP_STATE.STP_ENABLE else '0'
@@ -578,7 +577,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"Bridge {bridge_name} successfully updated on OS")
         return STATUS_OK
   
-    def _handle_bridge_os_db_inconsistencies(self, bridge_name: str, fix_os_db_inconsistency: bool, os_exists: bool) -> bool:
+    def _handle_bridge_os_db_inconsistencies(self, bridge_name: BridgeName, fix_os_db_inconsistency: bool, os_exists: bool) -> StatusResult:
         """
         Handles inconsistencies between the operating system (OS) and the database (DB) for a bridge.
 
@@ -588,7 +587,7 @@ class Bridge(RunCommand, BridgeDatabase):
             os_exists (bool): Flag indicating if the bridge exists in the OS.
 
         Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
         if os_exists:
             self.log.debug(f"Bridge {bridge_name} already exists in the OS")
@@ -597,7 +596,7 @@ class Bridge(RunCommand, BridgeDatabase):
                 self.log.critical(f'Inconsistency between the OS and DB: bridge {bridge_name} not found in the DB but found in the OS')
 
                 if fix_os_db_inconsistency:
-                    self.log.debug(f"Fixing the DB to match the OS")
+                    self.log.debug("Fixing the DB to match the OS")
                     if self.add_bridge_db(bridge_name):
                         return STATUS_OK
                     return STATUS_NOK
@@ -606,7 +605,7 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Bridge {bridge_name} does not exist in the OS but exists in the database")
 
             if fix_os_db_inconsistency:
-                self.log.debug(f"Fixing the OS to match the DB")
+                self.log.debug("Fixing the OS to match the DB")
                 if self.del_bridge_db(bridge_name):
                     if self._add_bridge_os(bridge_name):
                         self.add_bridge_db(bridge_name)
@@ -614,7 +613,7 @@ class Bridge(RunCommand, BridgeDatabase):
                 return STATUS_NOK
             return STATUS_NOK
 
-    def _add_bridge_os(self, bridge_name: str) -> bool:
+    def _add_bridge_os(self, bridge_name: BridgeName) -> StatusResult:
         """
         Create a bridge with Spanning Tree Protocol (STP) enabled.
 
@@ -622,7 +621,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to create.
 
         Returns:
-            bool: STATUS_OK if the bridge is created with STP enabled successfully, STATUS_NOK if creation fails.
+            StatusResult: STATUS_OK if the bridge is created with STP enabled successfully, STATUS_NOK if creation fails.
         """
         self.log.debug(f"_add_bridge_os() -> Adding bridge: {bridge_name} to OS")
         
