@@ -1,3 +1,30 @@
+### Summary
+Added README shields and support documentation for Ubuntu 22.04/24.04 and Python 3.10 through 3.13. Added a GitHub Actions CI matrix to test that support contract and pytest coverage to keep the README and workflow aligned.
+
+### Modified Files
+- README.md
+- .github/workflows/ci.yml
+- tests/tools/test_ci_workflow.py
+
+### Commands Executed And Results
+- `/opt/routershell/venv/bin/python -m pytest tests/tools/test_ci_workflow.py -q` -> pass, 2 passed.
+- `/opt/routershell/venv/bin/python -m ruff check tests/tools/test_ci_workflow.py` -> pass, all checks passed.
+- `bash -n tools/vm/*.sh install/install.sh` -> pass.
+- `/opt/routershell/venv/bin/python -m pytest -q` -> pass, 40 passed.
+- `/opt/routershell/venv/bin/python -m ruff check .` -> pass, all checks passed.
+
+### Tests
+- `pytest` -> pass, 40 passed.
+- `ruff` -> pass, all checks passed.
+- `bash -n` -> pass for VM scripts and installer script.
+
+### Notes / Warnings
+- GitHub Actions workflow execution was not run locally; it will run after the branch is pushed to GitHub.
+
+### Remaining TODOs / Follow-Ups
+- None.
+
+# FILE: README.md
 # RouterShell (WORK IN PROGRESS)
 
 [![CI](https://github.com/mgarcia01752/RouterShell/actions/workflows/ci.yml/badge.svg)](https://github.com/mgarcia01752/RouterShell/actions/workflows/ci.yml)
@@ -224,3 +251,93 @@ RouterShell is licensed under the [Apache License 2.0](LICENSE). Distributions
 must retain the [NOTICE](NOTICE) file.
 
 ## [TODO](todo.md)
+
+# FILE: .github/workflows/ci.yml
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Maurice Garcia
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-24.04
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Run Ruff
+        run: python -m ruff check .
+
+      - name: Validate shell scripts
+        run: bash -n tools/vm/*.sh install/install.sh
+
+# FILE: tests/tools/test_ci_workflow.py
+"""CI workflow metadata tests."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+README = REPO_ROOT / "README.md"
+CI_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "ci.yml"
+
+
+def test_readme_documents_supported_platforms() -> None:
+    readme = README.read_text()
+
+    assert "actions/workflows/ci.yml/badge.svg" in readme
+    assert "python-3.10--3.13-blue" in readme
+    assert "ubuntu-22.04%20%7C%2024.04-orange" in readme
+    assert "Ubuntu 22.04 LTS" in readme
+    assert "Ubuntu 24.04 LTS" in readme
+    assert "Python 3.10 through Python 3.13" in readme
+
+
+def test_ci_workflow_covers_supported_matrix() -> None:
+    workflow = CI_WORKFLOW.read_text()
+
+    assert "ubuntu-22.04" in workflow
+    assert "ubuntu-24.04" in workflow
+    assert '"3.10"' in workflow
+    assert '"3.11"' in workflow
+    assert '"3.12"' in workflow
+    assert '"3.13"' in workflow
+    assert "python -m pytest -q" in workflow
+    assert "python -m ruff check ." in workflow
+    assert "bash -n tools/vm/*.sh install/install.sh" in workflow
