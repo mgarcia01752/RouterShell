@@ -7,6 +7,7 @@ from ipaddress import ip_address
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.inet import InetServiceLayer
 from routershell.lib.network_manager.common.run_commands import RunCommand, RunResult
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
@@ -71,7 +72,7 @@ class DHCPClientFactory:
         self.log.setLevel(RSLS().DHCP_CLIENT_FACTORY)      
           
     def get_supported_dhcp_client(
-        self, interface_name: str, dhcp_stack_version: DHCPStackVersion, auto_sdc_override=None
+        self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion, auto_sdc_override=None
     ) -> 'DHCPClientOperations':
         """
         Determines and returns the appropriate DHCP client operations object based on 
@@ -212,7 +213,7 @@ class DHCPClientOperations(ABC, RunCommand):
             renew_inet(): Renew the IP address for the interface.
     """
 
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion, sdc: SupportedDhcpClients):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion, sdc: SupportedDhcpClients):
         super().__init__()
         RunCommand().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
@@ -414,7 +415,7 @@ class DHCPClientOperations(ABC, RunCommand):
         return STATUS_OK
 
 class DHCPClientOperations_udhcpc(DHCPClientOperations):
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_udhcpc with a network interface name.
         
@@ -486,7 +487,7 @@ class DHCPClientOperations_udhcpc(DHCPClientOperations):
         return None
 
 class DHCPClientOperations_udhcpc6(DHCPClientOperations):
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_udhcpc6 with a network interface name.
         
@@ -565,7 +566,7 @@ class DHCPClientOperations_udhcpc6(DHCPClientOperations):
         return None
 
 class DHCPClientOperations_dhcpcd(DHCPClientOperations):
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_dhcpcd with a network interface name.
         
@@ -634,7 +635,7 @@ class DHCPClientOperations_dhcpcd(DHCPClientOperations):
         return None
 
 class DHCPClientOperations_dhclient(DHCPClientOperations):
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient_dhclient with a network interface name.
 

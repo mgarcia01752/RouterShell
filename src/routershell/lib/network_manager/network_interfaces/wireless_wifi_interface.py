@@ -1,6 +1,7 @@
 import logging
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.network_interfaces.network_interface import NetworkInterface
 
 
@@ -10,7 +11,7 @@ class WirelessWifiInterfaceError(Exception):
 
 class WirelessWifiInterface(NetworkInterface):
 
-    def __init__(self, ethernet_name: str):
+    def __init__(self, ethernet_name: InterfaceName):
         super().__init__(interface_name=ethernet_name)
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().WIRELESS_WIFI_INTERFACE)        

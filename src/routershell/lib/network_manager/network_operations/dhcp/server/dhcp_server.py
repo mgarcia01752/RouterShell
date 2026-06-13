@@ -4,6 +4,7 @@ import os
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 from routershell.lib.common.constants import DNSMASQ_LEASE_FILE_PATH
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import DhcpPoolName, InetAddressText, InetCidrText, InterfaceName, MacAddressText
 from routershell.lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from routershell.lib.network_manager.common.inet import InetServiceLayer, InetVersion
 from routershell.lib.network_manager.common.mac import MacServiceLayer
@@ -29,7 +30,7 @@ class DHCPServer(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DHCP_SERVER)
     
-    def dhcp_pool_name_exists(self, dhcp_pool_name: str) -> bool:
+    def dhcp_pool_name_exists(self, dhcp_pool_name: DhcpPoolName) -> bool:
         """
         Check if a DHCP pool with the given name exists.
 
@@ -53,7 +54,7 @@ class DHCPServer(NetworkManager):
         """
         return DSD().dhcp_pool_name_list()
     
-    def dhcp_pool_subnet_exists(self, dhcp_pool_subnet_cidr: str) -> bool:
+    def dhcp_pool_subnet_exists(self, dhcp_pool_subnet_cidr: InetCidrText) -> bool:
         """
         Check if a DHCP subnet within a DHCP pool exists.
 
@@ -65,7 +66,7 @@ class DHCPServer(NetworkManager):
         """
         return DSD().dhcp_pool_subnet_exist_db(dhcp_pool_subnet_cidr)
     
-    def get_dhcp_pool_subnet(self, dhcp_pool_name:str) -> str:
+    def get_dhcp_pool_subnet(self, dhcp_pool_name:DhcpPoolName) -> str:
         """
         Retrieve the DHCP pool subnet from the RouterShell database using the provided DHCP pool name.
 
@@ -78,7 +79,7 @@ class DHCPServer(NetworkManager):
         """        
         return DSD().get_dhcp_pool_subnet_name_db(dhcp_pool_name)
     
-    def add_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+    def add_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> bool:
         """
         Add a DHCP pool name to the DHCP server if it does not already exist.
 
@@ -94,7 +95,7 @@ class DHCPServer(NetworkManager):
 
         return DSD().add_dhcp_pool_name_db(dhcp_pool_name)
     
-    def del_dhcp_pool_name(self, dhcp_pool_name: str) -> bool:
+    def del_dhcp_pool_name(self, dhcp_pool_name: DhcpPoolName) -> bool:
         """
         Delete a DHCP pool by its name.
         
@@ -109,7 +110,7 @@ class DHCPServer(NetworkManager):
             return STATUS_NOK
         return DSD().del_dhcp_pool_name(dhcp_pool_name)
 
-    def add_dhcp_pool_subnet(self, dhcp_pool_name: str, dhcp_pool_subnet_cidr: str) -> bool:
+    def add_dhcp_pool_subnet(self, dhcp_pool_name: DhcpPoolName, dhcp_pool_subnet_cidr: InetCidrText) -> bool:
         """
         Add a DHCP subnet to the DHCP server for the specified DHCP pool if it does not already exist.
 
@@ -130,11 +131,11 @@ class DHCPServer(NetworkManager):
                     
         return DSD().add_dhcp_pool_subnet_db(dhcp_pool_name, dhcp_pool_subnet_cidr)
  
-    def add_dhcp_pool_subnet_inet_range(self, dhcp_pool_name:str, 
-                                        dhcp_pool_subnet_cidr: str, 
-                                        inet_pool_start: str, 
-                                        inet_pool_end: str, 
-                                        inet_pool_subnet_cidr: str) -> bool:
+    def add_dhcp_pool_subnet_inet_range(self, dhcp_pool_name:DhcpPoolName, 
+                                        dhcp_pool_subnet_cidr: InetCidrText, 
+                                        inet_pool_start: InetAddressText, 
+                                        inet_pool_end: InetAddressText, 
+                                        inet_pool_subnet_cidr: InetCidrText) -> bool:
         """
         Add an IP address range to a DHCP subnet within a DHCP pool.
 
@@ -162,9 +163,9 @@ class DHCPServer(NetworkManager):
                                                            inet_pool_end, 
                                                            inet_pool_subnet_cidr)
     
-    def add_dhcp_pool_reservation(self, dhcp_pool_name: str, 
-                                  inet_subnet_cidr: str, 
-                                  hw_address: str, inet_address: str) -> bool:
+    def add_dhcp_pool_reservation(self, dhcp_pool_name: DhcpPoolName, 
+                                  inet_subnet_cidr: InetCidrText, 
+                                  hw_address: MacAddressText, inet_address: InetAddressText) -> bool:
         """
         Add a reservation to a DHCP pool.
 
@@ -183,7 +184,7 @@ class DHCPServer(NetworkManager):
         
         return DSD().add_dhcp_subnet_reservation_db(inet_subnet_cidr, hw_address, inet_address)
     
-    def add_dhcp_pool_option(self, dhcp_pool_name: str, inet_subnet_cidr: str, dhcp_option: str, value: str) -> bool:
+    def add_dhcp_pool_option(self, dhcp_pool_name: DhcpPoolName, inet_subnet_cidr: InetCidrText, dhcp_option: str, value: str) -> bool:
         """
         Add a DHCP option to a DHCP pool.
 
@@ -202,7 +203,7 @@ class DHCPServer(NetworkManager):
 
         return DSD().add_dhcp_subnet_option_db(inet_subnet_cidr, dhcp_option, value)
 
-    def add_dhcp_pool_to_interface(self, dhcp_pool_name: str, interface_name: str, negate:bool=False) -> bool:
+    def add_dhcp_pool_to_interface(self, dhcp_pool_name: DhcpPoolName, interface_name: InterfaceName, negate:bool=False) -> bool:
         """
         Adds a DHCP pool to an interface.
 
@@ -249,7 +250,7 @@ class DHCPServer(NetworkManager):
         
         return STATUS_OK
 
-    def update_dhcp_pool_mode(self, dhcp_pool_name: str, mode: DHCPv6Modes) -> bool:
+    def update_dhcp_pool_mode(self, dhcp_pool_name: DhcpPoolName, mode: DHCPv6Modes) -> bool:
         """
         Update the DHCP version mode for a specific DHCP pool.
 
@@ -277,7 +278,7 @@ class DHCPServer(NetworkManager):
 
 class DhcpPoolFactory:
 
-    def __init__(self, dhcp_pool_name: str):
+    def __init__(self, dhcp_pool_name: DhcpPoolName):
         """
         Initialize the DhcpPoolFactory instance.
 
@@ -324,7 +325,7 @@ class DhcpPoolFactory:
         """
         return self.factory_status
     
-    def add_pool_subnet(self, inet_subnet_cidr: str) -> bool:
+    def add_pool_subnet(self, inet_subnet_cidr: InetCidrText) -> bool:
         """
         Add a subnet to the DHCP pool.
 
@@ -354,7 +355,7 @@ class DhcpPoolFactory:
 
         return STATUS_OK
 
-    def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: str) -> bool:
+    def add_inet_pool_range(self, inet_start: str, inet_end: str, inet_subnet_cidr: InetCidrText) -> bool:
         """
         Add an IP address range to the DHCP pool.
 
@@ -380,7 +381,7 @@ class DhcpPoolFactory:
             inet_start, inet_end, inet_subnet_cidr
         )
 
-    def add_reservation(self, hw_address: str, inet_address: str) -> bool:
+    def add_reservation(self, hw_address: MacAddressText, inet_address: InetAddressText) -> bool:
         """
         Add a reservation to the DHCP pool.
 

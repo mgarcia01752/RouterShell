@@ -7,6 +7,7 @@ from bs4 import Comment
 
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.common import Common
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 
 
@@ -47,7 +48,7 @@ class GlobalPrivCommand(NetworkManager):
             else:
                 print("Reboot canceled.")
         
-    def do_flush(self, interface_name: str):
+    def do_flush(self, interface_name: InterfaceName):
         """
         Command to flush the configuration of a network interface.
 

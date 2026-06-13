@@ -2,6 +2,7 @@ import os
 from enum import Enum
 
 from routershell.lib.common.constants import HOSTAPD_CONF_DIR, STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import BridgeName, FilePath, InterfaceName, SsidText
 from routershell.lib.network_manager.common.run_commands import RunCommand
 
 
@@ -58,7 +59,7 @@ class HostapdConfigGenerator:
         else:
             print(f"Invalid IEEE802 option: {option.value}")
             
-    def add_bss(self, bss_name: str):
+    def add_bss(self, bss_name: SsidText):
         """
         Add a BSS (Basic Service Set) configuration to the Hostapd config.
 
@@ -68,7 +69,7 @@ class HostapdConfigGenerator:
         self.config.append(f'\n# BSS configuration for {bss_name}')
         self.config.append(f'bss={bss_name}')
 
-    def add_interface(self, interface_name: str):
+    def add_interface(self, interface_name: InterfaceName):
         """
         Add interface configuration to the BSS.
 
@@ -77,7 +78,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'interface={interface_name}')
 
-    def add_bridge(self, bridge_name: str):
+    def add_bridge(self, bridge_name: BridgeName):
         """
         Add bridge configuration to the BSS.
 
@@ -86,7 +87,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'bridge={bridge_name}')
 
-    def add_ssid(self, ssid: str):
+    def add_ssid(self, ssid: SsidText):
         """
         Add SSID (Service Set Identifier) configuration to the BSS.
 
@@ -159,7 +160,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'wpa_passphrase={passphrase}')
 
-    def add_wpa_psk_file(self, psk_file: str):
+    def add_wpa_psk_file(self, psk_file: FilePath):
         """
         Add WPA PSK file configuration to the BSS.
 
@@ -249,7 +250,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'eap_reauth_period={reauth_period}')
 
-    def add_eap_user_file(self, user_file: str):
+    def add_eap_user_file(self, user_file: FilePath):
         """
         Add EAP user file configuration.
 
@@ -420,7 +421,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'ap_settings={ap_settings}')
 
-    def add_multi_ap_backhaul_ssid(self, backhaul_ssid: str):
+    def add_multi_ap_backhaul_ssid(self, backhaul_ssid: SsidText):
         """
         Add Multi-AP backhaul SSID configuration.
 
@@ -465,7 +466,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'dynamic_vlan={dynamic_vlan}')
 
-    def add_vlan_file(self, vlan_file: str):
+    def add_vlan_file(self, vlan_file: FilePath):
         """
         Add the VLAN configuration file path to the BSS.
 
@@ -474,7 +475,7 @@ class HostapdConfigGenerator:
         """
         self.config.append(f'vlan_file={vlan_file}')
 
-    def add_vlan_tagged_interface(self, tagged_interface: str):
+    def add_vlan_tagged_interface(self, tagged_interface: InterfaceName):
         """
         Add the tagged interface for VLANs to the BSS.
 
@@ -503,7 +504,7 @@ class HostapdManager(RunCommand, HostapdConfigGenerator):
 
     """
 
-    def __init__(self, hostapd_filename:str):
+    def __init__(self, hostapd_filename:FilePath):
         """
         Initializes the HostapdManager.
 

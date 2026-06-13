@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, Status
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import HostnameText
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 
 
@@ -17,7 +18,7 @@ class SystemDatabase:
             cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()
     
-    def set_hostname_db(cls, host_name: str) -> bool:
+    def set_hostname_db(cls, host_name: HostnameText) -> bool:
         """
         Sets the hostname in the system database.
 

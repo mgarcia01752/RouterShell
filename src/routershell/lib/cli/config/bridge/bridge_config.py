@@ -5,6 +5,7 @@ from routershell.lib.cli.common.command_class_interface import CmdPrompt
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_factory import (
     BridgeInterface,
@@ -36,7 +37,7 @@ class BridgeConfigError(Exception):
 class BridgeConfig(CmdPrompt):
     """BridgeConfig class for managing network bridges via command-line interface."""
 
-    def __init__(self, bridge_name: str, negate:bool=False) -> None:
+    def __init__(self, bridge_name: BridgeName, negate:bool=False) -> None:
         """Initialize the BridgeConfig class.
         
         Args:

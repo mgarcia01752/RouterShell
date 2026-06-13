@@ -103,6 +103,14 @@ Agents working on the DB backend refactor MUST follow the locked decisions recor
   `tuple`, and `X | Y` rather than `List`, `Dict`, `Tuple`, or `Union`.
 - Docstrings and comments must use the same modern type spellings so examples
   do not preserve legacy typing forms.
+- Public method arguments must not use bare `str` for semantic RouterShell
+  values such as interface names, inet addresses, MAC addresses, hostnames,
+  bridge names, VLAN names, NAT pool names, DHCP pool names, Wi-Fi policy
+  names, SSIDs, or paths. Use the shared aliases in
+  `src/routershell/lib/common/types.py`.
+- Private method arguments should use those shared semantic aliases when the
+  value carries the same domain meaning. Bare `str` is acceptable only for
+  genuinely free-form text, command output, log text, or local glue values.
 - Avoid `Any` unless unavoidable; isolate and justify its usage.
 - Every function argument must be annotated.
 - Avoid `None` returns; prefer empty values unless `None` is semantically required.

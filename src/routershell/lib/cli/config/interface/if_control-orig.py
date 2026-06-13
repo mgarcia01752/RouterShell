@@ -17,6 +17,7 @@ from routershell.lib.network_manager.network_operations.interface import Interfa
 from routershell.lib.network_manager.network_operations.nat import NATDirection
 
 
+from routershell.lib.common.types import InterfaceName
 class InterfaceConfigError(Exception):
     """Custom exception for IfConfig errors."""
     def __init__(self, message: str):
@@ -28,7 +29,7 @@ class InterfaceConfigError(Exception):
 
 class InterfaceConfig(CmdPrompt, Interface):
 
-    def __init__(self, ifName: str=None, ifType: InterfaceType=InterfaceType.ETHERNET) -> None:
+    def __init__(self, ifName: InterfaceName | None=None, ifType: InterfaceType=InterfaceType.ETHERNET) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.PRIV_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)

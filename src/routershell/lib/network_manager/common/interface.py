@@ -3,6 +3,7 @@ import re
 from enum import Enum
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.phy import PhyServiceLayer
 
 
@@ -49,7 +50,7 @@ class InterfaceLayer(PhyServiceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().INTERFACE)
         
-    def get_os_interface_type(self, interface_name: str) -> InterfaceType:
+    def get_os_interface_type(self, interface_name: InterfaceName) -> InterfaceType:
         """
         Determines the type of a network interface using information from the 'nmcli dev show' command.
 

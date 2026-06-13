@@ -6,6 +6,7 @@ import textwrap
 
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import HostnameText
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_manager.common.run_commands import RunCommand, RunLog
 from routershell.lib.system.init_system import InitSystemChecker
@@ -109,7 +110,7 @@ class SystemCall(RunCommand):
 
         return STATUS_OK
     
-    def set_hostname_os(self, hostname: str) -> bool:
+    def set_hostname_os(self, hostname: HostnameText) -> bool:
         """
         Set the system hostname.
         

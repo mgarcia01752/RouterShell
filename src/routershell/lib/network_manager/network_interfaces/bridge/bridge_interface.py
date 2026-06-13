@@ -2,13 +2,14 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName, InetAddressText
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 
 
 class BridgeInterface:
-    def __init__(self, bridge_name: str, defaults_at_create:bool=True):
+    def __init__(self, bridge_name: BridgeName, defaults_at_create:bool=True):
         """
         Initialize the BridgeInterface instance.
 
@@ -78,7 +79,7 @@ class BridgeInterface:
         """
         return Bridge().del_bridge(self.get_bridge_name())
 
-    def set_inet_management(self, inet: str) -> bool:
+    def set_inet_management(self, inet: InetAddressText) -> bool:
         """
         Set the IPv4 or IPv6 address for the bridge.
 

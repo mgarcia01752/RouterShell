@@ -3,6 +3,7 @@ import logging
 from routershell.lib.cli.config.bridge.bridge_config import BridgeConfig
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName
 
 
 class BridgeConfigCmdError(Exception):
@@ -15,7 +16,7 @@ class BridgeConfigCmdError(Exception):
         return f'BridgeConfigError: {self.message}'
    
 class BridgeConfigCmd(ConfigurePrompt):
-    def __init__(self, bridge_name:str, negate=False):
+    def __init__(self, bridge_name:BridgeName, negate=False):
         super().__init__(sub_cmd_name='br')
         bridge_name = bridge_name[0]
         self.register_top_lvl_cmds(BridgeConfig(bridge_name, negate))

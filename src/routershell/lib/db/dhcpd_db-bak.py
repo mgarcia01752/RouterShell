@@ -6,6 +6,7 @@ from enum import Enum
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 
 
+from routershell.lib.common.types import DhcpPoolName, FilePath, HostnameText, InetAddressText, InetCidrText, MacAddressText, NatPoolName
 class DhcpVersion(Enum):
     DHCP_V4 = 4
     DHCP_V6 = 6
@@ -13,7 +14,7 @@ class DhcpVersion(Enum):
 class DHCPDatabaseFactory:
     
     def __init__(self, 
-                 dhcp_pool_name: str, 
+                 dhcp_pool_name: DhcpPoolName, 
                  ip_subnet_mask: ipaddress.IPv4Network,
                  negate=False):
         
@@ -62,7 +63,7 @@ class DHCPDatabaseFactory:
         else:
             pass
 
-    def _set_pool_name(self, pool_name: str, subnet_id: int = -1) -> bool:
+    def _set_pool_name(self, pool_name: NatPoolName, subnet_id: int = -1) -> bool:
         """
         Add a pool name to the DHCP configuration and associate it with a subnet ID.
 
@@ -271,7 +272,7 @@ class DHCPDatabase:
         }
     }
     
-    def __init__(self, config_file: str = None):
+    def __init__(self, config_file: FilePath | None = None):
         """
         Initialize the DHCPDatabase instance.
 
@@ -281,7 +282,7 @@ class DHCPDatabase:
         self.log = logging.getLogger(self.__class__.__name__)
         self.config_file = config_file
 
-    def add_subnet(self, subnet_id: int, subnet_range: str, client_class: str="", relay_ip: str=""):
+    def add_subnet(self, subnet_id: int, subnet_range: InetCidrText, client_class: str="", relay_ip: InetAddressText=""):
         """
         Add a subnet to the DHCP configuration.
 
@@ -306,7 +307,7 @@ class DHCPDatabase:
         # Add the new subnet to the existing configuration
         self.kea_v4_db["Dhcp4"]["subnet4"].append(new_subnet)
 
-    def add_reservation_to_subnet(self, subnet_id: int, mac: str, ip: str, hostname: str = ""):
+    def add_reservation_to_subnet(self, subnet_id: int, mac: MacAddressText, ip: str, hostname: HostnameText = ""):
         """
         Add a reservation to a subnet.
 
@@ -331,7 +332,7 @@ class DHCPDatabase:
                 subnet["pools"][0]["reservations"].append(new_reservation)
                 break  # Exit the loop once the subnet is found
 
-    def add_pool_to_subnet(self, subnet_id: int, ip_pool_start: str, ip_pool_end: str):
+    def add_pool_to_subnet(self, subnet_id: int, ip_pool_start: InetAddressText, ip_pool_end: InetAddressText):
         """
         Add an IP pool to a subnet.
 
@@ -352,7 +353,7 @@ class DHCPDatabase:
                 subnet["pools"].append(new_pool)
                 break  # Exit the loop once the subnet is found
 
-    def add_pool_name(self, pool_name: str, subnet_id: int = -1) -> bool:
+    def add_pool_name(self, pool_name: NatPoolName, subnet_id: int = -1) -> bool:
         """
         Add a pool name to the DHCP configuration and associate it with a subnet ID.
 
@@ -377,7 +378,7 @@ class DHCPDatabase:
         self.dhcp_pool["DhcpPool"]["pool-name"].append(new_pool_entry)
         return STATUS_OK  # Pool name added successfully
 
-    def update_pool_name(self, pool_name: str, new_subnet_id: int) -> bool:
+    def update_pool_name(self, pool_name: NatPoolName, new_subnet_id: int) -> bool:
         """
         Update the subnet ID associated with a pool name in the DHCP configuration.
 
@@ -420,7 +421,7 @@ class DHCPDatabase:
         else:
             return 0
 
-    def pool_name_exists(self, pool_name: str) -> bool:
+    def pool_name_exists(self, pool_name: NatPoolName) -> bool:
         """
         Check if a pool name exists in the DHCP configuration.
 
@@ -506,7 +507,7 @@ class DHCPDatabase:
         """
         return self.kea_v4_db
 
-    def delete_pool_name(self, pool_name:str) -> bool:
+    def delete_pool_name(self, pool_name:NatPoolName) -> bool:
         """
         Delete a DHCP pool by name.
 
@@ -537,7 +538,7 @@ class DHCPDatabase:
                 return STATUS_OK
         return STATUS_NOK
 
-    def get_pool_name_id(self, pool_name:str) -> int:
+    def get_pool_name_id(self, pool_name:NatPoolName) -> int:
         """
         Get the ID of a DHCP pool by its name.
 

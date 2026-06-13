@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, NatPoolName
 from routershell.lib.db.sqlite_db.router_shell_db import Result
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 
@@ -18,7 +19,7 @@ class NatDB:
             cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()  
 
-    def pool_name_exists(cls, pool_name: str) -> bool:
+    def pool_name_exists(cls, pool_name: NatPoolName) -> bool:
         """
         Check if a NAT pool with the given name exists in the NAT database.
 
@@ -32,7 +33,7 @@ class NatDB:
         cls.log.debug(f"pool_name_exists() Pool-Name: {pool_name}")
         return cls.rsdb.global_nat_pool_name_exists(pool_name).status
        
-    def insert_global_nat_pool_name(cls, pool_name: str) -> bool:
+    def insert_global_nat_pool_name(cls, pool_name: NatPoolName) -> bool:
         """
         Create a new global NAT pool configuration in the NAT database.
 
@@ -62,7 +63,7 @@ class NatDB:
             cls.log.error(f"An error occurred while creating global NAT pool: {e}")
             return STATUS_NOK
 
-    def delete_global_nat_pool_name(cls, pool_name: str) -> bool:
+    def delete_global_nat_pool_name(cls, pool_name: NatPoolName) -> bool:
         """
         Delete a global NAT pool configuration from the NAT database.
 
@@ -107,7 +108,7 @@ class NatDB:
             cls.log.error(f"An error occurred while retrieving global NAT pool names: {e}")
             return []
 
-    def is_interface_direction_in_nat_pool(cls, interface_name: str, nat_pool_name: str, direction: str) -> Result:
+    def is_interface_direction_in_nat_pool(cls, interface_name: InterfaceName, nat_pool_name: NatPoolName, direction: str) -> Result:
         """
         Check if the specified interface is associated with the given NAT pool and direction.
 
@@ -128,7 +129,7 @@ class NatDB:
         cls.log.debug(f"is_interface_direction_in_nat_pool({interface_name} -> {nat_pool_name} -> {direction})")
         return cls.rsdb.select_nat_interface_direction(interface_name, nat_pool_name, direction)
 
-    def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: str, direction: str) -> list[Result]:
+    def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: NatPoolName, direction: str) -> list[Result]:
         """
         Get list of interfaces is associated with the given NAT pool and direction.
 
@@ -149,7 +150,7 @@ class NatDB:
         
         return cls.rsdb.select_nat_interface_direction_list(nat_pool_name, direction)
 
-    def add_inside_interface(cls, nat_pool_name: str, interface_name: str) -> bool:
+    def add_inside_interface(cls, nat_pool_name: NatPoolName, interface_name: InterfaceName) -> bool:
         """
         Add an inside interface to a NAT pool configuration.
 
@@ -192,10 +193,10 @@ class NatDB:
             cls.log.error(f"An error occurred while adding inside interface to '{nat_pool_name}': {e}")
             return STATUS_NOK
 
-    def delete_inside_interface(cls, pool_name: str, interface_name: str) -> bool:
+    def delete_inside_interface(cls, pool_name: NatPoolName, interface_name: InterfaceName) -> bool:
         pass
     
-    def add_outside_interface(cls, nat_pool_name: str, interface_name: str) -> bool:
+    def add_outside_interface(cls, nat_pool_name: NatPoolName, interface_name: InterfaceName) -> bool:
         """
         Add an outside interface to a NAT pool configuration DB.
 
@@ -230,6 +231,6 @@ class NatDB:
             cls.log.error(f"An error occurred while inserting outside interface to '{nat_pool_name}': {e}")
             return STATUS_NOK
                     
-    def delete_outside_interface(cls, pool_name: str, interface_name: str) -> str:
+    def delete_outside_interface(cls, pool_name: NatPoolName, interface_name: InterfaceName) -> str:
         pass
     

@@ -9,6 +9,7 @@ import subprocess
 from datetime import datetime
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import EnvironmentVariableName, HostnameText, InterfaceName
 from routershell.lib.network_manager.common.interface import InterfaceType
 
 
@@ -224,7 +225,7 @@ class Common:
             return "N/A" 
 
     @staticmethod
-    def is_valid_hostname(hostname: str) -> bool:
+    def is_valid_hostname(hostname: HostnameText) -> bool:
         """
         Check if a hostname is valid based on DNS standards.
 
@@ -252,7 +253,7 @@ class Common:
         return True
     
     @staticmethod
-    def get_env(var_name: str) -> str:
+    def get_env(var_name: EnvironmentVariableName) -> str:
         """
         Get the value of an environment variable.
         
@@ -265,7 +266,7 @@ class Common:
         return os.environ.get(var_name)
 
     @staticmethod
-    def is_loopback_if_name_valid(interface_name: str, add_loopback_if_name: list[str] = None) -> bool:
+    def is_loopback_if_name_valid(interface_name: InterfaceName, add_loopback_if_name: list[str] = None) -> bool:
         """
         Check if the given interface name is in the loopback format or starts with any of the specified prefixes.
 

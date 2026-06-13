@@ -18,6 +18,7 @@ from routershell.lib.network_manager.network_operations.nat import NATDirection
 from routershell.lib.network_manager.network_operations.wireless_wifi import HardwareMode, WifiChannel, WifiInterface
 
 
+from routershell.lib.common.types import InterfaceName
 class InvalidInterface(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -27,7 +28,7 @@ class InterfaceConfig(cmd2.Cmd,
                       RouterPrompt, 
                       Interface):
     
-    def __init__(self, if_config_interface_name: str, ifType:str=None):
+    def __init__(self, if_config_interface_name: InterfaceName, ifType:str=None):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().ETHERNET_CONFIG)

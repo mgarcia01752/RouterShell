@@ -1,6 +1,7 @@
 import logging
 from abc import ABC
 
+from routershell.lib.common.types import BridgeName, InterfaceName
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 
 
@@ -11,7 +12,7 @@ class BridgeGroup(ABC):
     This class provides methods to set and delete bridge groups for a specified network interface.
     """
 
-    def __init__(self, interface_name: str):
+    def __init__(self, interface_name: InterfaceName):
         """
         Initializes the BridgeGroup with a network interface name.
 
@@ -21,7 +22,7 @@ class BridgeGroup(ABC):
         self._interface_name = interface_name
         self.log = logging.getLogger(self.__class__.__name__)
     
-    def set_bridge_group(self, bridge_group: str) -> bool:
+    def set_bridge_group(self, bridge_group: BridgeName) -> bool:
         """
         Adds the network interface to the specified bridge group.
 
@@ -34,7 +35,7 @@ class BridgeGroup(ABC):
         """
         return Bridge().add_interface_to_bridge_group(self._interface_name, bridge_group)
     
-    def del_bridge_group(self, bridge_group: str) -> bool:
+    def del_bridge_group(self, bridge_group: BridgeName) -> bool:
         """
         Removes the network interface from the specified bridge group.
 

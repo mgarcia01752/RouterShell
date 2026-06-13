@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import VlanName
 from routershell.lib.network_manager.network_operations.vlan import Vlan
 
 
@@ -43,7 +44,7 @@ class VlanMangement:
         """
         return self._vlan_id
     
-    def set_name(self, vlan_name: str) -> bool:
+    def set_name(self, vlan_name: VlanName) -> bool:
         """
         Set the name for the VLAN.
 

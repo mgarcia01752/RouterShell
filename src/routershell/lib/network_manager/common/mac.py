@@ -6,6 +6,7 @@ from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, MacAddressText
 from routershell.lib.network_manager.common.interface import InterfaceLayer
 
 
@@ -27,7 +28,7 @@ class MacServiceLayer(InterfaceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().MAC)
         
-    def set_interface_mac(self, interface_name: str, mac_address: str) -> bool:
+    def set_interface_mac(self, interface_name: InterfaceName, mac_address: MacAddressText) -> bool:
         """
         Set the MAC address of a network interface via os.
 
@@ -69,7 +70,7 @@ class MacServiceLayer(InterfaceLayer):
             print(f"An error occurred: {str(e)}")
             return STATUS_NOK
 
-    def is_valid_mac_address(self, mac: str) -> bool:
+    def is_valid_mac_address(self, mac: MacAddressText) -> bool:
         """
         Check if a given MAC address is valid.
 
@@ -100,7 +101,7 @@ class MacServiceLayer(InterfaceLayer):
 
         return False
 
-    def format_mac_address(self, mac_address: str) -> tuple[bool, str]:
+    def format_mac_address(self, mac_address: MacAddressText) -> tuple[bool, str]:
         """
         Normalize and format a MAC address into the standard format (xx:xx:xx:xx:xx:xx).
 

@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InetAddressText, InterfaceName, MacAddressText, NatPoolName
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
@@ -18,7 +19,7 @@ class EthernetInterfaceError(Exception):
 
 class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
 
-    def __init__(self, ethernet_name: str):
+    def __init__(self, ethernet_name: InterfaceName):
         BridgeGroup.__init__(self, ethernet_name)
         DHCPInterfaceClient.__init__(self, ethernet_name)
         self.log = logging.getLogger(self.__class__.__name__)
@@ -112,7 +113,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         
         return STATUS_OK
 
-    def set_mac_address(self, mac_addr: str = None) -> bool:
+    def set_mac_address(self, mac_addr: MacAddressText | None = None) -> bool:
         """
         Set the MAC address of the network interface.
 
@@ -153,7 +154,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         """
         return Interface().update_interface_inet(self._interface_name, inet_address, secondary_address, negate)
     
-    def add_static_arp(self, inet_address: str, mac_addr: str, negate: bool = False) -> bool:
+    def add_static_arp(self, inet_address: InetAddressText, mac_addr: MacAddressText, negate: bool = False) -> bool:
         """
         Adds or removes a static ARP entry for the interface.
 
@@ -172,7 +173,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         return InterfaceType.ETHERNET
         
     
-    def set_nat_domain_direction(self, nat_pool_name: str, nat_direction: NATDirection, negate: bool = False) -> bool:
+    def set_nat_domain_direction(self, nat_pool_name: NatPoolName, nat_direction: NATDirection, negate: bool = False) -> bool:
         """
         Set the NAT domain direction on the specified NAT pool.
 

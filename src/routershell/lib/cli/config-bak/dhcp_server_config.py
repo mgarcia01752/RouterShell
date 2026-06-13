@@ -11,12 +11,13 @@ from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPOptionL
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
 
 
+from routershell.lib.common.types import DhcpPoolName
 class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
     
     GLOBAL_CONFIG_MODE = 'global'
     PROMPT_CMD_ALIAS = 'dhcp'    
     
-    def __init__(self, dhcp_pool_name: str, negate=False):
+    def __init__(self, dhcp_pool_name: DhcpPoolName, negate=False):
         self.dhcp_pool_name = dhcp_pool_name
         self.negate = negate
         

@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, VlanName
 from routershell.lib.db.sqlite_db.router_shell_db import Result
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.common.interface import InterfaceType
@@ -35,7 +36,7 @@ class VlanDatabase:
         
         return STATUS_OK
 
-    def add_vlan(self, vlan_id: int, vlan_name: str, description: str = None) -> Result:
+    def add_vlan(self, vlan_id: int, vlan_name: VlanName, description: str = None) -> Result:
         """
         Add a new VLAN to the database.
 
@@ -108,7 +109,7 @@ class VlanDatabase:
         """
         return self.rsdb.select_vlan_name_by_vlan_id(vlan_id)
 
-    def update_vlan_name_via_vlanID(self, vlan_id: int, vlan_name: str) -> Result:
+    def update_vlan_name_via_vlanID(self, vlan_id: int, vlan_name: VlanName) -> Result:
         """
         Update the name of a VLAN by its ID.
 
@@ -128,7 +129,7 @@ class VlanDatabase:
         if vlan_interface_id:
             self.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)
 
-    def add_interface_to_vlan(self, vlan_id: int, interface_name: str) -> bool:
+    def add_interface_to_vlan(self, vlan_id: int, interface_name: InterfaceName) -> bool:
         """
         Add a VLAN to a specific interface type in the database.
 
@@ -157,7 +158,7 @@ class VlanDatabase:
             self.log.error("add_vlan_to_interface_type() -> Error adding VLAN to interface type: %s", e)
             return STATUS_NOK
 
-    def get_vlan_id_from_vlan_name(self, vlan_name: str) -> int:
+    def get_vlan_id_from_vlan_name(self, vlan_name: VlanName) -> int:
         """
         Retrieves the VLAN ID associated with a given VLAN name.
 

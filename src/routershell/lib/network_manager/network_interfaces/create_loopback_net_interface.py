@@ -1,6 +1,7 @@
 import logging
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 from routershell.lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
@@ -16,7 +17,7 @@ class CreateLoopBackNetInterface:
     # Singleton {'interface_name': LoopbackInterface}
     _loopback_net_interface_obj_dict: dict[str, LoopbackInterface] = {}
 
-    def __init__(self, loopback_name: str):
+    def __init__(self, loopback_name: InterfaceName):
         """
         Initialize a CreateLoopBackNetInterface instance to create a loopback network interface.
 
@@ -51,7 +52,7 @@ class CreateLoopBackNetInterface:
             ni.set_description('Auto Assign loopback')
             CreateLoopBackNetInterface._loopback_net_interface_obj_dict[self.loopback_name] = ni
     
-    def getLoopbackInterface(self, loopback_name:str) -> LoopbackInterface:
+    def getLoopbackInterface(self, loopback_name:InterfaceName) -> LoopbackInterface:
         """
         Get a NetInterfaceFactory instance for the created loopback network interface.
 

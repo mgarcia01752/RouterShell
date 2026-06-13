@@ -3,6 +3,7 @@ import re
 
 from routershell.lib.common.constants import STATUS_NOK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.db.dhcp_client_db import DHCPClientDatabase
 from routershell.lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import (
     DHCPClientFactory,
@@ -47,7 +48,7 @@ class DHCPClient(DHCPClientDatabase):
         get_flow_log(): Retrieve DHCP client flow logs from the system journal.
         get_last_status(): Get the last status of the DHCP client.
     """
-    def __init__(self, interface_name: str, dhcp_stack_version: DHCPStackVersion):
+    def __init__(self, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion):
         """
         Initialize the DHCPClient with the network interface name and DHCP stack version.
 

@@ -2,6 +2,7 @@ import logging
 from abc import ABC
 
 from routershell.lib.common.constants import STATUS_OK
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.network_operations.vlan import Vlan
 
 
@@ -14,7 +15,7 @@ class VlanSwitchport(ABC):
         log (logging.Logger): Logger for the class.
     """
     
-    def __init__(self, interface_name: str):
+    def __init__(self, interface_name: InterfaceName):
         """
         Initializes the VlanSwitchport with a given interface name.
         

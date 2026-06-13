@@ -12,6 +12,7 @@ from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import CommandName, FilePath
 from routershell.lib.system.system_call import SystemCall
 
 
@@ -39,7 +40,7 @@ class PromptFeeder:
             Returns and removes the top entry from the prompt feed.
     """
     @staticmethod
-    def process_file(file_path: str) -> list[list[str]]:
+    def process_file(file_path: FilePath) -> list[list[str]]:
         """
         Processes a file and creates a nested list where each line is a list,
         and each word in the line is a string.
@@ -174,7 +175,7 @@ class RouterPrompt:
     _current_execute_mode = ExecMode.USER_MODE
     
     def __init__(self, exec_mode: ExecMode = ExecMode.USER_MODE, 
-                 sub_cmd_name: str = None) -> None:
+                 sub_cmd_name: CommandName | None = None) -> None:
         """
         Initializes RouterPromptSession instance.
         """

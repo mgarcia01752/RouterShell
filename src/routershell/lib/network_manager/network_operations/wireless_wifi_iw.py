@@ -3,6 +3,7 @@ from enum import Enum
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, SsidText, WifiPassphraseText, WifiPolicyName
 from routershell.lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 
@@ -52,7 +53,7 @@ class WifiPolicy:
 
     """
 
-    def __init__(self, wifi_policy_name: str, negate=False):
+    def __init__(self, wifi_policy_name: WifiPolicyName, negate=False):
         """
         Initializes a new Wi-Fi policy with the given parameters.
 
@@ -109,10 +110,10 @@ class Wifi(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().WIFI)
 
-    def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
+    def wifi_policy_name_exist(self, wifi_policy_name:WifiPolicyName) -> bool:
         return True 
 
-    def wifi_interface_exist(self, wifi_interface_name: str) -> bool:
+    def wifi_interface_exist(self, wifi_interface_name: InterfaceName) -> bool:
         """
         Check if a Wi-Fi interface exists.
 
@@ -129,7 +130,7 @@ class Wifi(NetworkManager):
             return False
         return True
             
-    def set_ssid(self, wifi_interface_name: str, ssid: str) -> bool:
+    def set_ssid(self, wifi_interface_name: InterfaceName, ssid: SsidText) -> bool:
         """
         Set the SSID (Service Set Identifier) for a Wi-Fi interface.
 
@@ -148,7 +149,7 @@ class Wifi(NetworkManager):
         
         return STATUS_OK
 
-    def set_wpa_passphrase(self, wifi_interface_name: str, pass_phrase: str) -> bool:
+    def set_wpa_passphrase(self, wifi_interface_name: InterfaceName, pass_phrase: WifiPassphraseText) -> bool:
         """
         Set the WPA passphrase for a Wi-Fi interface using the iw command.
 
@@ -168,7 +169,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
     
-    def set_wpa_key_mgmt(self, wifi_interface_name: str, wpa_key_mgmt: WPAkeyManagement) -> bool:
+    def set_wpa_key_mgmt(self, wifi_interface_name: InterfaceName, wpa_key_mgmt: WPAkeyManagement) -> bool:
         """
         Set the WPA key management method for a Wi-Fi interface using the iw command.
 
@@ -188,7 +189,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_wpa_pairwise(self, wifi_interface_name: str, wpa_pairwise: Pairwise) -> bool:
+    def set_wpa_pairwise(self, wifi_interface_name: InterfaceName, wpa_pairwise: Pairwise) -> bool:
         """
         Set the WPA pairwise cipher for a Wi-Fi interface using the iw command.
 
@@ -208,7 +209,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_rsn_pairwise(self, wifi_interface_name: str, rsn_pairwise: Pairwise) -> bool:
+    def set_rsn_pairwise(self, wifi_interface_name: InterfaceName, rsn_pairwise: Pairwise) -> bool:
         """
         Set the RSN pairwise cipher for a Wi-Fi interface using the iw command.
 
@@ -228,7 +229,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
     
-    def set_wifi_mode(self, wifi_interface_name: str, mode: HardwareMode) -> bool:
+    def set_wifi_mode(self, wifi_interface_name: InterfaceName, mode: HardwareMode) -> bool:
         """
         Set the Wi-Fi mode for a Wi-Fi interface using the iw command.
 
@@ -248,7 +249,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_wifi_channel(self, wifi_interface_name: str, channel: int) -> bool:
+    def set_wifi_channel(self, wifi_interface_name: InterfaceName, channel: int) -> bool:
         """
         Set the Wi-Fi channel for a Wi-Fi interface using the iw command.
 
@@ -272,7 +273,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_auth_algs(self, wifi_interface_name: str, auth_alg: AuthAlgorithms) -> bool:
+    def set_auth_algs(self, wifi_interface_name: InterfaceName, auth_alg: AuthAlgorithms) -> bool:
         """
         Set the authentication algorithms for a Wi-Fi interface using the iw command.
 

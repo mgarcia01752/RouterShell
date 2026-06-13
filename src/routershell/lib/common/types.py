@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import NewType, TypeAlias
+from typing import TypeAlias
 
 CommandArgs: TypeAlias = list[str]
 EnvironmentMap: TypeAlias = dict[str, str]
@@ -13,7 +13,26 @@ JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
 LogLevelName: TypeAlias = str
 
-EpochSeconds = NewType("EpochSeconds", int)
-InterfaceName = NewType("InterfaceName", str)
-MacAddressText = NewType("MacAddressText", str)
-InetAddressText = NewType("InetAddressText", str)
+BridgeName: TypeAlias = str
+ClientIdText: TypeAlias = str
+ClientName: TypeAlias = str
+CommandName: TypeAlias = str
+DbTableName: TypeAlias = str
+DhcpPoolName: TypeAlias = str
+DomainNameText: TypeAlias = str
+EnvironmentVariableName: TypeAlias = str
+EpochSeconds: TypeAlias = int
+HostnameText: TypeAlias = str
+InetAddressText: TypeAlias = str
+InetCidrText: TypeAlias = str
+InterfaceTypeName: TypeAlias = str
+InterfaceName: TypeAlias = str
+IpSetName: TypeAlias = str
+LoggerName: TypeAlias = str
+MacAddressText: TypeAlias = str
+NatPoolName: TypeAlias = str
+ServiceName: TypeAlias = str
+SsidText: TypeAlias = str
+VlanName: TypeAlias = str
+WifiPassphraseText: TypeAlias = str
+WifiPolicyName: TypeAlias = str

@@ -4,6 +4,7 @@ from enum import Enum
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, NatPoolName
 from routershell.lib.db.nat_db import NatDB
 from routershell.lib.network_manager.common.sysctl import SysCtl
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -44,7 +45,7 @@ class Nat(NetworkManager):
 
         return STATUS_OK
 
-    def create_nat_pool(self, nat_pool_name: str, negate: bool = False) -> bool:
+    def create_nat_pool(self, nat_pool_name: NatPoolName, negate: bool = False) -> bool:
         """
         Create or delete a NAT pool configuration in the NAT database.
 
@@ -86,11 +87,11 @@ class Nat(NetworkManager):
             self.log.error(f"An error occurred while creating or deleting NAT pool: {e}")
             return STATUS_NOK
 
-    def create_nat_ip_pool(self, nat_pool_name: str,
+    def create_nat_ip_pool(self, nat_pool_name: NatPoolName,
                         nat_inside_ip_start: ipaddress.IPv4Address,
                         nat_inside_ip_end: ipaddress.IPv4Address,
                         nat_outside_ip_address: ipaddress.IPv4Address = None,
-                        nat_outside_ifName: str = None,
+                        nat_outside_ifName: InterfaceName | None = None,
                         negate: bool = False) -> bool:
         """
         Create a NAT pool.
@@ -142,7 +143,7 @@ class Nat(NetworkManager):
         
         return STATUS_OK
 
-    def create_outside_nat(self, nat_pool_name: str, interface_name: str, negate: bool = False) -> bool:
+    def create_outside_nat(self, nat_pool_name: NatPoolName, interface_name: InterfaceName, negate: bool = False) -> bool:
         """
         Create or destroy outside NAT (Source NAT) rule.
 
@@ -189,7 +190,7 @@ class Nat(NetworkManager):
             self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} outside NAT rule: {e} via OS")
             return STATUS_NOK
 
-    def create_inside_nat(self, nat_pool_name: str, ifName_inside: str, negate: bool = False) -> bool:
+    def create_inside_nat(self, nat_pool_name: NatPoolName, ifName_inside: InterfaceName, negate: bool = False) -> bool:
         """
         Create or destroy inside NAT (Source NAT) rule.
 
@@ -264,7 +265,7 @@ class Nat(NetworkManager):
             self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} inside NAT rule: {e}")
             return STATUS_NOK
     
-    def create_fw_nat_rule(self, in_ifName: str, out_ifName: str) -> bool:
+    def create_fw_nat_rule(self, in_ifName: InterfaceName, out_ifName: InterfaceName) -> bool:
         '''
         sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
         sudo iptables -A INPUT -i Gig0 -j ACCEPT

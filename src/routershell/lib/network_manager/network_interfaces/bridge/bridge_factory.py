@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_interface import BridgeInterface
 
@@ -16,7 +17,7 @@ class BridgeInterfaceFactory:
         created by the factory.
         
     Methods:
-        __init__(bridge_name: str):
+        __init__(bridge_name: BridgeName):
             Initializes the BridgeConfigFactory with the given bridge name and sets up logging.
         
         get_bridge_interface() -> 'BridgeInterface':
@@ -26,7 +27,7 @@ class BridgeInterfaceFactory:
     
     _bridge_interface_list: list[BridgeInterface] = []
     
-    def __init__(self, bridge_name: str):
+    def __init__(self, bridge_name: BridgeName):
         """
         Initializes the BridgeConfigFactory with the given bridge name and sets up logging.
 

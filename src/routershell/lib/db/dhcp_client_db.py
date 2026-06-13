@@ -1,6 +1,7 @@
 import logging
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPVersion
@@ -18,7 +19,7 @@ class DHCPClientDatabase:
 
     @classmethod
     def add_db_dhcp_client(
-        cls, interface_name: str, dhcp_stack_version: DHCPStackVersion) -> bool:
+        cls, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion) -> bool:
         """
         Adds a DHCP client entry to the database for a specified interface.
 
@@ -34,7 +35,7 @@ class DHCPClientDatabase:
 
     @classmethod
     def update_db_dhcp_client(
-        cls, interface_name: str, dhcp_stack_version: DHCPStackVersion) -> bool:
+        cls, interface_name: InterfaceName, dhcp_stack_version: DHCPStackVersion) -> bool:
         """
         Updates the DHCP client entry in the database for a specified interface.
 
@@ -50,7 +51,7 @@ class DHCPClientDatabase:
 
     @classmethod
     def remove_db_dhcp_client(
-        cls, interface_name: str, dhcp_stack_version: DHCPVersion) -> bool:
+        cls, interface_name: InterfaceName, dhcp_stack_version: DHCPVersion) -> bool:
         """
         Removes a DHCP client entry from the database for a specified interface.
 

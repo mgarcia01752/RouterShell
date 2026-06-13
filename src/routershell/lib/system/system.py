@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import HostnameText
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_services.common.network_ports import NetworkPorts
 from routershell.lib.network_services.telnet.telnet_server import TelnetService
@@ -16,7 +17,7 @@ class System:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().SYSTEM)
     
-    def update_hostname(self, hostname: str) -> bool:
+    def update_hostname(self, hostname: HostnameText) -> bool:
         """
         Update the hostname of the system both in the OS and the system database.
 

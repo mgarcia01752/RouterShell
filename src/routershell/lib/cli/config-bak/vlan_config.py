@@ -9,6 +9,7 @@ from routershell.lib.common.router_shell_log_control import RouterShellLoggerSet
 from routershell.lib.network_manager.network_operations.vlan import Vlan
 
 
+from routershell.lib.common.types import VlanName
 class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
     """Command set for configuring Vlan-Config-Commands"""
 
@@ -28,7 +29,7 @@ class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
         if self.check_or_add_vlan_to_db(self.vlan_id).status:
             self.log.debug(f"VLAN-ID {self.vlan_id} is already configured")
 
-    def do_name(self, vlan_name: str):
+    def do_name(self, vlan_name: VlanName):
         """
         Change the name of the VLAN.
 

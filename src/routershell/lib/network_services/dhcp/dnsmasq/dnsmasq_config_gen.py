@@ -2,6 +2,17 @@ import logging
 from enum import Enum
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import (
+    ClientIdText,
+    ClientName,
+    DomainNameText,
+    FilePath,
+    InetAddressText,
+    InetCidrText,
+    InterfaceName,
+    IpSetName,
+    MacAddressText,
+)
 
 
 class DHCPv6Modes(Enum):
@@ -100,7 +111,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append('filterwin2k')
 
-    def set_resolv_file(self, resolv_file_path: str):
+    def set_resolv_file(self, resolv_file_path: FilePath):
         '''
         Set the resolv file path in the DNSMasq configuration.
 
@@ -127,7 +138,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append('no-poll')
 
-    def add_name_server(self, domain: str, ip_address: str):
+    def add_name_server(self, domain: DomainNameText, ip_address: InetAddressText):
         '''
         Add a name server to the DNSMasq configuration.
 
@@ -137,7 +148,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'server=/{domain}/{ip_address}')
 
-    def add_reverse_server(self, subnet: str, nameserver: str):
+    def add_reverse_server(self, subnet: InetCidrText, nameserver: InetAddressText):
         '''
         Add a reverse DNS server to the DNSMasq configuration.
 
@@ -156,7 +167,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'local=/{local_domain}/')
 
-    def force_domain_to_ip(self, domain: str, ip_address: str):
+    def force_domain_to_ip(self, domain: DomainNameText, ip_address: InetAddressText):
         '''
         Force a domain to resolve to a specific IP address in the DNSMasq configuration.
 
@@ -166,7 +177,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'address=/{domain}/{ip_address}')
 
-    def add_ipv6_address(self, domain: str, ipv6_address: str):
+    def add_ipv6_address(self, domain: DomainNameText, ipv6_address: InetAddressText):
         '''
         Add an IPv6 address for a domain in the DNSMasq configuration.
 
@@ -176,7 +187,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'address=/{domain}/{ipv6_address}')
 
-    def add_query_ips_to_ipset(self, domains: list[str], ipset_name: str):
+    def add_query_ips_to_ipset(self, domains: list[str], ipset_name: IpSetName):
         '''
         Add query IPs to an IPset in the DNSMasq configuration.
 
@@ -208,7 +219,7 @@ class DNSMasqConfigurator:
             for set in sets:
                 self.config.append(f'nftset=/{domain}/{set}')
 
-    def set_server_routing(self, ip_address: str, interface: str = None, source_address: str = None):
+    def set_server_routing(self, ip_address: InetAddressText, interface: InterfaceName | None = None, source_address: InetAddressText | None = None):
         '''
         Set server routing in the DNSMasq configuration.
 
@@ -268,7 +279,7 @@ class DNSMasqConfigurator:
         for address in addresses:
             self.config.append(f'listen-address={address}')
 
-    def disable_dhcp_on_interface(self, interface: str):
+    def disable_dhcp_on_interface(self, interface: InterfaceName):
         '''
         Disable DHCP on a specific network interface in the DNSMasq configuration.
 
@@ -289,7 +300,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append('no-hosts')
 
-    def set_additional_hosts_file(self, hosts_file_path: str):
+    def set_additional_hosts_file(self, hosts_file_path: FilePath):
         '''
         Set an additional hosts file in the DNSMasq configuration.
 
@@ -304,7 +315,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append('expand-hosts')
 
-    def set_domain(self, domain: str):
+    def set_domain(self, domain: DomainNameText):
         '''
         Set the domain in the DNSMasq configuration.
 
@@ -313,7 +324,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'domain={domain}')
 
-    def set_domain_for_subnet(self, domain: str, subnet: str):
+    def set_domain_for_subnet(self, domain: DomainNameText, subnet: InetCidrText):
         '''
         Set a domain for a subnet in the DNSMasq configuration.
 
@@ -323,7 +334,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'domain={domain},{subnet}')
 
-    def set_domain_for_range(self, domain: str, start_ip: str, end_ip: str):
+    def set_domain_for_range(self, domain: DomainNameText, start_ip: str, end_ip: str):
         '''
         Set a domain for an IP range in the DNSMasq configuration.
 
@@ -422,7 +433,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'tftp-root={root_directory}')
 
-    def set_boot_file(self, boot_file: str):
+    def set_boot_file(self, boot_file: FilePath):
         '''
         Set the boot file in the DNSMasq configuration.
 
@@ -460,7 +471,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'dhcp-option=66,{tftp_server}')
 
-    def set_dhcp_option_67(self, boot_file: str):
+    def set_dhcp_option_67(self, boot_file: FilePath):
         '''
         Set DHCP option 67 (Boot file) in the DNSMasq configuration.
 
@@ -501,7 +512,7 @@ class DNSMasqConfigurator:
         elif len(args) == 4:
             self.config.append(f'dhcp-host={args[0]},{args[1]},{args[2]},{args[3]}')
 
-    def add_dhcp_host_with_client_id(self, client_id: str, ip_address: str):
+    def add_dhcp_host_with_client_id(self, client_id: ClientIdText, ip_address: InetAddressText):
         '''
         Add a DHCP host configuration with a client identifier to the DNSMasq configuration.
 
@@ -514,7 +525,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'dhcp-host=id:{client_id},{ip_address}')
 
-    def add_dhcp_host_with_infiniband(self, hardware_address: str, ip_address: str):
+    def add_dhcp_host_with_infiniband(self, hardware_address: MacAddressText, ip_address: InetAddressText):
         '''
         Add a DHCP host configuration with InfiniBand hardware address to the DNSMasq configuration.
 
@@ -527,7 +538,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'dhcp-host=id:{hardware_address},{ip_address}')
 
-    def add_dhcp_host_with_name(self, client_name: str, ip_address: str, lease_time: str):
+    def add_dhcp_host_with_name(self, client_name: ClientName, ip_address: InetAddressText, lease_time: str):
         '''
         Add a DHCP host configuration with a client name, IP address, and lease time to the DNSMasq configuration.
 
@@ -541,7 +552,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'dhcp-host={client_name},{ip_address},{lease_time}')
 
-    def enable_dhcp_host_ignore(self, ethernet_address: str):
+    def enable_dhcp_host_ignore(self, ethernet_address: MacAddressText):
         '''
         Enable ignoring DHCP requests from a specific host with the given Ethernet address.
 
@@ -553,7 +564,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'dhcp-host={ethernet_address},ignore')
 
-    def enable_dhcp_host_ignore_client_id(self, ethernet_address: str):
+    def enable_dhcp_host_ignore_client_id(self, ethernet_address: MacAddressText):
         '''
         Enable ignoring DHCP client ID presented by a host with the given Ethernet address.
 
@@ -565,7 +576,7 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'dhcp-host={ethernet_address},id:*')
 
-    def enable_dhcp_host_set_extra_options(self, ethernet_address: str, options_tag: str):
+    def enable_dhcp_host_set_extra_options(self, ethernet_address: MacAddressText, options_tag: str):
         '''
         Send extra options tagged with a specific identifier to a host with the given Ethernet address.
 

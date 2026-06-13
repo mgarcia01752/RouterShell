@@ -10,6 +10,7 @@ from routershell.lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from routershell.lib.common.common import Common
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 from routershell.lib.network_manager.network_operations.interface import Interface
@@ -164,7 +165,7 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces())
-    def configcmd_flush(self, interface_name:str) -> bool:
+    def configcmd_flush(self, interface_name:InterfaceName) -> bool:
 
         """
         Command to flush the configuration of a network interface.

@@ -5,6 +5,7 @@ import jc
 
 from routershell.lib.common.constants import HOSTAPD_CONF_FILE, STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, SsidText, WifiPassphraseText, WifiPolicyName
 from routershell.lib.db.wifi_db import WifiDB
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config, HostapdManager
@@ -233,7 +234,7 @@ class WifiPolicy:
 
     """
 
-    def __init__(self, wifi_policy_name: str, negate=False):
+    def __init__(self, wifi_policy_name: WifiPolicyName, negate=False):
         """
         Initializes a new Wi-Fi policy with the given parameters.
 
@@ -260,7 +261,7 @@ class WifiPolicy:
         self.wifi_policy_name = wifi_policy_name
         self.negate = negate
 
-    def add_security_access_group(self, ssid: str, pass_phrase: str, mode: WPAVersion=WPAVersion.WPA2) -> bool:
+    def add_security_access_group(self, ssid: SsidText, pass_phrase: WifiPassphraseText, mode: WPAVersion=WPAVersion.WPA2) -> bool:
         """
         Add a security access group with the specified SSID, passphrase, and security mode.
 
@@ -279,7 +280,7 @@ class WifiPolicy:
         """
         return self.wifi_db.add_wifi_security_access_group(self.wifi_policy_name, ssid, pass_phrase, mode.value)
 
-    def add_security_access_group_default(self, wifi_policy_name: str) -> bool:
+    def add_security_access_group_default(self, wifi_policy_name: WifiPolicyName) -> bool:
         """
         Add a default security access group to the specified wireless Wi-Fi policy.
 
@@ -330,7 +331,7 @@ class WifiPolicy:
         """        
         return self.wifi_db.add_wifi_channel(self.wifi_policy_name, str(wifi_channel.value))
 
-    def del_ssid(self, ssid: str) -> bool:
+    def del_ssid(self, ssid: SsidText) -> bool:
         """
         Delete a Wi-Fi security access group with the specified SSID from the associated wireless Wi-Fi policy.
 
@@ -346,7 +347,7 @@ class WifiPolicy:
         """
         return self.wifi_db.del_wifi_security_access_group(self.wifi_policy_name, ssid)
 
-    def security_access_group_entry_exist(self, wifi_policy_name: str) -> bool:
+    def security_access_group_entry_exist(self, wifi_policy_name: WifiPolicyName) -> bool:
         # Get the security policies associated with the Wi-Fi policy
         security_policies = self.wifi_db.get_wifi_security_policy(wifi_policy_name)
 
@@ -358,7 +359,7 @@ class WifiPolicy:
             self.log.debug(f"No security access group entry found for Wi-Fi policy '{wifi_policy_name}'.")
             return False
 
-    def get_ssid_list(self, wifi_policy_name: str) -> list:  
+    def get_ssid_list(self, wifi_policy_name: WifiPolicyName) -> list:  
         self.wifi_db.get_wifi_security_policy(wifi_policy_name)
              
     def status(self) -> bool:
@@ -390,7 +391,7 @@ class WifiInterface:
     Interface level wifi settings
     '''
     
-    def __init__(self, wifi_interface_name: str):
+    def __init__(self, wifi_interface_name: InterfaceName):
         """
         Initialize a WifiInterface instance.
 
@@ -465,7 +466,7 @@ class WifiInterface:
             self.log.error(f"Error parsing scan results: {e}")
             return []
 
-    def update_policy_to_wifi_interface(self, wifi_policy_name: str) -> bool:
+    def update_policy_to_wifi_interface(self, wifi_policy_name: WifiPolicyName) -> bool:
         """
         Update the Wi-Fi policy for the wireless interface.
 
@@ -485,7 +486,7 @@ class WifiInterface:
         
         return self.wifi_db.add_wifi_policy_to_wifi_interface(wifi_policy_name, self.wifi_interface_name)
     
-    def set_hardware_mode(self, wifi_interface_name:str, hw_mode: HardwareMode) -> bool:
+    def set_hardware_mode(self, wifi_interface_name:InterfaceName, hw_mode: HardwareMode) -> bool:
         """
         Set the hardware mode for the wireless interface.
 
@@ -502,7 +503,7 @@ class WifiInterface:
         
         return STATUS_OK
     
-    def set_channel(self, wifi_interface_name:str, channel: WifiChannel) -> bool:
+    def set_channel(self, wifi_interface_name:InterfaceName, channel: WifiChannel) -> bool:
         """
         Set the Wi-Fi channel for the wireless interface.
 
@@ -526,10 +527,10 @@ class Wifi(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().WIFI)
 
-    def wifi_policy_name_exist(self, wifi_policy_name:str) -> bool:
+    def wifi_policy_name_exist(self, wifi_policy_name:WifiPolicyName) -> bool:
         return True 
 
-    def wifi_interface_exist(self, wifi_interface_name: str) -> bool:
+    def wifi_interface_exist(self, wifi_interface_name: InterfaceName) -> bool:
         """
         Check if a Wi-Fi interface exists.
 
@@ -546,7 +547,7 @@ class Wifi(NetworkManager):
             return False
         return True
             
-    def set_ssid(self, wifi_interface_name: str, ssid: str) -> bool:
+    def set_ssid(self, wifi_interface_name: InterfaceName, ssid: SsidText) -> bool:
         """
         Set the SSID (Service Set Identifier) for a Wi-Fi interface.
 
@@ -565,7 +566,7 @@ class Wifi(NetworkManager):
         
         return STATUS_OK
 
-    def set_wpa_passphrase(self, wifi_interface_name: str, pass_phrase: str) -> bool:
+    def set_wpa_passphrase(self, wifi_interface_name: InterfaceName, pass_phrase: WifiPassphraseText) -> bool:
         """
         Set the WPA passphrase for a Wi-Fi interface using the iw command.
 
@@ -585,7 +586,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
     
-    def set_wpa_key_mgmt(self, wifi_interface_name: str, wpa_key_mgmt: WPAkeyManagement) -> bool:
+    def set_wpa_key_mgmt(self, wifi_interface_name: InterfaceName, wpa_key_mgmt: WPAkeyManagement) -> bool:
         """
         Set the WPA key management method for a Wi-Fi interface using the iw command.
 
@@ -605,7 +606,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_wpa_pairwise(self, wifi_interface_name: str, wpa_pairwise: Pairwise) -> bool:
+    def set_wpa_pairwise(self, wifi_interface_name: InterfaceName, wpa_pairwise: Pairwise) -> bool:
         """
         Set the WPA pairwise cipher for a Wi-Fi interface using the iw command.
 
@@ -625,7 +626,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_rsn_pairwise(self, wifi_interface_name: str, rsn_pairwise: Pairwise) -> bool:
+    def set_rsn_pairwise(self, wifi_interface_name: InterfaceName, rsn_pairwise: Pairwise) -> bool:
         """
         Set the RSN pairwise cipher for a Wi-Fi interface using the iw command.
 
@@ -645,7 +646,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
     
-    def set_wifi_mode(self, wifi_interface_name: str, mode: HardwareMode) -> bool:
+    def set_wifi_mode(self, wifi_interface_name: InterfaceName, mode: HardwareMode) -> bool:
         """
         Set the Wi-Fi mode for a Wi-Fi interface using the iw command.
 
@@ -665,7 +666,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_wifi_channel(self, wifi_interface_name: str, channel: int) -> bool:
+    def set_wifi_channel(self, wifi_interface_name: InterfaceName, channel: int) -> bool:
         """
         Set the Wi-Fi channel for a Wi-Fi interface using the iw command.
 
@@ -689,7 +690,7 @@ class Wifi(NetworkManager):
 
         return STATUS_OK
 
-    def set_auth_algs(self, wifi_interface_name: str, auth_alg: AuthAlgorithms) -> bool:
+    def set_auth_algs(self, wifi_interface_name: InterfaceName, auth_alg: AuthAlgorithms) -> bool:
         """
         Set the authentication algorithms for a Wi-Fi interface using the iw command.
 
@@ -713,7 +714,7 @@ class Wifi(NetworkManager):
         return STATUS_OK
 
 class WifiAccessPoint(HostapdManager):
-    def __init__(self, interface_name: str, wifi_policy_name: str):
+    def __init__(self, interface_name: InterfaceName, wifi_policy_name: WifiPolicyName):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().WIFI_ACCESS_POINT)

@@ -4,6 +4,7 @@ from routershell.lib.cli.common.command_class_interface import CmdPrompt
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import DhcpPoolName, InetCidrText
 from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpPoolFactory
 
 
@@ -19,7 +20,7 @@ class DhcpPoolConfig(CmdPrompt):
         _dhcp_pool_factory (DhcpPoolFactory): Factory instance for managing DHCP pools.
     """
 
-    def __init__(self, dhcp_pool_name: str, negate: bool) -> None:
+    def __init__(self, dhcp_pool_name: DhcpPoolName, negate: bool) -> None:
         super().__init__(global_commands=True, exec_mode=ExecMode.USER_MODE)
         
         self.log = logging.getLogger(self.__class__.__name__)
@@ -43,7 +44,7 @@ class DhcpPoolConfig(CmdPrompt):
             print(f"{method.__doc__}")
     
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_subnet(self, inet_subnet_cidr: str | list[str]) -> bool:
+    def dhcppoolconfig_subnet(self, inet_subnet_cidr: InetCidrText | list[str]) -> bool:
         """
         Configure a subnet for the DHCP pool.
         

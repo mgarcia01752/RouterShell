@@ -5,6 +5,7 @@ from routershell.lib.cli.config.config import Configure
 from routershell.lib.common.common import Common
 from routershell.lib.common.constants import STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import FilePath
 
 
 class CopyStartRunError(Exception):
@@ -42,7 +43,7 @@ class CopyStartRun(RouterPrompt):
         
         self.register_top_lvl_cmds(Configure())
 
-    def read_start_config(self, startup_config_fname: str = None) -> bool:
+    def read_start_config(self, startup_config_fname: FilePath | None = None) -> bool:
         """
         Reads the startup configuration file and initializes the prompt feeder.
 

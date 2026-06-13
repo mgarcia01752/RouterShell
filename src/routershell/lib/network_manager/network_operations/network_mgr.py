@@ -7,6 +7,7 @@ from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.inet import InetServiceLayer
 
 
@@ -58,7 +59,7 @@ class NetworkManager(InetServiceLayer):
             print(f"Error: {e}")
             return 'STATUS_NOK'
 
-    def flush_interface(self, interface_name: str) -> bool:
+    def flush_interface(self, interface_name: InterfaceName) -> bool:
         """
         Flush the configuration of a specific network interface.
 

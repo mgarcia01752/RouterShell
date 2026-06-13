@@ -3,6 +3,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import BridgeName, InterfaceName, VlanName
 from routershell.lib.db.sqlite_db.router_shell_db import Result
 from routershell.lib.db.vlan_db import VlanDatabase
 from routershell.lib.network_manager.common.phy import State
@@ -59,7 +60,7 @@ class Vlan(RunCommand):
         """
         return VlanDatabase().vlan_exists(vlan_id)
 
-    def does_vlan_name_exist(vlan_name: str) -> bool:
+    def does_vlan_name_exist(vlan_name: VlanName) -> bool:
         """
         Checks if a VLAN with the given name exists.
 
@@ -73,7 +74,7 @@ class Vlan(RunCommand):
             return False
         return True
 
-    def update_vlan_name(self, vlan_id: int, vlan_name: str) -> bool:
+    def update_vlan_name(self, vlan_id: int, vlan_name: VlanName) -> bool:
         """
         Update the name of a VLAN in the database.
 
@@ -101,7 +102,7 @@ class Vlan(RunCommand):
         """
         return VlanDatabase().update_vlan_description(vlan_id, vlan_description)
 
-    def add_vlan_to_interface_os(self, vlan_id: int, interface_name: str) -> bool:
+    def add_vlan_to_interface_os(self, vlan_id: int, interface_name: InterfaceName) -> bool:
 
         result = self.run(["ip", "-j", "link", "show", "type", "vlan"])
         
@@ -130,7 +131,7 @@ class Vlan(RunCommand):
         
         return STATUS_OK
 
-    def add_bridge_by_vlan_id(self, bridge_name: str, vlan_id: int) -> str:
+    def add_bridge_by_vlan_id(self, bridge_name: BridgeName, vlan_id: int) -> str:
         """
         Add a bridge to a VLAN.
 
@@ -155,7 +156,7 @@ class Vlan(RunCommand):
         
         return STATUS_OK
 
-    def add_interface_by_vlan_id(self, interface_name: str, vlan_id: int) -> bool:
+    def add_interface_by_vlan_id(self, interface_name: InterfaceName, vlan_id: int) -> bool:
         """
         Add an interface to a VLAN.
 
@@ -186,7 +187,7 @@ class Vlan(RunCommand):
         
         return STATUS_OK
     
-    def add_interface_to_vlan_os(self, vlan_id: int, interface_name: str) -> bool:
+    def add_interface_to_vlan_os(self, vlan_id: int, interface_name: InterfaceName) -> bool:
         """
         Add an interface to a VLAN on the operating system.
 
@@ -224,7 +225,7 @@ class Vlan(RunCommand):
 
         return STATUS_OK
 
-    def delete_interface_from_vlan(self, interface_name: str, vlan_id: int) -> bool:
+    def delete_interface_from_vlan(self, interface_name: InterfaceName, vlan_id: int) -> bool:
         return STATUS_OK
 
     def get_vlan_name_from_vlan_id(self, vlan_id: int) -> str | None:
@@ -245,7 +246,7 @@ class Vlan(RunCommand):
         
         return result.result.get('VlanName')
     
-    def get_vlan_id_from_vlan_name(self, vlan_name:str) -> int:
+    def get_vlan_id_from_vlan_name(self, vlan_name:VlanName) -> int:
         """
         Retrieves the VLAN ID associated with a given VLAN name.
 

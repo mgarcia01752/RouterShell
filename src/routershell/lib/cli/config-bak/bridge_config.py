@@ -11,6 +11,7 @@ from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 
 
+from routershell.lib.common.types import BridgeName
 class InvalidBridge(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -20,7 +21,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
 
     PROMPT_CMD_ALIAS = InterfaceType.BRIDGE.value
     
-    def __init__(self, bridge_name: str):
+    def __init__(self, bridge_name: BridgeName):
         super().__init__()
         
         self.log = logging.getLogger(self.__class__.__name__)

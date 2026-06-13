@@ -3,6 +3,7 @@ from enum import Enum
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.run_commands import RunCommand
 
 
@@ -86,7 +87,7 @@ class PhyServiceLayer(RunCommand):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().PHY)
             
-    def set_duplex(self, interface_name: str, duplex: Duplex):
+    def set_duplex(self, interface_name: InterfaceName, duplex: Duplex):
         """
         Set the duplex mode of a network interface.
 
@@ -112,7 +113,7 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"Failed to set duplex mode of {interface_name} to {duplex.name}")
             return STATUS_NOK
 
-    def set_speed(self, interface_name: str, ifSpeed: Speed, auto: bool = False) -> bool:
+    def set_speed(self, interface_name: InterfaceName, ifSpeed: Speed, auto: bool = False) -> bool:
         """
         Set the speed of a network interface and optionally enable or disable auto-negotiation.
 
@@ -153,7 +154,7 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"An error occurred while setting interface speed: {e}")
             return STATUS_NOK
 
-    def set_interface_shutdown(self, interface_name: str, state: State) -> bool:
+    def set_interface_shutdown(self, interface_name: InterfaceName, state: State) -> bool:
         """
         Set the state of a network interface (up or down).
 
@@ -183,7 +184,7 @@ class PhyServiceLayer(RunCommand):
 
         return status == STATUS_OK
 
-    def set_mtu(self, interface_name: str, mtu_size: int) -> bool:
+    def set_mtu(self, interface_name: InterfaceName, mtu_size: int) -> bool:
         """
         Set the Maximum Transmission Unit (MTU) size for a network interface using iproute2.
 
@@ -201,7 +202,7 @@ class PhyServiceLayer(RunCommand):
         else:
             return STATUS_OK
     
-    def get_duplex(self, interface_name: str) -> Duplex:
+    def get_duplex(self, interface_name: InterfaceName) -> Duplex:
         """
         Get the current duplex mode of a network interface.
 
@@ -222,7 +223,7 @@ class PhyServiceLayer(RunCommand):
         else:
             return Duplex.AUTO
 
-    def get_speed(self, interface_name: str) -> Speed:
+    def get_speed(self, interface_name: InterfaceName) -> Speed:
         """
         Get the current speed setting of a network interface.
 
@@ -245,7 +246,7 @@ class PhyServiceLayer(RunCommand):
         else:
             return Speed.AUTO_NEGOTIATE
 
-    def get_mtu(self, interface_name: str) -> int:
+    def get_mtu(self, interface_name: InterfaceName) -> int:
         """
         Get the current Maximum Transmission Unit (MTU) size of a network interface.
 

@@ -3,6 +3,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import ServiceName
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.system.init_system import InitSystem, InitSystemChecker
 
@@ -25,7 +26,7 @@ class SystemServiceControl(RunCommand):
         
         self.init_system = InitSystemChecker().get_init_system()
 
-    def service_control(self, service_name: str, service_action: SysServCntrlAction) -> bool:
+    def service_control(self, service_name: ServiceName, service_action: SysServCntrlAction) -> bool:
         """
         Controls a system service using the appropriate init system.
 
@@ -55,7 +56,7 @@ class SystemServiceControl(RunCommand):
         self.log.debug(f"Service {service_name} {service_action.value}ed successfully.")
         return STATUS_OK
 
-    def _init_system_control(self, service_name: str, service_action: SysServCntrlAction) -> list[str]:
+    def _init_system_control(self, service_name: ServiceName, service_action: SysServCntrlAction) -> list[str]:
         """
         Constructs the appropriate command for the current init system.
 

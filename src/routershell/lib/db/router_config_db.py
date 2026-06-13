@@ -3,6 +3,7 @@ from itertools import count
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.common.interface import InterfaceType
 
@@ -50,7 +51,7 @@ class RouterConfigurationDatabase:
 
         return interface_list
     
-    def get_interface_configuration(cls, interface_name: str) -> tuple[bool, dict]:
+    def get_interface_configuration(cls, interface_name: InterfaceName) -> tuple[bool, dict]:
         """
         Get the configuration for a specific interface.
 
@@ -66,7 +67,7 @@ class RouterConfigurationDatabase:
         
         return if_result.status, if_result.result
 
-    def get_interface_dhcp_client_configuration(cls, interface_name: str) -> tuple[bool, list[dict]]:
+    def get_interface_dhcp_client_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Retrieve DHCP client configuration information associated with a specific interface.
 
@@ -93,7 +94,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, dhcp_config_list
         
-    def get_interface_ip_address_configuration(cls, interface_name: str) -> tuple[bool, list[dict]]:
+    def get_interface_ip_address_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Retrieve IP address configuration for a specific interface.
 
@@ -121,7 +122,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, ip_config_list
 
-    def get_interface_dhcp_server_polices(cls, interface_name: str) -> tuple[bool, list[dict[str, str]]]:
+    def get_interface_dhcp_server_polices(cls, interface_name: InterfaceName) -> tuple[bool, list[dict[str, str]]]:
         """
         Retrieve DHCP server policies for a specific interface.
 
@@ -147,7 +148,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, dhcp_server_policies
 
-    def get_interface_switchport_access_vlan(cls, interface_name: str) -> tuple[bool, list[dict[str, str]]]:
+    def get_interface_switchport_access_vlan(cls, interface_name: InterfaceName) -> tuple[bool, list[dict[str, str]]]:
         
         if_switch_port_access_vlan_id_result = cls.rsdb.select_interface_switchport_access_vlan_id(interface_name)
 
@@ -160,7 +161,7 @@ class RouterConfigurationDatabase:
         
         return STATUS_OK, if_switch_port_access_vlan_id
 
-    def get_interface_ip_static_arp_configuration(cls, interface_name: str) -> tuple[bool, list[dict]]:
+    def get_interface_ip_static_arp_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Retrieve IP static ARP configuration for a specific interface.
 
@@ -187,7 +188,7 @@ class RouterConfigurationDatabase:
 
         return STATUS_OK, static_arp_config_list
 
-    def get_interface_wifi_configuration(cls, interface_name: str) -> tuple[bool, list[dict]]:
+    def get_interface_wifi_configuration(cls, interface_name: InterfaceName) -> tuple[bool, list[dict]]:
         """
         Get the wireless wifi configuration for a specified interface.
 

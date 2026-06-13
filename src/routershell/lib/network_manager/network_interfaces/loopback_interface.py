@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InetCidrText, InterfaceName
 from routershell.lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from routershell.lib.network_manager.network_operations.interface import Interface
 
@@ -19,7 +20,7 @@ class LoopbackInterface(NetworkInterface):
         log (Logger): Logger instance for the class.
     """
 
-    def __init__(self, loopback_name: str) -> None:
+    def __init__(self, loopback_name: InterfaceName) -> None:
         """
         Initializes a LoopbackInterface instance.
 
@@ -91,5 +92,5 @@ class LoopbackInterface(NetworkInterface):
         return STATUS_OK
 
     
-    def add_inet_address(self, inet_address_cidr:str, secondary_address:bool=False, negate:bool=False) -> bool:
+    def add_inet_address(self, inet_address_cidr:InetCidrText, secondary_address:bool=False, negate:bool=False) -> bool:
         return STATUS_OK

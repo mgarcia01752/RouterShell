@@ -1,6 +1,7 @@
 import logging
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
 from routershell.lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
@@ -30,7 +31,7 @@ class NetInterfaceFactory:
     # Singleton {'interface_name': NetworkInterface}
     _net_interface_lookup_interface_name: dict[str, LoopbackInterface | EthernetInterface | WirelessWifiInterface] = {}
 
-    def __init__(self, interface_name: str, interface_type: InterfaceType):
+    def __init__(self, interface_name: InterfaceName, interface_type: InterfaceType):
         """
         Initializes the NetInterfaceFactory with the given interface name and type.
 
@@ -78,7 +79,7 @@ class NetInterfaceFactory:
         return NetInterfaceFactory._net_interface_lookup_interface_name[self.interface_name]
     
     @staticmethod
-    def getNetInterface(interface_name: str) -> LoopbackInterface | EthernetInterface | WirelessWifiInterface:
+    def getNetInterface(interface_name: InterfaceName) -> LoopbackInterface | EthernetInterface | WirelessWifiInterface:
         """
         Retrieve the NetInterface object associated with the specified interface name.
 

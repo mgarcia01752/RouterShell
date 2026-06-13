@@ -5,6 +5,7 @@ from enum import Enum, auto
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import DhcpPoolName, InetCidrText
 from routershell.lib.db.dhcp_server_db import DHCPServerDatabase
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
@@ -137,7 +138,7 @@ class DNSMasqInterfaceService(DNSMasqService):
     DEFAULT_LEASE_TIME = 86400
     DEFAULT_DNS_LISTEN_PORT=5353 # '''Setting DNS to 5353 prevents conflict if there is already DNS running'''
 
-    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+    def __init__(self, dhcp_pool_name: DhcpPoolName, dhcp_pool_subnet: InetCidrText, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)
@@ -317,7 +318,7 @@ class DNSMasqGlobalService(DNSMasqService):
         service = DNSMasqService("home", "192.168.1.0/24")
     """
 
-    def __init__(self, dhcp_pool_name: str, dhcp_pool_subnet: str, negate=False):
+    def __init__(self, dhcp_pool_name: DhcpPoolName, dhcp_pool_subnet: InetCidrText, negate=False):
         super().__init__()
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DNSMASQ_INTERFACE_SERVICE)    

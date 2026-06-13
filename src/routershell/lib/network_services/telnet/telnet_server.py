@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import FilePath
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_services.common.network_ports import NetworkPorts
 from routershell.lib.system.init_system import InitSystem, InitSystemChecker
@@ -20,7 +21,7 @@ class TelnetService(RunCommand):
     _instance: 'TelnetService | None' = None
     init_system: InitSystem
     port: int
-    telnet_config_file: str | None = None
+    telnet_config_file: FilePath | None = None
 
     def __new__(cls, *args, **kwargs) -> 'TelnetService':
         if cls._instance is None:

@@ -4,6 +4,7 @@ import logging
 
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InetAddressText, InetCidrText, InterfaceName, MacAddressText, NatPoolName
 from routershell.lib.db.interface_db import InterfaceDatabase
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
@@ -24,7 +25,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.setLevel(RSLS().INTERFACE)
         self.arg = arg
 
-    def clear_interface_arp(self, interface_name: str=None) -> bool:
+    def clear_interface_arp(self, interface_name: InterfaceName | None=None) -> bool:
         """
         Clear the ARP cache for a specific network interface using iproute2.
 
@@ -88,7 +89,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return interfaces
     
-    def does_os_interface_exist(self, interface_name: str, include_loopbacks: bool=True) -> bool:
+    def does_os_interface_exist(self, interface_name: InterfaceName, include_loopbacks: bool=True) -> bool:
         """
         Determine if a network interface with the specified name exists on the current system.
 
@@ -137,7 +138,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"Exception in does_os_interface_exist: {e}")
             return False
 
-    def get_os_interface_type(self, interface_name: str, include_loopback_labels: bool=True) -> InterfaceType:
+    def get_os_interface_type(self, interface_name: InterfaceName, include_loopback_labels: bool=True) -> InterfaceType:
         """
         Get the type of a network interface (physical, virtual, or VLAN) based on its name.
 
@@ -189,7 +190,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return InterfaceType.UNKNOWN
 
-    def get_os_interface_type_extened(self, interface_name: str) -> InterfaceType:
+    def get_os_interface_type_extened(self, interface_name: InterfaceName) -> InterfaceType:
         """
         Get the type of a network interface using lshw.
 
@@ -237,7 +238,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return InterfaceType.UNKNOWN
 
-    def does_db_interface_exist(self, interface_name: str) -> bool:
+    def does_db_interface_exist(self, interface_name: InterfaceName) -> bool:
         """
         Determine if a network interface with the specified name exists on the DB.
         Args:
@@ -250,7 +251,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         """        
         return self.db_lookup_interface_exists(interface_name).status
 
-    def add_db_interface_entry(self, interface_name: str, ifType: InterfaceType) -> bool:
+    def add_db_interface_entry(self, interface_name: InterfaceName, ifType: InterfaceType) -> bool:
         """
         Add an interface entry to the database.
 
@@ -272,7 +273,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
         
-    def update_interface_mac(self, interface_name: str, mac: str | None = None) -> bool:
+    def update_interface_mac(self, interface_name: InterfaceName, mac: MacAddressText | None = None) -> bool:
         """
         Update the MAC address of a network interface.
         Update the MAC address to the DB 
@@ -321,7 +322,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_inet(self, interface_name: str, inet_address: str, secondary: bool = False, negate: bool = False) -> bool:
+    def update_interface_inet(self, interface_name: InterfaceName, inet_address: InetAddressText, secondary: bool = False, negate: bool = False) -> bool:
         """
         Add or remove an inet address from a network interface.
         Update interface inet DB
@@ -355,7 +356,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
 
-    def update_interface_duplex(self, interface_name: str, duplex: Duplex) -> bool:
+    def update_interface_duplex(self, interface_name: InterfaceName, duplex: Duplex) -> bool:
         """
         Add or set the duplex mode for a network interface.
 
@@ -389,7 +390,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
     
-    def update_interface_speed(self, interface_name: str, speed: Speed) -> bool:
+    def update_interface_speed(self, interface_name: InterfaceName, speed: Speed) -> bool:
         """
         Set the network interface speed and update it in the database.
 
@@ -423,7 +424,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
             
-    def update_shutdown(self, interface_name: str, state: State) -> bool:
+    def update_shutdown(self, interface_name: InterfaceName, state: State) -> bool:
         """
         Set the shutdown status of a network interface.
 
@@ -446,7 +447,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.debug(f"update_shutdown() -> interface_name: {interface_name} -> State: {state} via os")
         return self.set_interface_shutdown(interface_name, state)
      
-    def create_os_dummy_interface(self, interface_name:str) -> bool:
+    def create_os_dummy_interface(self, interface_name:InterfaceName) -> bool:
         """
         Create a dummy interface with the specified name to OS.
 
@@ -466,7 +467,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
 
-    def destroy_os_dummy_interface(self, interface_name: str) -> bool:
+    def destroy_os_dummy_interface(self, interface_name: InterfaceName) -> bool:
         """
         Destroy a dummy interface with the specified name on the OS.
 
@@ -485,8 +486,8 @@ class Interface(NetworkManager, InterfaceDatabase):
         self.log.debug(f'Destroyed {interface_name} dummy')
         return STATUS_OK
         
-    def rename_interface(self, initial_interface_name: str, 
-                        alias_interface_name: str, 
+    def rename_interface(self, initial_interface_name: InterfaceName, 
+                        alias_interface_name: InterfaceName, 
                         suppress_error: bool=True) -> bool:
         """
         Rename a network interface to a specified alias name.
@@ -569,7 +570,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_proxy_arp(self, interface_name: str, negate: bool = False) -> bool:
+    def update_interface_proxy_arp(self, interface_name: InterfaceName, negate: bool = False) -> bool:
         """
         Enable or disable Proxy ARP on a network interface and update the Proxy ARP configuration in the database.
 
@@ -593,7 +594,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_drop_gratuitous_arp(self, interface_name: str, negate: bool = False) -> bool:
+    def update_interface_drop_gratuitous_arp(self, interface_name: InterfaceName, negate: bool = False) -> bool:
         """
         Enable or disable the dropping of gratuitous ARP packets on a network interface and update the configuration in the database.
 
@@ -617,7 +618,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def update_interface_static_arp(self, interface_name: str, inet: str, mac_address: str, encap: Encapsulate, negate: bool = False) -> bool:
+    def update_interface_static_arp(self, interface_name: InterfaceName, inet: InetAddressText, mac_address: MacAddressText, encap: Encapsulate, negate: bool = False) -> bool:
         """
         Enable or disable a static ARP entry for a network interface and update the static ARP configuration in the database.
 
@@ -653,7 +654,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def set_nat_domain_status_1(self, interface_name:str, nat_in_out:NATDirection, negate=False):
+    def set_nat_domain_status_1(self, interface_name:InterfaceName, nat_in_out:NATDirection, negate=False):
         
         if nat_in_out is NATDirection.INSIDE:
             if Nat().create_inside_nat(interface_name):
@@ -666,7 +667,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             
         return STATUS_OK        
 
-    def set_nat_domain_status_2(self, interface_name:str, nat_pool_name:str, nat_in_out:NATDirection, negate=False):
+    def set_nat_domain_status_2(self, interface_name:InterfaceName, nat_pool_name:NatPoolName, nat_in_out:NATDirection, negate=False):
         if nat_in_out == NATDirection.INSIDE.value:
             self.log.debug("Configuring NAT for the inside interface")
             
@@ -690,7 +691,7 @@ class Interface(NetworkManager, InterfaceDatabase):
                 return STATUS_NOK
         return STATUS_OK
 
-    def set_nat_domain_status(self, interface_name: str, nat_pool_name: str, nat_in_out: NATDirection, negate=False) -> bool:
+    def set_nat_domain_status(self, interface_name: InterfaceName, nat_pool_name: NatPoolName, nat_in_out: NATDirection, negate=False) -> bool:
         """
         Configure NAT domain status for an interface.
 
@@ -720,7 +721,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def get_os_interface_hardware_info(self, interface_name: str) -> dict:
+    def get_os_interface_hardware_info(self, interface_name: InterfaceName) -> dict:
         """
         Retrieve information about hardware network interfaces.
 
@@ -752,7 +753,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             print(f"Error decoding JSON: {e}")
             return None
 
-    def update_interface_description(self, interface_name: str, description: str) -> bool:
+    def update_interface_description(self, interface_name: InterfaceName, description: str) -> bool:
         """
         Update the description of a network interface in the database.
 
@@ -767,7 +768,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
         return self.update_db_description(interface_name, description)
 
-    def update_interface_db_from_os(self, interface_name: str = None) -> bool:
+    def update_interface_db_from_os(self, interface_name: InterfaceName | None = None) -> bool:
         """
         Update the database with information about network interfaces found by the operating system.
 
@@ -797,7 +798,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return STATUS_OK
 
-    def _rename_os_interface(self, initial_interface_name: str, alias_interface_name: str) -> bool:
+    def _rename_os_interface(self, initial_interface_name: InterfaceName, alias_interface_name: InterfaceName) -> bool:
         """
         Rename the operating system network interface.
 
@@ -829,7 +830,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         """
         return self.get_db_interface_names()
     
-    def flush_interfaces(self, interface_name: str = None) -> bool:
+    def flush_interfaces(self, interface_name: InterfaceName | None = None) -> bool:
         """
         Flush network interfaces, removing any configurations.
 
@@ -887,7 +888,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
         return labels
 
-    def create_os_loopback(self, loopback_name: str, inet_address: str) -> bool:
+    def create_os_loopback(self, loopback_name: InterfaceName, inet_address: InetAddressText) -> bool:
         """
         Creates a loopback interface with the specified name (label) and IP address on the 'lo' device.
 
@@ -931,7 +932,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
     
-    def set_db_loopback(self, loopback_name: str, inet_address_cidr: str) -> bool:
+    def set_db_loopback(self, loopback_name: InterfaceName, inet_address_cidr: InetCidrText) -> bool:
         """
         Sets a loopback interface in the database with the specified name and IP address in CIDR notation.
 
@@ -957,7 +958,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
     
-    def destroy_os_loopback(self, loopback_name: str, inet_address: str) -> bool:
+    def destroy_os_loopback(self, loopback_name: InterfaceName, inet_address: InetAddressText) -> bool:
         """
         Destroys a loopback interface with the specified name (label) and IP address from the 'lo' device.
 
@@ -1001,7 +1002,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
     
-    def del_db_loopback(self, loopback_name: str) -> bool:
+    def del_db_loopback(self, loopback_name: InterfaceName) -> bool:
         """
         Deletes a loopback interface from the database with the specified name.
 
@@ -1061,7 +1062,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.log.error(f"An error occurred: {e}")
             return None
 
-    def update_interface_loopback_inet(self, loopback_name: str, inet_address_cidr: str = None, negate: bool = False) -> bool:
+    def update_interface_loopback_inet(self, loopback_name: InterfaceName, inet_address_cidr: InetCidrText | None = None, negate: bool = False) -> bool:
         """
         Update or delete the inet address of a loopback interface.
 

@@ -3,6 +3,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import InterfaceName, MacAddressText
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_operations.interface import Interface
@@ -20,7 +21,7 @@ class NetworkInterface:
         log (logging.Logger): Logger for logging operations.
     """
 
-    def __init__(self, interface_name: str) -> None:
+    def __init__(self, interface_name: InterfaceName) -> None:
         """
         Initializes the NetworkInterface with the given interface name.
 
@@ -108,7 +109,7 @@ class NetworkInterface:
         """
         pass
     
-    def set_mac_address(self, mac_addr: str = None) -> bool:
+    def set_mac_address(self, mac_addr: MacAddressText | None = None) -> bool:
         """
         Set the MAC address of the network interface.
 

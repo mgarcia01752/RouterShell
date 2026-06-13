@@ -7,7 +7,7 @@ import logging.config
 import os
 from pathlib import Path
 
-from routershell.lib.common.types import FilePath, LogLevelName
+from routershell.lib.common.types import FilePath, LoggerName, LogLevelName
 
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_LOG_FILE = Path("/tmp/log/routershell.log")
@@ -103,7 +103,7 @@ class RouterShellLogging:
         )
 
     @staticmethod
-    def get_logger(name: str) -> logging.Logger:
+    def get_logger(name: LoggerName) -> logging.Logger:
         """Return a named logger using RouterShell's logging configuration."""
         return logging.getLogger(name)
 
@@ -148,6 +148,6 @@ def configure_logging(
     )
 
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: LoggerName) -> logging.Logger:
     """Return a RouterShell logger by name."""
     return RouterShellLogging.get_logger(name)
