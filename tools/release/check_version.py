@@ -53,8 +53,10 @@ class VersionCheckTool:
     @staticmethod
     def _read_version_from_package(root_path: Path) -> str:
         """Read the runtime package version."""
-        if str(root_path) not in sys.path:
-            sys.path.insert(0, str(root_path))
+        source_path = root_path / "src"
+        import_path = source_path if source_path.is_dir() else root_path
+        if str(import_path) not in sys.path:
+            sys.path.insert(0, str(import_path))
         try:
             import routershell
         except ImportError:

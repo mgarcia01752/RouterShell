@@ -26,19 +26,16 @@ Keep it short, accurate, and updated when workflows change.
 
 ## External Consumers (Compatibility Contract)
 
-- PyPNM is the authoritative engine and is consumed by downstream repos (example: PyPNM-CMTS).
-- Preserve public API stability unless the user explicitly approves breaking changes.
-- Do not embed downstream app concerns into PyPNM (keep PyPNM reusable and transport-agnostic).
-- If a change affects downstream repos, call it out explicitly before making it.
+- BareMetalRouterOS may consume RouterShell through Yocto recipes and image builds.
+- Preserve public CLI, package, and install behavior unless the user explicitly approves breaking changes.
+- If a change affects downstream image integration, call out the cross-repo impact before making it.
 
-## Repo Conventions (PyPNM)
+## Repo Conventions
 
-- Persistence is filesystem-based artifacts plus metadata persistence per the DB backend design:
-  - Binaries and derived artifacts remain on disk under `.data/` roots.
-  - Transaction/group/operation metadata is DB-backed (SQLite or Postgres) per `docs/design/db/`.
-- DB backend selection is owned by PyPNM at install time (no runtime “auto switching”).
-- SQLite is intended for single-writer deployments (standalone/lab/demo).
-- Postgres is recommended for multi-worker / multi-process deployments.
+- RouterShell implementation code lives under `src/routershell/`.
+- Runtime install tooling lives under `install/`.
+- Development, release, VM, and operational helpers live under categorized `tools/` directories.
+- Keep Linux host mutation workflows guarded, documented, and VM-tested where practical.
 
 ## Documentation
 
@@ -80,7 +77,7 @@ Agents working on the DB backend refactor MUST follow the locked decisions recor
 - `system.json` is the single source of truth.
 - New configuration namespaces must be implemented as Pydantic BaseModels.
 - BaseModels must use one-line `Field(..., description="...")`.
-- Avoid generic `str` for semantic identifiers or paths in public models and APIs; use an existing semantic type or add a new alias in `src/pypnm/lib/types.py`.
+- Avoid generic `str` for semantic identifiers or paths in public models and APIs; use existing RouterShell value objects or add a focused helper type under `src/routershell/lib/`.
 - When working with MAC or inet strings, validate using `MacAddress()` or `Inet()` instead of assuming `str(...)` formatting is valid.
 - Request override defaults: missing or null means use `system.json` defaults; blank strings are invalid.
 
@@ -209,7 +206,7 @@ Use this Summary block at the very top of every `*.review.md` bundle (before any
 - License is Apache-2.0; keep SPDX headers aligned with `LICENSE` and `NOTICE`.
 - For any modified or newly created file, update the SPDX header year to 2026.
 - If a file already has a SPDX year and the year has changed, update it as a range (example: 2025 -> 2025-2026).
-- Keep implementation code inside packages such as `routershell/` or `lib/`; do not add loose root-level Python modules unless they are established project entry points or standard configuration files.
+- Keep implementation code inside `src/routershell/`; do not add loose root-level Python modules unless they are established project entry points or standard configuration files.
 - Treat RouterShell as non-legacy code for packaging decisions; avoid compatibility shims that keep obsolete root-level modules alive unless Maurice explicitly approves them.
 - Keep `tools/` organized by category.
 - Do not add files directly under `tools/` root.
@@ -229,7 +226,5 @@ Before responding:
 When the user requests "train", read the following sources:
 
 - `AGENTS.md`
-- `docs/design/db/` (all files)
-- `src/pypnm/lib/` (DB/persistence + config helpers)
-- `src/pypnm/api/` (routing/service patterns, where applicable)
+- `src/routershell/lib/` (RouterShell implementation modules)
 - `tools/agent-review/` (all files, if present)

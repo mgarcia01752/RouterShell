@@ -6,4 +6,5 @@ PYTHON_BIN="${PYTHON:-python3}"
 
 cd "${PROJECT_ROOT}"
 mkdir -p /tmp/log
+export PYTHONPATH="${PROJECT_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
 exec "${PYTHON_BIN}" -m routershell "$@"

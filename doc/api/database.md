@@ -2,4 +2,4 @@
 
 ## RouterShell
 
-[RouterShell Database](../../lib/db/sqlite_db/db_schema.sql)
+[RouterShell Database](../../src/routershell/lib/db/sqlite_db/db_schema.sql)

@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
+from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DNSMasqConfigurator
 
 
 def build_example_configuration() -> str:

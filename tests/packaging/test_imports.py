@@ -1,15 +1,14 @@
-"""Import compatibility smoke tests."""
+"""Package import smoke tests."""
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 
-def test_lib_package_adds_legacy_import_path() -> None:
-    """Importing ``lib`` exposes the existing top-level package path."""
-    import lib
+def test_routershell_lib_package_is_nested_under_src() -> None:
+    """Verify the implementation package lives under ``src/routershell/lib``."""
+    import routershell.lib as routershell_lib
 
-    lib_path = str(Path(lib.__file__).resolve().parent)
+    lib_path = Path(routershell_lib.__file__).resolve().parent
 
-    assert lib_path in sys.path
+    assert lib_path.parts[-3:] == ("src", "routershell", "lib")

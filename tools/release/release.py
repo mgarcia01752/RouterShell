@@ -187,17 +187,19 @@ def _classify_path(path: str) -> str:
     normalized = path.replace("\\", "/").lower()
     if normalized.startswith("doc/") or normalized == "readme.md":
         return "Docs"
-    if normalized.startswith("lib/cli/") or normalized.startswith("src/") or normalized == "routershell/cli.py":
+    if normalized.startswith("src/routershell/lib/cli/") or normalized == "src/routershell/cli.py":
         return "CLI"
-    if normalized.startswith("lib/db/"):
+    if normalized.startswith("src/routershell/lib/db/"):
         return "Database"
-    if normalized.startswith("lib/network_manager/"):
+    if normalized.startswith("src/routershell/lib/network_manager/"):
         return "Networking"
-    if normalized.startswith("lib/network_services/") or normalized.startswith("lib/system/"):
+    if normalized.startswith("src/routershell/lib/network_services/") or normalized.startswith(
+        "src/routershell/lib/system/"
+    ):
         return "Services"
     if normalized.startswith("install/") or normalized == "start.sh":
         return "Install"
-    if normalized in {"pyproject.toml", "routershell/_version.py", "routershell/__init__.py"}:
+    if normalized in {"pyproject.toml", "src/routershell/_version.py", "src/routershell/__init__.py"}:
         return "Packaging"
     if normalized.startswith("tests/"):
         return "Tests"

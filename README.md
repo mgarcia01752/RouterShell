@@ -99,13 +99,13 @@ routershell
 ## Run RouterShell From Source
 
 ```bash
-python3 -m routershell
+PYTHONPATH=src python3 -m routershell
 ```
 
 Run the factory reset workflow from source with:
 
 ```bash
-python3 -m routershell --factory-reset
+PYTHONPATH=src python3 -m routershell --factory-reset
 ```
 
 ## Python Development Install
