@@ -49,6 +49,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "build>=1.2",
+    "pycycle>=0.0.8",
     "pyright>=1.1.407",
     "pytest>=8.0",
     "ruff>=0.5",
@@ -58,6 +59,7 @@ dev = [
 [project.scripts]
 routershell = "routershell.cli:main"
 routershell-factory-reset = "routershell.cli:factory_reset"
+routershell-software-qa-checker = "tools.release.qa_checker:main"
 
 [project.urls]
 Homepage = "https://github.com/mgarcia01752/RouterShell"

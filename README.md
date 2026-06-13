@@ -153,6 +153,15 @@ python -m pytest
 python -m ruff check .
 ```
 
+Or run the standard software QA sweep with:
+
+```bash
+routershell-software-qa-checker
+```
+
+See [RouterShell Software QA Checker](doc/tests/software-qa.md) for the full
+check sequence and options.
+
 ## Git Helpers
 
 Git helper scripts live under `tools/git/`:
