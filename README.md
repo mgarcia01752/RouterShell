@@ -133,6 +133,13 @@ Factory reset is also exposed as a console entry point:
 routershell-factory-reset
 ```
 
+Runtime logs default to `/tmp/log/routershell.log`. Override logging for one
+run with environment variables such as:
+
+```bash
+ROUTERSHELL_LOG_LEVEL=DEBUG routershell
+```
+
 Build distribution artifacts with:
 
 ```bash

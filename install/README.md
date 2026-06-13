@@ -98,6 +98,38 @@ After installation, run:
 routershell
 ```
 
+## Runtime Logging
+
+RouterShell writes runtime logs to `/tmp/log/routershell.log` by default.
+Logging is configured when the `routershell` and `routershell-factory-reset`
+entry points start.
+
+The log file uses rotation to avoid unbounded growth.
+
+Override the log level for one run:
+
+```bash
+ROUTERSHELL_LOG_LEVEL=DEBUG routershell
+```
+
+Use a custom log file:
+
+```bash
+ROUTERSHELL_LOG_FILE=/tmp/log/routershell-debug.log routershell
+```
+
+Disable console logging:
+
+```bash
+ROUTERSHELL_LOG_CONSOLE=false routershell
+```
+
+Disable file logging:
+
+```bash
+ROUTERSHELL_LOG_FILE_ENABLED=false routershell
+```
+
 ## Uninstall
 
 Run the uninstaller from the repository root:
