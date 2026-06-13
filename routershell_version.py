@@ -1,5 +1,7 @@
-"""RouterShell package version."""
+"""Compatibility shim for RouterShell package version."""
 
 from __future__ import annotations
 
-__version__: str = "0.1.0"
+from routershell import __version__
+
+__all__ = ["__version__"]

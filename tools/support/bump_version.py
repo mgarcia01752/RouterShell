@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (c) 2026 Maurice Garcia
 
-"""Inspect or update RouterShell version files."""
+"""Inspect or update the RouterShell project version."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ import sys
 from pathlib import Path
 from typing import Final
 
+import tomllib
 
-VERSION_FILE_PATH: Final[Path] = Path("routershell_version.py")
 PYPROJECT_FILE_PATH: Final[Path] = Path("pyproject.toml")
 DOC_TAG_ROOT: Final[Path] = Path("doc")
 VERSION_PART_SEPARATOR: Final[str] = "."
@@ -33,33 +33,21 @@ def _validate_version_string(version: str) -> None:
         sys.exit(1)
 
 
-def _read_current_version(version_file: Path) -> str:
-    """Read the current __version__ value from the version file."""
-    if not version_file.exists():
-        print(f"ERROR: Version file not found: {version_file}", file=sys.stderr)
+def _read_current_version(pyproject_file: Path) -> str:
+    """Read the current version from pyproject.toml."""
+    if not pyproject_file.exists():
+        print(f"ERROR: pyproject.toml not found: {pyproject_file}", file=sys.stderr)
         sys.exit(1)
 
-    text = version_file.read_text(encoding="utf-8")
-    match = re.search(r'__version__\s*(?::\s*[^=]+)?=\s*"([^"]+)"', text)
-    if not match:
-        print(f"ERROR: Could not find __version__ assignment in {version_file}.", file=sys.stderr)
-        sys.exit(1)
-    return match.group(1)
+    with pyproject_file.open("rb") as handle:
+        pyproject = tomllib.load(handle)
 
-
-def _write_new_version(version_file: Path, new_version: str) -> None:
-    """Write the new version into the version file."""
-    text = version_file.read_text(encoding="utf-8")
-    updated_text, count = re.subn(
-        r'__version__\s*(?::\s*[^=]+)?=\s*"[^"]+"',
-        f'__version__: str = "{new_version}"',
-        text,
-        count=1,
-    )
-    if count != 1:
-        print(f"ERROR: Could not replace __version__ in {version_file}.", file=sys.stderr)
+    project = pyproject.get("project", {})
+    version = project.get("version", "")
+    if not isinstance(version, str) or not version:
+        print(f"ERROR: Could not find [project].version in {pyproject_file}.", file=sys.stderr)
         sys.exit(1)
-    version_file.write_text(updated_text, encoding="utf-8")
+    return version
 
 
 def _write_new_pyproject_version(pyproject_file: Path, new_version: str) -> None:
@@ -124,8 +112,7 @@ def main() -> None:
     """CLI entry point for inspecting or updating the RouterShell version."""
     parser = argparse.ArgumentParser(
         description=(
-            "Inspect or update the __version__ string in routershell_version.py and "
-            "the [project].version field in pyproject.toml. "
+            "Inspect or update the [project].version field in pyproject.toml. "
             "Version format: MAJOR.MINOR.PATCH."
         )
     )
@@ -144,7 +131,7 @@ def main() -> None:
         if args.version is not None or args.next is not None:
             print("ERROR: --current cannot be combined with a version argument or --next.", file=sys.stderr)
             sys.exit(1)
-        current = _read_current_version(VERSION_FILE_PATH)
+        current = _read_current_version(PYPROJECT_FILE_PATH)
         print(f"Current version: {current}")
         sys.exit(0)
 
@@ -152,10 +139,10 @@ def main() -> None:
         if args.version is not None:
             print("ERROR: --next cannot be combined with an explicit version argument.", file=sys.stderr)
             sys.exit(1)
-        current = _read_current_version(VERSION_FILE_PATH)
+        current = _read_current_version(PYPROJECT_FILE_PATH)
         new_version = _compute_next_version(current, args.next)
     elif args.version is not None:
-        current = _read_current_version(VERSION_FILE_PATH)
+        current = _read_current_version(PYPROJECT_FILE_PATH)
         new_version = args.version
         _validate_version_string(new_version)
     else:
@@ -166,7 +153,6 @@ def main() -> None:
         print(f"No change: version is already {current}.")
         sys.exit(0)
 
-    _write_new_version(VERSION_FILE_PATH, new_version)
     _write_new_pyproject_version(PYPROJECT_FILE_PATH, new_version)
     if not args.version_files_only:
         _update_tag_tokens(f"v{new_version}")

@@ -52,20 +52,20 @@ dev = [
 ]
 
 [project.scripts]
-routershell = "routershell:main"
-routershell-factory-reset = "routershell:factory_reset"
+routershell = "routershell.cli:main"
+routershell-factory-reset = "routershell.cli:factory_reset"
 
 [project.urls]
 Homepage = "https://github.com/mgarcia01752/RouterShell"
 Repository = "https://github.com/mgarcia01752/RouterShell"
 
 [tool.setuptools]
-py-modules = ["routershell", "routershell_version"]
+py-modules = ["routershell_version"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["lib*"]
+include = ["routershell*", "lib*"]
 namespaces = true
 
 [tool.setuptools.package-data]

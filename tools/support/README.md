@@ -22,7 +22,7 @@ Set an explicit version:
 ./tools/support/bump_version.py 0.2.0
 ```
 
-Update only version files without rewriting README/doc tag placeholders:
+Update only `pyproject.toml` without rewriting README/doc tag placeholders:
 
 ```bash
 ./tools/support/bump_version.py --next patch --version-files-only

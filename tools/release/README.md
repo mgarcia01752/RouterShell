@@ -5,7 +5,7 @@ release tooling.
 
 ## Version Check
 
-Verify that `routershell_version.py` and `pyproject.toml` agree:
+Verify that the package version and `pyproject.toml` agree:
 
 ```bash
 ./tools/release/check_version.py

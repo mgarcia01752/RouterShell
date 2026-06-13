@@ -81,7 +81,7 @@ in production mode by default, and verifies:
 - `/usr/local/bin/routershell-factory-reset` exists and is executable.
 - `/opt/routershell/venv/bin/python` exists and is executable.
 - `/var/lib/routershell/baseline/manifest.json` exists.
-- The installed Python environment can import `routershell` and
-  `routershell_version`.
+- The installed Python environment can import `routershell`, verify console
+  entry functions, and read the package version.
 
 The test intentionally does not start the interactive RouterShell CLI.

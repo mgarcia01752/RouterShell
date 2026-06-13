@@ -74,11 +74,11 @@ multipass exec "${RS_VM_NAME}" -- bash -lc "
   sudo test -f /var/lib/routershell/baseline/manifest.json
   /opt/routershell/venv/bin/python - <<'PY'
 import routershell
-import routershell_version
+from routershell import cli
 
-assert callable(routershell.main)
-assert callable(routershell.factory_reset)
-print(f'RouterShell import OK: {routershell_version.__version__}')
+assert callable(cli.main)
+assert callable(cli.factory_reset)
+print(f'RouterShell import OK: {routershell.__version__}')
 PY
 "
 

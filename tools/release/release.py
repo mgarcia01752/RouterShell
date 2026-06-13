@@ -17,8 +17,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Final
 
-
-VERSION_FILE_PATH: Final[Path] = Path("routershell_version.py")
 BUMP_SCRIPT_PATH: Final[Path] = Path("tools/support") / "bump_version.py"
 PYPROJECT_FILE_PATH: Final[Path] = Path("pyproject.toml")
 README_FILE_PATH: Final[Path] = Path("README.md")
@@ -189,7 +187,7 @@ def _classify_path(path: str) -> str:
     normalized = path.replace("\\", "/").lower()
     if normalized.startswith("doc/") or normalized == "readme.md":
         return "Docs"
-    if normalized.startswith("lib/cli/") or normalized.startswith("src/") or normalized == "routershell.py":
+    if normalized.startswith("lib/cli/") or normalized.startswith("src/") or normalized == "routershell/cli.py":
         return "CLI"
     if normalized.startswith("lib/db/"):
         return "Database"
@@ -199,7 +197,7 @@ def _classify_path(path: str) -> str:
         return "Services"
     if normalized.startswith("install/") or normalized == "start.sh":
         return "Install"
-    if normalized in {"pyproject.toml", "routershell_version.py"}:
+    if normalized in {"pyproject.toml", "routershell/_version.py", "routershell/__init__.py"}:
         return "Packaging"
     if normalized.startswith("tests/"):
         return "Tests"
@@ -281,19 +279,6 @@ def _write_release_report(commit: str, version: str, tag_name: str, branch: str,
     return report_path
 
 
-def _read_current_version() -> str:
-    """Read the current __version__ value."""
-    if not VERSION_FILE_PATH.exists():
-        print(f"ERROR: Version file not found: {VERSION_FILE_PATH}", file=sys.stderr)
-        sys.exit(1)
-    text = VERSION_FILE_PATH.read_text(encoding="utf-8")
-    match = re.search(r'__version__\s*(?::\s*[^=]+)?=\s*"([^"]+)"', text)
-    if not match:
-        print(f"ERROR: Could not find __version__ in {VERSION_FILE_PATH}.", file=sys.stderr)
-        sys.exit(1)
-    return match.group(1)
-
-
 def _read_pyproject_version() -> str:
     """Read the [project].version value from pyproject.toml."""
     if not PYPROJECT_FILE_PATH.exists():
@@ -343,7 +328,7 @@ def _compute_next_version(current_version: str, mode: str) -> str:
 
 
 def _update_version_files(new_version: str) -> None:
-    """Update routershell_version.py and pyproject.toml via support tooling."""
+    """Update pyproject.toml via support tooling."""
     if not BUMP_SCRIPT_PATH.exists():
         print(f"ERROR: Version bump script not found: {BUMP_SCRIPT_PATH}", file=sys.stderr)
         sys.exit(1)
@@ -431,7 +416,7 @@ def _run_version_check() -> None:
 
 def _commit_version_bump(new_version: str) -> None:
     """Commit version bump files."""
-    _run(["git", "add", str(VERSION_FILE_PATH), str(PYPROJECT_FILE_PATH), str(README_FILE_PATH)], label="git-add")
+    _run(["git", "add", str(PYPROJECT_FILE_PATH), str(README_FILE_PATH), str(DOCS_ROOT)], label="git-add")
     _run(["git", "commit", "-m", f"Release {new_version}"], label="git-commit")
 
 
@@ -480,21 +465,13 @@ def main() -> None:
         if not target_commit:
             print("ERROR: unable to resolve report commit.", file=sys.stderr)
             sys.exit(1)
-        version = _read_current_version()
+        version = _read_pyproject_version()
         mode = "last-commit" if args.last_commit_report else "latest-commit"
         report_path = _write_release_report(target_commit, version, "n/a", current_branch, mode)
         print(f"Commit report saved to {report_path}")
         return
 
-    current_version = _read_current_version()
-    pyproject_version = _read_pyproject_version()
-    if current_version != pyproject_version:
-        print(
-            f"ERROR: Version mismatch between {VERSION_FILE_PATH} ({current_version}) "
-            f"and pyproject.toml ({pyproject_version}).",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    current_version = _read_pyproject_version()
 
     if args.version and args.next:
         print("ERROR: --version and --next cannot be used together.", file=sys.stderr)
@@ -526,6 +503,12 @@ def main() -> None:
         return
 
     _ensure_release_branch_allowed()
+    if args.branch != current_branch:
+        print(
+            f"ERROR: --branch must match the current branch ({current_branch}); got {args.branch}.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     _ensure_virtualenv()
     _init_release_logging()
     _ensure_clean_worktree()
