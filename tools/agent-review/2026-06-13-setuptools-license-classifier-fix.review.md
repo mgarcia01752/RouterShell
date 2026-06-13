@@ -1,3 +1,30 @@
+### Summary
+Fixed RouterShell editable installs with newer setuptools by removing the deprecated GPL license classifier while retaining the SPDX license expression. Added a small FAQ entry and TODO note so the installer error is documented for future troubleshooting.
+
+### Modified Files
+- README.md
+- pyproject.toml
+- doc/faq.md
+- todo.md
+
+### Commands Executed And Results
+- `python3 -m venv /tmp/routershell-packaging-check && /tmp/routershell-packaging-check/bin/python -m pip install --upgrade pip >/tmp/routershell-pip-upgrade.log && /tmp/routershell-packaging-check/bin/python -m pip install -e '.[dev]'` -> pass; editable build and dependency install completed
+- `bash -n install/install.sh install/uninstall.sh tools/vm/multipass-common.sh tools/vm/multipass-create.sh tools/vm/multipass-test-install.sh tools/vm/multipass-shell.sh tools/vm/multipass-destroy.sh` -> pass
+- `/tmp/routershell-packaging-check/bin/python -m pytest` -> pass; 4 tests passed
+- `/tmp/routershell-packaging-check/bin/python -m ruff check pyproject.toml README.md doc/faq.md todo.md` -> pass
+
+### Tests
+- `pytest` -> pass; 4 tests passed
+- `ruff` -> pass; all checks passed
+- editable install check -> pass; setuptools metadata validation succeeded
+
+### Notes / Warnings
+- The system install should be rerun from an environment where `sudo` is not blocked by `NoNewPrivs: 1`.
+
+### Remaining TODOs / Follow-Ups
+- None
+
+# FILE: README.md
 # RouterShell (WORK IN PROGRESS)
 
 RouterShell is an open-source, IOS-like CLI distribution written in Python 3. It is designed to provide a flexible and user-friendly command-line interface for network administrators and enthusiasts, offering a comprehensive range of networking features and capabilities tailored to diverse needs.
@@ -165,3 +192,124 @@ See [RouterShell Release Helpers](tools/release/README.md) for version checks,
 dry runs, releases, and commit reports.
 
 ## [TODO](todo.md)
+
+# FILE: pyproject.toml
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "routershell"
+version = "0.1.0"
+description = "IOS-like Python CLI distribution for Linux router configuration workflows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Maurice Garcia" },
+]
+keywords = [
+    "cli",
+    "linux",
+    "networking",
+    "router",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "argcomplete>=3.0",
+    "beautifulsoup4>=4.12",
+    "cmd2>=2.4",
+    "jc>=1.25",
+    "prettytable>=3.0",
+    "prompt-toolkit>=3.0",
+    "pyte>=0.8",
+    "tabulate>=0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pytest>=8.0",
+    "ruff>=0.5",
+    "twine>=5.0",
+]
+
+[project.scripts]
+routershell = "routershell:main"
+routershell-factory-reset = "routershell:factory_reset"
+
+[project.urls]
+Homepage = "https://github.com/mgarcia01752/RouterShell"
+Repository = "https://github.com/mgarcia01752/RouterShell"
+
+[tool.setuptools]
+py-modules = ["routershell", "routershell_version"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lib*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"lib.db.sqlite_db" = ["*.sql"]
+"lib.network_services.dhcp.dnsmasq" = ["*.conf"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = [
+    "tests",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "W",
+]
+
+# FILE: doc/faq.md
+# RouterShell FAQ
+
+## Install fails with setuptools InvalidConfigError
+
+If `sudo ./install/install.sh --development` fails while getting editable
+build requirements and reports this error:
+
+```text
+setuptools.errors.InvalidConfigError: License classifiers have been superseded by license expressions
+```
+
+Update RouterShell to a version whose `pyproject.toml` uses the SPDX
+`license = "GPL-2.0-or-later"` expression without the deprecated GPL license
+classifier, then rerun the installer:
+
+```bash
+sudo ./install/install.sh --development
+```
+
+This error is raised by newer setuptools releases during package metadata
+validation.
+
+# FILE: todo.md
+# RouterShell TODO
+
+- Keep install troubleshooting notes current when installer errors are fixed.
