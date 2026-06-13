@@ -136,6 +136,14 @@ which controls the SQLite runtime database path. Production installs default to
 `/var/lib/routershell/routershell.db`; local/development installs default to
 `.routershell/routershell.db` under the project root.
 
+When `routershell` starts with an empty interface database, startup discovery
+reads the Linux interface list and seeds RouterShell interface records. Confirm
+the discovered entries from the CLI:
+
+```text
+show interface database
+```
+
 The log file uses rotation to avoid unbounded growth.
 
 Override the log level for one run:

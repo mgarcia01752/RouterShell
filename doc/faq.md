@@ -68,3 +68,22 @@ sudo ./install/install.sh --development
 For local/development installs, the default database path is
 `.routershell/routershell.db` under the project root. For production installs,
 the default path is `/var/lib/routershell/routershell.db`.
+
+## Interface database is empty after install
+
+`routershell` should seed the interface database during startup when the
+database has no interface records. Start the CLI normally:
+
+```bash
+routershell
+```
+
+Then verify the discovered interfaces:
+
+```text
+show interface database
+```
+
+If the database is still empty, confirm that the launcher-loaded environment
+file defines a writable `ROUTERSHELL_DB_FILE` path and reinstall with the
+current installer.
