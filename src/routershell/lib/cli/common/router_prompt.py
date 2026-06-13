@@ -12,7 +12,7 @@ from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
-from routershell.lib.common.types import CommandName, FilePath
+from routershell.lib.common.types import CommandName, FilePath, StatusResult
 from routershell.lib.system.system_call import SystemCall
 
 
@@ -28,7 +28,7 @@ class PromptFeeder:
         start_length (int): The length of the initial prompt feed.
 
     Methods:
-        pop() -> bool:
+        pop() -> StatusResult:
             Removes the top entry from the prompt feed.
         top() -> list[str]:
             Returns the top entry from the prompt feed without removing it.
@@ -79,12 +79,12 @@ class PromptFeeder:
         self.prompt_feed = prompt_feed[:]
         self.start_length = len(self.prompt_feed)
 
-    def pop(self) -> bool:
+    def pop(self) -> StatusResult:
         """
         Removes the top entry from the prompt feed.
 
         Returns:
-            bool: STATUS_OK if the operation is successful.
+            StatusResult: STATUS_OK if the operation is successful.
         """
         if self.prompt_feed:
             self.prompt_feed.pop(0)
@@ -225,7 +225,7 @@ class RouterPrompt:
         """
         return RouterPrompt._prompt_feeder_obj
     
-    def load_prompt_feeder(self, pf: PromptFeeder) -> bool:
+    def load_prompt_feeder(self, pf: PromptFeeder) -> StatusResult:
         """
         Load a new prompt feeder.
 
@@ -233,7 +233,7 @@ class RouterPrompt:
             pf (PromptFeeder):  The new prompt feeder to load. 
 
         Returns:
-            bool: STATUS_OK if the prompt feeder is successfully loaded, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the prompt feeder is successfully loaded, STATUS_NOK otherwise.
         """
         if not isinstance(pf, PromptFeeder):
             return False
@@ -286,7 +286,7 @@ class RouterPrompt:
                     
         return _.split(' ')
 
-    def register_top_lvl_cmds(self, class_name: CmdPrompt) -> bool:
+    def register_top_lvl_cmds(self, class_name: CmdPrompt) -> StatusResult:
         """
         Register top-level commands for the router prompt session.
 
@@ -295,7 +295,7 @@ class RouterPrompt:
             class_nested_cmds (bool, optional): Whether the commands are nested or not. Defaults to False.
         
         Returns:
-            bool: Status indicating whether the registration was successful.
+            StatusResult: Status indicating whether the registration was successful.
         """
         self.log.debug(f'register_top_lvl_cmds() -> {class_name}')
         
@@ -386,12 +386,12 @@ class RouterPrompt:
     def get_exec_mode(self) -> ExecMode:
         return self.execute_mode
         
-    def update_prompt_hostname(self) -> bool:
+    def update_prompt_hostname(self) -> StatusResult:
         """
         Update the prompt hostname attribute based on the hostname retrieved from the 'SystemConfig'.
 
         Returns:
-            bool: STATUS_OK if the update is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update is successful, STATUS_NOK otherwise.
         """
         self._prompt_dict['Hostname'] = SystemCall().get_hostname_os()
             
@@ -472,7 +472,7 @@ class RouterPrompt:
 
         return line
 
-    def _read_prompt_file(self, pf: PromptFeeder , sleep_ms: float=200) -> bool:
+    def _read_prompt_file(self, pf: PromptFeeder , sleep_ms: float=200) -> StatusResult:
        
         self.log.debug(f'_read_prompt_file() PromptFeed: {pf.__str__()} - sleep_ms: {sleep_ms}')
        
@@ -490,7 +490,7 @@ class RouterPrompt:
                     
         return STATUS_OK
 
-    def start(self, pf : PromptFeeder = None) -> bool:
+    def start(self, pf : PromptFeeder = None) -> StatusResult:
         """
         Start the process with an optional prompt feeder.
 
@@ -498,7 +498,7 @@ class RouterPrompt:
             pf PromptFeeder`: The optional prompt feeder object.
 
         Returns:
-            bool: STATUS_OK if the process starts successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the process starts successfully, STATUS_NOK otherwise.
         """
         self._DEBUG_print_top_lvl_cmds()
         
@@ -542,7 +542,7 @@ class RouterPrompt:
         self.log.debug(f'start-cmd: {command}')
         return command
 
-    def _process_command(self, commands: list) -> bool:
+    def _process_command(self, commands: list) -> StatusResult:
         """
         Process the user command.
 
@@ -550,7 +550,7 @@ class RouterPrompt:
             commands (list): The user command split into components.
 
         Returns:
-            bool: STATUS_OK if the loop should exit, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the loop should exit, STATUS_NOK otherwise.
         """
         if not commands or not commands[0]:
             self.log.debug('No command input')
@@ -571,7 +571,7 @@ class RouterPrompt:
 
         return STATUS_OK
 
-    def _execute_commands(self, cmd: str, args: list) -> bool:
+    def _execute_commands(self, cmd: str, args: list) -> StatusResult:
         """
         Execute the given command with its arguments.
 
@@ -580,7 +580,7 @@ class RouterPrompt:
             args (list): The arguments for the command.
 
         Returns:
-            bool: True if the command was executed successfully, False otherwise.
+            StatusResult: True if the command was executed successfully, False otherwise.
         """
         self.log.debug(f'_execute_commands() -> cmd: {cmd} -> args: {args}')
         

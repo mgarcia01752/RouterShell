@@ -9,6 +9,7 @@ from routershell.lib.common.router_shell_log_control import RouterShellLoggerSet
 from routershell.lib.network_manager.network_operations.arp import Arp
 
 
+from routershell.lib.common.types import StatusResult
 class InvalidArpConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -106,7 +107,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         else:
             self.log.debug(f"ARP cache timeout to {arp_time_out} seconds.")
 
-    def do_proxy(self, negate=False) -> bool:
+    def do_proxy(self, negate=False) -> StatusResult:
         """
         Enable or disable proxy ARP.
 
@@ -124,7 +125,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         completions = ['arp']
         return [comp for comp in completions if comp.startswith(text)]
 
-    def do_static(self, args:str, negate=False) -> bool:
+    def do_static(self, args:str, negate=False) -> StatusResult:
         '''
          static <IPv4 Address> <mac address> <interface> arpa
         '''
@@ -146,7 +147,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
 
         return STATUS_OK
 
-    def do_gratuitous(self, negate=False) -> bool:
+    def do_gratuitous(self, negate=False) -> StatusResult:
         """
         Enable or disable Gratuitous ARP.
 
@@ -164,7 +165,7 @@ class ArpConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Arp):
         completions = ['proxy', 'gratuitous', 'static']
         return [comp for comp in completions if comp.startswith(text)]
 
-    def do_no(self, line:str) -> bool:
+    def do_no(self, line:str) -> StatusResult:
         self.log.debug(f"do_no() -> Line -> {line}")
         
         parts = line.strip().split()

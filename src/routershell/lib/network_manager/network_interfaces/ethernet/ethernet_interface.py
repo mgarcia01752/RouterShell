@@ -2,7 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InetAddressText, InterfaceName, MacAddressText, NatPoolName
+from routershell.lib.common.types import InetAddressText, InterfaceName, MacAddressText, NatPoolName, StatusResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
@@ -29,12 +29,12 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
     def get_interface_name(self) -> str:
         return self._interface_name
             
-    def flush_interface(self) -> bool:
+    def flush_interface(self) -> StatusResult:
         """
         Flush network interface, removing any configurations.
 
         Returns:
-            bool: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the flush process is successful, STATUS_NOK otherwise.
         """
         return Interface().flush_interface(self._interface_name)
 
@@ -48,7 +48,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         state = Interface().get_os_interface_hardware_info(self._interface_name).get('state')
         return State[state.upper()] if state else None
 
-    def set_interface_shutdown_state(self, state: State) -> bool:
+    def set_interface_shutdown_state(self, state: State) -> StatusResult:
         """
         Set the shutdown state of the network interface.
 
@@ -56,7 +56,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             state (State): The desired shutdown state (UP or DOWN).
 
         Returns:
-            bool: STATUS_OK if the state change is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the state change is successful, STATUS_NOK otherwise.
         """
         return Interface().update_shutdown(self._interface_name, state)
 
@@ -70,7 +70,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         speed = Interface().get_os_interface_hardware_info(self._interface_name).get('speed')
         return Speed[speed.upper()] if speed else Speed.NONE
 
-    def set_interface_speed(self, speed: Speed) -> bool:
+    def set_interface_speed(self, speed: Speed) -> StatusResult:
         """
         Set the speed of the network interface.
 
@@ -78,11 +78,11 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             speed (Speed): The desired speed of the interface.
 
         Returns:
-            bool: STATUS_OK if the speed change is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the speed change is successful, STATUS_NOK otherwise.
         """
         return Interface().update_interface_speed(self._interface_name, speed)
     
-    def set_proxy_arp(self, negate: bool = False) -> bool:
+    def set_proxy_arp(self, negate: bool = False) -> StatusResult:
         """
         Enable or disable Proxy ARP on the network interface.
 
@@ -92,11 +92,11 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             negate (bool): If True, Proxy ARP will be disabled. If False, Proxy ARP will be enabled.
 
         Returns:
-            bool: STATUS_OK if the Proxy ARP configuration was successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the Proxy ARP configuration was successfully updated, STATUS_NOK otherwise.
         """
         return Interface().update_interface_proxy_arp(self._interface_name, negate)
     
-    def set_drop_gratuitous_arp(self, negate: bool = False) -> bool:
+    def set_drop_gratuitous_arp(self, negate: bool = False) -> StatusResult:
         """
         Sets the drop gratuitous ARP configuration for the interface.
 
@@ -104,7 +104,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             negate (bool, optional): If True, disables dropping gratuitous ARP packets (default: False).
 
         Returns:
-            bool: True if the drop gratuitous ARP configuration was successfully set,
+            StatusResult: True if the drop gratuitous ARP configuration was successfully set,
                 False otherwise.
         """
         if Interface().update_interface_drop_gratuitous_arp(self._interface_name, (not negate)):
@@ -113,7 +113,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         
         return STATUS_OK
 
-    def set_mac_address(self, mac_addr: MacAddressText | None = None) -> bool:
+    def set_mac_address(self, mac_addr: MacAddressText | None = None) -> StatusResult:
         """
         Set the MAC address of the network interface.
 
@@ -123,11 +123,11 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             mac_addr (str, optional): The new MAC address to assign to the network interface. If None, the MAC address is reset to the default.
 
         Returns:
-            bool: STATUS_OK if the MAC address is successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the MAC address is successfully updated, STATUS_NOK otherwise.
         """
         return Interface().update_interface_mac(self._interface_name, mac_addr)
     
-    def set_duplex(self, duplex: Duplex) -> bool:
+    def set_duplex(self, duplex: Duplex) -> StatusResult:
         """
         Sets the duplex mode for the interface and updates the database entry.
 
@@ -135,12 +135,12 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             duplex (Duplex): The duplex mode to set for the interface.
 
         Returns:
-            bool: True if the duplex mode was successfully set and updated in the database,
+            StatusResult: True if the duplex mode was successfully set and updated in the database,
                 False otherwise.
         """
         return Interface().update_interface_duplex(self._interface_name, duplex)
     
-    def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
+    def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> StatusResult:
         """
         Add or modify an IP address on the network interface.
 
@@ -150,11 +150,11 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             negate (bool, optional): Whether to remove the IP address if it exists. Defaults to False.
 
         Returns:
-            bool: True if the IP address is successfully added or modified, False otherwise.
+            StatusResult: True if the IP address is successfully added or modified, False otherwise.
         """
         return Interface().update_interface_inet(self._interface_name, inet_address, secondary_address, negate)
     
-    def add_static_arp(self, inet_address: InetAddressText, mac_addr: MacAddressText, negate: bool = False) -> bool:
+    def add_static_arp(self, inet_address: InetAddressText, mac_addr: MacAddressText, negate: bool = False) -> StatusResult:
         """
         Adds or removes a static ARP entry for the interface.
 
@@ -164,7 +164,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             negate (bool, optional): If True, removes the static ARP entry (default: False).
 
         Returns:
-            bool: True if the static ARP entry was successfully added or removed,
+            StatusResult: True if the static ARP entry was successfully added or removed,
                 False otherwise.
         """
         return Interface().update_interface_static_arp(self._interface_name, inet_address, mac_addr, Encapsulate.ARPA, negate)
@@ -173,7 +173,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
         return InterfaceType.ETHERNET
         
     
-    def set_nat_domain_direction(self, nat_pool_name: NatPoolName, nat_direction: NATDirection, negate: bool = False) -> bool:
+    def set_nat_domain_direction(self, nat_pool_name: NatPoolName, nat_direction: NATDirection, negate: bool = False) -> StatusResult:
         """
         Set the NAT domain direction on the specified NAT pool.
 
@@ -183,7 +183,7 @@ class EthernetInterface(BridgeGroup, DHCPInterfaceClient, VlanSwitchport):
             negate (bool): If True, remove the NAT direction; otherwise, set the NAT direction.
 
         Returns:
-            bool: STATUS_OK if the NAT direction was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the NAT direction was successfully set, STATUS_NOK otherwise.
         """
         if Interface.set_nat_domain_status(self, self._interface_name, nat_pool_name, nat_direction, negate):
             self.log.error(f'Unable to add NAT-{nat_direction.name} to pool-name: {nat_pool_name} Negate: {negate}')

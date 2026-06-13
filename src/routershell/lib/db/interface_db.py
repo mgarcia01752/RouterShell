@@ -10,6 +10,8 @@ from routershell.lib.common.types import (
     InterfaceTypeName,
     MacAddressText,
     NatPoolName,
+    PredicateResult,
+    StatusResult,
 )
 from routershell.lib.db.sqlite_db.router_shell_db import Result
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
@@ -50,7 +52,7 @@ class InterfaceDatabase:
         return cls.rsdb.interface_exists(interface_name)
 
     def add_db_interface(
-        cls, interface_name: InterfaceName, interface_type: InterfaceType, shutdown_status: bool = True) -> bool:
+        cls, interface_name: InterfaceName, interface_type: InterfaceType, shutdown_status: bool = True) -> StatusResult:
         """
         Add an interface to the database.
 
@@ -60,7 +62,7 @@ class InterfaceDatabase:
             shutdown_status (bool, optional): True if the interface is shutdown, False otherwise (default is True).
 
         Returns:
-            bool: STATUS_OK if the interface was successfully added, STATUS_NOK if there was an issue.
+            StatusResult: STATUS_OK if the interface was successfully added, STATUS_NOK if there was an issue.
         """
         cls.log.debug(f"add_interface() -> {interface_name} -> {interface_type} -> {shutdown_status}")
         
@@ -72,7 +74,7 @@ class InterfaceDatabase:
         
         return STATUS_OK
 
-    def del_db_interface(cls, interface_name: InterfaceName) -> bool:
+    def del_db_interface(cls, interface_name: InterfaceName) -> StatusResult:
         """
         Delete an interface from the 'Interfaces' table.
 
@@ -80,13 +82,13 @@ class InterfaceDatabase:
             interface_name (str): The name of the interface to delete.
 
         Returns:
-            bool: STATUS_OK if the deletion was successful, STATUS_OK otherwise.
+            StatusResult: STATUS_OK if the deletion was successful, STATUS_OK otherwise.
         """
         result = cls.rsdb.delete_interface(interface_name)
         
         return result.status
  
-    def update_db_shutdown_status(cls, interface_name: InterfaceName, shutdown_status: bool) -> bool:
+    def update_db_shutdown_status(cls, interface_name: InterfaceName, shutdown_status: bool) -> StatusResult:
         """
         Update the shutdown status of an interface in the 'Interfaces' table.
 
@@ -95,12 +97,12 @@ class InterfaceDatabase:
             shutdown_status (bool): The new shutdown status.
 
         Returns:
-            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
         result = cls.rsdb.update_interface_shutdown(interface_name, shutdown_status)
         return result.status
 
-    def update_db_duplex(cls, interface_name: InterfaceName, duplex: str) -> bool:
+    def update_db_duplex(cls, interface_name: InterfaceName, duplex: str) -> StatusResult:
         """
         Update the duplex status of an interface in the 'Interfaces' table.
 
@@ -109,11 +111,11 @@ class InterfaceDatabase:
             duplex (str): The new duplex status.
 
         Returns:
-            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
         return cls.rsdb.update_interface_duplex(interface_name, duplex).status
     
-    def update_db_mac_address(cls, interface_name: InterfaceName, mac_address: MacAddressText) -> bool:
+    def update_db_mac_address(cls, interface_name: InterfaceName, mac_address: MacAddressText) -> StatusResult:
         """
         Update the MAC address setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -122,7 +124,7 @@ class InterfaceDatabase:
             mac_address (str): MAC address in the format xx:xx:xx:xx:xx:xx.
 
         Returns:
-            bool: STATUS_OK if the MAC address was successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the MAC address was successfully updated, STATUS_NOK otherwise.
         """
 
         # Check MAC address format using a regular expression
@@ -135,7 +137,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_mac_address(interface_name, mac_address)
         return result.status
 
-    def update_db_ifSpeed(cls, interface_name: InterfaceName, speed: str) -> bool:
+    def update_db_ifSpeed(cls, interface_name: InterfaceName, speed: str) -> StatusResult:
         """
         Update the speed setting of an interface in the 'InterfaceSubOptions' table.
 
@@ -144,7 +146,7 @@ class InterfaceDatabase:
             speed (str): The speed setting (e.g., '10', '100', '1000', '10000', 'auto', None).
 
         Returns:
-            bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
         """
         cls.log.debug(f"update_speed() -> Interface: {interface_name} -> Speed: {speed}")
         
@@ -152,7 +154,7 @@ class InterfaceDatabase:
         return result.status
 
     def update_db_inet_address(
-        cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> bool:
+        cls, interface_name, inet_address_cidr, secondary=False, negate=False) -> StatusResult:
         """
         Update or delete an IP address setting for an interface.
 
@@ -163,7 +165,7 @@ class InterfaceDatabase:
             negate (bool): True to delete the IP address, False to update.
 
         Returns:
-            bool: bool: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the speed was successfully updated, STATUS_NOK otherwise.
         """
         if not negate:
             result = cls.rsdb.insert_interface_inet_address(interface_name, inet_address_cidr, secondary)
@@ -172,7 +174,7 @@ class InterfaceDatabase:
 
         return result.status
     
-    def add_line_to_interface(cls, line: str) -> bool:
+    def add_line_to_interface(cls, line: str) -> StatusResult:
         """
         Add a router CLI command to the database to save as a configuration.
 
@@ -180,7 +182,7 @@ class InterfaceDatabase:
             line (str): The router CLI command to be added to the database.
 
         Returns:
-            bool: STATUS_OK if the command was successfully added to the database, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the command was successfully added to the database, STATUS_NOK otherwise.
 
         Example:
             You can use this method to save router CLI commands to the database for configuration management.
@@ -198,7 +200,7 @@ class InterfaceDatabase:
         """
         return STATUS_OK
     
-    def update_db_proxy_arp(cls, interface_name: InterfaceName, status: bool) -> bool:
+    def update_db_proxy_arp(cls, interface_name: InterfaceName, status: bool) -> StatusResult:
         """
         Update the Proxy ARP status for a network interface to DB
 
@@ -213,7 +215,7 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_proxy_arp(interface_name, status)
         return result.status
 
-    def update_db_drop_gratuitous_arp(cls, interface_name: InterfaceName, status: bool) -> bool:
+    def update_db_drop_gratuitous_arp(cls, interface_name: InterfaceName, status: bool) -> StatusResult:
         """
         Update the Drop Gratuitous ARP status for a network interface.
 
@@ -222,13 +224,13 @@ class InterfaceDatabase:
             status (bool): The new Drop Gratuitous ARP status (True for enabled, False for disabled).
 
         Returns:
-            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
         result = cls.rsdb.update_interface_drop_gratuitous_arp(interface_name, status)
         return result.status
     
     def update_db_static_arp(
-        cls, interface_name: InterfaceName, ip_address: InetAddressText, mac_address: MacAddressText, encapsulation: str='arpa', negate=False) -> bool:
+        cls, interface_name: InterfaceName, ip_address: InetAddressText, mac_address: MacAddressText, encapsulation: str='arpa', negate=False) -> StatusResult:
         """
         Update a static ARP record in the 'InterfaceStaticArp' table.
 
@@ -239,7 +241,7 @@ class InterfaceDatabase:
             negate (bool): True to negate the update (i.e., remove the record), False to perform the update.
 
         Returns:
-            bool: STATUS_OK if the update (or deletion) was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update (or deletion) was successful, STATUS_NOK otherwise.
         """
         if not negate:
             cls.log.debug(f"update_static_arp(INSERT) Interface: {interface_name} -> Arp: -> inet: {ip_address} mac: {mac_address}")
@@ -251,7 +253,7 @@ class InterfaceDatabase:
         return result.status
 
     def update_db_nat_direction(
-        cls, interface_name: InterfaceName, nat_pool_name: NatPoolName, nat_direction: NATDirection, negate: bool = False) -> bool:
+        cls, interface_name: InterfaceName, nat_pool_name: NatPoolName, nat_direction: NATDirection, negate: bool = False) -> StatusResult:
         """
         Update a NAT direction configuration for a specified interface and NAT pool.
 
@@ -262,7 +264,7 @@ class InterfaceDatabase:
             negate (bool): Whether to negate the update (i.e., remove the direction if True) (default: False).
 
         Returns:
-            bool: True if the update was successful, False otherwise.
+            StatusResult: True if the update was successful, False otherwise.
 
         This method allows you to update a NAT direction configuration for a specific interface and NAT pool. 
         You can either add or remove a NAT direction, based on the `negate` parameter.
@@ -274,7 +276,7 @@ class InterfaceDatabase:
             - negate (bool): If True, the method will remove the NAT direction. If False, it will add the direction (default: False).
 
         Returns:
-            - bool: STATUS_OK if the update was successful, STATUS_NOK if there was an error during the update.
+            - StatusResult: STATUS_OK if the update was successful, STATUS_NOK if there was an error during the update.
 
         """
         try:
@@ -307,7 +309,7 @@ class InterfaceDatabase:
             cls.log.error(error_message)
             return STATUS_NOK
 
-    def update_db_bridge_group(cls, interface_name: InterfaceName, bridge_group: BridgeName, negate: bool = False) -> bool:
+    def update_db_bridge_group(cls, interface_name: InterfaceName, bridge_group: BridgeName, negate: bool = False) -> StatusResult:
         """
         Update the bridge group for an interface.
 
@@ -318,7 +320,7 @@ class InterfaceDatabase:
                             If False, assign the interface to the bridge group.
 
         Returns:
-            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
         if negate:
             result = cls.rsdb.delete_interface_bridge_group(interface_name, bridge_group)
@@ -329,7 +331,7 @@ class InterfaceDatabase:
 
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
 
-    def update_db_vlan_to_interface_type(cls, vlan_id: int, interface_type_name: InterfaceTypeName, interface_type: InterfaceType, negate: bool = False) -> bool:
+    def update_db_vlan_to_interface_type(cls, vlan_id: int, interface_type_name: InterfaceTypeName, interface_type: InterfaceType, negate: bool = False) -> StatusResult:
         """
         Update the VLAN configuration for a specific interface type.
 
@@ -340,11 +342,11 @@ class InterfaceDatabase:
             negate (bool, optional): True to negate the configuration, False otherwise. Defaults to False.
 
         Returns:
-            bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update was successful, STATUS_NOK otherwise.
         """
         pass
 
-    def update_db_rename_alias(cls, bus_info: str, initial_interface_name: InterfaceName, alias_interface_name: InterfaceName) -> bool:
+    def update_db_rename_alias(cls, bus_info: str, initial_interface_name: InterfaceName, alias_interface_name: InterfaceName) -> StatusResult:
         """
         Update or create an alias for an initial interface and check if they match.
 
@@ -353,7 +355,7 @@ class InterfaceDatabase:
             alias_interface_name (str): The name of the alias interface.
 
         Returns:
-            bool: STATUS_OK if the alias was successfully updated or created and the names match, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the alias was successfully updated or created and the names match, STATUS_NOK otherwise.
 
         """
         alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
@@ -383,7 +385,7 @@ class InterfaceDatabase:
 
         return aliases_data
 
-    def db_lookup_interface_alias_exist(cls, initial_interface_name: InterfaceName, alias_interface_name: InterfaceName) -> bool:
+    def db_lookup_interface_alias_exist(cls, initial_interface_name: InterfaceName, alias_interface_name: InterfaceName) -> PredicateResult:
         """
         Check if an alias exists for the given initial interface and alias name.
 
@@ -392,13 +394,13 @@ class InterfaceDatabase:
             alias_interface_name (str): The name of the alias interface.
 
         Returns:
-            bool: True if an alias exists for the initial interface with the provided alias name, False otherwise.
+            StatusResult: True if an alias exists for the initial interface with the provided alias name, False otherwise.
         """
         alias_result = cls.rsdb.is_initial_interface_alias_exist(initial_interface_name)
 
         return alias_result.status and alias_result.result == alias_interface_name
 
-    def update_db_interface_name(cls, old_interface_name:InterfaceName, new_interface_name:InterfaceName) -> bool:
+    def update_db_interface_name(cls, old_interface_name:InterfaceName, new_interface_name:InterfaceName) -> StatusResult:
         """
         Update the database with a new name for a network interface.
 
@@ -410,11 +412,11 @@ class InterfaceDatabase:
             new_interface_name (str): The new name to assign to the network interface.
 
         Returns:
-            bool: True if the update process is successful, False otherwise.
+            StatusResult: True if the update process is successful, False otherwise.
         """        
         return cls.rsdb.update_interface_name(old_interface_name, new_interface_name).status
 
-    def update_db_description(cls, interface_name:InterfaceName, description:str) -> bool:
+    def update_db_description(cls, interface_name:InterfaceName, description:str) -> StatusResult:
         """
         Update the description of an interface in the database.
 
@@ -423,7 +425,7 @@ class InterfaceDatabase:
             description (str): The new description to set for the interface.
 
         Returns:
-            bool: STATUS_OK if the update operation is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the update operation is successful, STATUS_NOK otherwise.
         """
         if not description:
             description = ""

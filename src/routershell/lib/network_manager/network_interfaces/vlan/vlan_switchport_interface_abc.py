@@ -2,7 +2,7 @@ import logging
 from abc import ABC
 
 from routershell.lib.common.constants import STATUS_OK
-from routershell.lib.common.types import InterfaceName
+from routershell.lib.common.types import InterfaceName, StatusResult
 from routershell.lib.network_manager.network_operations.vlan import Vlan
 
 
@@ -25,7 +25,7 @@ class VlanSwitchport(ABC):
         self.log = logging.getLogger(self.__class__.__name__)
         self._interface_name = interface_name
         
-    def set_interface_to_vlan(self, vlan_id: int) -> bool:
+    def set_interface_to_vlan(self, vlan_id: int) -> StatusResult:
         """
         Assigns the interface to a specified VLAN.
         
@@ -33,11 +33,11 @@ class VlanSwitchport(ABC):
             vlan_id (int): The VlanID.
         
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """        
         return Vlan().add_interface_by_vlan_id(self._interface_name, vlan_id)
     
-    def del_interface_from_vlan(self, vlan_if: int) -> bool:
+    def del_interface_from_vlan(self, vlan_if: int) -> StatusResult:
         """
         Removes the interface from a specified VLAN.
         
@@ -45,7 +45,7 @@ class VlanSwitchport(ABC):
             vlan_name (str): The name of the VLAN.
         
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         print('Not Implemented yet')
         return STATUS_OK

@@ -2,7 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName, VlanName
+from routershell.lib.common.types import InterfaceName, PredicateResult, StatusResult, VlanName
 from routershell.lib.db.sqlite_db.router_shell_db import Result
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.common.interface import InterfaceType
@@ -16,7 +16,7 @@ class VlanDatabase:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().VLAN_DB)   
     
-    def add_vlan_id(self, vlan_id: int) -> bool:
+    def add_vlan_id(self, vlan_id: int) -> StatusResult:
         """
         Add a VLAN ID to the database using the rsdb method.
 
@@ -24,7 +24,7 @@ class VlanDatabase:
             vlan_id (int): The VLAN ID to be added.
 
         Returns:
-            bool: STATUS_OK if the VLAN ID was successfully added or already exists,
+            StatusResult: STATUS_OK if the VLAN ID was successfully added or already exists,
                   STATUS_NOK if there was an error adding the VLAN ID.
         """
         
@@ -54,7 +54,7 @@ class VlanDatabase:
         """
         return self.rsdb.insert_vlan(vlan_id, vlan_name, description)
 
-    def update_vlan_description(self, vlan_id: int, vlan_description: str) -> bool:
+    def update_vlan_description(self, vlan_id: int, vlan_description: str) -> StatusResult:
         """
         Update the description of a VLAN by its ID.
 
@@ -63,7 +63,7 @@ class VlanDatabase:
             vlan_description (str): The new description for the VLAN.
 
         Returns:
-            bool: True if the update is successful, False otherwise.
+            StatusResult: True if the update is successful, False otherwise.
 
         Example:
         You can use the update_vlan_description class method to update the description of a VLAN.
@@ -79,7 +79,7 @@ class VlanDatabase:
         """
         return self.rsdb.update_vlan_description_by_vlan_id(vlan_id, vlan_description).status
 
-    def vlan_exists(self, vlan_id: int) -> bool:
+    def vlan_exists(self, vlan_id: int) -> PredicateResult:
         """
         Check if a VLAN with the given ID exists in the database.
 
@@ -88,7 +88,7 @@ class VlanDatabase:
             vlan_id (int): The unique ID of the VLAN to check.
 
         Returns:
-            bool: True if a VLAN with the given ID exists, False otherwise.
+            StatusResult: True if a VLAN with the given ID exists, False otherwise.
         """
         return self.rsdb.vlan_id_exists(vlan_id).status
 
@@ -119,7 +119,7 @@ class VlanDatabase:
           self  vlan_name (str): The new name for the VLAN.
 
         Returns:
-            bool: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
+            StatusResult: (STATUS_OK) if the update is successful, (STATUS_NOK) if it fails.
         """        
         return self.rsdb.update_vlan_name_by_vlan_id(vlan_id, vlan_name)
 
@@ -129,7 +129,7 @@ class VlanDatabase:
         if vlan_interface_id:
             self.delete_vlan_interface_mapping(vlan_interface_id, port_to_delete)
 
-    def add_interface_to_vlan(self, vlan_id: int, interface_name: InterfaceName) -> bool:
+    def add_interface_to_vlan(self, vlan_id: int, interface_name: InterfaceName) -> StatusResult:
         """
         Add a VLAN to a specific interface type in the database.
 
@@ -138,7 +138,7 @@ class VlanDatabase:
             interface_name (str): The name of the interface or bridge group.
 
         Returns:
-            bool: STATUS_OK if the VLAN was successfully added to the specified interface type, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the VLAN was successfully added to the specified interface type, STATUS_NOK otherwise.
         """
         
         interface_type = self.rsdb.select_interface_type(interface_name)

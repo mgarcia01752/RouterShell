@@ -24,7 +24,7 @@ class GlobalPrivCommand(NetworkManager):
             line (str): Additional arguments (not used).
         
         Returns:
-            bool: False if reboot is canceled, otherwise returns False.
+            StatusResult: False if reboot is canceled, otherwise returns False.
         '''
         
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
@@ -78,7 +78,7 @@ class GlobalPrivCommand(NetworkManager):
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False (implementation pending).
+            StatusResult: False (implementation pending).
         '''
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
             print("Unable to add user, must be in Privilege Mode")
@@ -94,7 +94,7 @@ class GlobalPrivCommand(NetworkManager):
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False (implementation pending).
+            StatusResult: False (implementation pending).
         '''
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
             print("Unable to delete user, must be in Privilege Mode")
@@ -155,7 +155,7 @@ class GlobalUserCommand:
             line (str): Additional arguments (not used).
         
         Returns:
-            bool: Always returns False.
+            StatusResult: Always returns False.
         '''
         
         print(Comment.getclock("%H:%M:%S.%f PST %a %b %d %Y"))
@@ -169,7 +169,7 @@ class GlobalUserCommand:
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False if reboot is canceled, otherwise returns False.
+            StatusResult: False if reboot is canceled, otherwise returns False.
         '''
         self.do_reboot(args=None)
         return False
@@ -182,7 +182,7 @@ class GlobalUserCommand:
             args=None (str): Additional arguments (not used).
         
         Returns:
-            bool: False.
+            StatusResult: False.
         '''
         if len(args=None.split()) < 1:
             print("Takes no arguments")
@@ -198,7 +198,7 @@ class GlobalUserCommand:
             args=None (str): The destination to ping.
         
         Returns:
-            bool: True if the ping is successful, otherwise False.
+            StatusResult: True if the ping is successful, otherwise False.
         '''
         try:
             # Split the input args=None into individual arguments
@@ -238,7 +238,7 @@ class GlobalUserCommand:
             args=None (str): The destination to ping.
         
         Returns:
-            bool: False (implementation pending).
+            StatusResult: False (implementation pending).
         '''
         return False
         
@@ -250,7 +250,7 @@ class GlobalUserCommand:
             args=None (str): The destination to trace.
         
         Returns:
-            bool: True if the traceroute is successful, otherwise False.
+            StatusResult: True if the traceroute is successful, otherwise False.
         '''
         try:
             # Split the input args=None into individual arguments

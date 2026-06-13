@@ -2,12 +2,13 @@ import hashlib
 import re
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import StatusResult
 
 
 class StringFormats:
     
     @staticmethod
-    def modify_dict_value(dictionary: dict[str, str | None], key: str, search: str, replace: str) -> bool:
+    def modify_dict_value(dictionary: dict[str, str | None], key: str, search: str, replace: str) -> StatusResult:
         """
         Modify the value associated with the given key in the dictionary.
         Strip leading and trailing whitespaces and replace a specified substring.
@@ -19,7 +20,7 @@ class StringFormats:
             replace (str): The substring to replace 'search' with in the value.
 
         Returns:
-            bool: STATUS_OK if the modification was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the modification was successful, STATUS_NOK otherwise.
         """
         if key in dictionary:
             value = dictionary[key]

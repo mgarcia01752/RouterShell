@@ -5,7 +5,7 @@ from routershell.lib.cli.common.command_class_interface import CmdPrompt
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import BridgeName
+from routershell.lib.common.types import BridgeName, StatusResult
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_factory import (
     BridgeInterface,
@@ -62,7 +62,7 @@ class BridgeConfig(CmdPrompt):
             print(f"{method.__doc__}")
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['management'])
-    def bridgeconfig_inet(self, args: list[str] = None, negate: bool = False) -> bool:
+    def bridgeconfig_inet(self, args: list[str] = None, negate: bool = False) -> StatusResult:
         """
         Manage the management IP address of the bridge.
 
@@ -71,7 +71,7 @@ class BridgeConfig(CmdPrompt):
             negate (bool, optional): If True, negates the command (removes the management IP).
 
         Returns:
-            bool: Status of the command execution.
+            StatusResult: Status of the command execution.
         """
         if not args or 'management' not in args:
             print("Error: 'management' keyword is required.")
@@ -93,7 +93,7 @@ class BridgeConfig(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
-    def bridgeconfig_description(self, args: list[str] = None, negate: bool = False) -> bool:
+    def bridgeconfig_description(self, args: list[str] = None, negate: bool = False) -> StatusResult:
         """
         Manage the description of the bridge.
 
@@ -102,7 +102,7 @@ class BridgeConfig(CmdPrompt):
             negate (bool, optional): If True, negates the command (removes the description).
 
         Returns:
-            bool: Status of the command execution.
+            StatusResult: Status of the command execution.
         """
         description = ""
 
@@ -119,7 +119,7 @@ class BridgeConfig(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()         
-    def bridgeconfig_protocol(self, args: list[str]=None, negate: bool=False) -> bool:
+    def bridgeconfig_protocol(self, args: list[str]=None, negate: bool=False) -> StatusResult:
         """Manage bridge protocol settings.
         
         Args:
@@ -127,13 +127,13 @@ class BridgeConfig(CmdPrompt):
             negate (bool, optional): If True, negates the command (removes the protocol).
         
         Returns:
-            bool: Status of the command execution.
+            StatusResult: Status of the command execution.
         """
         print('Not implemented yet')
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['enable','disable'])
-    def bridgeconfig_stp(self, args: list[str] = None, negate: bool = False) -> bool:
+    def bridgeconfig_stp(self, args: list[str] = None, negate: bool = False) -> StatusResult:
         """
         Manage Spanning Tree Protocol (STP) settings for the bridge.
         
@@ -142,7 +142,7 @@ class BridgeConfig(CmdPrompt):
             negate (bool, optional): If True, negates the command (removes STP).
         
         Returns:
-            bool: Status of the command execution.
+            StatusResult: Status of the command execution.
         """
         if not args:
             print("Missing STP argument")
@@ -161,7 +161,7 @@ class BridgeConfig(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
-    def bridgeconfig_shutdown(self, args: list[str] = None, negate: bool = False) -> bool:
+    def bridgeconfig_shutdown(self, args: list[str] = None, negate: bool = False) -> StatusResult:
         """
         Shutdown or bring up the bridge interface.
         
@@ -170,7 +170,7 @@ class BridgeConfig(CmdPrompt):
             negate (bool, optional): If True, shuts down the bridge interface. If False, brings up the bridge interface. Defaults to False.
         
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         state = State.UP if negate else State.DOWN
         
@@ -184,14 +184,14 @@ class BridgeConfig(CmdPrompt):
         return STATUS_OK
       
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['description', 'shutdown'])
-    def bridgeconfig_no(self, args: list[str]) -> bool:
+    def bridgeconfig_no(self, args: list[str]) -> StatusResult:
         """Negate commands like description, shutdown, stp, or protocol for the bridge.
         
         Args:
             args (list): list of arguments for the command.
         
         Returns:
-            bool: Status of the command execution.
+            StatusResult: Status of the command execution.
         """
         self.log.debug(f"bridgeconfig_no() -> {args}")
         

@@ -4,7 +4,7 @@ from abc import ABC
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName
+from routershell.lib.common.types import InterfaceName, StatusResult
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
@@ -16,7 +16,7 @@ class DHCPInterfaceClient(ABC):
         self.log.setLevel(RSLS().DHCP_INTERFACE_CLIENT)
         self._interface_name = interface_name
 
-    def update_interface_dhcp_client(self, dhcp_stack_ver: DHCPStackVersion, dhcp_client_state: State) -> bool:
+    def update_interface_dhcp_client(self, dhcp_stack_ver: DHCPStackVersion, dhcp_client_state: State) -> StatusResult:
         """
         Update the DHCP configuration for a network interface via OS.
         Update the DHCP configuration for a network interface via DB.
@@ -27,7 +27,7 @@ class DHCPInterfaceClient(ABC):
             dhcp_client_state (State): If DOWN, disable DHCP; if UP, enable DHCP.
 
         Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
+            StatusResult: STATUS_OK for success, STATUS_NOK for failure.
 
         """
         try:

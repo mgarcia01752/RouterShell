@@ -17,6 +17,7 @@ from routershell.lib.common.types import (
     MacAddressText,
     NatPoolName,
     SsidText,
+    StatusResult,
     VlanName,
     WifiPassphraseText,
     WifiPolicyName,
@@ -113,12 +114,12 @@ class RouterShellDB(metaclass=Singleton):
         else:
             self.log.debug(f"Already Connected to DB {self.db_file_path}")
 
-    def create_database(self) -> bool:
+    def create_database(self) -> StatusResult:
         """
         Create an SQLite database file and populate it with tables and data from an SQL file.
 
         Returns:
-            bool: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
+            StatusResult: STATUS_OK if the database is created successfully, STATUS_NOK if there is an error.
         """
         self.log.debug("create_database()")
 
@@ -143,12 +144,12 @@ class RouterShellDB(metaclass=Singleton):
 
         return STATUS_OK
 
-    def open_connection(self) -> bool:
+    def open_connection(self) -> StatusResult:
         """
         Open a connection to the SQLite database.
 
         Returns:
-            bool: STATUS_OK if the connection is successful, STATUS_NOK if there is an error.
+            StatusResult: STATUS_OK if the connection is successful, STATUS_NOK if there is an error.
         """
         self.log.debug("open_connection()")
 
@@ -173,12 +174,12 @@ class RouterShellDB(metaclass=Singleton):
         if self.connection:
             self.connection.close()
 
-    def reset_database(self) -> bool:
+    def reset_database(self) -> StatusResult:
         """
         Remove the existing database file and create a new one.
 
         Returns:
-            bool: STATUS_OK if the reset is successful, STATUS_NOK if there is an error.
+            StatusResult: STATUS_OK if the reset is successful, STATUS_NOK if there is an error.
         """
         self.log.debug("reset_database")
 
@@ -1576,7 +1577,7 @@ class RouterShellDB(metaclass=Singleton):
             direction (str): The direction to check (e.g., 'inside' or 'outside').
 
         Returns:
-            bool: True if the specified NAT direction exists, False otherwise.
+            StatusResult: True if the specified NAT direction exists, False otherwise.
         """
         try:
             cursor = self.connection.cursor()

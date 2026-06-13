@@ -2,7 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InetCidrText, InterfaceName
+from routershell.lib.common.types import InetCidrText, InterfaceName, StatusResult
 from routershell.lib.network_manager.network_interfaces.network_interface import NetworkInterface
 from routershell.lib.network_manager.network_operations.interface import Interface
 
@@ -45,13 +45,13 @@ class LoopbackInterface(NetworkInterface):
             self.log.debug(f'Loopback: {loopback_name} already exists')
         
 
-    def destroy(self) -> bool:
+    def destroy(self) -> StatusResult:
         """
         Destroys the loopback interface by removing its database entry and 
         deleting the OS-level dummy interface.
 
         Returns:
-            bool: STATUS_OK if the loopback interface was successfully destroyed,
+            StatusResult: STATUS_OK if the loopback interface was successfully destroyed,
                   STATUS_NOK otherwise.
         """
         if Interface().del_db_interface(self.interface_name):
@@ -64,7 +64,7 @@ class LoopbackInterface(NetworkInterface):
         
         return STATUS_OK
 
-    def auto_inet_127_loopback(self) -> bool:
+    def auto_inet_127_loopback(self) -> StatusResult:
         """
         Automatically assign the next available 127.x.x.x address to the loopback interface.
 
@@ -73,7 +73,7 @@ class LoopbackInterface(NetworkInterface):
         and assign it to the loopback interface.
 
         Returns:
-            bool: STATUS_OK if the address was successfully assigned, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the address was successfully assigned, STATUS_NOK otherwise.
         """
         if not self._127_inet_address:
             next_available_127 = Interface().get_next_loopback_address()
@@ -92,5 +92,5 @@ class LoopbackInterface(NetworkInterface):
         return STATUS_OK
 
     
-    def add_inet_address(self, inet_address_cidr:InetCidrText, secondary_address:bool=False, negate:bool=False) -> bool:
+    def add_inet_address(self, inet_address_cidr:InetCidrText, secondary_address:bool=False, negate:bool=False) -> StatusResult:
         return STATUS_OK

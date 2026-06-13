@@ -3,7 +3,7 @@ from enum import Enum
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName
+from routershell.lib.common.types import InterfaceName, StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 
 
@@ -96,7 +96,7 @@ class PhyServiceLayer(RunCommand):
             duplex (Duplex): The desired duplex mode to set for the interface (e.g., Duplex.DUPLEX_AUTO).
 
         Returns:
-            bool: STATUS_OK if the duplex mode is successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the duplex mode is successfully set, STATUS_NOK otherwise.
         """
         if duplex is Duplex.AUTO:
             self.log.debug("do_duplex() - duplex set to auto")
@@ -113,7 +113,7 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"Failed to set duplex mode of {interface_name} to {duplex.name}")
             return STATUS_NOK
 
-    def set_speed(self, interface_name: InterfaceName, ifSpeed: Speed, auto: bool = False) -> bool:
+    def set_speed(self, interface_name: InterfaceName, ifSpeed: Speed, auto: bool = False) -> StatusResult:
         """
         Set the speed of a network interface and optionally enable or disable auto-negotiation.
 
@@ -123,7 +123,7 @@ class PhyServiceLayer(RunCommand):
             autoneg (bool, optional): Whether to enable (True) or disable (False) auto-negotiation. Defaults to False.
 
         Returns:
-            bool: STATUS_OK if the speed is successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the speed is successfully set, STATUS_NOK otherwise.
         """
         try:
             cmd_auto = ['ethtool', '-s', interface_name, 'autoneg', 'on' if auto else 'off']
@@ -154,7 +154,7 @@ class PhyServiceLayer(RunCommand):
             self.log.error(f"An error occurred while setting interface speed: {e}")
             return STATUS_NOK
 
-    def set_interface_shutdown(self, interface_name: InterfaceName, state: State) -> bool:
+    def set_interface_shutdown(self, interface_name: InterfaceName, state: State) -> StatusResult:
         """
         Set the state of a network interface (up or down).
 
@@ -164,7 +164,7 @@ class PhyServiceLayer(RunCommand):
                         or State.DOWN (to shut the interface down).
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         
         self.log.debug(f"set_interface_state() -> interface_name: {interface_name} -> state: {state}")
@@ -184,7 +184,7 @@ class PhyServiceLayer(RunCommand):
 
         return status == STATUS_OK
 
-    def set_mtu(self, interface_name: InterfaceName, mtu_size: int) -> bool:
+    def set_mtu(self, interface_name: InterfaceName, mtu_size: int) -> StatusResult:
         """
         Set the Maximum Transmission Unit (MTU) size for a network interface using iproute2.
 
@@ -193,7 +193,7 @@ class PhyServiceLayer(RunCommand):
             mtu_size (int): The MTU size to set for the interface.
 
         Returns:
-            bool: True if the MTU size was unsuccessfully set, False otherwise.
+            StatusResult: True if the MTU size was unsuccessfully set, False otherwise.
 
         """
         # Run the iproute2 command to set the MTU size

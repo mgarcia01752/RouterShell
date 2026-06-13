@@ -1,8 +1,10 @@
 import os
 from enum import Enum, auto
 
-STATUS_OK = False
-STATUS_NOK = True
+from routershell.lib.common.types import StatusResult
+
+STATUS_OK = StatusResult(False)
+STATUS_NOK = StatusResult(True)
 
 ROUTER_CONFIG_DIR = 'config'
 ROUTER_CONFIG = os.path.join(ROUTER_CONFIG_DIR, 'startup-config.cfg')

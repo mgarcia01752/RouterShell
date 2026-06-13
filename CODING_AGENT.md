@@ -111,6 +111,11 @@ Agents working on the DB backend refactor MUST follow the locked decisions recor
 - Private method arguments should use those shared semantic aliases when the
   value carries the same domain meaning. Bare `str` is acceptable only for
   genuinely free-form text, command output, log text, or local glue values.
+- Public method return annotations must not use bare `bool` for RouterShell
+  operation status or predicate results. Use the shared `StatusResult` or
+  `PredicateResult` newtypes from `src/routershell/lib/common/types.py`.
+- Private method return annotations should use those return newtypes when the
+  method exposes operation status or a reusable predicate.
 - Avoid `Any` unless unavoidable; isolate and justify its usage.
 - Every function argument must be annotated.
 - Avoid `None` returns; prefer empty values unless `None` is semantically required.

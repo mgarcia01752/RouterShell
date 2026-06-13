@@ -2,7 +2,14 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName, SsidText, WifiPassphraseText, WifiPolicyName
+from routershell.lib.common.types import (
+    InterfaceName,
+    PredicateResult,
+    SsidText,
+    StatusResult,
+    WifiPassphraseText,
+    WifiPolicyName,
+)
 from routershell.lib.db.sqlite_db.router_shell_db import Result
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 
@@ -23,7 +30,7 @@ class WifiDB:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().WIFI_DB)
             
-    def wifi_policy_exist(self, wifi_policy_name: WifiPolicyName) -> bool:
+    def wifi_policy_exist(self, wifi_policy_name: WifiPolicyName) -> PredicateResult:
         """
         Check if a wireless Wi-Fi policy with the given name exists in the database.
 
@@ -31,7 +38,7 @@ class WifiDB:
         wifi_policy_name (str): The name of the wireless Wi-Fi policy to check for existence.
 
         Returns:
-        bool: True if the policy exists, False if it doesn't.
+        StatusResult: True if the policy exists, False if it doesn't.
 
         Note:
         - This method checks the database for the existence of a wireless Wi-Fi policy with the provided name.
@@ -40,7 +47,7 @@ class WifiDB:
         """
         return DB().wifi_policy_exist(wifi_policy_name).status
 
-    def add_wifi_policy(self, wifi_policy_name: WifiPolicyName) -> bool:
+    def add_wifi_policy(self, wifi_policy_name: WifiPolicyName) -> StatusResult:
         """
         Insert a new wireless Wi-Fi policy into the database.
 
@@ -48,7 +55,7 @@ class WifiDB:
         wifi_policy_name (str): The name of the wireless Wi-Fi policy to insert.
 
         Returns:
-        bool: True if the insertion is successful, False if it fails.
+        StatusResult: True if the insertion is successful, False if it fails.
 
         Note:
         - This method inserts a new wireless Wi-Fi policy with the provided name into the database.
@@ -64,7 +71,7 @@ class WifiDB:
                 
         return STATUS_OK 
 
-    def add_wifi_security_access_group(self, wifi_policy_name: WifiPolicyName, ssid: SsidText, pass_phrase: WifiPassphraseText, mode: str) -> bool:
+    def add_wifi_security_access_group(self, wifi_policy_name: WifiPolicyName, ssid: SsidText, pass_phrase: WifiPassphraseText, mode: str) -> StatusResult:
         """
         Insert a new Wi-Fi security group into the database associated with a wireless Wi-Fi policy.
 
@@ -75,7 +82,7 @@ class WifiDB:
         mode (str): The security mode for the security group (e.g., WPA2, WPA3).
 
         Returns:
-        bool: True if the security group is successfully inserted, False if the insertion fails.
+        StatusResult: True if the security group is successfully inserted, False if the insertion fails.
 
         Note:
         - This method inserts a new Wi-Fi security group associated with the specified wireless Wi-Fi policy.
@@ -85,7 +92,7 @@ class WifiDB:
         self.log.debug(f"{wifi_policy_name}, {ssid}, {pass_phrase}, {mode}")
         return DB().insert_wifi_access_security_group(wifi_policy_name, ssid, pass_phrase, mode).status
 
-    def add_wifi_security_access_group_default(self, wifi_policy_name: WifiPolicyName) -> bool:
+    def add_wifi_security_access_group_default(self, wifi_policy_name: WifiPolicyName) -> StatusResult:
         """
         Add a default Wi-Fi security access group to the specified wireless Wi-Fi policy.
 
@@ -93,7 +100,7 @@ class WifiDB:
             wifi_policy_name (str): The name of the wireless Wi-Fi policy to add the default security access group to.
 
         Returns:
-            bool: True if the default Wi-Fi security access group is added successfully, False otherwise.
+            StatusResult: True if the default Wi-Fi security access group is added successfully, False otherwise.
 
         Note:
         - This method adds a default Wi-Fi security access group to the specified wireless Wi-Fi policy.
@@ -103,10 +110,10 @@ class WifiDB:
         self.log.debug(f"Adding default Wi-Fi security access group to policy '{wifi_policy_name}'")
         return DB().insert_wifi_access_security_group_default(wifi_policy_name).status
   
-    def add_wifi_key_management(self, wifi_policy_name:WifiPolicyName, key_management:str) -> bool:
+    def add_wifi_key_management(self, wifi_policy_name:WifiPolicyName, key_management:str) -> StatusResult:
         return STATUS_OK
 
-    def add_wifi_hardware_mode(self, wifi_policy_name:WifiPolicyName, hardware_mode: str) -> bool:
+    def add_wifi_hardware_mode(self, wifi_policy_name:WifiPolicyName, hardware_mode: str) -> StatusResult:
         """
         Add/update a hardware mode to a wireless Wi-Fi policy.
 
@@ -115,7 +122,7 @@ class WifiDB:
             - hardware_mode (str): The hardware mode to add.
 
         Returns:
-            bool: True if the addition is successful, False if it fails.
+            StatusResult: True if the addition is successful, False if it fails.
 
         Raises:
             - Wi-FiPolicyNotFoundError: If the specified Wi-Fi policy is not found.
@@ -134,7 +141,7 @@ class WifiDB:
         
         return STATUS_OK
 
-    def add_wifi_policy_to_wifi_interface(self, wifi_policy_name: WifiPolicyName, wifi_interface_name: InterfaceName) -> bool:
+    def add_wifi_policy_to_wifi_interface(self, wifi_policy_name: WifiPolicyName, wifi_interface_name: InterfaceName) -> StatusResult:
         """
         Add a wireless Wi-Fi policy to a Wi-Fi interface.
 
@@ -143,7 +150,7 @@ class WifiDB:
             wifi_interface_name (str): The name of the Wi-Fi interface to which the policy should be added.
 
         Returns:
-            bool: STATUS_OK if the association is successful, STATUS_NOK if it fails.
+            StatusResult: STATUS_OK if the association is successful, STATUS_NOK if it fails.
 
         Note:
             - If the Wi-Fi policy or Wi-Fi interface is not found, respective errors will be logged.
@@ -167,7 +174,7 @@ class WifiDB:
 
         return STATUS_OK
 
-    def add_wifi_channel(self, wifi_policy_name: WifiPolicyName, channel: str) -> bool:
+    def add_wifi_channel(self, wifi_policy_name: WifiPolicyName, channel: str) -> StatusResult:
         """
         Add a Wi-Fi channel to a wireless Wi-Fi policy.
 
@@ -176,7 +183,7 @@ class WifiDB:
         - channel (str): The Wi-Fi channel to add.
 
         Returns:
-        bool: STATUS_OK if the addition is successful, STATUS_NOK if it fails.
+        StatusResult: STATUS_OK if the addition is successful, STATUS_NOK if it fails.
 
         Note:
         - This method associates a Wi-Fi channel with the specified wireless Wi-Fi policy.
@@ -195,7 +202,7 @@ class WifiDB:
         """
         return Result.sql_result_to_value_list(DB().select_wifi_security_policy(wifi_policy_name))
 
-    def del_wifi_security_access_group(self, wifi_policy_name: WifiPolicyName, ssid: SsidText) -> bool:
+    def del_wifi_security_access_group(self, wifi_policy_name: WifiPolicyName, ssid: SsidText) -> StatusResult:
         """
         Delete a Wi-Fi security access group with the specified SSID from the wireless Wi-Fi policy.
 
@@ -204,7 +211,7 @@ class WifiDB:
             ssid (str): The SSID (Service Set Identifier) of the Wi-Fi security access group to delete.
 
         Returns:
-            bool: STATUS_OK if the Wi-Fi security access group is deleted successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the Wi-Fi security access group is deleted successfully, STATUS_NOK otherwise.
 
         Note:
         - This method deletes a Wi-Fi security access group with the specified SSID from the wireless Wi-Fi policy.

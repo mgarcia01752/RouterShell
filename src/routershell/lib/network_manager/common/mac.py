@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName, MacAddressText
+from routershell.lib.common.types import InterfaceName, MacAddressText, PredicateResult, StatusResult
 from routershell.lib.network_manager.common.interface import InterfaceLayer
 
 
@@ -28,7 +28,7 @@ class MacServiceLayer(InterfaceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().MAC)
         
-    def set_interface_mac(self, interface_name: InterfaceName, mac_address: MacAddressText) -> bool:
+    def set_interface_mac(self, interface_name: InterfaceName, mac_address: MacAddressText) -> StatusResult:
         """
         Set the MAC address of a network interface via os.
 
@@ -37,7 +37,7 @@ class MacServiceLayer(InterfaceLayer):
             mac_address (str): The new MAC address to set for the network interface.
             
         Returns:
-            bool: STATUS_OK if the MAC address was successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the MAC address was successfully updated, STATUS_NOK otherwise.
 
         Note:
             - This method requires administrative privileges to update the MAC address.
@@ -70,7 +70,7 @@ class MacServiceLayer(InterfaceLayer):
             print(f"An error occurred: {str(e)}")
             return STATUS_NOK
 
-    def is_valid_mac_address(self, mac: MacAddressText) -> bool:
+    def is_valid_mac_address(self, mac: MacAddressText) -> PredicateResult:
         """
         Check if a given MAC address is valid.
 
@@ -84,7 +84,7 @@ class MacServiceLayer(InterfaceLayer):
         - xxxx.xxxx.xxxx: Three groups of four characters separated by dots.
 
         Returns:
-            bool: True if the MAC address is valid, False otherwise.
+            StatusResult: True if the MAC address is valid, False otherwise.
         """
         # Define regular expression patterns for supported MAC address formats
         patterns = [
@@ -116,7 +116,7 @@ class MacServiceLayer(InterfaceLayer):
 
         Returns:
         tuple: A tuple containing:
-            - bool: True if the MAC address was successfully formatted, False otherwise.
+            - StatusResult: True if the MAC address was successfully formatted, False otherwise.
             - str: The formatted MAC address in the standard format (xx:xx:xx:xx:xx:xx) if successful,
                 or None if the input MAC address is not recognized.
 
@@ -216,7 +216,7 @@ class MacServiceLayer(InterfaceLayer):
             duid (str): The DHCP Unique Identifier to be validated.
 
         Returns:
-            bool: True if the provided string is a valid DUID-LL, False otherwise.
+            StatusResult: True if the provided string is a valid DUID-LL, False otherwise.
         """
         duid_ll_pattern = re.compile(r'^00:01:[0-9a-fA-F:]+$')
         return bool(duid_ll_pattern.match(duid))

@@ -11,7 +11,7 @@ from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 
 
-from routershell.lib.common.types import BridgeName
+from routershell.lib.common.types import BridgeName, StatusResult
 class InvalidBridge(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -46,7 +46,7 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
     def do_stp(self, args=None, negate=False):
         return
     
-    def do_shutdown(self, args=None, negate=False) -> bool:
+    def do_shutdown(self, args=None, negate=False) -> StatusResult:
         """
         Change the state of a network interface.
 

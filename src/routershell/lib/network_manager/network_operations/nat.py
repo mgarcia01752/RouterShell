@@ -4,7 +4,7 @@ from enum import Enum
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName, NatPoolName
+from routershell.lib.common.types import InterfaceName, NatPoolName, StatusResult
 from routershell.lib.db.nat_db import NatDB
 from routershell.lib.network_manager.common.sysctl import SysCtl
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -28,7 +28,7 @@ class Nat(NetworkManager):
         self.log.setLevel(RSLS().NAT)
         self.sysctl = SysCtl()
 
-    def enable_ip_forwarding(self, negate: bool = False) -> bool:
+    def enable_ip_forwarding(self, negate: bool = False) -> StatusResult:
         """
         Enable or disable IP forwarding in the system.
 
@@ -36,7 +36,7 @@ class Nat(NetworkManager):
             negate (bool): If True, disable IP forwarding; if False, enable IP forwarding. (default: False)
 
         Returns:
-            bool: STATUS_OK if IP forwarding was successfully enabled or disabled, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if IP forwarding was successfully enabled or disabled, STATUS_NOK otherwise.
         """
         self.log.debug(f"enable_ip_forwarding() negate:{negate}")
         if self.sysctl.write_sysctl('net.ipv4.ip_forward', 1 if not negate else 0):
@@ -45,7 +45,7 @@ class Nat(NetworkManager):
 
         return STATUS_OK
 
-    def create_nat_pool(self, nat_pool_name: NatPoolName, negate: bool = False) -> bool:
+    def create_nat_pool(self, nat_pool_name: NatPoolName, negate: bool = False) -> StatusResult:
         """
         Create or delete a NAT pool configuration in the NAT database.
 
@@ -58,7 +58,7 @@ class Nat(NetworkManager):
             - negate (bool, optional): If STATUS_OK, the method will delete the NAT pool; if False, it will create it (default: STATUS_NOK).
 
         Returns:
-            - bool: STATUS_OK if the operation is successful, STATUS_NOK if there was an error during the operation.
+            - StatusResult: STATUS_OK if the operation is successful, STATUS_NOK if there was an error during the operation.
 
         """
         self.log.debug(f"create_nat_pool() -> NAT Pool: {nat_pool_name} -> negate: {negate}")
@@ -92,7 +92,7 @@ class Nat(NetworkManager):
                         nat_inside_ip_end: ipaddress.IPv4Address,
                         nat_outside_ip_address: ipaddress.IPv4Address = None,
                         nat_outside_ifName: InterfaceName | None = None,
-                        negate: bool = False) -> bool:
+                        negate: bool = False) -> StatusResult:
         """
         Create a NAT pool.
 
@@ -104,7 +104,7 @@ class Nat(NetworkManager):
             nat_outside_ifName (str, optional): Name of the external interface (mutually exclusive with nat_outside_ip_address).
 
         Returns:
-            bool: True if NAT pool creation is successful, False otherwise.
+            StatusResult: True if NAT pool creation is successful, False otherwise.
         """
         self.log.debug("create_nat_ip_pool()")
         try:
@@ -128,7 +128,7 @@ class Nat(NetworkManager):
             self.log.error(f"An error occurred while creating NAT pool: {e}")
             return STATUS_NOK
     
-    def apply_nat_acl_to_pool(self, in_out: NATDirection, acl_id, nat_pool_name) -> bool:
+    def apply_nat_acl_to_pool(self, in_out: NATDirection, acl_id, nat_pool_name) -> StatusResult:
         '''
         ip nat inside source list <acl-id> pool <nat-pool-name>
         '''
@@ -143,7 +143,7 @@ class Nat(NetworkManager):
         
         return STATUS_OK
 
-    def create_outside_nat(self, nat_pool_name: NatPoolName, interface_name: InterfaceName, negate: bool = False) -> bool:
+    def create_outside_nat(self, nat_pool_name: NatPoolName, interface_name: InterfaceName, negate: bool = False) -> StatusResult:
         """
         Create or destroy outside NAT (Source NAT) rule.
 
@@ -153,7 +153,7 @@ class Nat(NetworkManager):
             negate (bool, optional): True to destroy the NAT rule, False to create it. Defaults to False.
 
         Returns:
-            bool: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
         """
         self.log.debug(f"create_outside_nat() -> Pool: {nat_pool_name} -> Interface: {interface_name} -> negate: {negate}")
         
@@ -190,7 +190,7 @@ class Nat(NetworkManager):
             self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} outside NAT rule: {e} via OS")
             return STATUS_NOK
 
-    def create_inside_nat(self, nat_pool_name: NatPoolName, ifName_inside: InterfaceName, negate: bool = False) -> bool:
+    def create_inside_nat(self, nat_pool_name: NatPoolName, ifName_inside: InterfaceName, negate: bool = False) -> StatusResult:
         """
         Create or destroy inside NAT (Source NAT) rule.
 
@@ -200,7 +200,7 @@ class Nat(NetworkManager):
             negate (bool, optional): True to destroy the NAT rule, False to create it. Defaults to False.
 
         Returns:
-            bool: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the NAT rule is created or destroyed successfully, STATUS_NOK otherwise.
         """
  
         nat_pool = NatDB().pool_name_exists(nat_pool_name)
@@ -265,7 +265,7 @@ class Nat(NetworkManager):
             self.log.error(f"An error occurred while {'destroying' if negate else 'creating'} inside NAT rule: {e}")
             return STATUS_NOK
     
-    def create_fw_nat_rule(self, in_ifName: InterfaceName, out_ifName: InterfaceName) -> bool:
+    def create_fw_nat_rule(self, in_ifName: InterfaceName, out_ifName: InterfaceName) -> StatusResult:
         '''
         sudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
         sudo iptables -A INPUT -i Gig0 -j ACCEPT

@@ -5,6 +5,7 @@ import subprocess
 from typing import NamedTuple
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import StatusResult
 
 
 class RunResult(NamedTuple):
@@ -58,7 +59,7 @@ class RunLog:
         return result.stdout.split("\n")
     
     @staticmethod
-    def clear_run_log() -> bool:
+    def clear_run_log() -> StatusResult:
         cmd = f'rm {RunCommand.log_cmd}'.split()
         result = RunCommand().run(cmd)
         return result.exit_code

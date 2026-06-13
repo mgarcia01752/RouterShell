@@ -2,7 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import HostnameText
+from routershell.lib.common.types import HostnameText, StatusResult
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_services.common.network_ports import NetworkPorts
 from routershell.lib.network_services.telnet.telnet_server import TelnetService
@@ -17,7 +17,7 @@ class System:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().SYSTEM)
     
-    def update_hostname(self, hostname: HostnameText) -> bool:
+    def update_hostname(self, hostname: HostnameText) -> StatusResult:
         """
         Update the hostname of the system both in the OS and the system database.
 
@@ -25,7 +25,7 @@ class System:
         hostname (str): The new hostname to set.
 
         Returns:
-        bool: STATUS_OK if successful, STATUS_NOK otherwise.
+        StatusResult: STATUS_OK if successful, STATUS_NOK otherwise.
         """
         if SystemCall().set_hostname_os(hostname):
             self.log.error(f"Error: Failed to set the hostname: ({hostname}) to OS")
@@ -37,7 +37,7 @@ class System:
 
         return STATUS_OK
 
-    def update_telnet_server(self, enable: bool = True, port: int = NetworkPorts.TELNET) -> bool:
+    def update_telnet_server(self, enable: bool = True, port: int = NetworkPorts.TELNET) -> StatusResult:
         """
         Update the Telnet server configuration.
 
@@ -46,7 +46,7 @@ class System:
             port (int): The port for the Telnet server.
 
         Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
         self.log.debug(f'update_telnet_server() - enable: {enable} -> port: {port}')
         
@@ -70,7 +70,7 @@ class System:
             
         return STATUS_OK
     
-    def update_ssh_server(self, enable: bool = True, port: int = NetworkPorts.SSH) -> bool:
+    def update_ssh_server(self, enable: bool = True, port: int = NetworkPorts.SSH) -> StatusResult:
         """
         Update the SSH server configuration.
 
@@ -79,7 +79,7 @@ class System:
             port (int): The port for the SSH server.
 
         Returns:
-            bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
         print('SSH Server not implemented yet')
         return STATUS_OK

@@ -7,6 +7,7 @@ from routershell.lib.common.constants import *
 from routershell.lib.network_manager.network_operations.interface import Interface
 
 
+from routershell.lib.common.types import StatusResult
 class InvalidRouteConfig(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -52,7 +53,7 @@ class RenameConfig(cmd2.Cmd, RouterPrompt):
 
     '''Do not change above this comment'''
             
-    def do_if(self, args:str, negate=False) -> bool:
+    def do_if(self, args:str, negate=False) -> StatusResult:
         '''rename if enx3c8cf8f943a2 if-alias [auto|<new-interface-name>]'''
         
         Interface().rename_interface()

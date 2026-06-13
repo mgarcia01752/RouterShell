@@ -8,6 +8,7 @@ from routershell.lib.cli.common.prompt_response import PromptResponse
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import StatusResult
 
 
 class CmdInterface(ABC):
@@ -16,12 +17,12 @@ class CmdInterface(ABC):
     """
 
     @abstractmethod
-    def isGlobal(self) -> bool:
+    def isGlobal(self) -> StatusResult:
         """
         Check if the command is a global command.
 
         Returns:
-            bool: True if the command is global, False otherwise.
+            StatusResult: True if the command is global, False otherwise.
         """
         pass
     
@@ -36,7 +37,7 @@ class CmdInterface(ABC):
         pass
     
     @abstractmethod
-    def execute(self, subcommand: list = None) -> bool:
+    def execute(self, subcommand: list = None) -> StatusResult:
         """
         Execute a subcommand.
 
@@ -44,7 +45,7 @@ class CmdInterface(ABC):
             subcommand (list, optional): Subcommand to execute. Defaults to None.
         
         Returns:
-            bool: Status indicating whether the execution was successful.
+            StatusResult: Status indicating whether the execution was successful.
         """
         pass
     
@@ -126,7 +127,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
         self.log.debug(f'Class Name String lower: {self.CLASS_NAME}')
         return self.CLASS_NAME
             
-    def execute(self, commands: list) -> bool:
+    def execute(self, commands: list) -> StatusResult:
         """
         Execute a subcommand.
 
@@ -134,7 +135,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
             commands (list): Commands to execute. Defaults.
         
         Returns:
-            bool: STATUS_OK indicating the execution was successful, else STATUS_NOK.
+            StatusResult: STATUS_OK indicating the execution was successful, else STATUS_NOK.
         """
         if not commands:
             self.log.error('Command(s) Not Found')
@@ -218,7 +219,7 @@ class CmdPrompt(CmdInterface, PromptResponse):
             self.log.error(f"Error accessing command dictionary: {e}")
             return {}
       
-    def isGlobal(self) -> bool:
+    def isGlobal(self) -> StatusResult:
         return self.IS_GLOBAL
     
     def help(self) -> None:

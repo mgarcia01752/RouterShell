@@ -4,6 +4,7 @@ import shutil
 from enum import Enum, auto
 
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import PredicateResult
 
 
 class SupportedOS(Enum):
@@ -19,7 +20,7 @@ class OSChecker:
         supported_os (set): A set of supported operating systems.
 
     Methods:
-        is_supported() -> bool:
+        is_supported() -> StatusResult:
             Checks if the current operating system is supported.
 
         get_current_os() -> SupportedOS:
@@ -60,12 +61,12 @@ class OSChecker:
 
         return SupportedOS.UNKNOWN
 
-    def is_supported(self) -> bool:
+    def is_supported(self) -> PredicateResult:
         """
         Check if the current operating system is supported.
 
         Returns:
-            bool: True if the current operating system is supported, False otherwise.
+            StatusResult: True if the current operating system is supported, False otherwise.
         """
         current_os = self.get_current_os()
         return current_os in self.supported_os

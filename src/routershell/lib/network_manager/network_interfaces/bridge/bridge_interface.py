@@ -2,7 +2,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import BridgeName, InetAddressText
+from routershell.lib.common.types import BridgeName, InetAddressText, PredicateResult, StatusResult
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from routershell.lib.network_manager.network_operations.bridge import Bridge
@@ -32,24 +32,24 @@ class BridgeInterface:
         """
         return self._bridge_name
 
-    def does_bridge_exist(self) -> bool:
+    def does_bridge_exist(self) -> PredicateResult:
         """
         Check if the specified bridge exists.
 
         Returns:
-            bool: True if the bridge exists, False otherwise.
+            StatusResult: True if the bridge exists, False otherwise.
         """
         if not Bridge().does_bridge_exist(self._bridge_name):
             self.log.debug(f'does_bridge_exist() -> {self._bridge_name} does not exist')
             return False         
         return True
     
-    def create_bridge(self) -> bool:
+    def create_bridge(self) -> StatusResult:
         """
         Create a bridge interface if it does not already exist.
 
         Returns:
-            bool: STATUS_OK if the bridge was successfully created or already exists, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the bridge was successfully created or already exists, STATUS_NOK otherwise.
         """        
         if self.does_bridge_exist():
             self.log.error(f'Can not create bridge: {self._bridge_name}, already exists')
@@ -79,7 +79,7 @@ class BridgeInterface:
         """
         return Bridge().del_bridge(self.get_bridge_name())
 
-    def set_inet_management(self, inet: InetAddressText) -> bool:
+    def set_inet_management(self, inet: InetAddressText) -> StatusResult:
         """
         Set the IPv4 or IPv6 address for the bridge.
 
@@ -87,7 +87,7 @@ class BridgeInterface:
             inet (str): The IP address to set.
 
         Returns:
-            bool: STATUS_OK if the IP address was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the IP address was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
             self.log.error(f'Unable to set management inet {inet} to bridge: {self._bridge_name} does not exists')
@@ -100,7 +100,7 @@ class BridgeInterface:
         self.log.debug(f'set_inet_management() -> Inet address {inet} is set to bridge {self._bridge_name}')
         return STATUS_OK
     
-    def set_shutdown_status(self, state: State) -> bool:
+    def set_shutdown_status(self, state: State) -> StatusResult:
         """
         Set the shutdown status for a specified bridge.
 
@@ -112,7 +112,7 @@ class BridgeInterface:
                         It can be State.UP, State.DOWN, or State.UNKNOWN.
 
         Returns:
-            bool: STATUS_OK (True) if the shutdown status was successfully set or if it was already set to the desired status.
+            StatusResult: STATUS_OK (True) if the shutdown status was successfully set or if it was already set to the desired status.
                 STATUS_NOK (False) if there was an error setting the shutdown status.
         """
         if not self.does_bridge_exist():
@@ -126,7 +126,7 @@ class BridgeInterface:
         self.log.debug(f'set_shutdown_status() -> Shutdown status {state} is set to bridge {self._bridge_name}')
         return STATUS_OK
 
-    def set_stp(self, stp: STP_STATE) -> bool:
+    def set_stp(self, stp: STP_STATE) -> StatusResult:
         """
         Set the Spanning Tree Protocol (STP) state for the bridge.
 
@@ -134,7 +134,7 @@ class BridgeInterface:
             stp (STP_STATE): The STP state to set.
 
         Returns:
-            bool: STATUS_OK if the STP state was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the STP state was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
             self.log.error(f'Unable to set stp {stp} to bridge: {self._bridge_name} does not exists')
@@ -148,7 +148,7 @@ class BridgeInterface:
         
         return STATUS_OK
     
-    def set_bridge_protocol(self, protocol: BridgeProtocol) -> bool:
+    def set_bridge_protocol(self, protocol: BridgeProtocol) -> StatusResult:
         """
         Set the bridge protocol for the bridge.
 
@@ -156,7 +156,7 @@ class BridgeInterface:
             protocol (BridgeProtocol): The bridge protocol to set.
 
         Returns:
-            bool: STATUS_OK if the bridge protocol was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the bridge protocol was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
             self.log.error(f'Unable to set protocol {protocol} to bridge: {self._bridge_name} does not exists')
@@ -169,7 +169,7 @@ class BridgeInterface:
         self.log.debug(f'set_bridge_protocol() -> Bridge protocol {protocol} is already set for bridge {self._bridge_name}')
         return STATUS_OK
     
-    def set_description(self, description: str | None) -> bool:
+    def set_description(self, description: str | None) -> StatusResult:
         """
         Set a description for the bridge.
 
@@ -177,7 +177,7 @@ class BridgeInterface:
             description (str | None): The description to set. If None, the description will be cleared.
 
         Returns:
-            bool: STATUS_OK if the description was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the description was successfully set, STATUS_NOK otherwise.
         """
         if not self.does_bridge_exist():
             self.log.error(f'Unable to set description {description} to bridge: {self._bridge_name} does not exists')

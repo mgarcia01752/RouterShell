@@ -3,7 +3,7 @@ import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InterfaceName, MacAddressText
+from routershell.lib.common.types import InterfaceName, MacAddressText, PredicateResult, StatusResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_operations.interface import Interface
@@ -33,7 +33,7 @@ class NetworkInterface:
         self.interface_name = interface_name
         pass
 
-    def set_description(self, description:str=None) -> bool:
+    def set_description(self, description:str=None) -> StatusResult:
         """
         Set the description for the network interface.
 
@@ -41,7 +41,7 @@ class NetworkInterface:
             description (str, optional): The description to set for the network interface. Defaults to None.
 
         Returns:
-            bool: True if the description is successfully updated, False otherwise (STATUS_NOK).
+            StatusResult: True if the description is successfully updated, False otherwise (STATUS_NOK).
         """
         if Interface().update_db_description(self.interface_name, description):
             return STATUS_NOK
@@ -66,23 +66,23 @@ class NetworkInterface:
         """
         return self.interface_name
 
-    def interface_exist_os(self) -> bool:
+    def interface_exist_os(self) -> PredicateResult:
         """
         Check if the network interface exists in the operating system.
 
         This method verifies the existence of the network interface specified by `interface_name` in the operating system.
 
         Returns:
-            bool: True if the interface exists, False otherwise.
+            StatusResult: True if the interface exists, False otherwise.
         """
         return Interface().does_os_interface_exist(self.interface_name)
 
-    def interface_exist_db(self) -> bool:
+    def interface_exist_db(self) -> PredicateResult:
         """
         Check if the network interface exists in the database.
 
         Returns:
-            bool: True if the interface exists in the database, False otherwise.
+            StatusResult: True if the interface exists in the database, False otherwise.
         """
         if self.interface_name in Interface().get_db_interface_names():
             return True
@@ -97,7 +97,7 @@ class NetworkInterface:
         """
         pass
 
-    def set_interface_shutdown_state(self, state: State) -> bool:
+    def set_interface_shutdown_state(self, state: State) -> StatusResult:
         """
         Set the shutdown state of the network interface.
 
@@ -105,11 +105,11 @@ class NetworkInterface:
             state (State): The desired shutdown state (UP or DOWN).
 
         Returns:
-            bool: STATUS_OK if the state change is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the state change is successful, STATUS_NOK otherwise.
         """
         pass
     
-    def set_mac_address(self, mac_addr: MacAddressText | None = None) -> bool:
+    def set_mac_address(self, mac_addr: MacAddressText | None = None) -> StatusResult:
         """
         Set the MAC address of the network interface.
 
@@ -119,11 +119,11 @@ class NetworkInterface:
             mac_addr (str, optional): The new MAC address to assign to the network interface. If None, the MAC address is reset to the default.
 
         Returns:
-            bool: STATUS_OK if the MAC address is successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the MAC address is successfully updated, STATUS_NOK otherwise.
         """
         pass
     
-    def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> bool:
+    def add_inet_address(self, inet_address, secondary_address:bool=False, negate:bool=False) -> StatusResult:
         """
         Add or modify an IP address on the network interface.
 
@@ -133,6 +133,6 @@ class NetworkInterface:
             negate (bool, optional): Whether to remove the IP address if it exists. Defaults to False.
 
         Returns:
-            bool: True if the IP address is successfully added or modified, False otherwise.
+            StatusResult: True if the IP address is successfully added or modified, False otherwise.
         """
         pass

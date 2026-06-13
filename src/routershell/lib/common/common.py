@@ -9,7 +9,7 @@ import subprocess
 from datetime import datetime
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.common.types import EnvironmentVariableName, HostnameText, InterfaceName
+from routershell.lib.common.types import EnvironmentVariableName, HostnameText, InterfaceName, PredicateResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 
 
@@ -169,7 +169,7 @@ class Common:
         return mac_address
  
     @staticmethod
-    def is_valid_ip(ip_str: str) -> bool:
+    def is_valid_ip(ip_str: str) -> PredicateResult:
         '''Check both IPv4 and IPv6 is properly formatted'''
         try:
             ipaddress.IPv4Address(ip_str)  # Check if it's a valid IPv4 address
@@ -225,7 +225,7 @@ class Common:
             return "N/A" 
 
     @staticmethod
-    def is_valid_hostname(hostname: HostnameText) -> bool:
+    def is_valid_hostname(hostname: HostnameText) -> PredicateResult:
         """
         Check if a hostname is valid based on DNS standards.
 
@@ -233,7 +233,7 @@ class Common:
             hostname (str): The hostname to be validated.
 
         Returns:
-            bool: True if the hostname is valid, False otherwise.
+            StatusResult: True if the hostname is valid, False otherwise.
         """
         if not hostname or len(hostname) > 255:
             return False
@@ -266,7 +266,7 @@ class Common:
         return os.environ.get(var_name)
 
     @staticmethod
-    def is_loopback_if_name_valid(interface_name: InterfaceName, add_loopback_if_name: list[str] = None) -> bool:
+    def is_loopback_if_name_valid(interface_name: InterfaceName, add_loopback_if_name: list[str] = None) -> PredicateResult:
         """
         Check if the given interface name is in the loopback format or starts with any of the specified prefixes.
 
@@ -275,7 +275,7 @@ class Common:
             loopback_if_check_list (list[str], optional): list of additional interface name prefixes to check against. Default is None.
 
         Returns:
-            bool: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.
+            StatusResult: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.
         """
         if add_loopback_if_name is None:
             add_loopback_if_name = []

@@ -6,6 +6,7 @@ from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
 from routershell.lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
@@ -49,7 +50,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def interfaceconfig_description(self, line: str | None, negate: bool = False) -> bool:
+    def interfaceconfig_description(self, line: str | None, negate: bool = False) -> StatusResult:
         """"""
         if negate:
             self.log.debug(f'Negating description on interface: {self.ifName}')
@@ -63,7 +64,7 @@ class InterfaceConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['auto'],     help='Auto assign mac address')
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
-    def interfaceconfig_mac(self, args:str) -> bool:
+    def interfaceconfig_mac(self, args:str) -> StatusResult:
         
         self.log.debug(f"interfaceconfig_mac() -> args: {args}")
         
@@ -82,10 +83,10 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_ip6(self, args, negate=False) -> bool:
+    def interfaceconfig_ip6(self, args, negate=False) -> StatusResult:
         return STATUS_OK
     
-    def X_ip(self, args: list, negate=False) -> bool:
+    def X_ip(self, args: list, negate=False) -> StatusResult:
 
         self.log.debug(f'interfaceconfig_ip() -> {args}')
 
@@ -161,7 +162,7 @@ class InterfaceConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'])
     @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'])
-    def interfaceconfig_ip(self, args: list[str], negate=False) -> bool:
+    def interfaceconfig_ip(self, args: list[str], negate=False) -> StatusResult:
         "ip address <> secondary"
         if "address" in args:
             if len(args) < 2:
@@ -228,7 +229,7 @@ class InterfaceConfig(CmdPrompt):
 
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def interfaceconfig_duplex(self, args: list[str]) -> bool:
+    def interfaceconfig_duplex(self, args: list[str]) -> StatusResult:
         """ duplex """
         
         if not args:
@@ -255,7 +256,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def interfaceconfig_speed(self, args: str | None) -> bool:
+    def interfaceconfig_speed(self, args: str | None) -> StatusResult:
         args = StringFormats.list_to_string(args)
         
         if not args:
@@ -286,7 +287,7 @@ class InterfaceConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def interfaceconfig_bridge(self, args: str | None, negate=False) -> bool:
+    def interfaceconfig_bridge(self, args: str | None, negate=False) -> StatusResult:
         
         if 'group' in args:
             
@@ -307,7 +308,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_shutdown(self, args=None, negate=False) -> bool:
+    def interfaceconfig_shutdown(self, args=None, negate=False) -> StatusResult:
         """ shutdown """
         ifState = State.DOWN
         
@@ -321,7 +322,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
-    def interfaceconfig_switchport(self, args=None, negate=False) -> bool:
+    def interfaceconfig_switchport(self, args=None, negate=False) -> StatusResult:
         if 'access-vlan' in args:
             
             vlan_id = args[1]
@@ -336,11 +337,11 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK        
 
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_wireless(self, args=None, negate:bool=False) -> bool:
+    def interfaceconfig_wireless(self, args=None, negate:bool=False) -> StatusResult:
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def interfaceconfig_no(self, args: list) -> bool:
+    def interfaceconfig_no(self, args: list) -> StatusResult:
         
         self.log.debug(f"interfaceconfig_no() -> Line -> {args}")
 

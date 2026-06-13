@@ -7,6 +7,7 @@ from datetime import datetime
 from routershell.lib.cli.show.router_configuration import RouterConfiguration
 from routershell.lib.common.common import ROUTER_CONFIG_DIR, STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import StatusResult
 
 
 class InvalidCopyMode(Exception):
@@ -23,11 +24,11 @@ class CopyMode:
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().COPY_MODE)
     
-    def copy_start_config_to_run_config(self) -> bool:
+    def copy_start_config_to_run_config(self) -> StatusResult:
         self.log.info('copy_start_config_to_run_config()')
         return STATUS_OK
 
-    def copy_running_config(self, copy_type: CopyType = CopyType.DEST_START_UP, destination: str = None) -> bool:
+    def copy_running_config(self, copy_type: CopyType = CopyType.DEST_START_UP, destination: str = None) -> StatusResult:
         """
         Copy the running configuration to the specified destination.
 
@@ -36,7 +37,7 @@ class CopyMode:
             destination (str, optional): The destination file name for the copy operation. Defaults to None.
 
         Returns:
-            bool: STATUS_OK if the copy operation is successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the copy operation is successful, STATUS_NOK otherwise.
         """       
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         

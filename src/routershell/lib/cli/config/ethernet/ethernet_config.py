@@ -6,6 +6,7 @@ from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.number_check import NumberChecker
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
 from routershell.lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
@@ -48,7 +49,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def ethernetconfig_description(self, line: str | None, negate: bool = False) -> bool:
+    def ethernetconfig_description(self, line: str | None, negate: bool = False) -> StatusResult:
 
         if negate:
             self.log.debug(f'Negating description on interface: {self._interface_name}')
@@ -62,7 +63,7 @@ class EthernetConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['auto'],     help='Auto assign mac address')
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
-    def ethernetconfig_mac(self, args:str) -> bool:
+    def ethernetconfig_mac(self, args:str) -> StatusResult:
         
         self.log.debug(f"ethernetconfig_mac() -> args: {args}")
         
@@ -81,7 +82,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def ethernetconfig_ip6(self, args, negate=False) -> bool:
+    def ethernetconfig_ip6(self, args, negate=False) -> StatusResult:
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
@@ -95,7 +96,7 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access-vlan-id'])        
-    def ethernetconfig_ip(self, args: list[str], negate=False) -> bool:
+    def ethernetconfig_ip(self, args: list[str], negate=False) -> StatusResult:
         "ip address <> secondary"
         if "address" in args:
             if len(args) < 2:
@@ -249,7 +250,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def ethernetconfig_duplex(self, duplex_args: list[str]) -> bool:
+    def ethernetconfig_duplex(self, duplex_args: list[str]) -> StatusResult:
         if not duplex_args:
             print("Usage: duplex <auto | half | full>")
             return STATUS_NOK
@@ -275,7 +276,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def ethernetconfig_speed(self, speed_args: str | None) -> bool:
+    def ethernetconfig_speed(self, speed_args: str | None) -> StatusResult:
         
         if not speed_args:
             print("Usage: speed <10 | 100 | 1000 | 2500 | 10000 | auto>")
@@ -308,7 +309,7 @@ class EthernetConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def ethernetconfig_bridge(self, bridge_args: str | None, negate=False) -> bool:
+    def ethernetconfig_bridge(self, bridge_args: str | None, negate=False) -> StatusResult:
         
         if 'group' in bridge_args:
             
@@ -330,7 +331,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def ethernetconfig_shutdown(self, args=None, negate=False) -> bool:
+    def ethernetconfig_shutdown(self, args=None, negate=False) -> StatusResult:
 
         ifState = State.UP if negate else State.DOWN
         self.log.debug(f'ethernetconfig_shutdown(negate: {negate}) -> State: {ifState.name}')
@@ -339,7 +340,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
-    def ethernetconfig_switchport(self, args=None, negate=False) -> bool:
+    def ethernetconfig_switchport(self, args=None, negate=False) -> StatusResult:
         
         if 'access-vlan' in args:
             vlan_id = args[1]
@@ -354,11 +355,11 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK        
 
     @CmdPrompt.register_sub_commands()    
-    def ethernetconfig_wireless(self, args=None, negate:bool=False) -> bool:
+    def ethernetconfig_wireless(self, args=None, negate:bool=False) -> StatusResult:
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def ethernetconfig_no(self, args: list) -> bool:
+    def ethernetconfig_no(self, args: list) -> StatusResult:
         
         self.log.debug(f"ethernetconfig_no() -> Line -> {args}")
 

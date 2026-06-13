@@ -3,6 +3,7 @@ import logging
 import os
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 
 
@@ -21,7 +22,7 @@ class SysCtl(RunCommand):
         if not os.path.exists(self.sys_ctl_log_dir):
             os.makedirs(self.sys_ctl_log_dir)
 
-    def write_sysctl(self, sysctl_param: str, value:str) -> bool:
+    def write_sysctl(self, sysctl_param: str, value:str) -> StatusResult:
         """
         Write a value to a sysctl parameter using sudo and log the action.
 

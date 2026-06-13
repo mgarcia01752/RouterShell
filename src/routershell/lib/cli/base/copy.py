@@ -5,6 +5,7 @@ from routershell.lib.cli.common.command_class_interface import CmdPrompt
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import StatusResult
 from routershell.lib.system.copy_mode import CopyMode, CopyType
 
 
@@ -34,7 +35,7 @@ class Copy(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['running-config', 'startup-config'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['startup-config', 'running-config'])       
-    def copy_copy(self, args: list=None) -> bool:
+    def copy_copy(self, args: list=None) -> StatusResult:
         self.log.debug(f'copy_copy -> {args}')
         
         if args[0] == 'running-config':

@@ -2,6 +2,7 @@ import os
 import re
 from enum import Enum
 
+from routershell.lib.common.types import PredicateResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 
 
@@ -63,21 +64,21 @@ class InitSystemChecker(RunCommand):
         
         return InitSystem.SYSV
 
-    def is_systemd(self) -> bool:
+    def is_systemd(self) -> PredicateResult:
         """
         Checks if the system is using Systemd.
 
         Returns:
-            bool: True if Systemd is in use, False otherwise.
+            StatusResult: True if Systemd is in use, False otherwise.
         """
         return self._init_system == InitSystem.SYSTEMD
 
-    def is_sysv(self) -> bool:
+    def is_sysv(self) -> PredicateResult:
         """
         Checks if the system is using SysV init.
 
         Returns:
-            bool: True if SysV is in use, False otherwise.
+            StatusResult: True if SysV is in use, False otherwise.
         """
         return self._init_system == InitSystem.SYSV
     

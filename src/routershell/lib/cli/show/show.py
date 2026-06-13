@@ -14,6 +14,7 @@ from routershell.lib.cli.show.router_configuration import RouterConfiguration
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
+from routershell.lib.common.types import StatusResult
 from routershell.lib.hardware.hardware_detection import HardwareDetection
 from routershell.lib.system.linux_calls import LinuxSystem
 from routershell.lib.system.system_call import SystemCall
@@ -217,7 +218,7 @@ class Show(CmdPrompt):
             PromptResponse.print_invalid_cmd_response(args)
                 
     @CmdPrompt.register_sub_commands()
-    def show_dmesg(self, args: list[str] | None = None) -> bool:
+    def show_dmesg(self, args: list[str] | None = None) -> StatusResult:
         """Displays kernel ring buffer messages using LinuxSystem.get_dmesg().
 
         This function retrieves kernel ring buffer messages and prints them

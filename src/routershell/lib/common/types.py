@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TypeAlias
+from typing import NewType, TypeAlias
 
 CommandArgs: TypeAlias = list[str]
 EnvironmentMap: TypeAlias = dict[str, str]
@@ -12,6 +12,8 @@ JsonScalar: TypeAlias = str | int | float | bool | None
 JsonValue: TypeAlias = JsonScalar | list["JsonValue"] | dict[str, "JsonValue"]
 JsonObject: TypeAlias = dict[str, JsonValue]
 LogLevelName: TypeAlias = str
+PredicateResult = NewType("PredicateResult", bool)
+StatusResult = NewType("StatusResult", bool)
 
 BridgeName: TypeAlias = str
 ClientIdText: TypeAlias = str

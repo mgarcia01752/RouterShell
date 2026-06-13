@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InetAddressText, InterfaceName, MacAddressText
+from routershell.lib.common.types import InetAddressText, InterfaceName, MacAddressText, PredicateResult, StatusResult
 from routershell.lib.network_manager.common.inet import InetServiceLayer
 from routershell.lib.network_manager.common.sysctl import SysCtl
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
@@ -42,7 +42,7 @@ class Arp(NetworkManager):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().ARP)
 
-    def is_arp_entry_exists(self, ip_address: InetAddressText, interface: InterfaceName | None = None) -> bool:
+    def is_arp_entry_exists(self, ip_address: InetAddressText, interface: InterfaceName | None = None) -> PredicateResult:
         """
         Check if an ARP entry already exists for a specific IP address on a given interface.
 
@@ -51,7 +51,7 @@ class Arp(NetworkManager):
             interface (str): The network interface to check. If None, checks all interfaces.
 
         Returns:
-            bool: True if the ARP entry exists, False otherwise.
+            StatusResult: True if the ARP entry exists, False otherwise.
         """
         try:
             output = self.run(['ip', 'neighbor', 'show'])
@@ -104,7 +104,7 @@ class Arp(NetworkManager):
 
         return STATUS_OK if result.exit_code else STATUS_NOK
 
-    def set_os_timeout(self, arp_time_out: int = 300) -> bool:
+    def set_os_timeout(self, arp_time_out: int = 300) -> StatusResult:
         """
         Sets the ARP cache timeout in the operating system.
 
@@ -116,7 +116,7 @@ class Arp(NetworkManager):
                                 Default is 300 seconds.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         sysctl_param = "net.ipv4.neigh.default.gc_stale_time"
         
@@ -128,7 +128,7 @@ class Arp(NetworkManager):
         
         return STATUS_OK
 
-    def set_os_arp_accept(self, ifName: InterfaceName = "all", enable: bool = True) -> bool:
+    def set_os_arp_accept(self, ifName: InterfaceName = "all", enable: bool = True) -> StatusResult:
         """
         Sets the ARP accept mode for a specific network interface or all interfaces.
 
@@ -143,14 +143,14 @@ class Arp(NetworkManager):
                         Default is True.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_accept_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_accept"
         value = "1" if enable else "0"
         
         return SysCtl().write_sysctl(arp_accept_file, value)
 
-        def set_os_arp_announce(self, ifName:InterfaceName, value:int) -> bool:
+        def set_os_arp_announce(self, ifName:InterfaceName, value:int) -> StatusResult:
             """
             Set the ARP announce value for a specific network interface.
 
@@ -161,7 +161,7 @@ class Arp(NetworkManager):
             arp_announce_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_announce"
             return SysCtl().write_sysctl(arp_announce_file, str(value))
 
-    def set_os_arp_evict_nocarrier(self, ifName: InterfaceName = "all", enable: bool = True) -> bool:
+    def set_os_arp_evict_nocarrier(self, ifName: InterfaceName = "all", enable: bool = True) -> StatusResult:
         """
         Sets the ARP eviction behavior on carrier loss for a specific network interface or all interfaces.
 
@@ -176,13 +176,13 @@ class Arp(NetworkManager):
                         Default is True.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_evict_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_evict_nocarrier"
         value = "1" if enable else "0"
         return SysCtl().write_sysctl(arp_evict_file, value)
 
-    def set_os_arp_filter(self, ifName: InterfaceName = "all", enable: bool = True) -> bool:
+    def set_os_arp_filter(self, ifName: InterfaceName = "all", enable: bool = True) -> StatusResult:
         """
         Sets the ARP filtering behavior for a specific network interface or all interfaces.
 
@@ -197,13 +197,13 @@ class Arp(NetworkManager):
                         Default is True.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
         arp_filter_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_filter"
         value = "1" if enable else "0"
         return SysCtl.write_sysctl(arp_filter_file, value)
 
-    def set_os_arp_ignore(self, ifName: InterfaceName="all", enable: bool=True) -> bool:
+    def set_os_arp_ignore(self, ifName: InterfaceName="all", enable: bool=True) -> StatusResult:
         """
         Set the ARP ignore value for a specific network interface.
 
@@ -215,7 +215,7 @@ class Arp(NetworkManager):
         value = "1" if enable else "0"
         return SysCtl().write_sysctl(arp_ignore_file, str(value))
 
-    def set_os_arp_notify(self, ifName: InterfaceName = "all", enable: bool = True) -> bool:
+    def set_os_arp_notify(self, ifName: InterfaceName = "all", enable: bool = True) -> StatusResult:
         """
         Enable or disable ARP notifications for a specific network interface.
 
@@ -224,14 +224,14 @@ class Arp(NetworkManager):
             enable (bool): True to enable ARP notifications, False to disable them.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
         """
         arp_notify_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_notify"
         value = "1" if enable else "0"
         
         return SysCtl().write_sysctl(arp_notify_file, value)
 
-    def set_os_drop_gratuitous_arp(self, if_name: InterfaceName = "all", enable: bool = True) -> bool:
+    def set_os_drop_gratuitous_arp(self, if_name: InterfaceName = "all", enable: bool = True) -> StatusResult:
         """
         Enable or disable the dropping of gratuitous ARP packets for a specific network interface.
 
@@ -240,7 +240,7 @@ class Arp(NetworkManager):
             enable (bool): True to enable dropping of gratuitous ARP packets, False to disable it.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
         """
 
         value = "1" if enable else "0"
@@ -259,7 +259,7 @@ class Arp(NetworkManager):
             self.log.debug(f"Set gratuitous ARP to {value}")
             return STATUS_OK
 
-    def set_os_proxy_arp(self, if_name: InterfaceName = 'all', enable: bool = True) -> bool:
+    def set_os_proxy_arp(self, if_name: InterfaceName = 'all', enable: bool = True) -> StatusResult:
         """
         Enable or disable proxy ARP for a specific network interface.
 
@@ -268,7 +268,7 @@ class Arp(NetworkManager):
             enable (bool): True to enable proxy ARP, False to disable it.
 
         Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
+            StatusResult: STATUS_OK for success, STATUS_NOK for failure.
         """       
         value = "1" if enable else "0"
         
@@ -287,7 +287,7 @@ class Arp(NetworkManager):
             self.log.debug(f"Set proxy ARP to {value}")
             return STATUS_OK
             
-    def set_os_proxy_arp_pvlan(self, ifName: InterfaceName, enable: bool) -> bool:
+    def set_os_proxy_arp_pvlan(self, ifName: InterfaceName, enable: bool) -> StatusResult:
         """
         Enable or disable proxy ARP for Private VLAN (PVLAN) on a specific network interface.
 
@@ -296,7 +296,7 @@ class Arp(NetworkManager):
             enable (bool): True to enable proxy ARP for PVLAN, False to disable it.
 
         Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
+            StatusResult: STATUS_OK for success, STATUS_NOK for failure.
         """
 
         proxy_arp_pvlan_file = f"/proc/sys/net/ipv4/conf/{ifName}/proxy_arp_pvlan"
@@ -306,7 +306,7 @@ class Arp(NetworkManager):
                 
         return SysCtl().write_sysctl(proxy_arp_pvlan_file, value)
 
-    def set_os_static_arp(self, interface_name:InterfaceName, inet:InetAddressText, mac_address:MacAddressText, encap:Encapsulate=Encapsulate.ARPA, add_arp_entry:bool=True) -> bool:
+    def set_os_static_arp(self, interface_name:InterfaceName, inet:InetAddressText, mac_address:MacAddressText, encap:Encapsulate=Encapsulate.ARPA, add_arp_entry:bool=True) -> StatusResult:
         """
         Configure or remove a static ARP entry using iproute2.
 
@@ -318,7 +318,7 @@ class Arp(NetworkManager):
             add_arp_entry (bool, optional): True to configure the entry (default), False to remove it.
 
         Returns:
-            bool: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
 
         Note:
             - To configure a static ARP entry, set `enable` to True.

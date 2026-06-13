@@ -11,7 +11,7 @@ from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPOptionL
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
 
 
-from routershell.lib.common.types import DhcpPoolName
+from routershell.lib.common.types import DhcpPoolName, StatusResult
 class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
     
     GLOBAL_CONFIG_MODE = 'global'
@@ -41,7 +41,7 @@ class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
         
         self.dhcp_pool_factory = DhcpPoolFactory(dhcp_pool_name)
                 
-    def isGlobalMode(self) -> bool:
+    def isGlobalMode(self) -> StatusResult:
         return self.dhcp_pool_name == self.GLOBAL_CONFIG_MODE
     
     def do_subnet(self, args: str):
@@ -230,6 +230,6 @@ class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
 
         self.dhcp_pool_factory.add_dhcp_mode(DHCPv6Modes.get_mode(args.mode))
 
-    def do_commit(self) -> bool:
+    def do_commit(self) -> StatusResult:
         return STATUS_OK
     

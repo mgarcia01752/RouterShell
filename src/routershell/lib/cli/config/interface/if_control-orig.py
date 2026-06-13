@@ -17,7 +17,7 @@ from routershell.lib.network_manager.network_operations.interface import Interfa
 from routershell.lib.network_manager.network_operations.nat import NATDirection
 
 
-from routershell.lib.common.types import InterfaceName
+from routershell.lib.common.types import InterfaceName, StatusResult
 class InterfaceConfigError(Exception):
     """Custom exception for IfConfig errors."""
     def __init__(self, message: str):
@@ -48,7 +48,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def interfaceconfig_description(self, line: str | None, negate: bool = False) -> bool:
+    def interfaceconfig_description(self, line: str | None, negate: bool = False) -> StatusResult:
         """
         Updates the interface configuration description in the database.
         
@@ -57,7 +57,7 @@ class InterfaceConfig(CmdPrompt, Interface):
             negate (bool): If True, the line will be set to None.
         
         Returns:
-            bool: STATUS_OK indicating the operation was successful.
+            StatusResult: STATUS_OK indicating the operation was successful.
         
         Raises:
             ValueError: If there is an issue updating the database description.
@@ -74,7 +74,7 @@ class InterfaceConfig(CmdPrompt, Interface):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['auto'],     help='Auto assign mac address')
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address'],  help='Assign mac address <xxxx.xxxx.xxxx>')     
-    def interfaceconfig_mac(self, args:str) -> bool:
+    def interfaceconfig_mac(self, args:str) -> StatusResult:
         
         self.log.debug(f"interfaceconfig_mac() -> args: {args}")
         
@@ -93,7 +93,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_ip6(self, args, negate=False) -> bool:
+    def interfaceconfig_ip6(self, args, negate=False) -> StatusResult:
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
@@ -102,7 +102,7 @@ class InterfaceConfig(CmdPrompt, Interface):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['static-arp', 'arpa'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'inside', 'pool', 'acl'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool', 'acl'])
-    def X_ip(self, args: list, negate=False) -> bool:
+    def X_ip(self, args: list, negate=False) -> StatusResult:
 
         self.log.debug(f'interfaceconfig_ip() -> {args}')
 
@@ -173,7 +173,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['address', 'secondary'])
-    def interfaceconfig_ip(self, args: list[str], negate=False) -> bool:
+    def interfaceconfig_ip(self, args: list[str], negate=False) -> StatusResult:
         """
         Configure IP settings on the interface.
 
@@ -237,7 +237,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def interfaceconfig_duplex(self, args: list[str]) -> bool:
+    def interfaceconfig_duplex(self, args: list[str]) -> StatusResult:
         """
         Updates the interface duplex mode based on the provided arguments.
         
@@ -245,7 +245,7 @@ class InterfaceConfig(CmdPrompt, Interface):
             args (str | None): The duplex mode argument, expected to be 'auto', 'half', or 'full'.
         
         Returns:
-            bool: STATUS_OK (True) indicating the operation was successful.
+            StatusResult: STATUS_OK (True) indicating the operation was successful.
         
         Raises:
             ValueError: If the duplex mode is invalid.
@@ -275,7 +275,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def interfaceconfig_speed(self, args: str | None) -> bool:
+    def interfaceconfig_speed(self, args: str | None) -> StatusResult:
         args = StringFormats.list_to_string(args)
         
         if not args:
@@ -306,7 +306,7 @@ class InterfaceConfig(CmdPrompt, Interface):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def interfaceconfig_bridge(self, args: str | None, negate=False) -> bool:
+    def interfaceconfig_bridge(self, args: str | None, negate=False) -> StatusResult:
         
         if 'group' in args:
             
@@ -326,7 +326,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_shutdown(self, args=None, negate=False) -> bool:
+    def interfaceconfig_shutdown(self, args=None, negate=False) -> StatusResult:
         """
         This function is used to change the state of an interface to either UP or DOWN.
 
@@ -350,7 +350,7 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['access-vlan'])    
-    def interfaceconfig_switchport(self, args=None, negate=False) -> bool:
+    def interfaceconfig_switchport(self, args=None, negate=False) -> StatusResult:
         if 'access-vlan' in args:
             
             vlan_id = args[1]
@@ -365,11 +365,11 @@ class InterfaceConfig(CmdPrompt, Interface):
         return STATUS_OK        
 
     @CmdPrompt.register_sub_commands()    
-    def interfaceconfig_wireless(self, args=None, negate:bool=False) -> bool:
+    def interfaceconfig_wireless(self, args=None, negate:bool=False) -> StatusResult:
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def interfaceconfig_no(self, args: list) -> bool:
+    def interfaceconfig_no(self, args: list) -> StatusResult:
         
         self.log.debug(f"interfaceconfig_no() -> Line -> {args}")
 

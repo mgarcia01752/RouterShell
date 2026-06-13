@@ -5,7 +5,7 @@ from enum import Enum
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.types import InetAddressText, InetCidrText, InterfaceName
+from routershell.lib.common.types import InetAddressText, InetCidrText, InterfaceName, PredicateResult, StatusResult
 from routershell.lib.network_manager.common.mac import MacServiceLayer
 from routershell.lib.network_manager.common.run_commands import RunResult
 
@@ -24,7 +24,7 @@ class InetServiceLayer(MacServiceLayer):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().INET)
                     
-    def is_valid_ipv4(self, inet_address: InetAddressText) -> bool:
+    def is_valid_ipv4(self, inet_address: InetAddressText) -> PredicateResult:
         """
         Check if an IPv4 address is valid.
 
@@ -32,7 +32,7 @@ class InetServiceLayer(MacServiceLayer):
             inet_address (str): The IPv4 address as a string.
 
         Returns:
-            bool: True if the address is valid, False otherwise.
+            StatusResult: True if the address is valid, False otherwise.
         """
         
         self.log.debug(f"is_valid_ipv4() -> Inet Address: ({inet_address})")
@@ -54,7 +54,7 @@ class InetServiceLayer(MacServiceLayer):
             address (str): The IP address to check.
 
         Returns:
-            bool: True if the address is a secondary address, False otherwise.
+            StatusResult: True if the address is a secondary address, False otherwise.
         """
         for addr_info in interface["addr_info"]:
             if addr_info["family"] in ["inet", "inet6"] and addr_info["local"] == address:
@@ -89,7 +89,7 @@ class InetServiceLayer(MacServiceLayer):
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON: {e}")
  
-    def is_valid_ipv6(self, inet6_address: InetAddressText, include_prefix=True) -> bool:
+    def is_valid_ipv6(self, inet6_address: InetAddressText, include_prefix=True) -> PredicateResult:
         """
         Check if an IPv6 address is valid.
 
@@ -97,7 +97,7 @@ class InetServiceLayer(MacServiceLayer):
             inet6_address (str): The IPv6 address as a string.
 
         Returns:
-            bool: True if the address is valid, False otherwise.
+            StatusResult: True if the address is valid, False otherwise.
         """
         try:
             parts = inet6_address.split('/')
@@ -111,7 +111,7 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return False
 
-    def is_ip_assigned_to_interface(self, ip_address, interface) -> bool:
+    def is_ip_assigned_to_interface(self, ip_address, interface) -> PredicateResult:
         """
         Check if an IP address is assigned to a specific network interface on a Linux system.
 
@@ -120,7 +120,7 @@ class InetServiceLayer(MacServiceLayer):
             interface (str): The network interface to check.
 
         Returns:
-            bool: True if the IP address is assigned to the interface, False otherwise.
+            StatusResult: True if the IP address is assigned to the interface, False otherwise.
         """
         command = ['ip', 'addr', 'show', interface]
         result = self.run(command)
@@ -131,7 +131,7 @@ class InetServiceLayer(MacServiceLayer):
                 return True
         return False
 
-    def is_valid_inet_address(self, ip_address: InetAddressText) -> bool:
+    def is_valid_inet_address(self, ip_address: InetAddressText) -> PredicateResult:
         """
         Check if a string is a valid IP address.
 
@@ -139,7 +139,7 @@ class InetServiceLayer(MacServiceLayer):
             ip_address (str): The IP address to validate.
 
         Returns:
-            bool: True if the input is a valid IP address, False otherwise.
+            StatusResult: True if the input is a valid IP address, False otherwise.
         """
         try:
             ip = ipaddress.ip_address(ip_address)
@@ -183,7 +183,7 @@ class InetServiceLayer(MacServiceLayer):
         cmd = ["ip", "-6", "route", "add", "default", "via", inet6_address, "dev", interface]
         return self.run(cmd)
 
-    def is_valid_network_interface(self, interface: InterfaceName) -> bool:
+    def is_valid_network_interface(self, interface: InterfaceName) -> PredicateResult:
         """
         Check if a string is a valid network interface name.
 
@@ -191,7 +191,7 @@ class InetServiceLayer(MacServiceLayer):
             interface (str): The network interface name.
 
         Returns:
-            bool: True if the input is a valid network interface name, False otherwise.
+            StatusResult: True if the input is a valid network interface name, False otherwise.
         """
         # Add your network interface validation logic here
         return True  # Replace with actual validation logic
@@ -227,7 +227,7 @@ class InetServiceLayer(MacServiceLayer):
 
         return addresses
     
-    def set_inet_address_loopback(self, loopback_name: InterfaceName, inet_address_cidr: InetCidrText) -> bool:
+    def set_inet_address_loopback(self, loopback_name: InterfaceName, inet_address_cidr: InetCidrText) -> StatusResult:
         """
         Set an internet address (IPv4 or IPv6) on a loopback interface. 
         Appending to the local loopback (lo) interface 
@@ -237,7 +237,7 @@ class InetServiceLayer(MacServiceLayer):
             inet_address_cidr (str): The CIDR notation of the IP address to assign.
 
         Returns:
-            bool: STATUS_OK if the address was successfully set, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the address was successfully set, STATUS_NOK otherwise.
         """
         self.log.debug(f"set_inet_address_loopback() - Loopback: {loopback_name} -> inet: {inet_address_cidr}")
 
@@ -269,7 +269,7 @@ class InetServiceLayer(MacServiceLayer):
 
         return STATUS_OK
 
-    def del_inet_address_loopback(self, loopback_name: InterfaceName, inet_address_cidr: InetCidrText) -> bool:
+    def del_inet_address_loopback(self, loopback_name: InterfaceName, inet_address_cidr: InetCidrText) -> StatusResult:
         """
         Delete an internet address (IPv4 or IPv6) from a loopback interface.
 
@@ -278,7 +278,7 @@ class InetServiceLayer(MacServiceLayer):
             inet_address_cidr (str): The CIDR notation of the IP address to remove.
 
         Returns:
-            bool: STATUS_OK if the address was successfully removed, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the address was successfully removed, STATUS_NOK otherwise.
         """
         self.log.debug(f"del_inet_address_loopback() - Loopback: {loopback_name} -> inet: {inet_address_cidr}")
 
@@ -310,7 +310,7 @@ class InetServiceLayer(MacServiceLayer):
 
         return STATUS_OK
     
-    def update_inet_address_loopback(self, loopback_name: InterfaceName, old_inet_address_cidr: InetCidrText, new_inet_address_cidr: InetCidrText) -> bool:
+    def update_inet_address_loopback(self, loopback_name: InterfaceName, old_inet_address_cidr: InetCidrText, new_inet_address_cidr: InetCidrText) -> StatusResult:
         """
         # TODO Need to test, not sure if this works
         
@@ -322,7 +322,7 @@ class InetServiceLayer(MacServiceLayer):
             new_inet_address_cidr (str): The CIDR notation of the new IP address to assign.
 
         Returns:
-            bool: STATUS_OK if the address was successfully updated, STATUS_NOK otherwise.
+            StatusResult: STATUS_OK if the address was successfully updated, STATUS_NOK otherwise.
         """
         self.log.debug(f"update_inet_address_loopback() - Loopback: {loopback_name} -> "
                     f"Old Inet: {old_inet_address_cidr}, New Inet: {new_inet_address_cidr}")
@@ -371,7 +371,7 @@ class InetServiceLayer(MacServiceLayer):
         return STATUS_OK
 
         
-    def set_inet_address(self, interface_name: InterfaceName, inet_address_cidr: InetCidrText, secondary: bool = False) -> bool:
+    def set_inet_address(self, interface_name: InterfaceName, inet_address_cidr: InetCidrText, secondary: bool = False) -> StatusResult:
         """
         Set an IP address on an interface via OS.
 
@@ -381,7 +381,7 @@ class InetServiceLayer(MacServiceLayer):
             secondary (bool, optional): Set as a secondary address. Defaults to False.
 
         Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
+            StatusResult: STATUS_OK for success, STATUS_NOK for failure.
         """
         self.log.debug(f"set_inet_address() - Interface: {interface_name} -> inet: {inet_address_cidr} -> secondary: {secondary}")
 
@@ -418,7 +418,7 @@ class InetServiceLayer(MacServiceLayer):
         
         return STATUS_OK 
 
-    def del_inet_address(self, interface: InterfaceName, ip_address: InetAddressText) -> bool:
+    def del_inet_address(self, interface: InterfaceName, ip_address: InetAddressText) -> StatusResult:
         """
         Remove an IP address from a network interface.
 
@@ -427,7 +427,7 @@ class InetServiceLayer(MacServiceLayer):
             ip_address (str): The IP address to remove.
 
         Returns:
-            bool: STATUS_OK for success, STATUS_NOK for failure.
+            StatusResult: STATUS_OK for success, STATUS_NOK for failure.
         """
         if not self.is_valid_network_interface(interface):
             self.log.debug(f"Invalid network interface: {interface}")
@@ -448,7 +448,7 @@ class InetServiceLayer(MacServiceLayer):
         self.log.debug(f"Removed IP address {ip_address} from interface {interface}")
         return STATUS_OK
 
-    def is_ip_in_range(self, ip_and_subnet: InetCidrText, ip_address_start: InetAddressText, ip_address_end: InetAddressText, subnet_of_ip_start_ip_end: InetCidrText) -> bool:
+    def is_ip_in_range(self, ip_and_subnet: InetCidrText, ip_address_start: InetAddressText, ip_address_end: InetAddressText, subnet_of_ip_start_ip_end: InetCidrText) -> PredicateResult:
         """
         Check if an IP address is within a specified range considering a given subnet.
 
@@ -459,7 +459,7 @@ class InetServiceLayer(MacServiceLayer):
             subnet_of_ip_start_ip_end (str): The subnet for the start and end IP addresses.
 
         Returns:
-            bool: True if the IP address is in the specified range, False otherwise.
+            StatusResult: True if the IP address is in the specified range, False otherwise.
         """
         try:
             ip_and_subnet = ipaddress.ip_network(ip_and_subnet, strict=False)
@@ -469,7 +469,7 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return False
 
-    def is_ip_range_within_subnet(self, subnet_cidr: InetCidrText, ip_range_start: InetAddressText, ip_range_end: InetAddressText, ip_range_subnet: InetCidrText) -> bool:
+    def is_ip_range_within_subnet(self, subnet_cidr: InetCidrText, ip_range_start: InetAddressText, ip_range_end: InetAddressText, ip_range_subnet: InetCidrText) -> PredicateResult:
         """
         Check if an IP range is within a given subnet.
 
@@ -480,7 +480,7 @@ class InetServiceLayer(MacServiceLayer):
             ip_range_subnet (str): The subnet mask for the IP range.
 
         Returns:
-            bool: True if the IP range is within the subnet, False otherwise.
+            StatusResult: True if the IP range is within the subnet, False otherwise.
         """
         
         try:
@@ -523,7 +523,7 @@ class InetServiceLayer(MacServiceLayer):
         except (ipaddress.AddressValueError, ValueError):
             return None
 
-    def is_valid_inet_subnet(self, inet_subnet_cidr: InetCidrText) -> bool:
+    def is_valid_inet_subnet(self, inet_subnet_cidr: InetCidrText) -> PredicateResult:
         """
         Check if the given string is a valid IPv4 or IPv6 subnet in CIDR notation.
 
@@ -531,7 +531,7 @@ class InetServiceLayer(MacServiceLayer):
             inet_subnet_cidr (str): The CIDR notation to check for validity.
 
         Returns:
-            bool: True if the CIDR notation is a valid IPv4 or IPv6 subnet, False otherwise.
+            StatusResult: True if the CIDR notation is a valid IPv4 or IPv6 subnet, False otherwise.
 
         Note:
         This function uses the `ipaddress` module to verify the validity of the CIDR notation.
@@ -593,7 +593,7 @@ class InetServiceLayer(MacServiceLayer):
             return False, str(e)
 
     @staticmethod
-    def validate_inet_ranges(subnet_cidr: InetCidrText, pool_start: InetAddressText, pool_end: InetAddressText) -> bool:
+    def validate_inet_ranges(subnet_cidr: InetCidrText, pool_start: InetAddressText, pool_end: InetAddressText) -> PredicateResult:
         """
         Validate if the specified IP address range in the DHCP pool falls within both the subnet and the pool subnet.
 
@@ -607,7 +607,7 @@ class InetServiceLayer(MacServiceLayer):
             pool_end (str): The ending IP address of the DHCP pool.
 
         Returns:
-            bool: True if the DHCP pool range is valid within both the subnet and the pool subnet, False otherwise.
+            StatusResult: True if the DHCP pool range is valid within both the subnet and the pool subnet, False otherwise.
         """
         try:
             subnet = ipaddress.ip_network(subnet_cidr)
@@ -624,7 +624,7 @@ class InetServiceLayer(MacServiceLayer):
             return False
 
     @staticmethod
-    def validate_inet_range(subnet_cidr: InetCidrText, inet: InetAddressText) -> bool:
+    def validate_inet_range(subnet_cidr: InetCidrText, inet: InetAddressText) -> PredicateResult:
         """
         Validate if the specified IP address falls within the given subnet.
 
@@ -636,7 +636,7 @@ class InetServiceLayer(MacServiceLayer):
             inet (str): The IP address to be validated.
 
         Returns:
-            bool: True if the provided IP address is within the specified subnet, False otherwise.
+            StatusResult: True if the provided IP address is within the specified subnet, False otherwise.
         """
         try:
             subnet = ipaddress.ip_network(subnet_cidr)

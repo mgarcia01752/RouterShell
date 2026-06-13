@@ -4,6 +4,7 @@ import logging
 from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.types import StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 
@@ -19,7 +20,7 @@ class BridgeShow(RunCommand):
     def bridge(self, arg=None):
         Bridge().get_bridge()
 
-    def show_bridge_group_interface_table(self) -> bool:
+    def show_bridge_group_interface_table(self) -> StatusResult:
         
         json_data = self.run(['ip', '-json', 'addr'])
         

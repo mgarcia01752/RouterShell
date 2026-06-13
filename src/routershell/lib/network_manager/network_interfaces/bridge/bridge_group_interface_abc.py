@@ -1,7 +1,7 @@
 import logging
 from abc import ABC
 
-from routershell.lib.common.types import BridgeName, InterfaceName
+from routershell.lib.common.types import BridgeName, InterfaceName, StatusResult
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 
 
@@ -22,7 +22,7 @@ class BridgeGroup(ABC):
         self._interface_name = interface_name
         self.log = logging.getLogger(self.__class__.__name__)
     
-    def set_bridge_group(self, bridge_group: BridgeName) -> bool:
+    def set_bridge_group(self, bridge_group: BridgeName) -> StatusResult:
         """
         Adds the network interface to the specified bridge group.
 
@@ -30,12 +30,12 @@ class BridgeGroup(ABC):
             bridge_group (str): The name of the bridge group to add the interface to.
 
         Returns:
-            bool: STATUS_OK if the interface was successfully added to the bridge group,
+            StatusResult: STATUS_OK if the interface was successfully added to the bridge group,
                   STATUS_NOK otherwise.
         """
         return Bridge().add_interface_to_bridge_group(self._interface_name, bridge_group)
     
-    def del_bridge_group(self, bridge_group: BridgeName) -> bool:
+    def del_bridge_group(self, bridge_group: BridgeName) -> StatusResult:
         """
         Removes the network interface from the specified bridge group.
 
@@ -43,7 +43,7 @@ class BridgeGroup(ABC):
             bridge_group (str): The name of the bridge group to remove the interface from.
 
         Returns:
-            bool: STATUS_OK if the interface was successfully removed from the bridge group,
+            StatusResult: STATUS_OK if the interface was successfully removed from the bridge group,
                   STATUS_NOK otherwise.
         """
         return Bridge().del_interface_to_bridge_group(self._interface_name, bridge_group)

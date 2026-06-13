@@ -7,7 +7,7 @@ import logging.config
 import os
 from pathlib import Path
 
-from routershell.lib.common.types import FilePath, LoggerName, LogLevelName
+from routershell.lib.common.types import FilePath, LoggerName, LogLevelName, PredicateResult, StatusResult
 
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_LOG_FILE = Path("/tmp/log/routershell.log")
@@ -112,7 +112,7 @@ class RouterShellLogging:
         return _LEVELS.get(level.strip().upper(), _LEVELS[DEFAULT_LOG_LEVEL])
 
     @staticmethod
-    def _resolve_bool(value: str | None, default: bool) -> bool:
+    def _resolve_bool(value: str | None, default: bool) -> StatusResult:
         if value is None:
             return default
 
@@ -124,7 +124,7 @@ class RouterShellLogging:
         return default
 
     @staticmethod
-    def _can_write_log_file(log_file: Path) -> bool:
+    def _can_write_log_file(log_file: Path) -> PredicateResult:
         try:
             log_file.parent.mkdir(parents=True, exist_ok=True)
             with log_file.open("a", encoding="utf-8"):

@@ -5,6 +5,7 @@ from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.config.config_mode import ConfigMode
 from routershell.lib.common.constants import STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import StatusResult
 
 
 class Configure(CmdPrompt):
@@ -28,7 +29,7 @@ class Configure(CmdPrompt):
         pass
     
     @CmdPrompt.register_sub_commands()
-    def configure_terminal(self, args: list) -> bool:
+    def configure_terminal(self, args: list) -> StatusResult:
         self.log.debug('Entering into configure mode')
         ConfigMode().start()
         return STATUS_OK
