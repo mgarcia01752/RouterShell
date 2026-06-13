@@ -83,4 +83,66 @@ If you have any questions or need further assistance, please feel free to reach 
 ./start.sh
 ```
 
+## Python Development Install
+
+RouterShell now includes Python packaging metadata in `pyproject.toml`.
+For local development, use an isolated virtual environment and install the
+project in editable mode:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+After installation, run the CLI entry point:
+
+```bash
+routershell
+```
+
+Factory reset is also exposed as a console entry point:
+
+```bash
+routershell-factory-reset
+```
+
+Build distribution artifacts with:
+
+```bash
+python -m build
+```
+
+Run validation with:
+
+```bash
+python -m pytest
+python -m ruff check .
+```
+
+## Git Helpers
+
+Git helper scripts live under `tools/git/`:
+
+```bash
+./tools/git/git-save.sh --commit-msg "Update RouterShell"
+./tools/git/git-push.sh --commit-msg "Update RouterShell"
+```
+
+See [RouterShell Git Helpers](tools/git/README.md) for save, push, and guarded branch
+history reset workflows.
+
+## Release Helpers
+
+Release helper scripts live under `tools/release/`:
+
+```bash
+./tools/release/check_version.py
+./tools/release/release.py --next patch --dry-run
+```
+
+See [RouterShell Release Helpers](tools/release/README.md) for version checks,
+dry runs, releases, and commit reports.
+
 ## [TODO](todo.md)
