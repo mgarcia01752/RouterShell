@@ -1,7 +1,8 @@
-from abc import ABC
 import logging
+from abc import ABC
 
 from routershell.lib.network_manager.network_operations.bridge import Bridge
+
 
 class BridgeGroup(ABC):
     """

@@ -7,6 +7,8 @@ import logging.config
 import os
 from pathlib import Path
 
+from routershell.lib.common.types import FilePath, LogLevelName
+
 DEFAULT_LOG_LEVEL = "INFO"
 DEFAULT_LOG_FILE = Path("/tmp/log/routershell.log")
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024
@@ -35,8 +37,8 @@ class RouterShellLogging:
 
     @staticmethod
     def configure(
-        level: str = DEFAULT_LOG_LEVEL,
-        log_file: str | Path = DEFAULT_LOG_FILE,
+        level: LogLevelName = DEFAULT_LOG_LEVEL,
+        log_file: FilePath = DEFAULT_LOG_FILE,
         console: bool = True,
         file_logging: bool = True,
     ) -> None:
@@ -53,8 +55,8 @@ class RouterShellLogging:
         resolved_console = RouterShellLogging._resolve_bool(os.getenv(LOG_CONSOLE_ENV), console)
         resolved_file_logging = RouterShellLogging._resolve_bool(os.getenv(LOG_FILE_ENABLED_ENV), file_logging)
 
-        handlers = {}
-        root_handlers = []
+        handlers: dict[str, dict[str, object]] = {}
+        root_handlers: list[str] = []
 
         if resolved_console:
             handlers["console"] = {
@@ -106,7 +108,7 @@ class RouterShellLogging:
         return logging.getLogger(name)
 
     @staticmethod
-    def _resolve_level(level: str) -> int:
+    def _resolve_level(level: LogLevelName) -> int:
         return _LEVELS.get(level.strip().upper(), _LEVELS[DEFAULT_LOG_LEVEL])
 
     @staticmethod
@@ -132,8 +134,8 @@ class RouterShellLogging:
 
 
 def configure_logging(
-    level: str = DEFAULT_LOG_LEVEL,
-    log_file: str | Path = DEFAULT_LOG_FILE,
+    level: LogLevelName = DEFAULT_LOG_LEVEL,
+    log_file: FilePath = DEFAULT_LOG_FILE,
     console: bool = True,
     file_logging: bool = True,
 ) -> None:

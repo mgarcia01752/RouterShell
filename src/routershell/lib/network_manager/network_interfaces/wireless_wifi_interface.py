@@ -1,8 +1,8 @@
 import logging
 
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_interfaces.network_interface import NetworkInterface
+
 
 class WirelessWifiInterfaceError(Exception):
     def __init__(self, message):

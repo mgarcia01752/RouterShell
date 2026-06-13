@@ -1,11 +1,11 @@
 import argparse
 import logging
-from typing import List
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_interfaces.network_interface_factory import NetInterface
+
 
 class TemplateConfig(CmdPrompt):
 
@@ -18,7 +18,7 @@ class TemplateConfig(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().TEMPLATE_CONFIG)
                
-    def templateconfig_help(self, args: List=None) -> None:
+    def templateconfig_help(self, args: list=None) -> None:
         """
         Display help for available commands.
         """
@@ -27,7 +27,7 @@ class TemplateConfig(CmdPrompt):
             print(f"{method.__doc__}")
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['sub-command'])         
-    def templateconfig_cmd(self, args: List=None) -> None:
+    def templateconfig_cmd(self, args: list=None) -> None:
         self.log.debug(f'tconfig_cmd -> {args}')
 
         parser = argparse.ArgumentParser(

@@ -1,10 +1,10 @@
 import logging
+from enum import Enum
 
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.run_commands import RunCommand
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
 
-from enum import Enum, auto
 
 class State(Enum):
     UP = 'up'
@@ -98,7 +98,7 @@ class PhyServiceLayer(RunCommand):
             bool: STATUS_OK if the duplex mode is successfully set, STATUS_NOK otherwise.
         """
         if duplex is Duplex.AUTO:
-            self.log.debug(f"do_duplex() - duplex set to auto")
+            self.log.debug("do_duplex() - duplex set to auto")
             cmd = ['ethtool', '-s', interface_name, 'autoneg' , 'on']
         else:
             cmd = ['ethtool', '-s', interface_name, 'duplex', duplex.value]

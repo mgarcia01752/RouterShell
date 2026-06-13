@@ -1,12 +1,12 @@
 import logging
-from typing import List
 
 from routershell.lib.cli.base.copy_start_run import CopyStartRun
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB
+from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_operations.interface import Interface
-        
+
+
 class SystemStartUp(Interface):
     """
     Class for managing system startup procedures.
@@ -70,7 +70,7 @@ class SystemReset(Interface):
         # Revert Interfaces back to the original interface name
         Interface().set_os_rename_interface(reverse=True)
 
-class SystemFactoryReset():
+class SystemFactoryReset:
     def __init__(self):
         """
         Initializes the SystemFactoryReset class.

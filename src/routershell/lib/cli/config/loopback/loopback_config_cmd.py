@@ -1,10 +1,11 @@
 import logging
-from typing import List
+
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
 from routershell.lib.cli.config.loopback.loopback_config import LoopbackConfig
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
+
 
 class LoopbackConfigCmdError(Exception):
     """Custom exception for LoopbackConfigCmd errors."""
@@ -17,7 +18,7 @@ class LoopbackConfigCmdError(Exception):
    
 class LoopbackConfigCmd(ConfigurePrompt):
 
-    def __init__(self, loopback_name:List[str] = None):
+    def __init__(self, loopback_name:list[str] = None):
         super().__init__(sub_cmd_name=InterfaceType.LOOPBACK.value)
 
         self.log = logging.getLogger(self.__class__.__name__)
@@ -29,7 +30,7 @@ class LoopbackConfigCmd(ConfigurePrompt):
         self.register_top_lvl_cmds(LoopbackConfig(loopback_interface_obj=lio))  
         
     def intro(self) -> str:
-        return f'Starting Loopback Config....'
+        return 'Starting Loopback Config....'
                     
     def help(self):
         pass

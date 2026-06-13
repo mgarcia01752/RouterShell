@@ -1,13 +1,13 @@
-from enum import Enum
 import ipaddress
 import logging
+from enum import Enum
 
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.nat_db import NatDB
 from routershell.lib.network_manager.common.sysctl import SysCtl
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class NATDirection(Enum):
     """
@@ -105,7 +105,7 @@ class Nat(NetworkManager):
         Returns:
             bool: True if NAT pool creation is successful, False otherwise.
         """
-        self.log.debug(f"create_nat_ip_pool()")
+        self.log.debug("create_nat_ip_pool()")
         try:
             if nat_outside_ip_address:
                 outside_nat_arg = f"--to-source {nat_outside_ip_address}"

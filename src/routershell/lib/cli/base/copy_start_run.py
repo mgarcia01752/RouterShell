@@ -3,8 +3,9 @@ import logging
 from routershell.lib.cli.common.router_prompt import PromptFeeder, RouterPrompt
 from routershell.lib.cli.config.config import Configure
 from routershell.lib.common.common import Common
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.constants import STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+
 
 class CopyStartRunError(Exception):
     """

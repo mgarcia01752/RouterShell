@@ -1,10 +1,10 @@
-from enum import Enum
-import re
 import logging
+import re
+from enum import Enum
 
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.phy import PhyServiceLayer
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+
 
 class InterfaceLayerFoundError(Exception):
 

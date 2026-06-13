@@ -1,14 +1,14 @@
 import argparse
-import ipaddress
-import cmd2
 import logging
 
-from routershell.lib.cli.base.global_operation import GlobalUserCommand
+import cmd2
 
-from routershell.lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.network_manager.network_operations.nat import NATDirection, Nat
+from routershell.lib.cli.base.global_operation import GlobalUserCommand
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
+from routershell.lib.common.constants import STATUS_NOK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.network_operations.nat import Nat, NATDirection
+
 
 class InvalidNatConfig(Exception):
     def __init__(self, message):

@@ -2,12 +2,13 @@ import ipaddress
 import json
 import logging
 import subprocess
-from typing import List
+
 from tabulate import tabulate
 
-from routershell.lib.network_manager.common.inet import InetServiceLayer
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.common.inet import InetServiceLayer
+
 
 class InterfaceNotFoundError(Exception):
     """
@@ -80,7 +81,7 @@ class NetworkManager(InetServiceLayer):
 
         return STATUS_OK
 
-    def get_vlan_interfaces(self) -> List[str]:
+    def get_vlan_interfaces(self) -> list[str]:
         return []
     
     def get_interfaces(self, args=None):

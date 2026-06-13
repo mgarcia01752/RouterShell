@@ -1,15 +1,16 @@
 import logging
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_group_interface_abc import BridgeGroup
 from routershell.lib.network_manager.network_interfaces.vlan.vlan_switchport_interface_abc import VlanSwitchport
 from routershell.lib.network_manager.network_operations.arp import Encapsulate
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
 from routershell.lib.network_manager.network_operations.interface import Interface
 from routershell.lib.network_manager.network_operations.nat import NATDirection
+
 
 class EthernetInterfaceError(Exception):
     def __init__(self, message):

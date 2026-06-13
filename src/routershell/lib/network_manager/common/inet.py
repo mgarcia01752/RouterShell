@@ -1,13 +1,13 @@
-from enum import Enum
 import ipaddress
 import json
 import logging
-from typing import List, Optional, Tuple
+from enum import Enum
 
-from routershell.lib.network_manager.common.mac import MacServiceLayer
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.common.mac import MacServiceLayer
 from routershell.lib.network_manager.common.run_commands import RunResult
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+
 
 class InetVersion(Enum):
     IPv4 = 4
@@ -195,7 +195,7 @@ class InetServiceLayer(MacServiceLayer):
         # Add your network interface validation logic here
         return True  # Replace with actual validation logic
 
-    def get_interface_ip_addresses(self, interface_name, ip_version=None) -> List:
+    def get_interface_ip_addresses(self, interface_name, ip_version=None) -> list:
         """
         Get IP addresses of a network interface using iproute2 --json option.
 
@@ -205,7 +205,7 @@ class InetServiceLayer(MacServiceLayer):
                                         'ipv4' for IPv4 only, 'ipv6' for IPv6 only).
 
         Returns:
-            list: List of IP addresses associated with the interface.
+            list: list of IP addresses associated with the interface.
         """
         # Run the ip command with --json option
         output = self.run(['ip', '--json', 'addr', 'show', interface_name])
@@ -570,7 +570,7 @@ class InetServiceLayer(MacServiceLayer):
                 return InetVersion.UNKNOWN
 
     @staticmethod
-    def validate_subnet_format(subnet: str) -> Tuple[bool, Optional[str]]:
+    def validate_subnet_format(subnet: str) -> tuple[bool, str | None]:
         """
         Validate the format of an IPv4 or IPv6 subnet.
 
@@ -578,7 +578,7 @@ class InetServiceLayer(MacServiceLayer):
             subnet (str): The subnet in CIDR notation.
 
         Returns:
-            tuple: (bool, Optional[str]) where the first element is True if valid, otherwise False.
+            tuple: (bool, str | None) where the first element is True if valid, otherwise False.
                 The second element is an error message or None if valid.
 
         Example:
@@ -619,7 +619,7 @@ class InetServiceLayer(MacServiceLayer):
 
             return True
         
-        except ValueError as e:
+        except ValueError:
             return False
 
     @staticmethod
@@ -644,7 +644,7 @@ class InetServiceLayer(MacServiceLayer):
             # Check if the IP address is within the subnet
             return inet_address in subnet
             
-        except ValueError as e:
+        except ValueError:
             # Log or handle the specific error message
             return False
 

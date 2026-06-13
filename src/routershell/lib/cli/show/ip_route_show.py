@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.network_manager.network_operations.route import Route
 
+
 class RouteShow(Route):
     
     def __init__(self, arg=None):

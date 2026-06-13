@@ -1,10 +1,9 @@
 import logging
-from typing import List
 
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_OK
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.network_operations.arp import Arp
 from routershell.lib.network_manager.network_operations.interface import Interface
@@ -27,7 +26,7 @@ class ClearMode(CmdPrompt):
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['arp'], append_nested_sub_cmds=['all'] + Interface().get_os_network_interfaces())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['router-db'])
-    def clearmode_clear(self, args: List):
+    def clearmode_clear(self, args: list):
 
         self.log.debug(f"Entering clear({args})")
 
@@ -39,7 +38,7 @@ class ClearMode(CmdPrompt):
             return Arp().arp_clear(interface)
                 
         if 'router-db' in args[0]:
-            self.log.debug(f"Clear RouterShell DB command")
+            self.log.debug("Clear RouterShell DB command")
                        
             confirmation = input("Are you sure? (yes/no): ").strip().lower()
             if confirmation == 'yes':

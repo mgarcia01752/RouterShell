@@ -1,12 +1,13 @@
 import argparse
-import cmd2
 import logging
 
+import cmd2
+
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.cli.common.router_prompt import RouterPrompt, ExecMode
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.arp import Encapsulate
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
@@ -15,6 +16,7 @@ from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server 
 from routershell.lib.network_manager.network_operations.interface import Interface
 from routershell.lib.network_manager.network_operations.nat import NATDirection
 from routershell.lib.network_manager.network_operations.wireless_wifi import HardwareMode, WifiChannel, WifiInterface
+
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -54,7 +56,7 @@ class InterfaceConfig(cmd2.Cmd,
                         return None
                     
                     else:
-                        self.log.debug(f"Adding Loopback to DB")
+                        self.log.debug("Adding Loopback to DB")
                         self.add_db_interface_entry(if_config_interface_name, InterfaceType.LOOPBACK)
                 
                 else:
@@ -104,7 +106,7 @@ class InterfaceConfig(cmd2.Cmd,
         self.log.debug(f"do_mac() -> Parts: {parts}")
         
         if len(parts) == 1 and parts[0] == "auto":
-            self.log.debug(f"do_mac() -> auto")
+            self.log.debug("do_mac() -> auto")
             self.update_interface_mac(self.ifName)
                             
         elif len(parts) == 2 and parts[0] == "address":
@@ -168,7 +170,7 @@ class InterfaceConfig(cmd2.Cmd,
                 self.log.debug(f"{action_description} IP: {ipv6_address_cidr} on interface: {self.ifName} secondary: {is_secondary}")
                 
         elif args.subcommand == "dhcp-client":
-            self.log.debug(f"Enable DHCPv6 Client")
+            self.log.debug("Enable DHCPv6 Client")
             state = State.UP if negate else State.DOWN
             if DHCPInterfaceClient().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V6, state):
                 self.log.fatal(f"Unable to set DHCPv6 client on interface: {self.ifName}")      
@@ -340,7 +342,7 @@ class InterfaceConfig(cmd2.Cmd,
         elif args.subcommand == "dhcp-server":
             pool_name = args.pool_name
             '''[no] [ip dhcp-server] pool <dhcp-pool-name>'''
-            self.log.debug(f"Enable DHCPv4/6 Server")
+            self.log.debug("Enable DHCPv4/6 Server")
             DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
 
     def complete_speed(self, text, line, begidx, endidx):
@@ -500,7 +502,7 @@ class InterfaceConfig(cmd2.Cmd,
         """
         self.log.debug(f"switchport() -> {args}")
 
-        parser = argparse.ArgumentParser(description=f"Configure switchport.")
+        parser = argparse.ArgumentParser(description="Configure switchport.")
         subparsers = parser.add_subparsers(dest="subcommand")
 
         # Subparser for 'set-access-vlan' subcommand

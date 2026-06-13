@@ -1,9 +1,10 @@
 import logging
-from typing import List
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import Result
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+
 
 class NatDB:
 
@@ -14,7 +15,7 @@ class NatDB:
         cls.log.setLevel(RSLS().NAT_DB)
         
         if not cls.rsdb:
-            cls.log.debug(f"Connecting RouterShell Database")
+            cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()  
 
     def pool_name_exists(cls, pool_name: str) -> bool:
@@ -127,7 +128,7 @@ class NatDB:
         cls.log.debug(f"is_interface_direction_in_nat_pool({interface_name} -> {nat_pool_name} -> {direction})")
         return cls.rsdb.select_nat_interface_direction(interface_name, nat_pool_name, direction)
 
-    def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: str, direction: str) -> List[Result]:
+    def get_interface_direction_in_nat_pool_list(cls, nat_pool_name: str, direction: str) -> list[Result]:
         """
         Get list of interfaces is associated with the given NAT pool and direction.
 
@@ -135,7 +136,7 @@ class NatDB:
             nat_pool_name (str): The name of the NAT pool to check.
             direction (str): The direction to check (inside or outside).
 
-        Returns List:
+        Returns list:
             Result: A Result object with the following fields:
             - status (bool): True if the interface is found in the specified NAT pool and direction, False otherwise.
             - row_id (int): The row ID of the found entry, or 0 if not found.

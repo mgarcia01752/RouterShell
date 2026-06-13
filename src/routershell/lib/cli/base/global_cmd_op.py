@@ -1,15 +1,14 @@
 import logging
-import subprocess
 import os
-from typing import List
+import subprocess
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
-from routershell.lib.common.common import STATUS_NOK, STATUS_OK, Common
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
+from routershell.lib.common.common import STATUS_OK, Common
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.interface import Interface
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
-from routershell.lib.system.system_call import SystemCall
+
 
 class Global(CmdPrompt, NetworkManager):
     """

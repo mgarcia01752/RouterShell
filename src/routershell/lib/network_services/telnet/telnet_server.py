@@ -1,10 +1,11 @@
 import logging
-from typing import Optional
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_services.common.network_ports import NetworkPorts
-from routershell.lib.system.init_system import InitSystemChecker, InitSystem
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.system.init_system import InitSystem, InitSystemChecker
+
 
 class TelnetService(RunCommand):
     """
@@ -12,18 +13,18 @@ class TelnetService(RunCommand):
 
     Attributes:
         port (int): The port number on which the Telnet service listens.
-        telnet_config_file (Optional[str]): Path to the Telnet configuration file for SysV init.
+        telnet_config_file (str | None): Path to the Telnet configuration file for SysV init.
         init_system (InitSystem): The init system in use (SysV or Systemd).
     """
     
-    _instance: Optional['TelnetService'] = None
+    _instance: 'TelnetService | None' = None
     init_system: InitSystem
     port: int
-    telnet_config_file: Optional[str] = None
+    telnet_config_file: str | None = None
 
     def __new__(cls, *args, **kwargs) -> 'TelnetService':
         if cls._instance is None:
-            cls._instance = super(TelnetService, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls, *args, **kwargs)
             cls._instance._initialize()
         return cls._instance
 
@@ -86,7 +87,7 @@ class TelnetService(RunCommand):
         """
         if self.telnet_config_file:
             try:
-                with open(self.telnet_config_file, 'r') as file:
+                with open(self.telnet_config_file) as file:
                     lines = file.readlines()
                 
                 with open(self.telnet_config_file, 'w') as file:
@@ -99,7 +100,7 @@ class TelnetService(RunCommand):
                             
                 return self.restart_service()
             
-            except IOError as e:
+            except OSError as e:
                 self.log.error(f"An error occurred while updating the config file: {e}")
                 return STATUS_NOK
             

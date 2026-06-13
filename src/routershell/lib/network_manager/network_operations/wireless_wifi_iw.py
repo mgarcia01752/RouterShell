@@ -1,9 +1,11 @@
-from enum import Enum
 import logging
+from enum import Enum
+
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
 from routershell.lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class WPAVersion(Enum):
     WPA1 = 1
@@ -33,7 +35,7 @@ class AuthAlgorithms(Enum):
     OSA = 'OSA'
     SKA = 'SKA'
 
-class WifiPolicy():
+class WifiPolicy:
     """
     Represents a Wi-Fi policy for network management.
 

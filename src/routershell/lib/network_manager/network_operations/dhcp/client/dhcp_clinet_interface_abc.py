@@ -1,12 +1,13 @@
 
-from abc import ABC
 import logging
+from abc import ABC
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPClient
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+
 
 class DHCPInterfaceClient(ABC):
     def __init__(self, interface_name:str):

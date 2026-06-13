@@ -1,13 +1,13 @@
 import logging
-from typing import List
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import Result
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.common.interface import InterfaceType
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
 
 
-class VlanDatabase():
+class VlanDatabase:
     
     rsdb = DB()
     
@@ -177,7 +177,7 @@ class VlanDatabase():
             self.log.debug(f"Unable to retrieve VLAN ID for VLAN name: {vlan_name}")
             return Vlan.INVALID_VLAN_ID
 
-    def get_interfaces_from_vlan_id(self, vlan_id: int) -> List[str]:
+    def get_interfaces_from_vlan_id(self, vlan_id: int) -> list[str]:
         """
         Retrieves a list of interfaces associated with a given VLAN ID.
         """

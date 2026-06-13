@@ -1,19 +1,19 @@
 import hashlib
 import re
-from typing import Any, Dict, List, Optional
 
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+
 
 class StringFormats:
     
     @staticmethod
-    def modify_dict_value(dictionary: Dict[str, Optional[str]], key: str, search: str, replace: str) -> bool:
+    def modify_dict_value(dictionary: dict[str, str | None], key: str, search: str, replace: str) -> bool:
         """
         Modify the value associated with the given key in the dictionary.
         Strip leading and trailing whitespaces and replace a specified substring.
 
         Parameters:
-            dictionary (Dict[str, Optional[str]]): The dictionary to modify.
+            dictionary (dict[str, str | None]): The dictionary to modify.
             key (str): The key whose value needs to be modified.
             search (str): The substring to search for in the value.
             replace (str): The substring to replace 'search' with in the value.
@@ -38,12 +38,12 @@ class StringFormats:
         return STATUS_NOK  # Return False to indicate failure
 
     @staticmethod
-    def generate_hash_from_list(data: List[str]) -> str:
+    def generate_hash_from_list(data: list[str]) -> str:
         """
         Generate a hash value from a list of strings.
 
         Args:
-            data (List[str]): The list of strings to be hashed.
+            data (list[str]): The list of strings to be hashed.
 
         Returns:
             str: The hexadecimal representation of the generated hash value.
@@ -73,12 +73,12 @@ class StringFormats:
         return re.sub(r'\s+', ' ', text)
     
     @staticmethod
-    def list_to_string(input_list: List[Any]) -> str:
+    def list_to_string(input_list: list[object]) -> str:
         """
         Ensures that the input list is flattened and converts it to a single string.
         
         Args:
-            input_list (List[Any]): The list to be flattened and converted.
+            input_list (list[object]): The list to be flattened and converted.
         
         Returns:
             str: A string representation of the flattened list elements.
@@ -93,15 +93,15 @@ class StringFormats:
         return ' '.join(map(str, flattened_list))
 
     @staticmethod
-    def flatten(lst: List[Any]) -> List[Any]:
+    def flatten(lst: list[object]) -> list[object]:
         """
         Recursively flattens a nested list.
         
         Args:
-            lst (List[Any]): The list to be flattened.
+            lst (list[object]): The list to be flattened.
         
         Returns:
-            List[Any]: A flattened version of the input list.
+            list[object]: A flattened version of the input list.
         """
         flat_list = []
         for item in lst:

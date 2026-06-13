@@ -1,11 +1,9 @@
 import logging
 import os
 
-from typing import Dict, List
-
-from routershell.lib.common.constants import DNSMASQ_LEASE_FILE_PATH
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import DNSMASQ_LEASE_FILE_PATH
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.dhcp_server_db import DHCPServerDatabase as DSD
 from routershell.lib.network_manager.common.inet import InetServiceLayer, InetVersion
 from routershell.lib.network_manager.common.mac import MacServiceLayer
@@ -43,7 +41,7 @@ class DHCPServer(NetworkManager):
         """
         return DSD().dhcp_pool_name_exists_db(dhcp_pool_name)
 
-    def get_dhcp_pool_name_list(self) -> List[str]:
+    def get_dhcp_pool_name_list(self) -> list[str]:
         """
         Retrieve a list of DHCP pool names from the DSD class.
 
@@ -51,7 +49,7 @@ class DHCPServer(NetworkManager):
         of the DSD class to get the list of DHCP pool names.
 
         Returns:
-            List[str]: A list of DHCP pool names.
+            list[str]: A list of DHCP pool names.
         """
         return DSD().dhcp_pool_name_list()
     
@@ -238,15 +236,15 @@ class DHCPServer(NetworkManager):
             return STATUS_OK
         
         if DMIS.build_interface_configuration():
-            self.log.error(f"Unable to build DNSMasq Configuration")
+            self.log.error("Unable to build DNSMasq Configuration")
             return STATUS_NOK
         
         if DMIS.deploy_configuration(DNSMasqDeploy.INTERFACE):
-            self.log.error(f"Unable to set DNSMasq interface configuration")
+            self.log.error("Unable to set DNSMasq interface configuration")
             return STATUS_NOK
         
         if DMIS.control_service(SysServCntrlAction.RESTART):
-            self.log.error(f"Unable to restart DNSMasq")
+            self.log.error("Unable to restart DNSMasq")
             return STATUS_NOK    
         
         return STATUS_OK
@@ -277,7 +275,7 @@ class DHCPServer(NetworkManager):
 
         return DSD().update_dhcp_pool_mode_db(dhcp_pool_name, mode)
 
-class DhcpPoolFactory():
+class DhcpPoolFactory:
 
     def __init__(self, dhcp_pool_name: str):
         """
@@ -345,7 +343,7 @@ class DhcpPoolFactory():
             return STATUS_NOK
 
         if not self.status():
-            self.log.error(f"Unable to add DHCP Pool subnet - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP Pool subnet - ERROR: DhcpPoolFactory()")
             return STATUS_NOK        
 
         self.dhcp_pool_inet_subnet_cidr = inet_subnet_cidr
@@ -369,7 +367,7 @@ class DhcpPoolFactory():
             bool: STATUS_OK if the range was added successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to add DHCP pool - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP pool - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         if not InetServiceLayer.validate_inet_ranges(self.dhcp_pool_inet_subnet_cidr, inet_start, inet_end):
@@ -394,7 +392,7 @@ class DhcpPoolFactory():
             bool: STATUS_OK if the reservation was added successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP reservation - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         if not MacServiceLayer().is_valid_mac_address(hw_address) and not MacServiceLayer().is_valid_duid_ll(hw_address):
@@ -421,7 +419,7 @@ class DhcpPoolFactory():
             bool: STATUS_OK if the option was added successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to add DHCP options - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to add DHCP options - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         return self.dhcp_srv_obj.add_dhcp_pool_option(self.dhcp_pool_name,
@@ -461,11 +459,11 @@ class DhcpPoolFactory():
             bool: STATUS_OK if the DHCP mode was updated successfully, STATUS_NOK otherwise.
         """
         if not self.status():
-            self.log.error(f"Unable to update DHCP Mode - ERROR: DhcpPoolFactory()")
+            self.log.error("Unable to update DHCP Mode - ERROR: DhcpPoolFactory()")
             return STATUS_NOK
 
         if self.get_subnet_inet_version() == DHCPVersion.DHCP_V4:
-            self.log.debug(f'DHCP Mode is reserved for DHCPv6 subnet')
+            self.log.debug('DHCP Mode is reserved for DHCPv6 subnet')
             return STATUS_NOK
         
         return self.dhcp_srv_obj.update_dhcp_pool_mode(self.dhcp_pool_name, mode)
@@ -493,12 +491,12 @@ class DhcpServerManager(RunCommand):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().DHCP_SERVER_MANAGER)
 
-    def get_leases(self) -> List[Dict[str, str]]:
+    def get_leases(self) -> list[dict[str, str]]:
         """
         Retrieve a list of DHCP leases from the dnsmasq leases file.
 
         Returns:
-            List[Dict[str, str]]: A list of dictionaries containing lease information.
+            list[dict[str, str]]: A list of dictionaries containing lease information.
                 Each dictionary has the following keys:
                 - 'ip_address': The leased IP address.
                 - 'mac_address': The MAC address of the device.
@@ -509,7 +507,7 @@ class DhcpServerManager(RunCommand):
             leases_path = DNSMASQ_LEASE_FILE_PATH
 
             if os.path.exists(leases_path):
-                with open(leases_path, 'r') as leases_file:
+                with open(leases_path) as leases_file:
                     leases_raw = leases_file.readlines()
 
                 leases = []
@@ -580,12 +578,12 @@ class DhcpServerManager(RunCommand):
         self.log.debug(f"dnsmasq syntax test passed: {result.stdout}")
         return STATUS_OK
 
-    def lease_log(self) -> List[str]:
+    def lease_log(self) -> list[str]:
         """
         Get the DHCP-related log entries from the system journal.
 
         Returns:
-            List[str]: A list of DHCP-related log entries.
+            list[str]: A list of DHCP-related log entries.
         """
         result = self.run(['journalctl | grep dnsmasq-dhcp'], shell=True, sudo=False)
         
@@ -595,12 +593,12 @@ class DhcpServerManager(RunCommand):
         log_entries = result.stdout.split('\n')
         return log_entries
 
-    def server_log(self) -> List[str]:
+    def server_log(self) -> list[str]:
         """
         Get the DHCP-related log entries from the system journal.
 
         Returns:
-            List[str]: A list of DHCP-related log entries.
+            list[str]: A list of DHCP-related log entries.
         """
         command = 'journalctl | grep dnsmasq\\['
 

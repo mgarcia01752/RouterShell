@@ -2,11 +2,12 @@ import logging
 import random
 import re
 
-from typing import Tuple
-from tabulate import tabulate 
-from routershell.lib.network_manager.common.interface import InterfaceLayer
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from tabulate import tabulate
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.common.interface import InterfaceLayer
+
 
 class MacServiceLayerFoundError(Exception):
     """
@@ -99,7 +100,7 @@ class MacServiceLayer(InterfaceLayer):
 
         return False
 
-    def format_mac_address(self, mac_address: str) -> Tuple[bool, str]:
+    def format_mac_address(self, mac_address: str) -> tuple[bool, str]:
         """
         Normalize and format a MAC address into the standard format (xx:xx:xx:xx:xx:xx).
 
@@ -183,7 +184,7 @@ class MacServiceLayer(InterfaceLayer):
     def get_arp(self, args=None):
         try:
             
-            self.log.debug(f"get_arp()")
+            self.log.debug("get_arp()")
             
             # Run the 'ip neighbor show' command and capture the output
             output = self.run(['ip', 'neighbor', 'show'])

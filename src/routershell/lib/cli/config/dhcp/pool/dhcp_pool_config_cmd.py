@@ -2,7 +2,8 @@ import logging
 
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
 from routershell.lib.cli.config.dhcp.pool.dhcp_pool_config import DhcpPoolConfig
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+
 
 class DhcpPoolConfigCmdError(Exception):
     """Custom exception for TestConfig errors."""
@@ -24,7 +25,7 @@ class DhcpPoolConfigCmd(ConfigurePrompt):
         self.log.setLevel(RSLS().DHCP_POOL_CONFIG_CMD)
     
     def intro(self) -> str:
-        return f'Starting DHCP Pool Config....'
+        return 'Starting DHCP Pool Config....'
                     
     def help(self):
         pass

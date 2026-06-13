@@ -1,10 +1,13 @@
 import ipaddress
 import logging
+import subprocess
 
 from tabulate import tabulate
-from routershell.lib.network_manager.common.sysctl import SysCtl
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.network_manager.common.sysctl import SysCtl
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class Route(NetworkManager):
 

@@ -1,15 +1,15 @@
-from enum import Enum
 import logging
-import os
-from typing import List
+from enum import Enum
 
 import jc
+
+from routershell.lib.common.constants import HOSTAPD_CONF_FILE, STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.wifi_db import WifiDB
 from routershell.lib.network_manager.common.run_commands import RunCommand
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import HOSTAPD_CONF_DIR, HOSTAPD_CONF_FILE, STATUS_OK, STATUS_NOK
 from routershell.lib.network_manager.network_operations.hostapd_mgr import HostapdIEEE802Config, HostapdManager
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class WPAVersion(Enum):
     """
@@ -216,7 +216,7 @@ class WifiChannel(Enum):
         """
         return [channel.value for channel in cls]
 
-class WifiPolicy():
+class WifiPolicy:
     """
     Represents a Wi-Fi policy for network management.
 
@@ -385,7 +385,7 @@ class WifiPolicy():
         self.wifi_policy_status = status
         return STATUS_OK
 
-class WifiInterface():
+class WifiInterface:
     '''
     Interface level wifi settings
     '''
@@ -448,7 +448,7 @@ class WifiInterface():
         Perform a Wi-Fi scan on the specified interface and return the parsed scan results.
 
         Returns:
-            List[Dict[str, Union[str, int, float]]]: Parsed Wi-Fi scan results as a list
+            list[dict[str, str | int | float]]: Parsed Wi-Fi scan results as a list
             of dictionaries, where each dictionary represents information about a Wi-Fi network.
         """
         result = self.cmd.run(['iw', 'dev', self.wifi_interface_name, 'scan'])

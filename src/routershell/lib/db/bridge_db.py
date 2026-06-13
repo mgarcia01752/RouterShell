@@ -1,15 +1,13 @@
 import logging
-from typing import Optional
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 
 
-
-class BridgeDatabase():
+class BridgeDatabase:
     
     rsdb = DB()
     
@@ -18,7 +16,7 @@ class BridgeDatabase():
         cls.log.setLevel(RSLS().BRIDGE_DB)
                 
         if not cls.rsdb:
-            cls.log.debug(f"Connecting RouterShell Database")
+            cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()   
     
     def does_bridge_exists_db(cls, bridge_name: str) -> bool:
@@ -176,21 +174,21 @@ class BridgeDatabase():
         return STATUS_OK if result.status == STATUS_OK else STATUS_NOK
     
     def update_bridge_db(cls, bridge_name: str, 
-                        protocol: Optional[BridgeProtocol] = None, 
-                        stp_status: Optional[STP_STATE] = None,
-                        management_inet: Optional[str] = None,
-                        description: Optional[str] = None,
-                        shutdown_status: Optional[State] = None) -> bool:
+                        protocol: BridgeProtocol | None = None, 
+                        stp_status: STP_STATE | None = None,
+                        management_inet: str | None = None,
+                        description: str | None = None,
+                        shutdown_status: State | None = None) -> bool:
         """
         Update an existing bridge in the Bridges, Interfaces, and InterfaceIpAddress tables.
 
         Args:
             bridge_name (str): The name of the bridge to update.
-            protocol (Optional[BridgeProtocol]): The new protocol for the bridge (if changing).
-            stp_status (Optional[STP_STATE]): The new STP status (if changing).
-            management_inet (Optional[str]): The management IP address for the bridge (if changing).
-            description (Optional[str]): The new description for the bridge interface (if changing).
-            shutdown_status (Optional[bool]): The new shutdown status for the bridge interface (if changing).
+            protocol (BridgeProtocol | None): The new protocol for the bridge (if changing).
+            stp_status (STP_STATE | None): The new STP status (if changing).
+            management_inet (str | None): The management IP address for the bridge (if changing).
+            description (str | None): The new description for the bridge interface (if changing).
+            shutdown_status (bool | None): The new shutdown status for the bridge interface (if changing).
 
         Returns:
             bool: STATUS_OK if the update was successful, STATUS_NOK otherwise.

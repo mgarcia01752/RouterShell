@@ -1,5 +1,5 @@
-from enum import Enum, auto
 import os
+from enum import Enum, auto
 
 STATUS_OK = False
 STATUS_NOK = True

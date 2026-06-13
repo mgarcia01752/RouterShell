@@ -1,18 +1,17 @@
 import ipaddress
 import logging
 import shutil
-
-from enum import Enum
-from typing import List
 from abc import ABC, abstractmethod
+from enum import Enum
 from ipaddress import ip_address
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.inet import InetServiceLayer
 from routershell.lib.network_manager.common.run_commands import RunCommand, RunResult
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
 from routershell.lib.system.os.os import OSChecker, SupportedOS
+
 
 class SupportedDhcpClients(Enum):
     """
@@ -65,7 +64,7 @@ class DHCPClientFactory:
     A factory class to get the supported DHCP client based on the interface name and optional override.
     """
     
-    _DHCPClientOperationsList:List['DHCPClientOperations'] = []
+    _DHCPClientOperationsList:list['DHCPClientOperations'] = []
     
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -81,7 +80,7 @@ class DHCPClientFactory:
         Args:
             interface_name (str): The name of the network interface.
             dhcp_stack_version (DHCPStackVersion): The version of the DHCP stack to use.
-            auto_sdc_override (Optional[SupportedDhcpClients]): Optional override for 
+            auto_sdc_override (SupportedDhcpClients | None): optional override for 
                 selecting the DHCP client. If provided, it determines which DHCP client 
                 will be used regardless of the current OS. If not provided, the selection 
                 is based on the current OS.
@@ -224,7 +223,7 @@ class DHCPClientOperations(ABC, RunCommand):
         self._last_dhcp_client_status = DHCPStatus.STOP
         
         if not self.is_client_available():
-            raise DHCPClientException(f"DHCP client is not available.", self._sdc.value)
+            raise DHCPClientException("DHCP client is not available.", self._sdc.value)
     
     def get_dhcp_stack_version(self) -> DHCPStackVersion:
         """
@@ -358,12 +357,12 @@ class DHCPClientOperations(ABC, RunCommand):
         self._last_dhcp_client_status = DHCPStatus.RESTART
         return STATUS_OK if stop_status == STATUS_OK and start_status == STATUS_OK else STATUS_NOK
 
-    def get_inet(self) -> List[ip_address]:
+    def get_inet(self) -> list[ip_address]:
         """
         Retrieve all IP addresses assigned to the interface, including both IPv4 and IPv6 addresses.
 
         Returns:
-            List[ipaddress.ip_address]: A list of IP addresses assigned to the interface. This list can include both IPv4 and IPv6 addresses.
+            list[ipaddress.ip_address]: A list of IP addresses assigned to the interface. This list can include both IPv4 and IPv6 addresses.
             
         """
         return InetServiceLayer().get_interface_ip_addresses(self.get_interface())
@@ -394,12 +393,12 @@ class DHCPClientOperations(ABC, RunCommand):
         """
         return self._last_dhcp_client_status
 
-    def _execute_command(self, command: List[str]) -> bool:
+    def _execute_command(self, command: list[str]) -> bool:
         """
         Executes a shell command and logs the result.
 
         Args:
-            command (List[str]): The command to be executed as a list of strings.
+            command (list[str]): The command to be executed as a list of strings.
 
         Returns:
             bool: STATUS_OK if the command executed successfully, STATUS_NOK otherwise.

@@ -1,16 +1,15 @@
 import logging
-from typing import List
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.config.bridge.bridge_config_cmd import BridgeConfigCmd
 from routershell.lib.cli.config.dhcp.pool.dhcp_pool_config_cmd import DhcpPoolConfigCmd
-from routershell.lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
 from routershell.lib.cli.config.ethernet.ethernet_config_cmd import EthernetConfigCmd
+from routershell.lib.cli.config.loopback.loopback_config_cmd import LoopbackConfigCmd
 from routershell.lib.cli.config.vlan.vlan_config_cmd import VlanConfigCmd
 from routershell.lib.common.common import Common
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 from routershell.lib.network_manager.network_operations.interface import Interface
@@ -18,6 +17,7 @@ from routershell.lib.network_manager.network_operations.nat import Nat
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 from routershell.lib.network_services.common.network_ports import NetworkPorts
 from routershell.lib.system.system import System
+
 
 class ConfigCmd(CmdPrompt):
 
@@ -27,7 +27,7 @@ class ConfigCmd(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().CONFIGURE_CMD)
                
-    def configcmd_help(self, args: List[str]=None) -> None:
+    def configcmd_help(self, args: list[str]=None) -> None:
         """
         Display help for available commands.
         """
@@ -37,7 +37,7 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Interface().get_os_network_interfaces() + [InterfaceType.LOOPBACK.value])         
-    def configcmd_interface(self, args: List[str]=None) -> bool:
+    def configcmd_interface(self, args: list[str]=None) -> bool:
         self.log.debug(f'configcmd_interface -> {args}')
         
         interface_name = args[0]
@@ -62,13 +62,13 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=Bridge().get_bridge_list_os())         
-    def configcmd_bridge(self, bridge_name: List[str], negate: bool=False) -> bool:
+    def configcmd_bridge(self, bridge_name: list[str], negate: bool=False) -> bool:
         self.log.debug(f'configcmd_bridge -> {bridge_name}')
         BridgeConfigCmd(bridge_name, negate).start()        
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()         
-    def configcmd_vlan(self, vlan_id: List[str], negate: bool=False) -> bool:
+    def configcmd_vlan(self, vlan_id: list[str], negate: bool=False) -> bool:
         self.log.info(f'configcmd_vlan -> {vlan_id}')
                 
         VlanConfigCmd(int(vlan_id[0]), negate).start()        
@@ -76,7 +76,7 @@ class ConfigCmd(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['telnet-server', 'port', '23'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['ssh-server', 'port', '22'])  
-    def configcmd_system(self, args: List=[str], negate: bool=False) -> bool:
+    def configcmd_system(self, args: list=[str], negate: bool=False) -> bool:
         
         self.log.debug(f'configcmd_system() -> {args} -> negate: {negate}')
 
@@ -124,27 +124,27 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands()
-    def configcmd_hostname(self, args: List = None) -> bool:
+    def configcmd_hostname(self, args: list = None) -> bool:
         """
         Configures the hostname of the system.
 
         Sets the hostname both in the operating system and the system database.
 
         Args:
-            args (List, optional): A list containing the new hostname to set.
+            args (list, optional): A list containing the new hostname to set.
 
         Returns:
             bool: STATUS_OK if the hostname is successfully set in both the OS and the database, STATUS_NOK otherwise.
         """
         self.log.debug(f"configcmd_hostname() -> args: {args}")
-        if None == args:
+        if args == None:
             self.log.error('No hostname specified.')
             return STATUS_NOK
         
         return System().update_hostname(args[0])
   
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['if', 'if-alias'])
-    def configcmd_rename(self, args: List) -> bool:
+    def configcmd_rename(self, args: list) -> bool:
 
         if len(args) != 4:
             print('missing arguments') 
@@ -152,7 +152,7 @@ class ConfigCmd(CmdPrompt):
         self.log.debug(f"configcmd_rename() -> args: {args}")
 
         if args[0] == 'if':
-            self.log.debug(f"configcmd_rename() -> if")
+            self.log.debug("configcmd_rename() -> if")
             
             if len(args) == 4:
                 self.log.debug(f"configcmd_rename() -> args-parts: {args}")
@@ -188,7 +188,7 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
-    def configcmd_nat(self, args: List[str], negate: bool=False) -> bool:
+    def configcmd_nat(self, args: list[str], negate: bool=False) -> bool:
 
         if args[0] == 'pool-name':
             if len(args) < 2:
@@ -212,7 +212,7 @@ class ConfigCmd(CmdPrompt):
         return STATUS_OK
 
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['pool-name'])
-    def configcmd_dhcp(self, args:List[str], negate: bool=False) -> bool:
+    def configcmd_dhcp(self, args:list[str], negate: bool=False) -> bool:
         if 'pool-name' in args:
             self.log.debug(f'pool-name: {args[1]}')
             DhcpPoolConfigCmd(args[1], negate).start()
@@ -221,7 +221,7 @@ class ConfigCmd(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge'] , 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['system'], append_nested_sub_cmds=['telnet-server', 'ssh-server'])
-    def configcmd_no(self, args: List) -> bool:
+    def configcmd_no(self, args: list) -> bool:
                 
         if args[0] == 'bridge':
             bridge_name = args[1]

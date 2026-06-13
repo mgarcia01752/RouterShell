@@ -1,10 +1,11 @@
 import logging
-from typing import List
+
 from routershell.lib.cli.config.configure_prompt import ConfigurePrompt
 from routershell.lib.cli.config.interface.interface_config import InterfaceConfig
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_interfaces.network_interface_factory import NetInterfaceFactory
 from routershell.lib.network_manager.network_operations.interface import Interface
+
 
 class InterfaceConfigCmdError(Exception):
     def __init__(self, message: str):
@@ -15,7 +16,7 @@ class InterfaceConfigCmdError(Exception):
         return f'InterfaceConfigCmdError: {self.message}'
    
 class InterfaceConfigCmd(ConfigurePrompt):
-    def __init__(self, interface_name:List[str]):
+    def __init__(self, interface_name:list[str]):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().ETHERNET_CONFIG_CMD)
         interface_name = interface_name[0]
@@ -44,7 +45,7 @@ class InterfaceConfigCmd(ConfigurePrompt):
         self.register_top_lvl_cmds(InterfaceConfig(net_interface=net_if))
 
     def intro(self) -> str:
-        return f'Starting Interface Configuration'
+        return 'Starting Interface Configuration'
                     
     def help(self):
         pass

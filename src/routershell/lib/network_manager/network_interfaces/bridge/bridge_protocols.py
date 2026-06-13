@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+
 class BridgeProtocol(Enum):
     """
     Enumeration for different bridge protocols used in network bridging.

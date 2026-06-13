@@ -1,17 +1,21 @@
-import inspect
-from typing import Any
-import cmd2
 import argparse
 import logging
 
+import cmd2
+
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.cli.common.router_prompt import RouterPrompt, ExecMode
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.network_operations.wireless_wifi import (
+    HardwareMode,
+    Pairwise,
+    WifiChannel,
+    WifiPolicy,
+    WPAkeyManagement,
+    WPAVersion,
+)
 
-from routershell.lib.network_manager.network_operations.wireless_wifi import HardwareMode, Pairwise, WPAVersion, WPAkeyManagement, WifiAccessPoint, WifiChannel, WifiPolicy
-
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 
 class InvalidWirelessWifiConfig(Exception):
     def __init__(self, message):
@@ -98,7 +102,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         ssid_parser.add_argument("passphrase", help="pass-phrase", nargs='?', choices=["pass-phrase"])
         ssid_parser.add_argument("pass_phrase", help="Passphrase (up to 64 characters)")
         ssid_parser.add_argument("wpa_mode", help="wpa-mode", nargs='?', choices=['wpa-mode'])
-        ssid_parser.add_argument("wpa_mode_type", help=f"Security mode (WPA, WP2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
+        ssid_parser.add_argument("wpa_mode_type", help="Security mode (WPA, WP2, WPA3)", nargs='?', choices=['WPA', 'WPA2', 'WPA3'])
 
         try:
             if not isinstance(args, list):
@@ -280,7 +284,7 @@ class WirelessWifiPolicyConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, WifiPo
         else:
             print(f"No command found {line}")
 
-    def do_end(self, _: Any) -> None:
+    def do_end(self, _: object) -> None:
 
         if not self.security_access_group_entry_exist(self.wifi_policy_name):
             self.add_security_access_group_default(self.wifi_policy_name)

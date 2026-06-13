@@ -1,12 +1,12 @@
 import logging
-from typing import Dict, Union
 
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_interfaces.ethernet.ethernet_interface import EthernetInterface
 from routershell.lib.network_manager.network_interfaces.loopback_interface import LoopbackInterface
 from routershell.lib.network_manager.network_interfaces.wireless_wifi_interface import WirelessWifiInterface
-   
+
+
 class NetInterfaceFactoryError(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -28,7 +28,7 @@ class NetInterfaceFactory:
     """
 
     # Singleton {'interface_name': NetworkInterface}
-    _net_interface_lookup_interface_name: Dict[str, Union[LoopbackInterface, EthernetInterface, WirelessWifiInterface]] = {}
+    _net_interface_lookup_interface_name: dict[str, LoopbackInterface | EthernetInterface | WirelessWifiInterface] = {}
 
     def __init__(self, interface_name: str, interface_type: InterfaceType):
         """
@@ -68,17 +68,17 @@ class NetInterfaceFactory:
 
             NetInterfaceFactory._net_interface_lookup_interface_name[self.interface_name] = network_interface_obj
             
-    def getNetInterface(self) -> Union[LoopbackInterface, EthernetInterface, WirelessWifiInterface]:
+    def getNetInterface(self) -> LoopbackInterface | EthernetInterface | WirelessWifiInterface:
         """
         Retrieve the NetworkInterface object associated with the specified interface name.
 
         Returns:
-            Union[LoopbackInterface, EthernetInterface, WirelessWifiInterface]: The NetworkInterface object for the specified interface.
+            LoopbackInterface | EthernetInterface | WirelessWifiInterface: The NetworkInterface object for the specified interface.
         """
         return NetInterfaceFactory._net_interface_lookup_interface_name[self.interface_name]
     
     @staticmethod
-    def getNetInterface(interface_name: str) -> Union[LoopbackInterface, EthernetInterface, WirelessWifiInterface]:
+    def getNetInterface(interface_name: str) -> LoopbackInterface | EthernetInterface | WirelessWifiInterface:
         """
         Retrieve the NetInterface object associated with the specified interface name.
 

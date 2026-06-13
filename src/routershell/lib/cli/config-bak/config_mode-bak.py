@@ -1,19 +1,20 @@
 import argparse
-import cmd2
 import logging
 
+import cmd2
+
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.cli.common.exec_priv_mode import ExecMode, ExecException
+from routershell.lib.cli.common.exec_priv_mode import ExecException, ExecMode
+from routershell.lib.cli.common.router_prompt import RouterPrompt
 from routershell.lib.cli.config.bridge.bridge_config import BridgeConfig
 from routershell.lib.cli.config.interface.interface_config import InterfaceConfig
 from routershell.lib.cli.config.vlan.vlan_config import VlanConfig
-from routershell.lib.common.common import Common
-from routershell.lib.cli.common.router_prompt import RouterPrompt
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 from routershell.lib.network_manager.network_operations.interface import Interface
 from routershell.lib.system.system_call import SystemCall
+
 
 class InvalidConfigureMode(Exception):
     def __init__(self, message):
@@ -117,7 +118,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         if (len(args) < 1) or (len(args) > 2):
             self.log.error(f"Interface -> {args}")
-            raise InvalidConfigureMode(f"Invalid Interface name")
+            raise InvalidConfigureMode("Invalid Interface name")
         
         self.log.debug(f"do_interface() -> Interface: ({args})")
            
@@ -154,7 +155,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         if len(args) != 1:
             self.log.error(f"bridge -> {args[0]}")
-            raise InvalidConfigureMode(f"Invalid Bridge name")
+            raise InvalidConfigureMode("Invalid Bridge name")
         
         self.log.debug(f"do_bridge() -> Bridge: ({args[0]})")    
         BridgeConfig(args[0]).cmdloop()
@@ -217,7 +218,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         
         if len(args) != 1:
             self.log.error(f"vlan -> {args[0]}")
-            raise InvalidConfigureMode(f"Invalid vlan name")
+            raise InvalidConfigureMode("Invalid vlan name")
         
         self.log.debug(f"do_vlan() -> Bridge: ({args[0]})")    
         VlanConfig(args[0]).cmdloop() 
@@ -321,7 +322,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
         self.log.debug(f"do_rename() -> arg-parts: {args_parts}")
 
         if args_parts[0] == 'if':
-            self.log.debug(f"do_rename() -> if")
+            self.log.debug("do_rename() -> if")
             
             if len(args_parts) == 4:
                 self.log.debug(f"do_rename() -> args-parts: {args_parts}")
@@ -405,7 +406,7 @@ class ConfigureMode(cmd2.Cmd, GlobalUserCommand, RouterPrompt):
             self.log.debug(f"do_no(rename) -> {line_parts}")
                        
         elif start_cmd == 'banner':
-            self.log.debug(f"do_no(banner)")
+            self.log.debug("do_no(banner)")
             SystemCall().del_banner()
         
         else:

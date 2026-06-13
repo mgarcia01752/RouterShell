@@ -1,14 +1,13 @@
-from enum import Enum
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from enum import Enum
 
-from tabulate import tabulate 
-from routershell.lib.network_manager.common.inet import InetServiceLayer
-from routershell.lib.network_manager.common.sysctl import SysCtl
+from tabulate import tabulate
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.common.inet import InetServiceLayer
+from routershell.lib.network_manager.common.sysctl import SysCtl
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 
 
@@ -63,9 +62,7 @@ class Arp(NetworkManager):
                     words = line.split()
 
                     if ip_address in words:
-                        if interface and interface in words:
-                            return True
-                        elif not interface:
+                        if interface and interface in words or not interface:
                             return True
                 return False
             else:
@@ -355,7 +352,7 @@ class Arp(NetworkManager):
         self.log.debug(f"set_static_arp(ifName: {interface_name}) -> inet: {inet} -> mac: {mac_address}")
         return STATUS_OK
             
-    def get_arp(self, args: Optional[List[str]] = None) -> None:
+    def get_arp(self, args: list[str] | None = None) -> None:
         """
         Retrieves the ARP table and prints it in a formatted table.
 
@@ -364,7 +361,7 @@ class Arp(NetworkManager):
         'tabulate' library.
 
         Args:
-            args (Optional[List[str]]): Additional arguments to pass to the 'ip' command.
+            args (list[str] | None): Additional arguments to pass to the 'ip' command.
                                         Default is None.
 
         Raises:
@@ -384,7 +381,7 @@ class Arp(NetworkManager):
 
             if output.exit_code == 0:
                 # Parse the JSON output
-                arp_entries: List[Dict[str, Any]] = json.loads(output.stdout)
+                arp_entries: list[dict[str, object]] = json.loads(output.stdout)
 
                 self.log.debug(f"get_arp() JSON Arp Entries: {arp_entries}")
 

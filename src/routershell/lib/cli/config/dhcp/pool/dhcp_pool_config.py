@@ -1,8 +1,7 @@
 import logging
-from typing import List
 
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpPoolFactory
@@ -32,12 +31,12 @@ class DhcpPoolConfig(CmdPrompt):
         
         self._dhcp_pool_fact = DhcpPoolFactory(dhcp_pool_name)
                    
-    def dhcppoolconfig_help(self, args: List = None) -> None:
+    def dhcppoolconfig_help(self, args: list = None) -> None:
         """
         Display help for available commands.
         
         Args:
-            args (List, optional): List of arguments (not used).
+            args (list, optional): list of arguments (not used).
         """
         for method_name in self.class_methods():
             method = getattr(self, method_name)
@@ -66,18 +65,18 @@ class DhcpPoolConfig(CmdPrompt):
         return self._dhcp_pool_fact.add_pool_subnet(inet_subnet_cidr)
 
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_pool(self, args: List[str]) -> bool:
+    def dhcppoolconfig_pool(self, args: list[str]) -> bool:
         """
         Configure the IP range for the DHCP pool.
         
         Args:
-            args (List, optional): List of arguments [start_ip, end_ip, subnet_cidr].
+            args (list, optional): list of arguments [start_ip, end_ip, subnet_cidr].
         
         Returns:
             bool: STATUS_OK if the pool was added successfully, STATUS_NOK otherwise.
         """
         if len(args) != 3:
-            self.log.error(f'pool must have 3 arguments')
+            self.log.error('pool must have 3 arguments')
             return STATUS_NOK
             
         return self._dhcp_pool_fact.add_inet_pool_range(inet_start=args[0],
@@ -85,18 +84,18 @@ class DhcpPoolConfig(CmdPrompt):
                                                         inet_subnet_cidr=args[2])
 
     @CmdPrompt.register_sub_commands()
-    def dhcppoolconfig_option(self, args: List[str]) -> bool:
+    def dhcppoolconfig_option(self, args: list[str]) -> bool:
         """
         Configure DHCP options.
         
         Args:
-            args (List, optional): List of arguments [option_name, value].
+            args (list, optional): list of arguments [option_name, value].
         
         Returns:
             bool: STATUS_OK if the option was added successfully, STATUS_NOK otherwise.
         """
         if len(args) != 2:
-            self.log.error(f'dhcp option must have 2 arguments')
+            self.log.error('dhcp option must have 2 arguments')
             return STATUS_NOK        
         return self._dhcp_pool_fact.add_option(dhcp_option=args[0],
                                                   value=args[1])

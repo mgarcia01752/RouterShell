@@ -1,16 +1,16 @@
 import ipaddress
 import json
 import logging
-from typing import List, Optional
 
-from routershell.lib.db.interface_db import InterfaceDatabase
-from routershell.lib.network_manager.common.interface import InterfaceType 
-from routershell.lib.network_manager.common.phy import Duplex, Speed, State
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.interface_db import InterfaceDatabase
+from routershell.lib.network_manager.common.interface import InterfaceType
+from routershell.lib.network_manager.common.phy import Duplex, Speed, State
 from routershell.lib.network_manager.network_operations.arp import Arp, Encapsulate
-from routershell.lib.network_manager.network_operations.nat import NATDirection, Nat
+from routershell.lib.network_manager.network_operations.nat import Nat, NATDirection
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class InvalidInterface(Exception):
     def __init__(self, message):
@@ -46,18 +46,18 @@ class Interface(NetworkManager, InterfaceDatabase):
             self.run(['sudo', 'ip', 'neigh', 'flush', 'all'], suppress_error=True)
         return STATUS_OK
     
-    def get_os_network_interfaces(self, interface_type: Optional[InterfaceType] = None) -> List[str]:
+    def get_os_network_interfaces(self, interface_type: InterfaceType | None = None) -> list[str]:
         """
         Retrieve network interface names based on their type. If no type is specified, retrieves all interfaces.
 
         Args:
-            interface_type (Optional[InterfaceType]): The type of network interface to retrieve.
+            interface_type (InterfaceType | None): The type of network interface to retrieve.
                 - InterfaceType.LOOPBACK: Retrieve loopback interfaces.
                 - InterfaceType.ETHERNET: Retrieve Ethernet interfaces.
                 - InterfaceType.WIRELESS: Retrieve wireless interfaces.
 
         Returns:
-            List[str]: A list of network interface names of the specified type, or all if no type is specified.
+            list[str]: A list of network interface names of the specified type, or all if no type is specified.
         """
         command = ['lshw', '-class', 'network', '-short']
         output = self.run(command, suppress_error=True)
@@ -211,10 +211,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         elif interface_info.get('capabilities', {}).get('wireless'):
             return InterfaceType.WIRELESS_WIFI
         
-        elif interface_info.get('capabilities', {}).get('tp'):
-            return InterfaceType.ETHERNET
-        
-        elif interface_info.get('configuration', {}).get('duplex'):
+        elif interface_info.get('capabilities', {}).get('tp') or interface_info.get('configuration', {}).get('duplex'):
             return InterfaceType.ETHERNET
         
         return self.get_os_interface_type(interface_name)
@@ -275,7 +272,7 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
         
-    def update_interface_mac(self, interface_name: str, mac: Optional[str] = None) -> bool:
+    def update_interface_mac(self, interface_name: str, mac: str | None = None) -> bool:
         """
         Update the MAC address of a network interface.
         Update the MAC address to the DB 
@@ -823,12 +820,12 @@ class Interface(NetworkManager, InterfaceDatabase):
         
         return STATUS_OK
 
-    def fetch_db_interface_names(self) -> List[str]:
+    def fetch_db_interface_names(self) -> list[str]:
         """
         Get a list of all interface names from DB.
 
         Returns:
-            List[str]: A list containing the names of all interfaces.
+            list[str]: A list containing the names of all interfaces.
         """
         return self.get_db_interface_names()
     
@@ -855,7 +852,7 @@ class Interface(NetworkManager, InterfaceDatabase):
 
     # LoopBack Operations
 
-    def get_os_lo_labels(self) -> List[str]:
+    def get_os_lo_labels(self) -> list[str]:
         """
         Extract labels from the loopback interface labels
 
@@ -863,7 +860,7 @@ class Interface(NetworkManager, InterfaceDatabase):
             ip_lo_json (dict): The JSON data structure for the loopback interface.
 
         Returns:
-            List[str]: A list of labels found in the loopback interface's address information.
+            list[str]: A list of labels found in the loopback interface's address information.
         """
         labels = []
         

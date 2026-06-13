@@ -1,12 +1,13 @@
 import logging
 import re
-from typing import List
-from routershell.lib.db.sqlite_db.router_shell_db import Result, RouterShellDB as DB
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-from routershell.lib.network_manager.common.interface import InterfaceType
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import Result
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.network_operations.nat import NATDirection
+
 
 class InterfaceDatabase:
 
@@ -17,7 +18,7 @@ class InterfaceDatabase:
         cls.log.setLevel(RSLS().INTERFACE_DB)
         
         if not cls.rsdb:
-            cls.log.debug(f"Connecting RouterShell Database")
+            cls.log.debug("Connecting RouterShell Database")
             cls.rsdb = DB()  
             
     def db_lookup_interface_exists(cls, interface_name: str) -> Result:
@@ -357,12 +358,12 @@ class InterfaceDatabase:
         
         return cls.rsdb.update_interface_alias(bus_info, initial_interface_name, alias_interface_name).status
 
-    def get_db_interface_aliases(cls) -> List[dict]:
+    def get_db_interface_aliases(cls) -> list[dict]:
         """
         Get a list of dictionaries representing interface aliases from the InterfaceAlias table.
 
         Returns:
-            List[dict]: A list of dictionaries containing interface alias information.
+            list[dict]: A list of dictionaries containing interface alias information.
                 Each dictionary includes the following key-value pairs:
                 - 'InterfaceName' (str): The name of the primary network interface.
                 - 'AliasInterface' (str): The alias name associated with the primary network interface.
@@ -422,12 +423,12 @@ class InterfaceDatabase:
         result = cls.rsdb.update_interface_description(interface_name, description)
         return result.status
 
-    def get_db_interface_names(cls) -> List[str]:
+    def get_db_interface_names(cls) -> list[str]:
         """
         Get a list of all interface names from the database.
 
         Returns:
-            List[str]: A list containing the names of all interfaces in the database.
+            list[str]: A list containing the names of all interfaces in the database.
         """
         results = cls.rsdb.select_interfaces()
 
@@ -438,12 +439,12 @@ class InterfaceDatabase:
 
         return interfaces
 
-    def get_interface_details(cls) -> List[dict]:
+    def get_interface_details(cls) -> list[dict]:
         """
         Retrieve comprehensive details for all network interfaces defined in the DB.
 
         Returns:
-            List[dict]: A list of dictionaries containing interface details.
+            list[dict]: A list of dictionaries containing interface details.
 
         Description:
             This method fetches detailed information for all network interfaces stored in the database.

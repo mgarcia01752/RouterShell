@@ -1,8 +1,10 @@
 import logging
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPVersion
+
 
 class DHCPClientDatabase:
     rsdb = DB()

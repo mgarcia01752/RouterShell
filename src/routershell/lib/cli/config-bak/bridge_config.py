@@ -1,16 +1,16 @@
 import logging
+
 import cmd2
 
-from tabulate import tabulate
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-
 from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
+from routershell.lib.common.constants import *
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import State
-from routershell.lib.common.constants import *
-
 from routershell.lib.network_manager.network_operations.bridge import Bridge
+
+
 class InvalidBridge(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -79,5 +79,5 @@ class BridgeConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Bridge):
             self.do_shutdown(None, negate=True)
     
     def default(self, args):
-        print(f'Invalid command')
+        print('Invalid command')
     

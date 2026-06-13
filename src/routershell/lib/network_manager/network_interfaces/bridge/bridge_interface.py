@@ -1,10 +1,10 @@
 import logging
-from typing import Optional
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 from routershell.lib.network_manager.network_operations.bridge import Bridge
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 
 
 class BridgeInterface:
@@ -168,12 +168,12 @@ class BridgeInterface:
         self.log.debug(f'set_bridge_protocol() -> Bridge protocol {protocol} is already set for bridge {self._bridge_name}')
         return STATUS_OK
     
-    def set_description(self, description: Optional[str]) -> bool:
+    def set_description(self, description: str | None) -> bool:
         """
         Set a description for the bridge.
 
         Args:
-            description (Optional[str]): The description to set. If None, the description will be cleared.
+            description (str | None): The description to set. If None, the description will be cleared.
 
         Returns:
             bool: STATUS_OK if the description was successfully set, STATUS_NOK otherwise.

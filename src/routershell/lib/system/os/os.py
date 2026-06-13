@@ -1,9 +1,10 @@
 import logging
 import platform
-from enum import Enum, auto
 import shutil
+from enum import Enum, auto
 
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+
 
 class SupportedOS(Enum):
     BUSY_BOX = auto()

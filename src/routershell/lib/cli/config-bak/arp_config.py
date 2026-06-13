@@ -1,11 +1,13 @@
-import cmd2
 import logging
 
+import cmd2
+
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from routershell.lib.common.constants import *
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.arp import Arp
+
 
 class InvalidArpConfig(Exception):
     def __init__(self, message):

@@ -1,10 +1,8 @@
 import logging
 
-
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq import DNSMasqService
 
-from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 
 class DHCPServerService(DNSMasqService):
 

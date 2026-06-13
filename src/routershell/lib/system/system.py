@@ -1,10 +1,12 @@
 import logging
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_services.common.network_ports import NetworkPorts
 from routershell.lib.network_services.telnet.telnet_server import TelnetService
 from routershell.lib.system.system_call import SystemCall
+
 
 class System:
     def __init__(self):
@@ -58,7 +60,7 @@ class System:
             
         else:
             if TelnetService().stop_service():
-                self.log.error(f'Unable to stop telnet server')
+                self.log.error('Unable to stop telnet server')
                 return STATUS_NOK                
 
         if SystemDatabase().set_telnet_server_status(enable, port):
@@ -78,5 +80,5 @@ class System:
         Returns:
             bool: STATUS_OK if the operation is successful, STATUS_NOK otherwise.
         """
-        print(f'SSH Server not implemented yet')
+        print('SSH Server not implemented yet')
         return STATUS_OK

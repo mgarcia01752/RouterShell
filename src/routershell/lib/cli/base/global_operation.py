@@ -1,13 +1,14 @@
-import os
 import argparse
-
-from bs4 import Comment
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
-from routershell.lib.common.common import STATUS_NOK, STATUS_OK, Common
+import os
 import subprocess
 
-from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 import parser
+from bs4 import Comment
+
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
+from routershell.lib.common.common import Common
+from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
+
 
 class GlobalPrivCommand(NetworkManager):
 
@@ -26,7 +27,7 @@ class GlobalPrivCommand(NetworkManager):
         '''
         
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to reboot, must be in Privilege Mode")
+            print("Unable to reboot, must be in Privilege Mode")
             return
         
         try:
@@ -63,7 +64,7 @@ class GlobalPrivCommand(NetworkManager):
             flush eth0
         """
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to flush, must be in Privilege Mode")
+            print("Unable to flush, must be in Privilege Mode")
             return
                 
         self.flush_interface(interface_name)
@@ -79,7 +80,7 @@ class GlobalPrivCommand(NetworkManager):
             bool: False (implementation pending).
         '''
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to add user, must be in Privilege Mode")
+            print("Unable to add user, must be in Privilege Mode")
             return
                 
         return False
@@ -95,7 +96,7 @@ class GlobalPrivCommand(NetworkManager):
             bool: False (implementation pending).
         '''
         if self.get_exec_mode() != ExecMode.PRIV_MODE:
-            print(f"Unable to delete user, must be in Privilege Mode")
+            print("Unable to delete user, must be in Privilege Mode")
             return
         return False
     
@@ -112,7 +113,7 @@ class GlobalPrivCommand(NetworkManager):
         
         self.prompt_prefix = prefix
 
-class GlobalUserCommand():
+class GlobalUserCommand:
 
     def __init__(self, args=None):
         pass

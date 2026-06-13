@@ -1,8 +1,8 @@
-from enum import Enum
 import logging
+from enum import Enum
+
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
-from typing import List, Union
+
 
 class DHCPv6Modes(Enum):
 
@@ -176,33 +176,33 @@ class DNSMasqConfigurator:
         '''
         self.config.append(f'address=/{domain}/{ipv6_address}')
 
-    def add_query_ips_to_ipset(self, domains: List[str], ipset_name: str):
+    def add_query_ips_to_ipset(self, domains: list[str], ipset_name: str):
         '''
         Add query IPs to an IPset in the DNSMasq configuration.
 
         Args:
-            domains (List[str]): List of domains to associate with the IPset.
+            domains (list[str]): list of domains to associate with the IPset.
             ipset_name (str): Name of the IPset.
         '''
         self.config.append(f'ipset=/{"/".join(domains)}/{ipset_name}')
 
-    def add_query_ips_to_netfilter_sets(self, domains: List[str], sets: List[str]):
+    def add_query_ips_to_netfilter_sets(self, domains: list[str], sets: list[str]):
         '''
         Add query IPs to netfilter sets in the DNSMasq configuration.
 
         Args:
-            domains (List[str]): List of domains to associate with netfilter sets.
-            sets (List[str]): List of netfilter sets to add the domains to.
+            domains (list[str]): list of domains to associate with netfilter sets.
+            sets (list[str]): list of netfilter sets to add the domains to.
         '''
         self.config.append(f'nftset=/{"/".join(domains)}/{",".join(sets)}')
 
-    def add_ipv6_addresses_to_netfilter_sets(self, domains: List[str], sets: List[str]):
+    def add_ipv6_addresses_to_netfilter_sets(self, domains: list[str], sets: list[str]):
         '''
         Add IPv6 addresses to netfilter sets in the DNSMasq configuration.
 
         Args:
-            domains (List[str]): List of domains to associate with netfilter sets.
-            sets (List[str]): List of netfilter sets to add the domains to.
+            domains (list[str]): list of domains to associate with netfilter sets.
+            sets (list[str]): list of netfilter sets to add the domains to.
         '''
         for domain in domains:
             for set in sets:
@@ -238,32 +238,32 @@ class DNSMasqConfigurator:
                 (',' if user and group else '') + (group if group else '')
             self.config.append(user_group_setting)
 
-    def set_listen_interfaces(self, interfaces: List[str]):
+    def set_listen_interfaces(self, interfaces: list[str]):
         '''
         Set listen interfaces for DNSMasq in the configuration.
 
         Args:
-            interfaces (List[str]): List of network interfaces to listen on.
+            interfaces (list[str]): list of network interfaces to listen on.
         '''
         for interface in interfaces:
             self.config.append(f'interface={interface}')
 
-    def set_except_interfaces(self, interfaces: List[str]):
+    def set_except_interfaces(self, interfaces: list[str]):
         '''
         Set exceptions for network interfaces in the DNSMasq configuration.
 
         Args:
-            interfaces (List[str]): List of network interfaces to exclude.
+            interfaces (list[str]): list of network interfaces to exclude.
         '''
         for interface in interfaces:
             self.config.append(f'except-interface={interface}')
 
-    def set_listen_addresses(self, addresses: List[str]):
+    def set_listen_addresses(self, addresses: list[str]):
         '''
         Set listen addresses for DNSMasq in the configuration.
 
         Args:
-            addresses (List[str]): List of IP addresses to listen on.
+            addresses (list[str]): list of IP addresses to listen on.
         '''
         for address in addresses:
             self.config.append(f'listen-address={address}')
@@ -475,12 +475,12 @@ class DNSMasqConfigurator:
         """
         self.config.append('dhcp-authoritative')
 
-    def add_dhcp_host(self, *args: Union[str, int]):
+    def add_dhcp_host(self, *args: str | int):
         '''
         Add a DHCP host configuration to the DNSMasq configuration.
 
         Args:
-            *args (Union[str, int]): Variable number of arguments.
+            *args (str | int): Variable number of arguments.
                 - If only one argument is provided, it is assumed to be the Ethernet address.
                 - If two arguments are provided, the first is assumed to be the Ethernet address, and the second is the IP address.
                 - If three arguments are provided, the first is the Ethernet address, the second is the name, and the third is the IP address.

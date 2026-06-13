@@ -1,15 +1,19 @@
-from enum import Enum, auto
 import logging
 import os
+from enum import Enum, auto
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
 from routershell.lib.db.dhcp_server_db import DHCPServerDatabase
 from routershell.lib.network_manager.network_operations.network_mgr import NetworkManager
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes, DNSMasqConfigurator
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
-from routershell.lib.system.system_service_control.system_service_control import SysServCntrlAction, SystemServiceControl
+from routershell.lib.system.system_service_control.system_service_control import (
+    SysServCntrlAction,
+    SystemServiceControl,
+)
+
 
 class DNSMasqExitCode(Enum):
     """

@@ -1,17 +1,16 @@
-import copy
 import ipaddress
 import json
 import logging
-from typing import Dict, Union
+from enum import Enum
 
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
 
-from enum import Enum
+
 class DhcpVersion(Enum):
     DHCP_V4 = 4
     DHCP_V6 = 6
 
-class DHCPDatabaseFactory():
+class DHCPDatabaseFactory:
     
     def __init__(self, 
                  dhcp_pool_name: str, 
@@ -50,7 +49,7 @@ class DHCPDatabaseFactory():
                     self.log.error(f"Unable to delete or does not exists DHCP Subnet-ID: {pool_name_id}")
                     return STATUS_NOK
                 
-                self.log.debug(f"Remove references pointers to preserve db")
+                self.log.debug("Remove references pointers to preserve db")
                 self.kea_v4_db, self.dhcp_pool_db = None
 
             else:                    
@@ -183,7 +182,7 @@ class DHCPDatabaseFactory():
                     }
                                    
                     if "pools" not in self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]:
-                        self.log.debug(f"add_pool() -> pools entry not found -> adding pools array entry")
+                        self.log.debug("add_pool() -> pools entry not found -> adding pools array entry")
                         self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]["pools"] = []
 
                     self.kea_v4_db["Dhcp4"][subnet_key][subnet_pool_id]["pools"].append(pool_entry)
@@ -437,13 +436,13 @@ class DHCPDatabase:
                 return True  # Pool name exists
         return False  # Pool name does not exist
 
-    def update_global_config(self, dhcp_option: str, value: Union[str, int, bool], dhcp_version: int = 0):
+    def update_global_config(self, dhcp_option: str, value: str | int | bool, dhcp_version: int = 0):
         """
         Update a key-value pair in the global DHCP configuration.
 
         Args:
             dhcp_option (str): The DHCP option to update in the global configuration.
-            value (Union[str, int, bool]): The new value for the DHCP option.
+            value (str | int | bool): The new value for the DHCP option.
             dhcp_version (int, optional): 0 for DHCPv4, 1 for DHCPv6.
 
         Raises:
@@ -679,7 +678,7 @@ class DhcpOptionsLUT:
         """
         return dhcp_option in self.dhcp_options
 
-    def get_data_type(self, dhcp_option: str) -> Union[None, str]:
+    def get_data_type(self, dhcp_option: str) -> None | str:
         """
         Get the data type associated with a key in the DHCP configuration options.
 
@@ -687,7 +686,7 @@ class DhcpOptionsLUT:
             key (str): The key to retrieve the data type for.
 
         Returns:
-            Union[None, str]: The data type of the key, or None if the key does not exist.
+            None | str: The data type of the key, or None if the key does not exist.
         """
         if self.dhcp_option_exists(dhcp_option):
             return self.dhcp_options[dhcp_option]

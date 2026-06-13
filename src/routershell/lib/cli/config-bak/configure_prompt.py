@@ -1,10 +1,9 @@
 
 import logging
+
 from routershell.lib.cli.common.exec_priv_mode import ExecMode
-
 from routershell.lib.cli.common.router_prompt import RouterPrompt
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 
 
 class ConfigurePrompt(RouterPrompt):

@@ -1,11 +1,10 @@
 
 import logging
-from typing import List, Optional
-
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
@@ -16,7 +15,7 @@ from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_client 
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
 from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DHCPServer
 from routershell.lib.network_manager.network_operations.nat import NATDirection
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+
 
 class InterfaceConfigError(Exception):
     """Custom exception for InterfaceConfig errors."""
@@ -39,7 +38,7 @@ class InterfaceConfig(CmdPrompt):
         
         self.log.debug(f'Interface: {net_interface.get_interface_name()}')
                
-    def interfaceconfig_help(self, args: List=None) -> None:
+    def interfaceconfig_help(self, args: list=None) -> None:
         """
         Display help for available commands.
         """
@@ -50,7 +49,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def interfaceconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
+    def interfaceconfig_description(self, line: str | None, negate: bool = False) -> bool:
         """"""
         if negate:
             self.log.debug(f'Negating description on interface: {self.ifName}')
@@ -69,7 +68,7 @@ class InterfaceConfig(CmdPrompt):
         self.log.debug(f"interfaceconfig_mac() -> args: {args}")
         
         if len(args) == 1 and args[0] == "auto":
-            self.log.debug(f"interfaceconfig_mac() -> auto")
+            self.log.debug("interfaceconfig_mac() -> auto")
             self.net_interface.set_mac_address(mac_addr=None)
                             
         elif len(args) == 2 and args[0] == "address":
@@ -86,7 +85,7 @@ class InterfaceConfig(CmdPrompt):
     def interfaceconfig_ip6(self, args, negate=False) -> bool:
         return STATUS_OK
     
-    def X_ip(self, args: List, negate=False) -> bool:
+    def X_ip(self, args: list, negate=False) -> bool:
 
         self.log.debug(f'interfaceconfig_ip() -> {args}')
 
@@ -143,7 +142,7 @@ class InterfaceConfig(CmdPrompt):
 
         elif "dhcp-client" in args[0]:
             '''[no] [ip dhcp-client]'''
-            self.log.debug(f"Enable DHCPv4 Client")
+            self.log.debug("Enable DHCPv4 Client")
             state = State.UP if negate else State.DOWN
             if DHCPInterfaceClient().update_interface_dhcp_client(self.ifName, DHCPStackVersion.DHCP_V4, state):
                 self.log.fatal(f"Unable to set DHCPv4 client on interface: {self.ifName}")
@@ -151,7 +150,7 @@ class InterfaceConfig(CmdPrompt):
         elif "dhcp-server" in args[0]:
             pool_name = args.pool_name
             '''[no] [ip dhcp-server] pool <dhcp-pool-name>'''
-            self.log.debug(f"Enable DHCPv4/6 Server")
+            self.log.debug("Enable DHCPv4/6 Server")
             DHCPServer().add_dhcp_pool_to_interface(pool_name, self.ifName, negate)
   
         return STATUS_OK
@@ -162,7 +161,7 @@ class InterfaceConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(sub_cmds=['proxy-arp'])
     @CmdPrompt.register_sub_commands(sub_cmds=['static-arp', 'arpa'])
     @CmdPrompt.register_sub_commands(sub_cmds=['address', 'secondary'])
-    def interfaceconfig_ip(self, args: List[str], negate=False) -> bool:
+    def interfaceconfig_ip(self, args: list[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
             if len(args) < 2:
@@ -229,7 +228,7 @@ class InterfaceConfig(CmdPrompt):
 
 
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def interfaceconfig_duplex(self, args: List[str]) -> bool:
+    def interfaceconfig_duplex(self, args: list[str]) -> bool:
         """ duplex """
         
         if not args:
@@ -256,7 +255,7 @@ class InterfaceConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def interfaceconfig_speed(self, args: Optional[str]) -> bool:
+    def interfaceconfig_speed(self, args: str | None) -> bool:
         args = StringFormats.list_to_string(args)
         
         if not args:
@@ -287,7 +286,7 @@ class InterfaceConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def interfaceconfig_bridge(self, args: Optional[str], negate=False) -> bool:
+    def interfaceconfig_bridge(self, args: str | None, negate=False) -> bool:
         
         if 'group' in args:
             
@@ -341,7 +340,7 @@ class InterfaceConfig(CmdPrompt):
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def interfaceconfig_no(self, args: List) -> bool:
+    def interfaceconfig_no(self, args: list) -> bool:
         
         self.log.debug(f"interfaceconfig_no() -> Line -> {args}")
 

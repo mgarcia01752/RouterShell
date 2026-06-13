@@ -1,12 +1,13 @@
 import logging
-import cmd2
-from tabulate import tabulate
 
-from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
+import cmd2
+
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
-from routershell.lib.network_manager.network_operations.vlan import Vlan 
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.network_operations.vlan import Vlan
+
 
 class VlanConfig(cmd2.Cmd, GlobalUserCommand, RouterPrompt, Vlan):
     """Command set for configuring Vlan-Config-Commands"""

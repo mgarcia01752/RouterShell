@@ -1,10 +1,11 @@
-import ipaddress
-import cmd2
 import logging
 
-from routershell.lib.cli.common.router_prompt import RouterPrompt, ExecMode
-from routershell.lib.network_manager.network_operations.interface import Interface
+import cmd2
+
+from routershell.lib.cli.common.router_prompt import ExecMode, RouterPrompt
 from routershell.lib.common.constants import *
+from routershell.lib.network_manager.network_operations.interface import Interface
+
 
 class InvalidRouteConfig(Exception):
     def __init__(self, message):

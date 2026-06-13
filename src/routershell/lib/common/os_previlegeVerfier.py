@@ -1,6 +1,7 @@
-import os
 import grp
+import os
 import subprocess
+
 
 class OsPrivilegeVerifier:
     """Static class to check for root user and root group membership."""

@@ -1,11 +1,10 @@
 import logging
-from typing import List, Optional
-
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.number_check import NumberChecker
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
 from routershell.lib.network_manager.common.interface import InterfaceType
 from routershell.lib.network_manager.common.phy import Duplex, Speed, State
@@ -13,10 +12,9 @@ from routershell.lib.network_manager.network_interfaces.ethernet.ethernet_interf
 from routershell.lib.network_manager.network_operations.arp import Encapsulate
 from routershell.lib.network_manager.network_operations.bridge import Bridge
 from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_client import DHCPStackVersion
-from routershell.lib.network_manager.network_operations.dhcp.client.dhcp_clinet_interface_abc import DHCPInterfaceClient
 from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DHCPServer
 from routershell.lib.network_manager.network_operations.nat import NATDirection
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+
 
 class EthernetConfigError(Exception):
     """Custom exception for InterfaceConfig errors."""
@@ -39,7 +37,7 @@ class EthernetConfig(CmdPrompt):
         
         self.log.debug(f'Ethernet: {eth_interface_obj.get_interface_name()}')
                
-    def ethernetconfig_help(self, args: List=None) -> None:
+    def ethernetconfig_help(self, args: list=None) -> None:
         """
         Display help for available commands.
         """
@@ -50,7 +48,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
             
     @CmdPrompt.register_sub_commands() 
-    def ethernetconfig_description(self, line: Optional[str], negate: bool = False) -> bool:
+    def ethernetconfig_description(self, line: str | None, negate: bool = False) -> bool:
 
         if negate:
             self.log.debug(f'Negating description on interface: {self._interface_name}')
@@ -69,7 +67,7 @@ class EthernetConfig(CmdPrompt):
         self.log.debug(f"ethernetconfig_mac() -> args: {args}")
         
         if len(args) == 1 and args[0] == "auto":
-            self.log.debug(f"ethernetconfig_mac() -> auto")
+            self.log.debug("ethernetconfig_mac() -> auto")
             self.eth_interface_obj.set_mac_address(mac_addr=None)
                             
         elif len(args) == 2 and args[0] == "address":
@@ -97,7 +95,7 @@ class EthernetConfig(CmdPrompt):
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['nat', 'outside', 'pool-name'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['bridge', 'group'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['switchport', 'access-vlan-id'])        
-    def ethernetconfig_ip(self, args: List[str], negate=False) -> bool:
+    def ethernetconfig_ip(self, args: list[str], negate=False) -> bool:
         "ip address <> secondary"
         if "address" in args:
             if len(args) < 2:
@@ -182,13 +180,13 @@ class EthernetConfig(CmdPrompt):
             state = State.DOWN if negate else State.UP
             
             if 'dual-stack' in args:
-                self.log.debug(f'dhcp-client -> Dual-Stack')
+                self.log.debug('dhcp-client -> Dual-Stack')
                 if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_DUAL_STACK, state):
                     self.log.fatal(f"Unable to set DHCP-DUAL_STACK client on interface: {self._interface_name}")
                     return STATUS_NOK
                             
             else:
-                self.log.debug(f'dhcp-client -> IPv4')
+                self.log.debug('dhcp-client -> IPv4')
                 if self.eth_interface_obj.update_interface_dhcp_client(DHCPStackVersion.DHCP_V4, state):
                     self.log.fatal(f"Unable to set DHCPv4 client on interface: {self._interface_name}")
                     return STATUS_NOK
@@ -207,13 +205,13 @@ class EthernetConfig(CmdPrompt):
                 print("Invalid arguments for 'dhcp-server' command.")
                 return STATUS_NOK
         
-        elif ['bridge', 'group'] == args[:2]:
+        elif args[:2] == ['bridge', 'group']:
             bridge_group = args[2] if len(args) > 2 else STATUS_NOK
             if self.eth_interface_obj.set_bridge_group(bridge_group):
                 self.log.debug(f"Failed to set bridge group {bridge_group} to interface: {self._interface_name}")
                 return STATUS_OK
 
-        elif ['switchport', 'access-vlan-id'] == args[:2]:
+        elif args[:2] == ['switchport', 'access-vlan-id']:
             
             vlan_id = args[2]
             
@@ -251,7 +249,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['auto', 'half', 'full'])    
-    def ethernetconfig_duplex(self, duplex_args: List[str]) -> bool:
+    def ethernetconfig_duplex(self, duplex_args: list[str]) -> bool:
         if not duplex_args:
             print("Usage: duplex <auto | half | full>")
             return STATUS_NOK
@@ -277,7 +275,7 @@ class EthernetConfig(CmdPrompt):
         return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['10', '100', '1000', '2500', '10000', 'auto'])    
-    def ethernetconfig_speed(self, speed_args: Optional[str]) -> bool:
+    def ethernetconfig_speed(self, speed_args: str | None) -> bool:
         
         if not speed_args:
             print("Usage: speed <10 | 100 | 1000 | 2500 | 10000 | auto>")
@@ -310,7 +308,7 @@ class EthernetConfig(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['group'], 
                                      append_nested_sub_cmds=Bridge().get_bridge_list_os())    
-    def ethernetconfig_bridge(self, bridge_args: Optional[str], negate=False) -> bool:
+    def ethernetconfig_bridge(self, bridge_args: str | None, negate=False) -> bool:
         
         if 'group' in bridge_args:
             
@@ -360,7 +358,7 @@ class EthernetConfig(CmdPrompt):
        return STATUS_OK
     
     @CmdPrompt.register_sub_commands(extend_nested_sub_cmds=['shutdown', 'description', 'bridge', 'ip', 'switchport'])    
-    def ethernetconfig_no(self, args: List) -> bool:
+    def ethernetconfig_no(self, args: list) -> bool:
         
         self.log.debug(f"ethernetconfig_no() -> Line -> {args}")
 

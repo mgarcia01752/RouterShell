@@ -1,8 +1,9 @@
-from enum import Enum
 import os
-from routershell.lib.common.constants import HOSTAPD_CONF_DIR, STATUS_NOK, STATUS_OK
+from enum import Enum
 
+from routershell.lib.common.constants import HOSTAPD_CONF_DIR, STATUS_NOK, STATUS_OK
 from routershell.lib.network_manager.common.run_commands import RunCommand
+
 
 class HostapdIEEE802Config(Enum):
     IEEE80211AC = "ieee80211ac"
@@ -14,7 +15,7 @@ class HostapdIEEE802Config(Enum):
     IEEE8021X = "ieee8021x"
     IEEE80211W = "ieee80211w"
 
-class HostapdConfigGenerator():
+class HostapdConfigGenerator:
     def __init__(self):
         """
         Initialize the HostapdConfigGenerator.
@@ -28,7 +29,7 @@ class HostapdConfigGenerator():
         Generate the Hostapd configuration.
 
         Returns:
-            List[str]: A list of configuration lines for the Hostapd configuration.
+            list[str]: A list of configuration lines for the Hostapd configuration.
         """
         return self.config
 

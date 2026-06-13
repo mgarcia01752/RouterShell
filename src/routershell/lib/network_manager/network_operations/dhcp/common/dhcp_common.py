@@ -1,5 +1,6 @@
 from enum import Enum, auto
 
+
 class DHCPStatus(Enum):
     """
     An enumeration of DHCP client statuses.

@@ -1,11 +1,11 @@
 import logging
-from typing import Dict, List
 
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
-from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.constants import STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPVersion
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
+
 
 class DHCPServerDatabase:
     """
@@ -60,7 +60,7 @@ class DHCPServerDatabase:
         """
         return DB().dhcp_pool_name_exist(dhcp_pool_name).status
 
-    def dhcp_pool_name_list(self) -> List[str]:
+    def dhcp_pool_name_list(self) -> list[str]:
         """
         Retrieve a list of DHCP pool names from the database.
 
@@ -69,7 +69,7 @@ class DHCPServerDatabase:
         are included in the returned list.
 
         Returns:
-            List[str]: A list of DHCP pool names with STATUS_OK.
+            list[str]: A list of DHCP pool names with STATUS_OK.
         """
         
         dhcp_pool_names = []
@@ -239,10 +239,10 @@ class DHCPServerDatabase:
                                 DHCP-DNSMasq - Configuration Building
     '''
 
-    def get_global_options(self) -> List[List]:
+    def get_global_options(self) -> list[list]:
         return []
     
-    def get_dhcp_pool_interfaces_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_interfaces_db(self, dhcp_pool_name: str) -> list[dict]:
         """
         Retrieve the interfaces associated with a DHCP pool name from the database.
 
@@ -250,7 +250,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool.
 
         Returns:
-            List[Dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
+            list[dict]: A list of dictionaries, each representing an interface with the 'interface_name' field,
             or an empty list if none are found.
         """
         sql_result = DB().select_dhcp_pool_interfaces(dhcp_pool_name)
@@ -267,7 +267,7 @@ class DHCPServerDatabase:
 
         return results
 
-    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_inet_range_db(self, dhcp_pool_name: str) -> list[dict]:
         """
         Retrieve the DHCP pool's internet range information from the database.
 
@@ -275,7 +275,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to query.
 
         Returns:
-            List[Dict]: A list of dictionaries containing internet range information.
+            list[dict]: A list of dictionaries containing internet range information.
                 Each dictionary has the following keys:
                 - 'inet_start' (str): The start of the internet range.
                 - 'inet_end' (str): The end of the internet range.
@@ -296,7 +296,7 @@ class DHCPServerDatabase:
 
         return results
 
-    def get_dhcp_pool_reservation_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_reservation_db(self, dhcp_pool_name: str) -> list[dict]:
         """
         Retrieve the DHCP pool's reservation information from the database.
 
@@ -304,7 +304,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to query.
 
         Returns:
-            List[Dict]: A list of dictionaries containing reservation information.
+            list[dict]: A list of dictionaries containing reservation information.
                 Each dictionary has the following keys:
                 - 'mac_address' (str): The MAC address of the reserved device.
                 - 'inet_address' (str): The internet address reserved for the device.
@@ -323,7 +323,7 @@ class DHCPServerDatabase:
 
         return results
 
-    def get_dhcp_pool_options_db(self, dhcp_pool_name: str) -> List[Dict]:
+    def get_dhcp_pool_options_db(self, dhcp_pool_name: str) -> list[dict]:
         """
         Retrieve the DHCP pool's options information from the database.
 
@@ -331,7 +331,7 @@ class DHCPServerDatabase:
             dhcp_pool_name (str): The name of the DHCP pool to query.
 
         Returns:
-            List[Dict]: A list of dictionaries containing DHCP options information.
+            list[dict]: A list of dictionaries containing DHCP options information.
                 Each dictionary has the following keys:
                 - 'option' (str): The DHCP option.
                 - 'value' (str): The value associated with the option.

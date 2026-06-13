@@ -1,16 +1,17 @@
 import logging
-from typing import List
-from routershell.lib.common.constants import STATUS_OK, STATUS_NOK
-from routershell.lib.network_manager.common.phy import State
+
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_interface import BridgeInterface
+
 
 class BridgeInterfaceFactory:
     """
     Factory class for creating and managing bridge interface commands.
 
     Attributes:
-        _bridge_config_command_list (List['BridgeInterface']): A list that holds the bridge configuration commands 
+        _bridge_config_command_list (list['BridgeInterface']): A list that holds the bridge configuration commands 
         for different bridges. This list is used to store and manage the configuration commands for bridges 
         created by the factory.
         
@@ -23,7 +24,7 @@ class BridgeInterfaceFactory:
             Returns the newly created BridgeInterface object.
     """
     
-    _bridge_interface_list: List[BridgeInterface] = []
+    _bridge_interface_list: list[BridgeInterface] = []
     
     def __init__(self, bridge_name: str):
         """

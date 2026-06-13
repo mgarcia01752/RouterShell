@@ -1,13 +1,16 @@
 import logging
 import re
-from typing import List
 
 from routershell.lib.common.constants import STATUS_NOK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.dhcp_client_db import DHCPClientDatabase
-from routershell.lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import DHCPClientFactory, DHCPClientOperations
+from routershell.lib.network_manager.network_operations.dhcp.client.supported_dhcp_clients import (
+    DHCPClientFactory,
+    DHCPClientOperations,
+)
 from routershell.lib.network_manager.network_operations.dhcp.common.dhcp_common import DHCPStackVersion, DHCPStatus
 from routershell.lib.system.init_system import InitSystemChecker, SysV
+
 
 class DHCPClientException(Exception):
     """
@@ -106,12 +109,12 @@ class DHCPClient(DHCPClientDatabase):
         return self._dhcp_client.restart()
 
     @staticmethod
-    def get_flow_log() -> List[dict]:
+    def get_flow_log() -> list[dict]:
         """
         Retrieve DHCP client flow logs (DORA/SAAR) from the system journal.
 
         Returns:
-            List[dict]: A list of DHCP client flow log entries.
+            list[dict]: A list of DHCP client flow log entries.
         """
         isc = InitSystemChecker()
         

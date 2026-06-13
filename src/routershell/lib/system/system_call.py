@@ -3,14 +3,13 @@ import os
 import platform
 import shutil
 import textwrap
-from typing import List
 
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.db.system_db import SystemDatabase
 from routershell.lib.network_manager.common.run_commands import RunCommand, RunLog
 from routershell.lib.system.init_system import InitSystemChecker
-from routershell.lib.system.os.os import OSChecker
+
 
 class InvalidSystemConfig(Exception):
     def __init__(self, message):
@@ -150,7 +149,7 @@ class SystemCall(RunCommand):
                         return STATUS_NOK
 
                 else:
-                    self.log.error(f"set_hostname_os(): Unsupported init system.")
+                    self.log.error("set_hostname_os(): Unsupported init system.")
                     return STATUS_NOK
 
                 self.log.debug(f"set_hostname_os() -> Hostname successfully set to {hostname}")
@@ -175,12 +174,12 @@ class SystemCall(RunCommand):
         self.log.debug(f'get_hostname() -> {hostname}')
         return hostname
     
-    def get_run_log(self) -> List[str]:
+    def get_run_log(self) -> list[str]:
         """
         Retrieve the run log from the RunLog utility class.
 
         Returns:
-            List[str]: A list of strings representing each line of the run log file.
+            list[str]: A list of strings representing each line of the run log file.
 
         Example:
             >>> instance = SomeOtherClass()

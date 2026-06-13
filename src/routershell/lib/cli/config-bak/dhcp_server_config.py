@@ -1,18 +1,15 @@
 import argparse
 import logging
 
-import cmd2
-
-from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DHCPServer, DhcpPoolFactory
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.base.global_operation import GlobalUserCommand
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.router_prompt import RouterPrompt
-
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
-
-from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.common import STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.network_operations.dhcp.server.dhcp_server import DhcpPoolFactory
 from routershell.lib.network_services.dhcp.common.dhcp_common import DHCPOptionLookup, DHCPVersion
 from routershell.lib.network_services.dhcp.dnsmasq.dnsmasq_config_gen import DHCPv6Modes
+
 
 class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
     
@@ -36,7 +33,7 @@ class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
         if self.isGlobalMode() :
             prompt_ext = f'-{dhcp_pool_name}'
         else:
-            self.log.debug(f"DHCPServerConfig() -> Not in DHCP Global Config Mode")
+            self.log.debug("DHCPServerConfig() -> Not in DHCP Global Config Mode")
         
         RouterPrompt.__init__(self, ExecMode.CONFIG_MODE, f'{self.PROMPT_CMD_ALIAS}{prompt_ext}')
         self.prompt = self.set_prompt()
@@ -199,7 +196,7 @@ class DHCPServerConfig(GlobalUserCommand, RouterPrompt):
         Set the DHCPv6 Mode.
 
         Args:
-            args (List[str]): List of arguments.
+            args (list[str]): list of arguments.
             negate (bool): Whether to negate the mode.
 
         Example:

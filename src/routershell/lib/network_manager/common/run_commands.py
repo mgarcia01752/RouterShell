@@ -1,10 +1,11 @@
+import datetime
+import logging
 import os
 import subprocess
-import logging
-import datetime
-from typing import List, NamedTuple
+from typing import NamedTuple
 
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+
 
 class RunResult(NamedTuple):
     """
@@ -14,13 +15,13 @@ class RunResult(NamedTuple):
         stdout (str): The standard output of the command.
         stderr (str): The standard error output of the command.
         exit_code (int): The exit code of the command.
-        command (List[str]): The list of command arguments used.
+        command (list[str]): The list of command arguments used.
     """
 
     stdout: str
     stderr: str
     exit_code: int
-    command: List[str]
+    command: list[str]
 
 class RunLog:
     """
@@ -39,12 +40,12 @@ class RunLog:
             print(line)
     """
     @staticmethod
-    def get_run_log() -> List[str]:
+    def get_run_log() -> list[str]:
         """
         Retrieve the contents of the run log file.
 
         Returns:
-            List[str]: A list of strings representing each line of the run log file.
+            list[str]: A list of strings representing each line of the run log file.
 
         Example:
             >>> log = RunLog()
@@ -67,8 +68,8 @@ class RunCommand:
     A class for running Linux commands with sudo and logging successful and failed commands.
     """
     
-    run_cmds_successful: List[str] = []
-    run_cmds_failed: List[str] = []
+    run_cmds_successful: list[str] = []
+    run_cmds_failed: list[str] = []
     log_dir = '/tmp/log'
     log_cmd= f'{log_dir}/routershell-command.log'    
     
@@ -93,12 +94,12 @@ class RunCommand:
         with open(RunCommand.log_cmd, "a") as log_file:
             log_file.write(log_entry + "\n")
     
-    def run(self, command: List[str], suppress_error: bool = False, shell: bool = False, sudo: bool = True) -> RunResult:
+    def run(self, command: list[str], suppress_error: bool = False, shell: bool = False, sudo: bool = True) -> RunResult:
         """
         Run a command in the Linux environment and log the result.
 
         Args:
-            command (List[str]): The command and its arguments as a list.
+            command (list[str]): The command and its arguments as a list.
             suppress_error (bool, optional): If True, suppress logging of errors. Defaults to False.
             shell (bool, optional): If True, execute the command using a shell. Defaults to False.
             sudo (bool, optional): If True, prepend 'sudo' to the command. Defaults to True.

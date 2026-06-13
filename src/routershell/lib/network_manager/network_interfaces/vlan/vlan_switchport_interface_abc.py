@@ -1,7 +1,9 @@
-from abc import ABC
 import logging
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from abc import ABC
+
+from routershell.lib.common.constants import STATUS_OK
 from routershell.lib.network_manager.network_operations.vlan import Vlan
+
 
 class VlanSwitchport(ABC):
     """

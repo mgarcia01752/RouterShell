@@ -1,8 +1,9 @@
 import logging
-from typing import List, Optional
+
 from routershell.lib.common.constants import STATUS_OK
-from routershell.lib.network_manager.network_operations.vlan import Vlan
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.network_manager.network_operations.vlan import Vlan
+
 
 class VlanMangementException(Exception):
     def __init__(self, message):
@@ -60,12 +61,12 @@ class VlanMangement:
         
         return Vlan().update_vlan_name(self._vlan_id, vlan_name)
 
-    def set_description(self, description: Optional[List[str]] = None) -> bool:
+    def set_description(self, description: list[str] | None = None) -> bool:
         """
         Set the description for the VLAN.
 
         Args:
-            description (Optional[List[str]]): The description to be set for the VLAN. If None, it will be set as an empty string.
+            description (list[str] | None): The description to be set for the VLAN. If None, it will be set as an empty string.
                                             If a list is provided, it will be joined into a single string with spaces.
 
         Returns:

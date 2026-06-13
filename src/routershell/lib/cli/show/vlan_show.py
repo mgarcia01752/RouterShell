@@ -1,4 +1,5 @@
 import logging
+
 from routershell.lib.network_manager.network_operations.vlan import Vlan
 
 

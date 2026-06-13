@@ -1,8 +1,10 @@
 import datetime
 import logging
 import os
+
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.network_manager.common.run_commands import RunCommand
+
 
 class SysCtl(RunCommand):
     """

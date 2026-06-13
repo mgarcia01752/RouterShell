@@ -2,6 +2,7 @@ import logging
 
 from routershell.lib.network_manager.network_operations.nat import Nat
 
+
 class NatShow(Nat):
     
     def __init__(self, args=None):
@@ -10,5 +11,5 @@ class NatShow(Nat):
         self.args = args        
 
     def getNatTable(self, args=None):
-        self.log.debug(f"getNatTable()")
+        self.log.debug("getNatTable()")
         print(f"{self.getNatIpTable()}")

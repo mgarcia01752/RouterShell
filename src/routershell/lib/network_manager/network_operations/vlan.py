@@ -1,15 +1,14 @@
 import json
 import logging
-from typing import Optional
-
-from routershell.lib.db.sqlite_db.router_shell_db import Result
-from routershell.lib.db.vlan_db import VlanDatabase
 
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import Result
+from routershell.lib.db.vlan_db import VlanDatabase
 from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_operations.bridge import Bridge
+
 
 class Vlan(RunCommand):
 
@@ -228,7 +227,7 @@ class Vlan(RunCommand):
     def delete_interface_from_vlan(self, interface_name: str, vlan_id: int) -> bool:
         return STATUS_OK
 
-    def get_vlan_name_from_vlan_id(self, vlan_id: int) -> Optional[str]:
+    def get_vlan_name_from_vlan_id(self, vlan_id: int) -> str | None:
         """
         Retrieves the VLAN name corresponding to a given VLAN ID.
         
@@ -236,7 +235,7 @@ class Vlan(RunCommand):
             vlan_id (int): The ID of the VLAN.
         
         Returns:
-            Optional[str]: The name of the VLAN if found, Vlan.INVALID_VLAN_ID otherwise.
+            str | None: The name of the VLAN if found, Vlan.INVALID_VLAN_ID otherwise.
         """
         result: Result = VlanDatabase().get_vlan_name_by_vlan_id(vlan_id)
         

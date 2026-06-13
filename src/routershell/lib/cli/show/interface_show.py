@@ -2,9 +2,10 @@ import json
 import logging
 
 from tabulate import tabulate
-from routershell.lib.network_manager.common.interface import InterfaceType
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.network_manager.network_operations.interface import Interface
+
 
 class InterfaceShow(Interface):
     

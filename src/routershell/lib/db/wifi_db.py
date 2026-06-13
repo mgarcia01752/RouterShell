@@ -1,9 +1,10 @@
 import logging
-from typing import List
 
-from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB, Result
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.sqlite_db.router_shell_db import Result
+from routershell.lib.db.sqlite_db.router_shell_db import RouterShellDB as DB
+
 
 class WifiPolicyNotFoundError(Exception):
     """
@@ -181,7 +182,7 @@ class WifiDB:
         """
         return DB().insert_wifi_channel(wifi_policy_name, channel).status
 
-    def get_wifi_security_policy(self, wifi_policy_name: str) -> List[dict]:
+    def get_wifi_security_policy(self, wifi_policy_name: str) -> list[dict]:
         """
         Get a list of security policies associated with a specific Wi-Fi policy.
 
@@ -189,7 +190,7 @@ class WifiDB:
             wifi_policy_name (str): The name of the Wi-Fi policy.
 
         Returns:
-            List[dict]: A list of dictionaries containing security policy information.
+            list[dict]: A list of dictionaries containing security policy information.
         """
         return Result.sql_result_to_value_list(DB().select_wifi_security_policy(wifi_policy_name))
 

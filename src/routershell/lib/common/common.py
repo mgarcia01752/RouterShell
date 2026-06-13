@@ -1,18 +1,18 @@
+import datetime
 import ipaddress
+import logging
+import os
 import random
 import re
 import socket
-import os
-import datetime
 import subprocess
-import logging
 from datetime import datetime
-from typing import List 
 
-from routershell.lib.common.constants import *
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.network_manager.common.interface import InterfaceType
 
-class Common():
+
+class Common:
     '''Commonly used Static Methods'''
 
     def __init__(self) -> None:
@@ -185,13 +185,13 @@ class Common():
         return [item for item in simple_list]
 
     @staticmethod
-    def remove_substrings_and_concatenate(input_list: List[str], substrings: List[str]) -> str:
+    def remove_substrings_and_concatenate(input_list: list[str], substrings: list[str]) -> str:
         """
         Removes all specified substrings from each element in the input list and concatenates the results into a single string.
 
         Args:
-            input_list (List[str]): The list of strings to be processed.
-            substrings (List[str]): The substrings to be removed from each element.
+            input_list (list[str]): The list of strings to be processed.
+            substrings (list[str]): The substrings to be removed from each element.
 
         Returns:
             str: A single string with substrings removed and elements concatenated.
@@ -265,13 +265,13 @@ class Common():
         return os.environ.get(var_name)
 
     @staticmethod
-    def is_loopback_if_name_valid(interface_name: str, add_loopback_if_name: List[str] = None) -> bool:
+    def is_loopback_if_name_valid(interface_name: str, add_loopback_if_name: list[str] = None) -> bool:
         """
         Check if the given interface name is in the loopback format or starts with any of the specified prefixes.
 
         Args:
             interface_name (str): The name of the network interface.
-            loopback_if_check_list (List[str], optional): List of additional interface name prefixes to check against. Default is None.
+            loopback_if_check_list (list[str], optional): list of additional interface name prefixes to check against. Default is None.
 
         Returns:
             bool: True if the interface name matches the loopback format or any prefix in if_check_list, False otherwise.

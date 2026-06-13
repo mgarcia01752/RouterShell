@@ -90,6 +90,19 @@ Agents working on the DB backend refactor MUST follow the locked decisions recor
 
 - No generic container imports (`Dict`, `List`, `Tuple`, `Union`).
   Use built-in types and `|`.
+- RouterShell is a PEP 561 typed package; keep `src/routershell/py.typed`
+  packaged and covered by tests.
+- Shared RouterShell type aliases live in
+  `src/routershell/lib/common/types.py`.
+- Do not create competing type alias modules without explicit approval.
+- Ruff follows the PyPNM direction: `F`, `E`, `W`, `I`, `B`, `UP`, `ANN`,
+  `SIM`, and `PERF` are selected in `pyproject.toml`.
+- Temporary Ruff ignores are allowed only for the existing legacy annotation
+  and whitespace backlog; do not add new ignores without approval.
+- Modern type syntax is mandatory in touched code: use `list`, `dict`,
+  `tuple`, and `X | Y` rather than `List`, `Dict`, `Tuple`, or `Union`.
+- Docstrings and comments must use the same modern type spellings so examples
+  do not preserve legacy typing forms.
 - Avoid `Any` unless unavoidable; isolate and justify its usage.
 - Every function argument must be annotated.
 - Avoid `None` returns; prefer empty values unless `None` is semantically required.

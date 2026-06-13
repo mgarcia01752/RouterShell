@@ -1,12 +1,10 @@
 import json
 import logging
-from typing import List, Optional
 
-from routershell.lib.db.bridge_db import BridgeDatabase 
-from routershell.lib.network_manager.common.phy import State
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
-
-from routershell.lib.common.router_shell_log_control import  RouterShellLoggerSettings as RSLS
+from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.db.bridge_db import BridgeDatabase
+from routershell.lib.network_manager.common.phy import State
 from routershell.lib.network_manager.common.run_commands import RunCommand
 from routershell.lib.network_manager.network_interfaces.bridge.bridge_protocols import STP_STATE, BridgeProtocol
 
@@ -20,12 +18,12 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().BRIDGE)
         
-    def get_bridge_list_os(self) -> List[str]:
+    def get_bridge_list_os(self) -> list[str]:
         """
         Get a list of bridge names from OS
 
         Returns:
-            List[str]: A list of bridge names.
+            list[str]: A list of bridge names.
         """
         result = self.run(['ip', '-j', 'link', 'show', 'type', 'bridge'])
 
@@ -80,11 +78,11 @@ class Bridge(RunCommand, BridgeDatabase):
         return STATUS_OK
 
     def update_bridge(self, bridge_name: str, 
-                        protocol: Optional[BridgeProtocol] = None, 
-                        stp_status: Optional[STP_STATE] = None,
-                        management_inet: Optional[str] = None,
-                        description: Optional[str] = None,
-                        shutdown_status: Optional[State] = None) -> bool:
+                        protocol: BridgeProtocol | None = None, 
+                        stp_status: STP_STATE | None = None,
+                        management_inet: str | None = None,
+                        description: str | None = None,
+                        shutdown_status: State | None = None) -> bool:
         """
         Update the bridge configuration both on the operating system and in the database.
 
@@ -94,11 +92,11 @@ class Bridge(RunCommand, BridgeDatabase):
 
         Args:
             bridge_name (str): The name of the bridge to update.
-            protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
-            stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
-            management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
-            description (Optional[str]): The new description for the bridge. Defaults to None.
-            shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
+            protocol (BridgeProtocol | None): The new protocol for the bridge. Defaults to None.
+            stp_status (STP_STATE | None): The new STP status for the bridge. Defaults to None.
+            management_inet (str | None): The management IP address for the bridge. Defaults to None.
+            description (str | None): The new description for the bridge. Defaults to None.
+            shutdown_status (State | None): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
             bool: STATUS_OK if both OS and DB updates were successful, STATUS_NOK otherwise.
@@ -496,7 +494,7 @@ class Bridge(RunCommand, BridgeDatabase):
         self.log.debug(f"Bridge {bridge_name} successfully deleted from OS")
         return STATUS_OK
         
-    def _get_linked_interfaces(self, bridge_name: str) -> List[str]:
+    def _get_linked_interfaces(self, bridge_name: str) -> list[str]:
         """
         Retrieve a list of interfaces linked to the given bridge using JSON output for parsing.
 
@@ -504,7 +502,7 @@ class Bridge(RunCommand, BridgeDatabase):
             bridge_name (str): The name of the bridge to check.
 
         Returns:
-            List[str]: A list of interface names that are linked to the bridge.
+            list[str]: A list of interface names that are linked to the bridge.
         """
         result = self.run(['ip','-json','show', 'master', bridge_name], suppress_error=True)
         
@@ -523,10 +521,10 @@ class Bridge(RunCommand, BridgeDatabase):
         return interfaces
 
     def _update_bridge_via_os(self, bridge_name: str, 
-                            protocol: Optional[BridgeProtocol] = None, 
-                            stp_status: Optional[STP_STATE] = None,
-                            management_inet: Optional[str] = None,
-                            shutdown_status: Optional[State] = None) -> bool:
+                            protocol: BridgeProtocol | None = None, 
+                            stp_status: STP_STATE | None = None,
+                            management_inet: str | None = None,
+                            shutdown_status: State | None = None) -> bool:
         """
         Update a bridge on the operating system with the specified parameters.
 
@@ -535,10 +533,10 @@ class Bridge(RunCommand, BridgeDatabase):
 
         Args:
             bridge_name (str): The name of the bridge to update.
-            protocol (Optional[BridgeProtocol]): The new protocol for the bridge. Defaults to None.
-            stp_status (Optional[STP_STATE]): The new STP status for the bridge. Defaults to None.
-            management_inet (Optional[str]): The management IP address for the bridge. Defaults to None.
-            shutdown_status (Optional[State]): The new shutdown status for the bridge. Defaults to None.
+            protocol (BridgeProtocol | None): The new protocol for the bridge. Defaults to None.
+            stp_status (STP_STATE | None): The new STP status for the bridge. Defaults to None.
+            management_inet (str | None): The management IP address for the bridge. Defaults to None.
+            shutdown_status (State | None): The new shutdown status for the bridge. Defaults to None.
 
         Returns:
             bool: True if the bridge was successfully updated, False otherwise.
@@ -554,7 +552,7 @@ class Bridge(RunCommand, BridgeDatabase):
         cmd = []
 
         if protocol:
-            self.log.debug(f'Bridge Protocol is not supported with iproute')
+            self.log.debug('Bridge Protocol is not supported with iproute')
             
         if stp_status:
             stp_command = '1' if stp_status == STP_STATE.STP_ENABLE else '0'
@@ -597,7 +595,7 @@ class Bridge(RunCommand, BridgeDatabase):
                 self.log.critical(f'Inconsistency between the OS and DB: bridge {bridge_name} not found in the DB but found in the OS')
 
                 if fix_os_db_inconsistency:
-                    self.log.debug(f"Fixing the DB to match the OS")
+                    self.log.debug("Fixing the DB to match the OS")
                     if self.add_bridge_db(bridge_name):
                         return STATUS_OK
                     return STATUS_NOK
@@ -606,7 +604,7 @@ class Bridge(RunCommand, BridgeDatabase):
             self.log.debug(f"Bridge {bridge_name} does not exist in the OS but exists in the database")
 
             if fix_os_db_inconsistency:
-                self.log.debug(f"Fixing the OS to match the DB")
+                self.log.debug("Fixing the OS to match the DB")
                 if self.del_bridge_db(bridge_name):
                     if self._add_bridge_os(bridge_name):
                         self.add_bridge_db(bridge_name)

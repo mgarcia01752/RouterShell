@@ -1,12 +1,12 @@
 import logging
-from typing import List
 
 from routershell.lib.cli.base.copy_start_run import CopyStartRun
-from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.cli.common.command_class_interface import CmdPrompt
+from routershell.lib.cli.common.exec_priv_mode import ExecMode
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.system.copy_mode import CopyMode, CopyType
+
 
 class CopyError(Exception):
     """Custom exception for CopyError errors."""
@@ -24,7 +24,7 @@ class Copy(CmdPrompt):
         self.log = logging.getLogger(self.__class__.__name__)
         self.log.setLevel(RSLS().COPY)
                
-    def copy_help(self, args: List=None) -> None:
+    def copy_help(self, args: list=None) -> None:
         """
         Display help for available commands.
         """
@@ -34,12 +34,12 @@ class Copy(CmdPrompt):
     
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['running-config', 'startup-config'])
     @CmdPrompt.register_sub_commands(nested_sub_cmds=['startup-config', 'running-config'])       
-    def copy_copy(self, args: List=None) -> bool:
+    def copy_copy(self, args: list=None) -> bool:
         self.log.debug(f'copy_copy -> {args}')
         
-        if 'running-config' == args[0]:
+        if args[0] == 'running-config':
             
-            if 'startup-config' == args[1]:
+            if args[1] == 'startup-config':
                 if CopyMode().copy_running_config(copy_type=CopyType.DEST_START_UP):
                     self.log.error('Unable to copy running-config to startup-config')
                     return STATUS_NOK
@@ -48,9 +48,9 @@ class Copy(CmdPrompt):
                 print(f'Invalid {args[0]} command: {args[1]}')
                 return STATUS_NOK
             
-        elif 'startup-config' == args[0]:
+        elif args[0] == 'startup-config':
             
-            if 'running-config' == args[1]:
+            if args[1] == 'running-config':
                 
                 self.log.debug(f'copy_copy -> {args[0]} - {args[0]} - FOUND!!')
                 
