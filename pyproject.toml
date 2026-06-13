@@ -51,6 +51,7 @@ dev = [
     "build>=1.2",
     "pycycle>=0.0.8",
     "pyright>=1.1.407",
+    "pylint>=3.3",
     "pytest>=8.0",
     "ruff>=0.5",
     "twine>=5.0",

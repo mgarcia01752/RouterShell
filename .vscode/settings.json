@@ -21,10 +21,17 @@
     "python.testing.pytestArgs": [
         "tests"
     ],
+    "pylint.interpreter": [
+        "/opt/routershell/venv/bin/python"
+    ],
+    "pylint.importStrategy": "fromEnvironment",
+    "pylint.args": [
+        "--init-hook=import sys; from pathlib import Path; root = Path.cwd(); sys.path[:0] = [str(root / 'src'), str(root)]"
+    ],
     "python-envs.pythonProjects": [
         {
             "path": ".",
-            "envManager": "ms-python.python:system",
+            "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
         }
     ]

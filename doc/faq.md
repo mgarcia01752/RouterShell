@@ -33,3 +33,16 @@ If command-line Pyright is also needed, reinstall development extras:
 ```bash
 /opt/routershell/venv/bin/python -m pip install -e ".[dev]"
 ```
+
+If VSCode reports a Pylint `E0401:import-error` for a RouterShell module such
+as `routershell.lib.cli.base.clear_mode`, make sure the workspace is using the
+RouterShell interpreter and reload VSCode. The workspace settings configure the
+Pylint extension to run from `/opt/routershell/venv/bin/python` with the
+project `src` layout on the import path.
+
+If the Pylint extension reports that Pylint is missing, refresh development
+dependencies in the installer-created virtual environment:
+
+```bash
+sudo /opt/routershell/venv/bin/python -m pip install -e ".[dev]"
+```
