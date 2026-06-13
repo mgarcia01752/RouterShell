@@ -2,6 +2,7 @@ import logging
 import os
 from enum import Enum, auto
 
+from routershell.lib.common.constants import DNSMASQ_CONFIG_DIR as DEFAULT_DNSMASQ_CONFIG_DIR
 from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.string_formats import StringFormats
@@ -134,7 +135,7 @@ class DNSMasqInterfaceService(DNSMasqService):
 
     DNSMASQ_FILENAME_SUFFIX = '_dnsmasq.conf'
     DNSMASQ_GLOBAL_FILENAME = 'dnsmasq.conf'
-    DNSMASQ_CONFIG_DIR = '/etc/dnsmasq.d'
+    DNSMASQ_CONFIG_DIR = DEFAULT_DNSMASQ_CONFIG_DIR
     DEFAULT_LEASE_TIME = 86400
     DEFAULT_DNS_LISTEN_PORT=5353 # '''Setting DNS to 5353 prevents conflict if there is already DNS running'''
 

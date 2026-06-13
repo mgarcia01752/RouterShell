@@ -10,6 +10,7 @@ from routershell.lib.common.constants import (
     ROUTER_SHELL_DB_FILE_ENV,
     ROUTER_SHELL_PROJECT_ROOT_ENV,
     ROUTER_SHELL_SQL_STARTUP,
+    ROUTERSHELL_STATE_DIR,
     STATUS_NOK,
     STATUS_OK,
 )
@@ -118,7 +119,7 @@ class RouterShellDB(metaclass=Singleton):
         if project_root:
             return Path(project_root) / ".routershell" / ROUTER_SHELL_DB
 
-        return Path("/var/lib/routershell") / ROUTER_SHELL_DB
+        return ROUTERSHELL_STATE_DIR / ROUTER_SHELL_DB
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)

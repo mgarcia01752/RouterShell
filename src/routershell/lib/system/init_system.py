@@ -2,6 +2,7 @@ import os
 import re
 from enum import Enum
 
+from routershell.lib.common.constants import SYSTEMD_RUNTIME_DIR, SYSV_BOOT_LOG_FILE, SYSV_MESSAGES_LOG_FILE
 from routershell.lib.common.types import PredicateResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
 
@@ -49,7 +50,7 @@ class InitSystemChecker(RunCommand):
             InitSystem: An enum representing the init system.
         """
         try:
-            if os.path.exists('/run/systemd/system'):
+            if os.path.exists(SYSTEMD_RUNTIME_DIR):
                 return InitSystem.SYSTEMD
             
             result = self.run(['systemctl', '--version'], suppress_error=True)
@@ -109,7 +110,7 @@ class SysV:
         Returns:
             list[str]: A list of log messages from /var/log/messages. If the command fails, an empty list is returned.
         """
-        command = ['cat', '/var/log/messages']
+        command = ['cat', str(SYSV_MESSAGES_LOG_FILE)]
         result = self.run_command.run(command, suppress_error=True)
         
         if result.exit_code:
@@ -132,7 +133,7 @@ class SysV:
         Returns:
             list[str]: A list of boot log messages from /var/log/boot. If the command fails, an empty list is returned.
         """
-        command = ['cat', '/var/log/boot']
+        command = ['cat', str(SYSV_BOOT_LOG_FILE)]
         result = self.run_command.run(command, suppress_error=True)
         
         if result.exit_code:

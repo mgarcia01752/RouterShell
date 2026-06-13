@@ -5,6 +5,7 @@ import shutil
 import textwrap
 
 from routershell.lib.common.common import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import ETC_HOSTNAME_FILE
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.types import HostnameText, StatusResult
 from routershell.lib.db.system_db import SystemDatabase
@@ -127,8 +128,8 @@ class SystemCall(RunCommand):
         if current_os == "Linux":
             try:
                 if InitSystemChecker().is_sysv():
-                    # Set the hostname permanently in /etc/hostname
-                    with open('/etc/hostname', 'w') as f:
+                    # Set the hostname permanently.
+                    with open(ETC_HOSTNAME_FILE, 'w') as f:
                         f.write(hostname + '\n')
 
                     # Check if the hostname command is available

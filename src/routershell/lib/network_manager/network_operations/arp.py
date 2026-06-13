@@ -4,7 +4,7 @@ from enum import Enum
 
 from tabulate import tabulate
 
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, proc_ipv4_conf_path
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.types import InetAddressText, InterfaceName, MacAddressText, PredicateResult, StatusResult
 from routershell.lib.network_manager.common.inet import InetServiceLayer
@@ -145,7 +145,7 @@ class Arp(NetworkManager):
         Returns:
             StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        arp_accept_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_accept"
+        arp_accept_file = proc_ipv4_conf_path(ifName, "arp_accept")
         value = "1" if enable else "0"
         
         return SysCtl().write_sysctl(arp_accept_file, value)
@@ -158,7 +158,7 @@ class Arp(NetworkManager):
             :param value: The ARP announce value (0, 1, or 2).
             :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
             """
-            arp_announce_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_announce"
+            arp_announce_file = proc_ipv4_conf_path(ifName, "arp_announce")
             return SysCtl().write_sysctl(arp_announce_file, str(value))
 
     def set_os_arp_evict_nocarrier(self, ifName: InterfaceName = "all", enable: bool = True) -> StatusResult:
@@ -178,7 +178,7 @@ class Arp(NetworkManager):
         Returns:
             StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        arp_evict_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_evict_nocarrier"
+        arp_evict_file = proc_ipv4_conf_path(ifName, "arp_evict_nocarrier")
         value = "1" if enable else "0"
         return SysCtl().write_sysctl(arp_evict_file, value)
 
@@ -199,7 +199,7 @@ class Arp(NetworkManager):
         Returns:
             StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        arp_filter_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_filter"
+        arp_filter_file = proc_ipv4_conf_path(ifName, "arp_filter")
         value = "1" if enable else "0"
         return SysCtl.write_sysctl(arp_filter_file, value)
 
@@ -211,7 +211,7 @@ class Arp(NetworkManager):
         :param value: The ARP ignore value (0, 1, or 2).
         :return: STATUS_OK if the operation was successful, STATUS_NOK otherwise.
         """
-        arp_ignore_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_ignore"
+        arp_ignore_file = proc_ipv4_conf_path(ifName, "arp_ignore")
         value = "1" if enable else "0"
         return SysCtl().write_sysctl(arp_ignore_file, str(value))
 
@@ -226,7 +226,7 @@ class Arp(NetworkManager):
         Returns:
             StatusResult: STATUS_OK if the operation was successful, STATUS_NOK otherwise. Most of the time, it will be one of these values.
         """
-        arp_notify_file = f"/proc/sys/net/ipv4/conf/{ifName}/arp_notify"
+        arp_notify_file = proc_ipv4_conf_path(ifName, "arp_notify")
         value = "1" if enable else "0"
         
         return SysCtl().write_sysctl(arp_notify_file, value)
@@ -244,7 +244,7 @@ class Arp(NetworkManager):
         """
 
         value = "1" if enable else "0"
-        arp_file = f"/proc/sys/net/ipv4/conf/{if_name}/drop_gratuitous_arp"
+        arp_file = proc_ipv4_conf_path(if_name, "drop_gratuitous_arp")
         
         command = ["sh", "-c", f"echo {value} > {arp_file}"]
         
@@ -272,7 +272,7 @@ class Arp(NetworkManager):
         """       
         value = "1" if enable else "0"
         
-        arp_file = f"/proc/sys/net/ipv4/conf/{if_name}/proxy_arp"
+        arp_file = proc_ipv4_conf_path(if_name, "proxy_arp")
         
         command = ["sh", "-c", f"echo {value} > {arp_file}"]
 
@@ -299,7 +299,7 @@ class Arp(NetworkManager):
             StatusResult: STATUS_OK for success, STATUS_NOK for failure.
         """
 
-        proxy_arp_pvlan_file = f"/proc/sys/net/ipv4/conf/{ifName}/proxy_arp_pvlan"
+        proxy_arp_pvlan_file = proc_ipv4_conf_path(ifName, "proxy_arp_pvlan")
         value = "1" if enable else "0"
         
         self.log.debug(f"set_proxy_arp(ifname: {ifName}) -> File: {proxy_arp_pvlan_file} -> enable: {enable}")

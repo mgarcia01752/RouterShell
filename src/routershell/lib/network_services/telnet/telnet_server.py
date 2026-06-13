@@ -1,6 +1,6 @@
 import logging
 
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, TELNET_SYSV_CONFIG_FILE
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.types import FilePath, StatusResult
 from routershell.lib.network_manager.common.run_commands import RunCommand
@@ -44,7 +44,7 @@ class TelnetService(RunCommand):
         
         # Set configuration file path based on init system
         if self.init_system == InitSystem.SYSV:
-            self.telnet_config_file = '/etc/xinetd.d/telnet'
+            self.telnet_config_file = TELNET_SYSV_CONFIG_FILE
         else:
             self.telnet_config_file = None  # For Systemd, config management might differ
 

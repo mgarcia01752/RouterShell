@@ -4,6 +4,7 @@ import os
 import subprocess
 from typing import NamedTuple
 
+from routershell.lib.common.constants import ROUTERSHELL_COMMAND_LOG_FILE, ROUTERSHELL_RUNTIME_LOG_DIR
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
 from routershell.lib.common.types import StatusResult
 
@@ -71,8 +72,8 @@ class RunCommand:
     
     run_cmds_successful: list[str] = []
     run_cmds_failed: list[str] = []
-    log_dir = '/tmp/log'
-    log_cmd= f'{log_dir}/routershell-command.log'    
+    log_dir = ROUTERSHELL_RUNTIME_LOG_DIR
+    log_cmd = ROUTERSHELL_COMMAND_LOG_FILE
     
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -138,4 +139,3 @@ class RunCommand:
             self.log_command(cmd_str)
 
             return RunResult("", str(e), e.returncode, command)
-

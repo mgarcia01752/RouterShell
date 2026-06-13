@@ -8,7 +8,7 @@ import socket
 import subprocess
 from datetime import datetime
 
-from routershell.lib.common.constants import STATUS_NOK, STATUS_OK
+from routershell.lib.common.constants import STATUS_NOK, STATUS_OK, SYSTEMD_RUNTIME_DIR, SYSV_INIT_DIR
 from routershell.lib.common.types import EnvironmentVariableName, HostnameText, InterfaceName, PredicateResult
 from routershell.lib.network_manager.common.interface import InterfaceType
 
@@ -32,12 +32,12 @@ class Common:
     @staticmethod
     def get_reboot_command() -> str:
         ''''''
-        # Check if the /etc/init directory exists (indicating SysV init)
-        if os.path.exists('/etc/init'):
+        # Check if the SysV init directory exists.
+        if os.path.exists(SYSV_INIT_DIR):
             return 'sudo init 6'  # Use SysV init reboot command
 
-        # Check if the /run/systemd/system directory exists (indicating systemd)
-        if os.path.exists('/run/systemd/system'):
+        # Check if the systemd runtime directory exists.
+        if os.path.exists(SYSTEMD_RUNTIME_DIR):
             return 'sudo systemctl reboot'  # Use systemd reboot command
 
         # Default to 'sudo reboot' if neither init system is found
@@ -46,12 +46,12 @@ class Common:
     @staticmethod
     def get_shutdown_command() -> str:
 
-        # Check if the /etc/init directory exists (indicating SysV init)
-        if os.path.exists('/etc/init'):
+        # Check if the SysV init directory exists.
+        if os.path.exists(SYSV_INIT_DIR):
             return 'sudo init 0'  # Use SysV init reboot command
 
-        # Check if the /run/systemd/system directory exists (indicating systemd)
-        if os.path.exists('/run/systemd/system'):
+        # Check if the systemd runtime directory exists.
+        if os.path.exists(SYSTEMD_RUNTIME_DIR):
             return 'sudo systemctl shutdown'  # Use systemd reboot command
 
         # Default to 'sudo shutdown' if neither init system is found

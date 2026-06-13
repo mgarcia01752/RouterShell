@@ -7,10 +7,11 @@ import logging.config
 import os
 from pathlib import Path
 
+from routershell.lib.common.constants import ROUTERSHELL_DEFAULT_LOG_FILE
 from routershell.lib.common.types import FilePath, LoggerName, LogLevelName, PredicateResult, StatusResult
 
 DEFAULT_LOG_LEVEL = "INFO"
-DEFAULT_LOG_FILE = Path("/tmp/log/routershell.log")
+DEFAULT_LOG_FILE = ROUTERSHELL_DEFAULT_LOG_FILE
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024
 DEFAULT_LOG_BACKUP_COUNT = 5
 
