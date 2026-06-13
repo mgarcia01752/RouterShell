@@ -10,8 +10,8 @@ setuptools.errors.InvalidConfigError: License classifiers have been superseded b
 ```
 
 Update RouterShell to a version whose `pyproject.toml` uses the SPDX
-`license = "GPL-2.0-or-later"` expression without the deprecated GPL license
-classifier, then rerun the installer:
+`license = "Apache-2.0"` expression without deprecated license classifiers,
+then rerun the installer:
 
 ```bash
 sudo ./install/install.sh --development

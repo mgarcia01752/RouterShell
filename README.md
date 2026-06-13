@@ -176,4 +176,9 @@ Release helper scripts live under `tools/release/`:
 See [RouterShell Release Helpers](tools/release/README.md) for version checks,
 dry runs, releases, and commit reports.
 
+## License
+
+RouterShell is licensed under the [Apache License 2.0](LICENSE). Distributions
+must retain the [NOTICE](NOTICE) file.
+
 ## [TODO](todo.md)

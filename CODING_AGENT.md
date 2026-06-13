@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Maurice Garcia -->
 
 # AGENTS.md
@@ -206,7 +206,7 @@ Use this Summary block at the very top of every `*.review.md` bundle (before any
 
 ## Repo Hygiene
 
-- License is GPL-2.0-or-later; keep SPDX headers aligned with `LICENSE`.
+- License is Apache-2.0; keep SPDX headers aligned with `LICENSE` and `NOTICE`.
 - For any modified or newly created file, update the SPDX header year to 2026.
 - If a file already has a SPDX year and the year has changed, update it as a range (example: 2025 -> 2025-2026).
 - Keep implementation code inside packages such as `routershell/` or `lib/`; do not add loose root-level Python modules unless they are established project entry points or standard configuration files.
