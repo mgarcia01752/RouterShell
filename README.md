@@ -99,7 +99,13 @@ routershell
 ## Run RouterShell From Source
 
 ```bash
-./start.sh
+python3 -m routershell
+```
+
+Run the factory reset workflow from source with:
+
+```bash
+python3 -m routershell --factory-reset
 ```
 
 ## Python Development Install
@@ -151,6 +157,12 @@ Git helper scripts live under `tools/git/`:
 
 See [RouterShell Git Helpers](tools/git/README.md) for save, push, and guarded branch
 history reset workflows.
+
+## Tools
+
+Operational and development tools are grouped under `tools/` by purpose.
+Review [RouterShell Tools Layout](tools/reference/tools-layout.md) before
+running scripts that can alter disks, networking, packages, or services.
 
 ## Release Helpers
 

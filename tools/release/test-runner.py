@@ -202,7 +202,8 @@ class RouterShellTestRunner:
 
         print("\nTest summary")
         print(f"Files: {summary.successful_files}/{summary.total_files} passed")
-        print(f"Tests: {summary.total_tests - summary.total_failures - summary.total_errors}/{summary.total_tests} passed")
+        passed_tests = summary.total_tests - summary.total_failures - summary.total_errors
+        print(f"Tests: {passed_tests}/{summary.total_tests} passed")
         print(f"Failures: {summary.total_failures}")
         print(f"Errors: {summary.total_errors}")
         print(f"Skipped: {summary.total_skipped}")

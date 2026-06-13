@@ -44,9 +44,9 @@ The save and push helpers run these RouterShell checks by default:
 
 ```bash
 ./tools/release/check_version.py
-python3 -m py_compile routershell/__init__.py routershell/_version.py routershell/cli.py lib/__init__.py
-python3 -m compileall -q routershell src lib tools/release tools/support bridge_factory.py bridge_db-test.py test.py
-bash -n start.sh install/install.sh install/uninstall.sh tools/git/git-save.sh tools/git/git-push.sh tools/git/git-reset-branch-history.sh tools/git/git-common.sh
+python3 -m py_compile routershell/__init__.py routershell/__main__.py routershell/_version.py routershell/cli.py lib/__init__.py
+python3 -m compileall -q routershell lib tests tools/examples tools/hardware tools/release tools/support
+find start.sh install tools -path "tools/agent-review" -prune -o -name "*.sh" -exec bash -n {} \;
 ```
 
 If `pytest` or `ruff` are installed, the helpers also run:
