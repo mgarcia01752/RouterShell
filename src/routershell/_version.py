@@ -5,7 +5,10 @@ from __future__ import annotations
 from importlib.metadata import version as package_version
 from pathlib import Path
 
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 UNKNOWN_VERSION = "0.0.0+unknown"
 

@@ -12,7 +12,10 @@ import sys
 from pathlib import Path
 from typing import Final
 
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 PYPROJECT_FILE_PATH: Final[Path] = Path("pyproject.toml")
 DOC_TAG_ROOT: Final[Path] = Path("doc")

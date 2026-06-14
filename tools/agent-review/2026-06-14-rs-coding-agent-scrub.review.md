@@ -1,3 +1,26 @@
+### Summary
+Scrubbed RouterShell coding-agent instructions so they remain RouterShell-specific. Removed the PyPNM FastAPI guidance block and replaced remaining PyPNM/CMTS wording with RouterShell-focused guidance.
+
+### Modified Files
+- CODING_AGENT.md
+
+### Commands Executed And Results
+- `rg -n "PyPNM|FastAPI|pypnm|APIRouter|CMTS|cable modem|src/pypnm|Router files|Prefer POST|time\.sleep" CODING_AGENT.md || true` -> pass, no matches.
+- `sed -n '1,260p' CODING_AGENT.md` -> pass, inspected updated instructions.
+- `sed -n '1,220p' README.md` -> pass, self-check context reviewed.
+
+### Tests
+- `pytest` -> not run; documentation-only CA instruction cleanup.
+- `ruff` -> not run; documentation-only CA instruction cleanup.
+- `rg` -> pass, no PyPNM/FastAPI-specific wording remains in `CODING_AGENT.md`.
+
+### Notes / Warnings
+- The DB backend migration section remains because it references RouterShell design docs, but the PyPNM ownership bullet was removed.
+
+### Remaining TODOs / Follow-Ups
+- None.
+
+# FILE: CODING_AGENT.md
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright (c) 2026 Maurice Garcia -->
 

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -18,6 +21,16 @@ def test_pyproject_declares_console_entry_points() -> None:
 
     assert scripts["routershell"] == "routershell.cli:main"
     assert scripts["routershell-factory-reset"] == "routershell.cli:factory_reset"
+
+
+def test_pyproject_declares_python_310_tomli_dependency() -> None:
+    """Verify Python 3.10 installs the TOML parser backport."""
+    with (PROJECT_ROOT / "pyproject.toml").open("rb") as handle:
+        pyproject = tomllib.load(handle)
+
+    dependencies = pyproject["project"]["dependencies"]
+
+    assert "tomli>=2.0; python_version < '3.11'" in dependencies
 
 
 def test_routershell_entry_point_functions_are_importable() -> None:

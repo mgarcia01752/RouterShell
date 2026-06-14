@@ -51,7 +51,10 @@ def _build_commands(include_pyright: bool, include_pycycle: bool, pytest_args: S
                 python_bin,
                 "-c",
                 (
-                    "import tomllib; "
+                    "try:\n"
+                    "    import tomllib\n"
+                    "except ModuleNotFoundError:\n"
+                    "    import tomli as tomllib\n"
                     "from pathlib import Path; "
                     "data = tomllib.loads(Path('pyproject.toml').read_text()); "
                     "assert data['project']['name'] == 'routershell'; "

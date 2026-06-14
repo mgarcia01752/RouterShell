@@ -1,4 +1,30 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Maurice Garcia -->
+
 # RouterShell FAQ
+
+## Python 3.10 CI fails with missing tomllib
+
+If the Python 3.10 GitHub Actions job fails during `python -m pytest -q` with
+this error:
+
+```text
+ModuleNotFoundError: No module named 'tomllib'
+```
+
+make sure RouterShell includes the Python 3.10 TOML backport dependency and
+uses the compatibility import fallback:
+
+```python
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+```
+
+The `tomllib` module is built into Python 3.11 and newer. Python 3.10 needs
+`tomli`, which is installed through the conditional `pyproject.toml`
+dependency.
 
 ## Install fails with setuptools InvalidConfigError
 
