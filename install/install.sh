@@ -549,6 +549,25 @@ warn_port_53_owner() {
   fi
 }
 
+restore_local_project_ownership() {
+  local egg_info_dir
+
+  if [[ "${VENV_DIR}" != "${LOCAL_VENV_DIR}" ]]; then
+    return
+  fi
+
+  if [[ -z "${SUDO_UID:-}" || -z "${SUDO_GID:-}" ]]; then
+    return
+  fi
+
+  chown -R "${SUDO_UID}:${SUDO_GID}" "${VENV_DIR}"
+
+  for egg_info_dir in "${PROJECT_ROOT}"/src/*.egg-info; do
+    [[ -e "${egg_info_dir}" ]] || continue
+    chown -R "${SUDO_UID}:${SUDO_GID}" "${egg_info_dir}"
+  done
+}
+
 install_runtime_package() {
   local install_dev_dependencies="false"
   local venv_parent
@@ -566,6 +585,7 @@ install_runtime_package() {
 
   python3 -m venv "${VENV_DIR}"
   "${VENV_DIR}/bin/python" -m pip install --upgrade pip
+  restore_local_project_ownership
 
   if [[ "${install_dev_dependencies}" == "true" ]]; then
     "${VENV_DIR}/bin/python" -m pip install -e "${PROJECT_ROOT}[dev]"
@@ -573,9 +593,7 @@ install_runtime_package() {
     "${VENV_DIR}/bin/python" -m pip install "${PROJECT_ROOT}"
   fi
 
-  if [[ "${VENV_DIR}" == "${LOCAL_VENV_DIR}" && -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" ]]; then
-    chown -R "${SUDO_UID}:${SUDO_GID}" "${VENV_DIR}"
-  fi
+  restore_local_project_ownership
 }
 
 install_launchers() {

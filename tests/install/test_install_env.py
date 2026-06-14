@@ -209,6 +209,54 @@ install_runtime_package
     assert "[dev]" not in log_text
 
 
+def test_local_runtime_install_restores_generated_metadata_ownership(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    venv_dir = project_root / ".venv"
+    egg_info_dir = project_root / "src" / "routershell.egg-info"
+    command_log = tmp_path / "commands.log"
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    egg_info_dir.mkdir(parents=True)
+    python3 = bin_dir / "python3"
+    python3.write_text(
+        "#!/usr/bin/env bash\n"
+        f"printf 'python3 %s\\n' \"$*\" >> {command_log}\n"
+        "if [[ \"$1 $2\" == '-m venv' ]]; then\n"
+        "  mkdir -p \"$3/bin\"\n"
+        "  cat > \"$3/bin/python\" <<'PYEOF'\n"
+        "#!/usr/bin/env bash\n"
+        f"printf 'venv-python %s\\n' \"$*\" >> {command_log}\n"
+        "PYEOF\n"
+        "  chmod +x \"$3/bin/python\"\n"
+        "fi\n"
+    )
+    python3.chmod(0o755)
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+export PATH={bin_dir}:$PATH
+export SUDO_UID=1000
+export SUDO_GID=1000
+source install/install.sh
+PROJECT_ROOT={project_root}
+LOCAL_ENV_FILE="${{PROJECT_ROOT}}/.env"
+LOCAL_VENV_DIR="${{PROJECT_ROOT}}/.venv"
+ACTIVE_ENV_FILE="${{LOCAL_ENV_FILE}}"
+VENV_DIR="${{LOCAL_VENV_DIR}}"
+DEVELOPMENT_INSTALL=false
+chown() {{
+  printf 'chown %s\\n' "$*" >> {command_log}
+}}
+install_runtime_package
+"""
+
+    _run_bash(script)
+    log_text = command_log.read_text()
+
+    assert log_text.count(f"chown -R 1000:1000 {venv_dir}") == 2
+    assert log_text.count(f"chown -R 1000:1000 {egg_info_dir}") == 2
+
+
 def test_existing_env_gets_missing_required_defaults(tmp_path: Path) -> None:
     project_root = tmp_path / "project"
     local_env = project_root / ".env"

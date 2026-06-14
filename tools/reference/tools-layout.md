@@ -16,6 +16,7 @@ identify before running them.
   modify system files unless an explicit output path or flag is provided.
 - `git/`: RouterShell Git save, push, and branch-history helpers.
 - `hardware/`: Host hardware inspection helpers.
+- `maintenance/`: Repository cleanup helpers for generated local artifacts.
 - `network/`: Network lab and interface mutation helpers. These can change host
   links, routes, firewall state, and wireless services.
 - `reference/`: Captured command references and static notes.
