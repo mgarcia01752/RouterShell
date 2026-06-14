@@ -119,6 +119,16 @@ After installation, run:
 routershell
 ```
 
+Apply a RouterShell command file and exit:
+
+```bash
+routershell --config-file ./config/startup-config.cfg
+```
+
+The command file uses the same RouterShell commands that can be pasted into the
+interactive CLI. Validate configuration files in a disposable VM before using
+them on a real host.
+
 ## Runtime Logging
 
 RouterShell writes runtime logs to `/tmp/log/routershell.log` by default.

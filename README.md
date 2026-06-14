@@ -122,10 +122,26 @@ sudo ./install/install.sh
 routershell
 ```
 
+Apply a command file and exit:
+
+```bash
+routershell --config-file ./config/startup-config.cfg
+```
+
+The file uses the same RouterShell commands that can be pasted into the
+interactive CLI. Test configuration files in the disposable VM workflow before
+applying them to a real host.
+
 ## Run RouterShell From Source
 
 ```bash
 PYTHONPATH=src python3 -m routershell
+```
+
+Apply a command file from source:
+
+```bash
+PYTHONPATH=src python3 -m routershell --config-file ./config/startup-config.cfg
 ```
 
 Run the factory reset workflow from source with:

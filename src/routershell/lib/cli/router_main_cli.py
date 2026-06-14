@@ -3,10 +3,12 @@ import logging
 from routershell.lib.cli.base.clear_mode import ClearMode
 from routershell.lib.cli.base.copy import Copy
 from routershell.lib.cli.base.global_cmd_op import Global
-from routershell.lib.cli.common.router_prompt import RouterPrompt
+from routershell.lib.cli.common.router_prompt import PromptFeeder, RouterPrompt
 from routershell.lib.cli.config.config import Configure
 from routershell.lib.cli.show.show import Show
+from routershell.lib.common.constants import STATUS_OK
 from routershell.lib.common.router_shell_log_control import RouterShellLoggerSettings as RSLS
+from routershell.lib.common.types import FilePath, StatusResult
 from routershell.lib.system.system_call import SystemCall
 from routershell.lib.system.system_start_up import SystemStartUp
 
@@ -65,6 +67,24 @@ class RouterCLI(RouterPrompt):
         banner_motd = SystemCall().get_banner()
         self.intro = f"\n{banner_motd}\n" if banner_motd else "Welcome to the Router CLI!\n"
 
-    def run(self):
+    def run(self, config_file: FilePath | None = None) -> StatusResult:
+        """
+        Start RouterShell interactively or apply a command file.
+
+        Args:
+            config_file (FilePath | None): Optional file containing RouterShell
+                commands to process through the same command path used by
+                pasted interactive commands. When provided, RouterShell exits
+                after the file is processed.
+
+        Returns:
+            StatusResult: STATUS_OK when the CLI session or file processing
+            completes successfully.
+        """
         print(self.intro)
+        if config_file:
+            prompt_feeder = PromptFeeder(PromptFeeder.process_file(config_file))
+            return self.start(prompt_feeder)
+
         self.start()
+        return STATUS_OK

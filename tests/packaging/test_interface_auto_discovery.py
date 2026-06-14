@@ -4,6 +4,8 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 
 def test_cli_entrypoint_enables_system_startup(monkeypatch) -> None:
     startup_values = []
@@ -21,8 +23,53 @@ def test_cli_entrypoint_enables_system_startup(monkeypatch) -> None:
 
     from routershell import cli
 
-    assert cli.main() == 0
+    assert cli.main([]) == 0
     assert startup_values == [True]
+
+
+def test_cli_entrypoint_loads_config_file(monkeypatch, tmp_path: Path) -> None:
+    startup_values = []
+    config_files = []
+    config_file = tmp_path / "lab-router.cfg"
+    config_file.write_text("enable\nshow running-config\n")
+
+    class FakeRouterCLI:
+        def __init__(self, system_start_up: bool = False) -> None:
+            startup_values.append(system_start_up)
+
+        def run(self, config_file: Path | None = None) -> None:
+            config_files.append(config_file)
+
+    fake_module = types.ModuleType("routershell.lib.cli.router_main_cli")
+    fake_module.RouterCLI = FakeRouterCLI
+    monkeypatch.setitem(sys.modules, "routershell.lib.cli.router_main_cli", fake_module)
+
+    from routershell import cli
+
+    assert cli.main(["--config-file", str(config_file)]) == 0
+    assert startup_values == [True]
+    assert config_files == [config_file]
+
+
+def test_cli_entrypoint_rejects_missing_config_file(monkeypatch, tmp_path: Path) -> None:
+    startup_values = []
+    missing_config_file = tmp_path / "missing.cfg"
+
+    class FakeRouterCLI:
+        def __init__(self, system_start_up: bool = False) -> None:
+            startup_values.append(system_start_up)
+
+    fake_module = types.ModuleType("routershell.lib.cli.router_main_cli")
+    fake_module.RouterCLI = FakeRouterCLI
+    monkeypatch.setitem(sys.modules, "routershell.lib.cli.router_main_cli", fake_module)
+
+    from routershell import cli
+
+    with pytest.raises(SystemExit) as error:
+        cli.main(["--config-file", str(missing_config_file)])
+
+    assert error.value.code == 2
+    assert startup_values == []
 
 
 def test_os_interface_discovery_uses_unprivileged_ip(monkeypatch) -> None:
