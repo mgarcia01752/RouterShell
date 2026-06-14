@@ -1,3 +1,31 @@
+### Summary
+Moved the Python development install and validation workflow out of the root README into a dedicated development README. The root README now links to the focused guide, and tests cover that the detailed commands live in the new document.
+
+### Modified Files
+- README.md
+- doc/development/README.md
+- tests/tools/test_ci_workflow.py
+
+### Commands Executed And Results
+- `/opt/routershell/venv/bin/python -m pytest tests/tools/test_ci_workflow.py -q` -> pass, 3 passed.
+- `/opt/routershell/venv/bin/python -m ruff check tests/tools/test_ci_workflow.py` -> pass, all checks passed.
+- `rg -n "Python Development Install|python -m build|routershell-software-qa-checker" README.md || true` -> pass, no matches in root README.
+- `/opt/routershell/venv/bin/python -m pytest -q` -> pass, 61 passed.
+- `/opt/routershell/venv/bin/python -m ruff check .` -> pass, all checks passed.
+- `bash -n tools/vm/*.sh install/install.sh install/uninstall.sh tools/maintenance/clean.sh` -> pass.
+
+### Tests
+- `pytest` -> pass, 61 passed.
+- `ruff` -> pass, all checks passed.
+- `bash -n` -> pass for VM, install, uninstall, and maintenance scripts.
+
+### Notes / Warnings
+- Documentation-only workflow split; no runtime behavior changed.
+
+### Remaining TODOs / Follow-Ups
+- None.
+
+# FILE: README.md
 # RouterShell (WORK IN PROGRESS)
 
 [![CI](https://github.com/mgarcia01752/RouterShell/actions/workflows/ci.yml/badge.svg)](https://github.com/mgarcia01752/RouterShell/actions/workflows/ci.yml)
@@ -192,3 +220,120 @@ RouterShell is licensed under the [Apache License 2.0](LICENSE). Distributions
 must retain the [NOTICE](NOTICE) file.
 
 ## [TODO](todo.md)
+
+# FILE: doc/development/README.md
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Maurice Garcia -->
+
+# RouterShell Python Development
+
+RouterShell includes Python packaging metadata in `pyproject.toml`.
+
+For installer-managed local development, use the local environment install:
+
+```bash
+sudo ./install/install.sh --local-env
+.venv/bin/python -m pytest
+```
+
+For manual local development, use an isolated virtual environment and install
+the project in editable mode:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+After installation, run the CLI entry point:
+
+```bash
+routershell
+```
+
+Factory reset is also exposed as a console entry point:
+
+```bash
+routershell-factory-reset
+```
+
+Runtime logs default to `/tmp/log/routershell.log`. Override logging for one
+run with environment variables such as:
+
+```bash
+ROUTERSHELL_LOG_LEVEL=DEBUG routershell
+```
+
+Build distribution artifacts with:
+
+```bash
+python -m build
+```
+
+Run validation with:
+
+```bash
+python -m pytest
+python -m ruff check .
+```
+
+Or run the standard software QA sweep with:
+
+```bash
+routershell-software-qa-checker
+```
+
+See [RouterShell Software QA Checker](../tests/software-qa.md) for the full
+check sequence and options.
+
+# FILE: tests/tools/test_ci_workflow.py
+"""CI workflow metadata tests."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+README = REPO_ROOT / "README.md"
+DEVELOPMENT_README = REPO_ROOT / "doc" / "development" / "README.md"
+CI_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "ci.yml"
+
+
+def test_readme_documents_supported_platforms() -> None:
+    readme = README.read_text()
+
+    assert "actions/workflows/ci.yml/badge.svg" in readme
+    assert "python-3.10--3.13-blue" in readme
+    assert "ubuntu-22.04%20%7C%2024.04-orange" in readme
+    assert "Ubuntu 22.04 LTS" in readme
+    assert "Ubuntu 24.04 LTS" in readme
+    assert "Python 3.10 through Python 3.13" in readme
+
+
+def test_readme_links_python_development_guide() -> None:
+    readme = README.read_text()
+    development_readme = DEVELOPMENT_README.read_text()
+
+    assert "doc/development/README.md" in readme
+    assert "python -m build" not in readme
+    assert "python -m build" in development_readme
+    assert "routershell-software-qa-checker" in development_readme
+
+
+def test_ci_workflow_covers_supported_matrix() -> None:
+    workflow = CI_WORKFLOW.read_text()
+
+    assert "ubuntu-22.04" in workflow
+    assert "ubuntu-24.04" in workflow
+    assert '"3.10"' in workflow
+    assert '"3.11"' in workflow
+    assert '"3.12"' in workflow
+    assert '"3.13"' in workflow
+    assert "actions/checkout@v5" in workflow
+    assert "ref: ${{ github.sha }}" in workflow
+    assert "actions/setup-python@v6" in workflow
+    assert "python -m pytest -q" in workflow
+    assert "python -m ruff check ." in workflow
+    assert "bash -n tools/vm/*.sh install/install.sh" in workflow
+
