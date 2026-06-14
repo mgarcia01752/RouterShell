@@ -9,6 +9,7 @@ STATE_DIR="${ROUTERSHELL_STATE_DIR:-/var/lib/routershell}"
 SYSTEM_ENV_DIR="${ROUTERSHELL_SYSTEM_ENV_DIR:-/etc/routershell}"
 SYSTEM_ENV_FILE="${ROUTERSHELL_SYSTEM_ENV_FILE:-${SYSTEM_ENV_DIR}/routershell.env}"
 LOCAL_ENV_FILE="${PROJECT_ROOT}/.env"
+LOCAL_VENV_DIR="${PROJECT_ROOT}/.venv"
 BASELINE_DIR="${STATE_DIR}/baseline"
 VENV_DIR="${INSTALL_ROOT}/venv"
 SKIP_OS_PACKAGES="false"
@@ -145,6 +146,14 @@ select_env_file() {
       die "Unsupported environment file scope: ${ENV_SCOPE}"
       ;;
   esac
+}
+
+select_python_venv() {
+  if [[ "${ACTIVE_ENV_FILE}" == "${LOCAL_ENV_FILE}" ]]; then
+    VENV_DIR="${LOCAL_VENV_DIR}"
+  else
+    VENV_DIR="${INSTALL_ROOT}/venv"
+  fi
 }
 
 require_root() {
@@ -541,14 +550,31 @@ warn_port_53_owner() {
 }
 
 install_runtime_package() {
-  install -d -m 0755 "${INSTALL_ROOT}"
+  local install_dev_dependencies="false"
+  local venv_parent
+
+  if [[ "${DEVELOPMENT_INSTALL}" == "true" || "${ACTIVE_ENV_FILE}" == "${LOCAL_ENV_FILE}" ]]; then
+    install_dev_dependencies="true"
+  fi
+
+  if [[ "${VENV_DIR}" == "${LOCAL_VENV_DIR}" ]]; then
+    venv_parent="$(dirname "${VENV_DIR}")"
+    install -d -m 0755 "${venv_parent}"
+  else
+    install -d -m 0755 "${INSTALL_ROOT}"
+  fi
+
   python3 -m venv "${VENV_DIR}"
   "${VENV_DIR}/bin/python" -m pip install --upgrade pip
 
-  if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
+  if [[ "${install_dev_dependencies}" == "true" ]]; then
     "${VENV_DIR}/bin/python" -m pip install -e "${PROJECT_ROOT}[dev]"
   else
     "${VENV_DIR}/bin/python" -m pip install "${PROJECT_ROOT}"
+  fi
+
+  if [[ "${VENV_DIR}" == "${LOCAL_VENV_DIR}" && -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" ]]; then
+    chown -R "${SUDO_UID}:${SUDO_GID}" "${VENV_DIR}"
   fi
 }
 
@@ -593,6 +619,7 @@ main() {
   reject_embedded_targets
   detect_package_manager
   select_env_file
+  select_python_venv
 
   log "Detected ${OS_NAME} with package manager: ${PACKAGE_MANAGER}"
   capture_baseline_snapshot
@@ -618,8 +645,8 @@ main() {
     log "Skipping RouterShell Python package installation."
   else
     check_python_venv
-    if [[ "${DEVELOPMENT_INSTALL}" == "true" ]]; then
-      log "Installing RouterShell in development mode."
+    if [[ "${DEVELOPMENT_INSTALL}" == "true" || "${ACTIVE_ENV_FILE}" == "${LOCAL_ENV_FILE}" ]]; then
+      log "Installing RouterShell editable with development dependencies."
     else
       log "Installing RouterShell in production runtime mode."
     fi

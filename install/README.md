@@ -80,6 +80,15 @@ Force a repo-local `.env` file:
 sudo ./install/install.sh --local-env
 ```
 
+Local environment installs use the project `.venv` and install RouterShell
+editable with development dependencies. After a local environment install,
+project-local tools such as pytest are available from the repository:
+
+```bash
+cd ~/Projects/RouterShell
+.venv/bin/python -m pytest
+```
+
 Force the system environment file:
 
 ```bash
@@ -212,7 +221,8 @@ sudo ./install/uninstall.sh --install-root /opt/routershell --bin-dir /usr/local
 - The generic installer is intended for normal Linux distributions first.
 - Production install is the default; development install requires `--development`.
 - Production installs use the system environment file by default.
-- Development installs use the repo-local `.env` file by default.
+- Development installs use the repo-local `.env` file and project `.venv` by default.
+- Local environment installs use the project `.venv` with development dependencies.
 - Baseline snapshot capture is enabled by default and is not overwritten unless `--force-snapshot` is used.
 - Baseline snapshots are saved root-only under `/var/lib/routershell/baseline`.
 - Restore is intentionally not part of uninstall; it should be a separate explicit workflow.

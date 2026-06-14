@@ -153,8 +153,15 @@ PYTHONPATH=src python3 -m routershell --factory-reset
 ## Python Development Install
 
 RouterShell now includes Python packaging metadata in `pyproject.toml`.
-For local development, use an isolated virtual environment and install the
-project in editable mode:
+For installer-managed local development, use the local environment install:
+
+```bash
+sudo ./install/install.sh --local-env
+.venv/bin/python -m pytest
+```
+
+For manual local development, use an isolated virtual environment and install
+the project in editable mode:
 
 ```bash
 python3 -m venv .venv
