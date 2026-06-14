@@ -26,6 +26,23 @@ The `tomllib` module is built into Python 3.11 and newer. Python 3.10 needs
 `tomli`, which is installed through the conditional `pyproject.toml`
 dependency.
 
+## Release CI checks out an ambiguous version ref
+
+If every GitHub Actions matrix job fails at `python -m pytest -q` after a
+release push, check whether a branch and tag share the same version name, such
+as `v0.1.6`. Ambiguous release refs can make checkout behavior harder to
+reason about.
+
+RouterShell CI checks out the exact triggering commit SHA:
+
+```yaml
+ref: ${{ github.sha }}
+```
+
+Keep the workflow on Node 24-compatible action versions, such as
+`actions/checkout@v5` and `actions/setup-python@v6`, so runner deprecation
+warnings do not hide the real test failure.
+
 ## Install fails with setuptools InvalidConfigError
 
 If `sudo ./install/install.sh --development` fails while getting editable

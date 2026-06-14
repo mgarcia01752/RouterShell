@@ -29,6 +29,9 @@ def test_ci_workflow_covers_supported_matrix() -> None:
     assert '"3.11"' in workflow
     assert '"3.12"' in workflow
     assert '"3.13"' in workflow
+    assert "actions/checkout@v5" in workflow
+    assert "ref: ${{ github.sha }}" in workflow
+    assert "actions/setup-python@v6" in workflow
     assert "python -m pytest -q" in workflow
     assert "python -m ruff check ." in workflow
     assert "bash -n tools/vm/*.sh install/install.sh" in workflow
