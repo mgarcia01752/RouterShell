@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as package_version
 from pathlib import Path
 
 import tomllib
+
+UNKNOWN_VERSION = "0.0.0+unknown"
 
 
 def _read_source_tree_version() -> str:
@@ -16,16 +17,25 @@ def _read_source_tree_version() -> str:
         with pyproject_path.open("rb") as handle:
             pyproject = tomllib.load(handle)
     except OSError:
-        return "0.0.0+unknown"
+        return UNKNOWN_VERSION
 
     project = pyproject.get("project", {})
-    version = project.get("version", "0.0.0+unknown")
+    version = project.get("version", UNKNOWN_VERSION)
     if not isinstance(version, str):
-        return "0.0.0+unknown"
+        return UNKNOWN_VERSION
     return version
 
 
-try:
-    __version__: str = package_version("routershell")
-except PackageNotFoundError:
-    __version__ = _read_source_tree_version()
+def _read_package_version() -> str:
+    """Read the installed package metadata version."""
+    try:
+        return package_version("routershell")
+    except Exception:
+        return UNKNOWN_VERSION
+
+
+source_tree_version = _read_source_tree_version()
+if source_tree_version != UNKNOWN_VERSION:
+    __version__: str = source_tree_version
+else:
+    __version__ = _read_package_version()
