@@ -16,6 +16,7 @@ SKIP_OS_PACKAGES="false"
 SKIP_PYTHON_PACKAGE="false"
 DEVELOPMENT_INSTALL="false"
 INSTALL_VM_TOOLS="${ROUTERSHELL_INSTALL_VM_TOOLS:-true}"
+INSTALL_GITHUB_CLI="${ROUTERSHELL_INSTALL_GITHUB_CLI:-true}"
 SKIP_SNAPSHOT="false"
 FORCE_SNAPSHOT="false"
 SNAPSHOT_ONLY="false"
@@ -32,7 +33,7 @@ Usage:
 Options:
   --install-root       Runtime install root. Default: /opt/routershell
   --bin-dir            Directory for command launchers. Default: /usr/local/bin
-  --development        Install RouterShell editable with development dependencies and VM test tooling.
+  --development        Install RouterShell editable with development dependencies, GitHub CLI, and VM test tooling.
   --local-env          Create/load a repo-local .env file.
   --global-env         Create/load the system env file. Default for production.
   --global             Alias for --global-env.
@@ -536,6 +537,42 @@ install_development_vm_tools() {
   snap install multipass
 }
 
+install_development_github_cli() {
+  if [[ "${DEVELOPMENT_INSTALL}" != "true" ]]; then
+    return
+  fi
+
+  if [[ "${INSTALL_GITHUB_CLI}" == "false" ]]; then
+    log "Skipping GitHub CLI by ROUTERSHELL_INSTALL_GITHUB_CLI=false."
+    return
+  fi
+
+  if command -v gh >/dev/null 2>&1; then
+    log "GitHub CLI is already installed."
+    return
+  fi
+
+  if [[ "${SKIP_OS_PACKAGES}" == "true" ]]; then
+    die "GitHub CLI is required for development CI log inspection. Re-run without --skip-os-packages or install gh first."
+  fi
+
+  log "Installing GitHub CLI for RouterShell development CI log inspection."
+  case "${PACKAGE_MANAGER}" in
+    apt)
+      apt-get install -y gh
+      ;;
+    dnf|yum)
+      "${PACKAGE_MANAGER}" install -y gh
+      ;;
+    zypper)
+      zypper --non-interactive install -y gh
+      ;;
+    *)
+      die "Unsupported package manager for GitHub CLI install: ${PACKAGE_MANAGER}"
+      ;;
+  esac
+}
+
 check_python_venv() {
   if ! python3 -m venv --help >/dev/null 2>&1; then
     die "python3 venv support is not available after package installation."
@@ -653,6 +690,7 @@ main() {
     install_os_packages
   fi
 
+  install_development_github_cli
   install_development_vm_tools
 
   warn_port_53_owner

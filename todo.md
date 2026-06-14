@@ -7,6 +7,8 @@
   compatibility errors are fixed.
 - Keep release-ref troubleshooting notes current when CI checkout behavior
   changes.
+- Keep CI database-path troubleshooting notes current when hermetic test setup
+  changes.
 - Keep install troubleshooting notes current when installer errors are fixed.
 - Keep IDE import troubleshooting notes current when workspace settings change.
 - Keep runtime database troubleshooting notes current when DB path handling changes.

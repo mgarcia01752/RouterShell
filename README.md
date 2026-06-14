@@ -114,6 +114,7 @@ workstation. Use `--development` only when testing editable installs with dev
 dependencies; see [RouterShell VM Install Testing](tools/vm/README.md).
 The VM workflow creates ten virtual network interfaces by default to simulate
 a network-device install target.
+Development installs also install GitHub CLI (`gh`) for inspecting CI logs.
 On apt/snapd systems, `--development` also installs Multipass for the VM
 workflow.
 

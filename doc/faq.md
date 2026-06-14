@@ -43,6 +43,19 @@ Keep the workflow on Node 24-compatible action versions, such as
 `actions/checkout@v5` and `actions/setup-python@v6`, so runner deprecation
 warnings do not hide the real test failure.
 
+## CI tests fail with permission denied for /var/lib/routershell
+
+If GitHub Actions fails in `python -m pytest -q` with this error:
+
+```text
+PermissionError: [Errno 13] Permission denied: '/var/lib/routershell'
+```
+
+a test imported a RouterShell module that constructs a database object before
+the test selected a temporary `ROUTERSHELL_DB_FILE`. Tests that import
+DB-backed modules must set `ROUTERSHELL_DB_FILE` to a `tmp_path` database before
+the import, because CI runners cannot create `/var/lib/routershell`.
+
 ## Install fails with setuptools InvalidConfigError
 
 If `sudo ./install/install.sh --development` fails while getting editable

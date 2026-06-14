@@ -70,9 +70,17 @@ dependencies from `pyproject.toml`. Use this for VM-based installer testing or
 developer validation, not production hosts. Development mode creates a
 repo-local `.env` file and the RouterShell launchers load it before starting
 the CLI.
+Development mode also installs GitHub CLI (`gh`) so failed GitHub Actions logs
+can be inspected from the development workstation.
 On apt/snapd systems, development mode also installs Multipass so the
 `tools/vm/` installer test workflow can create disposable RouterShell test VMs.
-Production installs do not install Multipass.
+Production installs do not install GitHub CLI or Multipass.
+
+Skip development GitHub CLI installation when needed:
+
+```bash
+sudo ROUTERSHELL_INSTALL_GITHUB_CLI=false ./install/install.sh --development
+```
 
 Force a repo-local `.env` file:
 

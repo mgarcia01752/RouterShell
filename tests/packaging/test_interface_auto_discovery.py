@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+TEST_DB_FILE_ENV = "ROUTERSHELL_DB_FILE"
+
 
 def test_cli_entrypoint_enables_system_startup(monkeypatch) -> None:
     startup_values = []
@@ -72,7 +74,9 @@ def test_cli_entrypoint_rejects_missing_config_file(monkeypatch, tmp_path: Path)
     assert startup_values == []
 
 
-def test_os_interface_discovery_uses_unprivileged_ip(monkeypatch) -> None:
+def test_os_interface_discovery_uses_unprivileged_ip(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv(TEST_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+
     from routershell.lib.network_manager.common.run_commands import RunResult
     from routershell.lib.network_manager.network_operations.interface import Interface
 
@@ -105,6 +109,8 @@ def test_os_interface_discovery_uses_unprivileged_ip(monkeypatch) -> None:
 
 
 def test_blank_database_is_populated_from_os_interfaces(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv(TEST_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+
     from routershell.lib.common.constants import ROUTER_SHELL_DB_FILE_ENV, STATUS_OK
     from routershell.lib.common.singleton import Singleton
     from routershell.lib.db.interface_db import InterfaceDatabase
@@ -113,7 +119,7 @@ def test_blank_database_is_populated_from_os_interfaces(monkeypatch, tmp_path: P
     from routershell.lib.network_manager.common.phy import State
     from routershell.lib.network_manager.network_operations.interface import Interface
 
-    monkeypatch.setenv(ROUTER_SHELL_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+    assert ROUTER_SHELL_DB_FILE_ENV == TEST_DB_FILE_ENV
     Singleton._instances.pop(RouterShellDB, None)
     RouterShellDB.connection = None
     RouterShellDB.connection_created = False

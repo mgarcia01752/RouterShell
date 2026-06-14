@@ -330,6 +330,106 @@ install_development_vm_tools
     assert log_file.read_text().strip() == "install multipass"
 
 
+def test_development_install_installs_github_cli_with_apt(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    log_file = tmp_path / "apt.log"
+    bin_dir.mkdir()
+    apt_get = bin_dir / "apt-get"
+    apt_get.write_text(f"#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> {log_file}\n")
+    apt_get.chmod(0o755)
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+export PATH={bin_dir}:$PATH
+source install/install.sh
+DEVELOPMENT_INSTALL=true
+PACKAGE_MANAGER=apt
+command() {{
+  if [[ "$1" == "-v" && "$2" == "gh" ]]; then
+    return 1
+  fi
+  builtin command "$@"
+}}
+install_development_github_cli
+"""
+
+    _run_bash(script)
+
+    assert log_file.read_text().strip() == "install -y gh"
+
+
+def test_production_install_skips_development_github_cli(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    log_file = tmp_path / "apt.log"
+    bin_dir.mkdir()
+    apt_get = bin_dir / "apt-get"
+    apt_get.write_text(f"#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> {log_file}\n")
+    apt_get.chmod(0o755)
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+export PATH={bin_dir}:$PATH
+source install/install.sh
+DEVELOPMENT_INSTALL=false
+PACKAGE_MANAGER=apt
+install_development_github_cli
+"""
+
+    _run_bash(script)
+
+    assert not log_file.exists()
+
+
+def test_development_github_cli_can_be_skipped_with_env(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    log_file = tmp_path / "apt.log"
+    bin_dir.mkdir()
+    apt_get = bin_dir / "apt-get"
+    apt_get.write_text(f"#!/usr/bin/env bash\nprintf '%s\\n' \"$*\" >> {log_file}\n")
+    apt_get.chmod(0o755)
+
+    script = f"""
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+export ROUTERSHELL_INSTALL_GITHUB_CLI=false
+export PATH={bin_dir}:$PATH
+source install/install.sh
+DEVELOPMENT_INSTALL=true
+PACKAGE_MANAGER=apt
+install_development_github_cli
+"""
+
+    _run_bash(script)
+
+    assert not log_file.exists()
+
+
+def test_development_github_cli_requires_os_packages_when_missing() -> None:
+    script = """
+export ROUTERSHELL_INSTALL_SH_NO_MAIN=true
+source install/install.sh
+DEVELOPMENT_INSTALL=true
+PACKAGE_MANAGER=apt
+SKIP_OS_PACKAGES=true
+command() {
+  if [[ "$1" == "-v" && "$2" == "gh" ]]; then
+    return 1
+  fi
+  builtin command "$@"
+}
+install_development_github_cli
+"""
+
+    result = subprocess.run(
+        ["bash", "-c", script],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "Re-run without --skip-os-packages or install gh first" in result.stderr
+
+
 def test_production_install_skips_development_vm_tools(tmp_path: Path) -> None:
     bin_dir = tmp_path / "bin"
     log_file = tmp_path / "snap.log"

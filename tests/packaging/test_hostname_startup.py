@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+TEST_DB_FILE_ENV = "ROUTERSHELL_DB_FILE"
+
 
 def test_seed_hostname_db_from_os_populates_blank_database(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv(TEST_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+
     from routershell.lib.common.constants import ROUTER_SHELL_DB_FILE_ENV, STATUS_OK
     from routershell.lib.common.singleton import Singleton
     from routershell.lib.db.interface_db import InterfaceDatabase
@@ -11,7 +15,7 @@ def test_seed_hostname_db_from_os_populates_blank_database(monkeypatch, tmp_path
     from routershell.lib.db.system_db import SystemDatabase
     from routershell.lib.system.system_call import SystemCall
 
-    monkeypatch.setenv(ROUTER_SHELL_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+    assert ROUTER_SHELL_DB_FILE_ENV == TEST_DB_FILE_ENV
     Singleton._instances.pop(RouterShellDB, None)
     RouterShellDB.connection = None
     RouterShellDB.connection_created = False
@@ -26,7 +30,9 @@ def test_seed_hostname_db_from_os_populates_blank_database(monkeypatch, tmp_path
     assert system_call.sys_db.get_hostname_db() == "dev01"
 
 
-def test_startup_seeds_hostname_without_reconfiguring_existing_hostname(monkeypatch) -> None:
+def test_startup_seeds_hostname_without_reconfiguring_existing_hostname(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv(TEST_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+
     from routershell.lib.common.constants import STATUS_OK
     from routershell.lib.system.system_start_up import SystemStartUp
 
@@ -53,7 +59,9 @@ def test_startup_seeds_hostname_without_reconfiguring_existing_hostname(monkeypa
     assert seed_calls == [True]
 
 
-def test_running_config_hostname_falls_back_to_os_hostname(monkeypatch) -> None:
+def test_running_config_hostname_falls_back_to_os_hostname(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setenv(TEST_DB_FILE_ENV, str(tmp_path / "routershell.db"))
+
     from routershell.lib.cli.show.router_configuration import RouterConfiguration
 
     class FakeSystemDatabase:
