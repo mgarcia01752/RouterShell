@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "routershell"
-version = "0.1.8"
+version = "0.1.9"
 description = "IOS-like Python CLI distribution for Linux router configuration workflows."
 readme = "README.md"
 requires-python = ">=3.10"
